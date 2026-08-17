@@ -26,7 +26,7 @@ The framework began with Claude Code and now separates the durable SDLC from per
 Clone the repository directly into one agent home:
 
 ```bash
-git clone <repository-url> ~/.codex/sdlc
+git clone https://github.com/tigger-developer/sdlc.git ~/.codex/sdlc
 ```
 
 Enter the clone and inspect the proposed installation and configuration recommendations. Analysis is the default and makes no changes:
@@ -54,7 +54,7 @@ Replace `codex` with `claude` or `copilot` as appropriate. For an unrecognized p
 Keep one physical clone at a stable path, then let each provider home contain a symlink named `sdlc`:
 
 ```bash
-git clone <repository-url> ~/code/sdlc
+git clone https://github.com/tigger-developer/sdlc.git ~/code/sdlc
 ```
 
 From `~/code/sdlc`, inspect and then apply each target independently:
