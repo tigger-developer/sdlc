@@ -1,0 +1,42 @@
+# Example additions for ~/.codex/config.toml.
+# Review and merge manually; this file is not live configuration.
+# Current key definitions:
+# https://learn.chatgpt.com/docs/config-file/config-reference.md
+
+# Default is 32768 bytes. Raise the instruction-doc budget to leave room for
+# global AGENTS.md plus project-local instructions during migration.
+project_doc_max_bytes = 65536
+
+# Transitional fallback: let Codex read project-local CLAUDE.md files when a
+# project has not yet been migrated to AGENTS.md.
+project_doc_fallback_filenames = ["CLAUDE.md"]
+
+# Conservative local automation profile. Codex documentation recommends
+# workspace-write + on-request as the lower-risk local automation preset.
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+allow_login_shell = false
+
+[sandbox_workspace_write]
+network_access = false
+
+[shell_environment_policy]
+inherit = "core"
+exclude = [
+    "AWS_*",
+    "ANTHROPIC_*",
+    "CLAUDE_*",
+    "GITHUB_TOKEN",
+    "OPENAI_*",
+    "*_API_KEY",
+    "*_TOKEN",
+    "*_SECRET"
+]
+
+# Optional: retain your existing model/trust settings from ~/.codex/config.toml.
+# Do not replace the live file wholesale unless you intentionally migrate all
+# existing [projects.*] trust entries too.
+#
+# Codex supports command rules in ~/.codex/rules/*.rules. Review
+# codex-sdlc.rules.example and the current rules documentation before copying it:
+# https://learn.chatgpt.com/docs/agent-configuration/rules.md

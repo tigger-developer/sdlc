@@ -1,0 +1,26 @@
+# Review before copying to ~/.codex/rules/sdlc.rules.
+# These rules reinforce commands prohibited by the default SDLC shell policy.
+
+prefix_rule(
+    pattern = ["rm"],
+    decision = "forbidden",
+    justification = "Use recoverable deletion such as trash; do not permanently delete through the agent shell.",
+)
+
+prefix_rule(
+    pattern = ["sed"],
+    decision = "forbidden",
+    justification = "Use structure-aware editing or an explicit patch rather than sed.",
+)
+
+prefix_rule(
+    pattern = ["awk"],
+    decision = "forbidden",
+    justification = "Use format-aware tools rather than awk for structured data or source changes.",
+)
+
+prefix_rule(
+    pattern = ["source"],
+    decision = "forbidden",
+    justification = "Run explicit commands rather than sourcing arbitrary shell files.",
+)

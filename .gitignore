@@ -1,0 +1,15 @@
+# Build artefacts
+/bin/
+/coverage.out
+
+# Editor and operating-system noise
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Project-local agent runtime state
+.agent/
+.agents/
+.claude/
+.codex/
