@@ -120,9 +120,11 @@ Documentation-only changes do not require a GitHub issue, PROCEED, or BYPASS-GAT
 
 **Only if my prompt contains the exact phrase `BYPASS-GATE-7`**, you may proceed without the normal gates for small, clearly-scoped source or configuration tasks: fixing failing tests/linting/type errors, implementing a single function with an unambiguous spec, adding missing imports/dependencies, single-file readability refactors.
 
+**BYPASS-GATE-7 exists to expedite an urgently required change.** Treat it as authorization to execute the requested change immediately and continue through implementation and verification. Do not pause to draft, design, or create an issue before making the change, and never return with only an issue or proposal when the requested implementation is possible.
+
 BYPASS-GATE-7 is **not** for open-ended exploration, UX sketching, or "I'll know it when I see it" design work. For that, use `/start-discovery`. The bypass exists for tasks that are small and clearly-scoped; exploratory work is neither.
 
-**Bypass work must still be tracked.** If BYPASS-GATE-7 is used, ensure the activity is recorded in a GitHub issue so it can be wrapped up later. If no existing issue covers the work, create one. The bypass skips the gates; it does not skip the audit trail.
+**Bypass work must still be tracked, retrospectively.** After the change has been implemented and verified, record the activity in an existing GitHub issue or create one if none applies. Then continue the remaining authorized review and checkpoint work; creating the retrospective issue is not a stopping point. The bypass changes the order to implementation first and ticket logging afterwards; it skips the gates, not the audit trail.
 
 Everything else requires both gates or confirmed MODE DELIVER authority.
 

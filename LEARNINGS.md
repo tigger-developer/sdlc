@@ -169,7 +169,7 @@ MODE DELIVER substitutes a confirmed delivery contract for per-child PROCEED han
 
 ### The bypass clause
 
-`BYPASS-GATE-7` is an escape hatch for small, clearly scoped source or configuration work that can safely skip the normal gates but not the audit trail. It must come from the human as an exact phrase, and the work must still be recorded in an issue. Documentation-only changes have their own direct-instruction exception and do not require this keyword.
+`BYPASS-GATE-7` is an escape hatch for small, clearly scoped and urgently required source or configuration work that can safely skip the normal gates but not the audit trail. Its order is deliberate: implement and verify the change first, then log it retrospectively in an issue and continue the remaining authorized workflow. It is not a cue to draft an issue and return without code. Documentation-only changes have their own direct-instruction exception and do not require this keyword.
 
 ## Design Rationale by Component
 
@@ -195,6 +195,7 @@ The normative files define current behaviour. This section records why each comp
 - The number of failure modes grew as observed shortcuts were named. Later additions included asserting from priors, manufacturing ACs for bug fixes, and premature handback
 - The "between gates: continuous flow" rule was added after the framing "wait for me to invoke the next skill" was repeatedly misread as "stop after each phase and wait" -- grinding everything to a halt
 - Documentation-only changes were separated from source work so ordinary documentation maintenance no longer required a ticket or bypass. The exact-phrase requirement for `BYPASS-GATE-7` prevents the model from invoking the source/configuration exception itself
+- The execution-first wording was added after agents began treating `BYPASS-GATE-7` as an instruction to draft an issue and stop. That regression appeared after a long period of stable execution and before the standalone extraction; its cause was not isolated
 - MODE DELIVER was added to support an audited delivery tree with one consolidated human review while preserving human-only architecture, access, and user-test decisions
 
 ### ISSUES.md -- GitHub Issue Standards
