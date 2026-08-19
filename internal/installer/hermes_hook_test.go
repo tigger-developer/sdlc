@@ -9,7 +9,7 @@ import (
 )
 
 func TestHermesCommandPolicyHook(t *testing.T) {
-	hookPath := filepath.Join("..", "..", "hooks", "hermes-command-policy")
+	hookPath := filepath.Join("..", "..", "hooks", "agent-command-guard.sh")
 	tests := []struct {
 		name    string
 		command string
