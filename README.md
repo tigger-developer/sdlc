@@ -47,7 +47,7 @@ Request provider-configuration changes separately. The installer shows the propo
 go run ./cmd/sdlc-install --agent codex --apply --configure
 ```
 
-Replace `codex` with `claude` or `copilot` as appropriate. For an unrecognized provider, supply both `--agent custom` and `--agent-home`.
+Replace `codex` with `claude`, `copilot`, or `hermes` as appropriate. For an unrecognized provider, supply both `--agent custom` and `--agent-home`.
 
 ## One Clone, Multiple Agents
 
@@ -75,6 +75,10 @@ go run ./cmd/sdlc-install --agent codex --agent-home ~/.codex --apply
 go run ./cmd/sdlc-install --agent copilot --agent-home ~/.copilot --apply
 ```
 
+```bash
+go run ./cmd/sdlc-install --agent hermes --agent-home ~/.hermes --apply --configure
+```
+
 Every provider then resolves its framework through `<agent-home>/sdlc`, while a single `git pull` updates the shared clone.
 
 ### Manual alternative
@@ -93,6 +97,10 @@ ln -s ~/code/sdlc ~/.codex/sdlc
 ln -s ~/code/sdlc ~/.copilot/sdlc
 ```
 
+```bash
+ln -s ~/code/sdlc ~/.hermes/sdlc
+```
+
 Do not replace an existing path. Inspect it first and choose a different clone or agent-home path if it already contains unrelated material.
 
 ## Connect the Agent to the SDLC
@@ -105,6 +113,7 @@ Common destinations are:
 |---|---|---|
 | Claude Code | `~/.claude/CLAUDE.md` | `~/.claude/sdlc` |
 | Codex | `~/.codex/AGENTS.md` | `~/.codex/sdlc` |
+| Hermes | `~/.hermes/SOUL.md` plus `agent.system_prompt` | `~/.hermes/sdlc` |
 | Copilot or another agent | Provider-specific instruction file | `<agent-home>/sdlc` |
 
 Project-level `AGENTS.md` or `CLAUDE.md` files should describe only project-specific conventions and should rely on the provider-level file to load this framework.
@@ -135,13 +144,16 @@ It never overwrites an existing non-matching destination. Provider adapters add 
 | Claude Code | Individual links under `~/.claude/commands/` | Advisory skill links under `~/.claude/skills/` |
 | Codex | `~/.codex/prompts-commands` as a reference library, not claimed as slash commands | Advisory skill links under `~/.agents/skills/` |
 | Copilot CLI | `~/.copilot/prompts-commands` as a reference library | Advisory skill links under `~/.copilot/skills/` |
+| Hermes | Repository link only | No provider-specific skill links |
 | Custom | Repository link only | No provider-specific assumptions |
 
 Only advisory skills are linked automatically. Drafting, state-changing, and gate-adjacent workflows remain in the repository for deliberate, provider-specific invocation.
 
 Claude configuration analysis is based on `settings.json`; the confirmed change adds missing SDLC command restrictions to `permissions.deny`, removes the same restrictions from `permissions.allow`, and preserves unknown fields. JSON spacing and key order may be normalized. The installer refuses to replace a symlinked settings file and recommends editing its target manually. Codex analysis checks `config.toml`; the confirmed change creates `rules/sdlc.rules` when absent and can upgrade a recognized prior SDLC rules file while preserving unrelated rules. Ambiguous or non-regular destinations remain untouched. After migration, repeating the installer reports the current policy unchanged.
 
-The shared command guard at `hooks/agent-command-guard.sh` also speaks Hermes's `pre_tool_call` hook protocol. A Hermes adapter may register that script for the `terminal` tool while retaining Hermes's first-use hook consent. The guard prohibits direct `python` and `python3` interpreter commands, including path-qualified, compound, pipeline, and shell-wrapper forms, without blocking project entry points such as `make test`.
+Hermes analysis structurally parses `config.yaml`, adds or updates one delimited operations-bootstrap block in `agent.system_prompt`, and registers the shared command guard for the `terminal` tool. It preserves custom prompt text, unrelated YAML values, existing hooks, and first-use hook consent. Before rewriting an existing file, it stores a recovery copy in an operating system temporary directory and prints the path. Invalid YAML, ambiguous management markers, and non-regular configuration paths remain untouched.
+
+The shared command guard at `hooks/agent-command-guard.sh` speaks Hermes's `pre_tool_call` hook protocol. It prohibits direct `python` and `python3` interpreter commands, including path-qualified, compound, pipeline, and shell-wrapper forms, without blocking project entry points such as `make test`.
 
 Claude's current personal skill and legacy command locations are documented in its official [skills guide](https://code.claude.com/docs/en/slash-commands). Current Codex configuration, command-rule, and personal-skill semantics are documented in the official [configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference.md), [rules guide](https://learn.chatgpt.com/docs/agent-configuration/rules.md), and [skills guide](https://learn.chatgpt.com/docs/build-skills). Copilot personal skill and instruction locations are documented in GitHub's official [skill guide](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-skills) and [custom-instruction guide](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-custom-instructions). Copilot and custom targets receive generic configuration recommendations until provider-specific permission changes are explicitly implemented and tested.
 

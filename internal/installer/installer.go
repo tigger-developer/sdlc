@@ -19,6 +19,7 @@ const (
 	agentClaude  = "claude"
 	agentCodex   = "codex"
 	agentCopilot = "copilot"
+	agentHermes  = "hermes"
 	agentCustom  = "custom"
 )
 
@@ -62,6 +63,7 @@ type configurationChange struct {
 	afterLabel  string
 	contents    []byte
 	mode        os.FileMode
+	backup      bool
 }
 
 type managedLink struct {
@@ -160,7 +162,7 @@ func resolveTarget(agent, agentHome, source string) (string, string, error) {
 		return inferTarget(agentHome, source)
 	}
 	if !knownAgent(requested) {
-		return "", "", fmt.Errorf("unsupported agent %q; use auto, claude, codex, copilot, or custom", agent)
+		return "", "", fmt.Errorf("unsupported agent %q; use auto, claude, codex, copilot, hermes, or custom", agent)
 	}
 	if agentHome == "" {
 		if requested == agentCustom {
@@ -193,7 +195,7 @@ func inferTarget(agentHome, source string) (string, string, error) {
 
 func knownAgent(agent string) bool {
 	switch agent {
-	case agentClaude, agentCodex, agentCopilot, agentCustom:
+	case agentClaude, agentCodex, agentCopilot, agentHermes, agentCustom:
 		return true
 	default:
 		return false
@@ -208,6 +210,8 @@ func agentFromHome(path string) string {
 		return agentCodex
 	case agentCopilot:
 		return agentCopilot
+	case agentHermes:
+		return agentHermes
 	default:
 		return ""
 	}
@@ -269,7 +273,7 @@ func providerLinks(agent, source, agentHome string) ([]managedLink, error) {
 			return nil, err
 		}
 		links = append(links, skillLinks...)
-	case agentCustom:
+	case agentHermes, agentCustom:
 		return links, nil
 	}
 	return links, nil
@@ -388,6 +392,8 @@ func analyseConfiguration(agent, agentHome, source string, output io.Writer) (*c
 		return analyseClaudeConfiguration(agentHome, output)
 	case agentCodex:
 		return analyseCodexConfiguration(agentHome, source, output)
+	case agentHermes:
+		return analyseHermesConfiguration(agentHome, source, output)
 	case agentCopilot:
 		fmt.Fprintln(output, "Configuration: Copilot-specific modification is not implemented; review provider instructions manually.")
 		return nil, nil
@@ -742,11 +748,39 @@ func offerConfigurationChange(change *configurationChange, input io.Reader, outp
 		fmt.Fprintln(output, "Configuration unchanged.")
 		return nil
 	}
+	if change.backup {
+		backupPath, err := backupConfiguration(change.path)
+		if err != nil {
+			return err
+		}
+		if backupPath != "" {
+			fmt.Fprintf(output, "Backup: %s\n", backupPath)
+		}
+	}
 	if err := writeFileAtomic(change.path, change.contents, change.mode); err != nil {
 		return err
 	}
 	fmt.Fprintf(output, "Configuration updated: %s\n", change.path)
 	return nil
+}
+
+func backupConfiguration(path string) (string, error) {
+	contents, err := os.ReadFile(path)
+	if errors.Is(err, os.ErrNotExist) {
+		return "", nil
+	}
+	if err != nil {
+		return "", fmt.Errorf("reading configuration backup source %q: %w", path, err)
+	}
+	directory, err := os.MkdirTemp("", "sdlc-install-hermes-config-")
+	if err != nil {
+		return "", fmt.Errorf("creating Hermes configuration backup directory: %w", err)
+	}
+	backupPath := filepath.Join(directory, filepath.Base(path))
+	if err := os.WriteFile(backupPath, contents, 0o600); err != nil {
+		return "", fmt.Errorf("writing Hermes configuration backup %q: %w", backupPath, err)
+	}
+	return backupPath, nil
 }
 
 func writeFileAtomic(path string, contents []byte, mode os.FileMode) error {

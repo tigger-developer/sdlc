@@ -165,6 +165,7 @@ func TestAgentIsInferredWhenCloneAlreadyLivesInAgentHome(t *testing.T) {
 	source := filepath.Join(agentHome, "sdlc")
 	writeFile(t, filepath.Join(source, "MAIN.md"), []byte("# SDLC\n"))
 	writeFile(t, filepath.Join(source, "README.md"), []byte("# Quickstart\n"))
+	writeFile(t, filepath.Join(source, "templates", "hermes-bootstrap.md"), []byte("Before acting in a new session, read `~/.agents/OPERATIONS.md` in full and state that you have done so. After context compaction, read it again before continuing. If you cannot read it in full, stop and explain why.\n"))
 	writeFile(t, filepath.Join(source, "templates", "codex-sdlc.rules.example"), []byte("prefix_rule()\n"))
 	writeFile(t, filepath.Join(source, "commands", "build.md"), []byte("# Build\n"))
 	writeFile(t, filepath.Join(source, "skills", "audit-code", "SKILL.md"), []byte("# Audit\n"))
@@ -434,6 +435,7 @@ func TestMalformedProviderConfigurationStopsWithContext(t *testing.T) {
 		{name: "claude json", agent: "claude", homeName: ".claude", configName: "settings.json", contents: "{"},
 		{name: "claude null", agent: "claude", homeName: ".claude", configName: "settings.json", contents: "null"},
 		{name: "codex toml", agent: "codex", homeName: ".codex", configName: "config.toml", contents: "approval_policy = ["},
+		{name: "hermes yaml", agent: "hermes", homeName: ".hermes", configName: "config.yaml", contents: "agent: ["},
 	}
 
 	for _, test := range tests {
@@ -486,6 +488,7 @@ func newFixture(t *testing.T, homeName string) (string, string) {
 	}
 	writeFile(t, filepath.Join(source, "MAIN.md"), []byte("# SDLC\n"))
 	writeFile(t, filepath.Join(source, "README.md"), []byte("# Quickstart\n"))
+	writeFile(t, filepath.Join(source, "templates", "hermes-bootstrap.md"), []byte("Before acting in a new session, read `~/.agents/OPERATIONS.md` in full and state that you have done so. After context compaction, read it again before continuing. If you cannot read it in full, stop and explain why.\n"))
 	writeFile(t, filepath.Join(source, "templates", "codex-sdlc.rules.example"), []byte("prefix_rule(\n    pattern = [\"sed\"],\n    decision = \"forbidden\",\n)\n\n# BEGIN SDLC MANAGED PYTHON RULES\nprefix_rule(\n    pattern = [\"python\"],\n    decision = \"forbidden\",\n)\n\nprefix_rule(\n    pattern = [\"python3\"],\n    decision = \"forbidden\",\n)\n# END SDLC MANAGED PYTHON RULES\n"))
 	writeFile(t, filepath.Join(source, "commands", "build.md"), []byte("# Build\n"))
 	writeFile(t, filepath.Join(source, "skills", "audit-code", "SKILL.md"), []byte("# Audit code\n"))

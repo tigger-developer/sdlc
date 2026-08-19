@@ -24,7 +24,7 @@ func run(arguments []string, input io.Reader, output io.Writer) error {
 	}
 	flags := flag.NewFlagSet("sdlc-install", flag.ContinueOnError)
 	flags.SetOutput(output)
-	agent := flags.String("agent", "auto", "target agent: auto, claude, codex, copilot, or custom")
+	agent := flags.String("agent", "auto", "target agent: auto, claude, codex, copilot, hermes, or custom")
 	agentHome := flags.String("agent-home", "", "provider home containing the sdlc link")
 	source := flags.String("source", workingDirectory, "canonical SDLC clone")
 	apply := flags.Bool("apply", false, "create the provider-home sdlc symlink")

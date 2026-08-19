@@ -4,6 +4,8 @@
 
 Added cross-provider prohibitions for agent-submitted `python` and `python3` interpreter commands, including idempotent Claude and Codex configuration migration and a Hermes-compatible command guard.
 
+Added Hermes as a first-class `sdlc-install` target. The SDLC installer now owns the Hermes operations bootstrap, terminal command-guard registration, configuration backup, and idempotent YAML merge alongside the Claude and Codex provider adapters.
+
 ## v1.0.1 - 2026-08-17
 
 Restored the public repository URL in the README clone instructions.
