@@ -222,7 +222,7 @@ func TestClaudeAnalysisNamesMissingCommandRestrictions(t *testing.T) {
 		t.Fatalf("Run() error = %v", err)
 	}
 
-	for _, rule := range []string{"Bash(rm:*)", "Bash(sed:*)", "Bash(awk:*)", "Bash(source:*)"} {
+	for _, rule := range []string{"Bash(rm:*)", "Bash(sed:*)", "Bash(awk:*)", "Bash(source:*)", "Bash(python:*)", "Bash(python3:*)"} {
 		assertContains(t, output.String(), rule)
 	}
 }
@@ -230,7 +230,7 @@ func TestClaudeAnalysisNamesMissingCommandRestrictions(t *testing.T) {
 func TestClaudeConfigurationRequiresConfirmationAndPreservesUnknownFields(t *testing.T) {
 	source, agentHome := newFixture(t, ".claude")
 	settingsPath := filepath.Join(agentHome, "settings.json")
-	original := []byte(`{"permissions":{"allow":["Read(**/*)"],"deny":[]},"custom":"preserve"}`)
+	original := []byte(`{"permissions":{"allow":["Read(**/*)","Bash(python:*)","Bash(python3:*)"],"deny":[]},"custom":"preserve"}`)
 	writeFile(t, settingsPath, original)
 	var declinedOutput bytes.Buffer
 
@@ -274,10 +274,19 @@ func TestClaudeConfigurationRequiresConfirmationAndPreservesUnknownFields(t *tes
 	}
 	permissions := settings["permissions"].(map[string]any)
 	deny := permissions["deny"].([]any)
-	for _, rule := range []string{"Bash(rm:*)", "Bash(sed:*)", "Bash(awk:*)", "Bash(source:*)"} {
+	for _, rule := range []string{"Bash(rm:*)", "Bash(sed:*)", "Bash(awk:*)", "Bash(source:*)", "Bash(python:*)", "Bash(python3:*)"} {
 		if !containsAnyString(deny, rule) {
 			t.Errorf("deny list missing %q: %#v", rule, deny)
 		}
+	}
+	allow := permissions["allow"].([]any)
+	for _, rule := range []string{"Bash(python:*)", "Bash(python3:*)"} {
+		if containsAnyString(allow, rule) {
+			t.Errorf("allow list retains conflicting %q: %#v", rule, allow)
+		}
+	}
+	if !containsAnyString(allow, "Read(**/*)") {
+		t.Errorf("unrelated allow entry was not preserved: %#v", allow)
 	}
 	assertContains(t, acceptedOutput.String(), "Proposed configuration change")
 	assertContains(t, acceptedOutput.String(), "Configuration updated")
@@ -339,7 +348,79 @@ func TestCodexConfigurationCreatesRulesOnlyAfterConfirmation(t *testing.T) {
 		t.Fatalf("ReadFile(%q) error = %v", rulesPath, err)
 	}
 	assertContains(t, string(data), `pattern = ["sed"]`)
+	assertContains(t, string(data), `pattern = ["python"]`)
+	assertContains(t, string(data), `pattern = ["python3"]`)
 	assertContains(t, output.String(), "Configuration updated")
+}
+
+func TestCodexConfigurationUpgradesRecognizedRulesAndIsIdempotent(t *testing.T) {
+	source, agentHome := newFixture(t, ".codex")
+	rulesPath := filepath.Join(agentHome, "rules", "sdlc.rules")
+	legacy := []byte("# Existing SDLC rules.\n" +
+		"prefix_rule(\n    pattern = [\"rm\"],\n    decision = \"forbidden\",\n)\n\n" +
+		"prefix_rule(\n    pattern = [\"sed\"],\n    decision = \"forbidden\",\n)\n\n" +
+		"prefix_rule(\n    pattern = [\"awk\"],\n    decision = \"forbidden\",\n)\n\n" +
+		"prefix_rule(\n    pattern = [\"source\"],\n    decision = \"forbidden\",\n)\n\n" +
+		"# Unrelated local rule.\nprefix_rule(\n    pattern = [\"local-tool\"],\n    decision = \"prompt\",\n)\n")
+	writeFile(t, rulesPath, legacy)
+
+	var firstOutput bytes.Buffer
+	err := installer.Run(installer.Options{
+		Agent:     "codex",
+		AgentHome: agentHome,
+		Source:    source,
+		Configure: true,
+		Input:     strings.NewReader("yes\n"),
+		Output:    &firstOutput,
+	})
+	if err != nil {
+		t.Fatalf("first Run() error = %v", err)
+	}
+	upgraded, err := os.ReadFile(rulesPath)
+	if err != nil {
+		t.Fatalf("ReadFile(%q) error = %v", rulesPath, err)
+	}
+	for _, expected := range []string{`pattern = ["python"]`, `pattern = ["python3"]`, `pattern = ["local-tool"]`, "BEGIN SDLC MANAGED PYTHON RULES"} {
+		assertContains(t, string(upgraded), expected)
+	}
+	assertContains(t, firstOutput.String(), "Configuration updated")
+
+	var secondOutput bytes.Buffer
+	err = installer.Run(installer.Options{
+		Agent:     "codex",
+		AgentHome: agentHome,
+		Source:    source,
+		Configure: true,
+		Input:     strings.NewReader("yes\n"),
+		Output:    &secondOutput,
+	})
+	if err != nil {
+		t.Fatalf("second Run() error = %v", err)
+	}
+	assertFileEquals(t, rulesPath, upgraded)
+	assertContains(t, secondOutput.String(), "already contain the SDLC command restrictions")
+}
+
+func TestCodexConfigurationLeavesAmbiguousRulesUnchanged(t *testing.T) {
+	source, agentHome := newFixture(t, ".codex")
+	rulesPath := filepath.Join(agentHome, "rules", "sdlc.rules")
+	original := []byte("prefix_rule(\n    pattern = [\"local-tool\"],\n    decision = \"prompt\",\n)\n")
+	writeFile(t, rulesPath, original)
+	var output bytes.Buffer
+
+	err := installer.Run(installer.Options{
+		Agent:     "codex",
+		AgentHome: agentHome,
+		Source:    source,
+		Configure: true,
+		Input:     strings.NewReader("yes\n"),
+		Output:    &output,
+	})
+	if err != nil {
+		t.Fatalf("Run() error = %v", err)
+	}
+	assertFileEquals(t, rulesPath, original)
+	assertContains(t, output.String(), "cannot safely migrate")
 }
 
 func TestMalformedProviderConfigurationStopsWithContext(t *testing.T) {
@@ -405,7 +486,7 @@ func newFixture(t *testing.T, homeName string) (string, string) {
 	}
 	writeFile(t, filepath.Join(source, "MAIN.md"), []byte("# SDLC\n"))
 	writeFile(t, filepath.Join(source, "README.md"), []byte("# Quickstart\n"))
-	writeFile(t, filepath.Join(source, "templates", "codex-sdlc.rules.example"), []byte("prefix_rule(\n    pattern = [\"sed\"],\n    decision = \"forbidden\",\n)\n"))
+	writeFile(t, filepath.Join(source, "templates", "codex-sdlc.rules.example"), []byte("prefix_rule(\n    pattern = [\"sed\"],\n    decision = \"forbidden\",\n)\n\n# BEGIN SDLC MANAGED PYTHON RULES\nprefix_rule(\n    pattern = [\"python\"],\n    decision = \"forbidden\",\n)\n\nprefix_rule(\n    pattern = [\"python3\"],\n    decision = \"forbidden\",\n)\n# END SDLC MANAGED PYTHON RULES\n"))
 	writeFile(t, filepath.Join(source, "commands", "build.md"), []byte("# Build\n"))
 	writeFile(t, filepath.Join(source, "skills", "audit-code", "SKILL.md"), []byte("# Audit code\n"))
 	writeFile(t, filepath.Join(source, "skills", "draft-issue", "SKILL.md"), []byte("# Draft issue\n"))
