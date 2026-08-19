@@ -27,7 +27,14 @@ var claudeDeniedCommands = []string{
 	"Bash(sed:*)",
 	"Bash(awk:*)",
 	"Bash(source:*)",
+	"Bash(python:*)",
+	"Bash(python3:*)",
 }
+
+const (
+	codexPythonRulesStart = "# BEGIN SDLC MANAGED PYTHON RULES"
+	codexPythonRulesEnd   = "# END SDLC MANAGED PYTHON RULES"
+)
 
 var advisorySkills = map[string]bool{
 	"audit-acs":              true,
@@ -402,16 +409,19 @@ func analyseClaudeConfiguration(agentHome string, output io.Writer) (*configurat
 	if err != nil {
 		return nil, err
 	}
-	missing, err := addClaudeDenyRules(settings)
+	changes, err := normalizeClaudeCommandRules(settings)
 	if err != nil {
 		return nil, fmt.Errorf("analysing %s: %w", path, err)
 	}
-	if len(missing) == 0 {
+	if len(changes.addedToDeny) == 0 && len(changes.removedFromAllow) == 0 {
 		fmt.Fprintln(output, "Configuration: Claude settings already contain the SDLC command restrictions.")
 		return nil, nil
 	}
-	for _, rule := range missing {
+	for _, rule := range changes.addedToDeny {
 		fmt.Fprintf(output, "Recommendation: add %s to permissions.deny.\n", rule)
+	}
+	for _, rule := range changes.removedFromAllow {
+		fmt.Fprintf(output, "Recommendation: remove conflicting %s from permissions.allow.\n", rule)
 	}
 	if settingsSymlink {
 		fmt.Fprintf(output, "Configuration: %s is a symlink; no automatic change will replace it. Edit its target manually.\n", path)
@@ -425,7 +435,7 @@ func analyseClaudeConfiguration(agentHome string, output io.Writer) (*configurat
 	return &configurationChange{
 		path:        path,
 		beforeLabel: formatClaudeDenyBefore(original),
-		afterLabel:  "permissions.deny adds: " + strings.Join(missing, ", "),
+		afterLabel:  formatClaudePolicyAfter(changes),
 		contents:    candidate,
 		mode:        mode,
 	}, nil
@@ -464,25 +474,48 @@ func readClaudeSettings(path string) (map[string]any, []byte, os.FileMode, error
 	return settings, data, info.Mode().Perm(), nil
 }
 
-func addClaudeDenyRules(settings map[string]any) ([]string, error) {
+type claudePolicyChanges struct {
+	addedToDeny      []string
+	removedFromAllow []string
+}
+
+func normalizeClaudeCommandRules(settings map[string]any) (claudePolicyChanges, error) {
 	permissions, err := objectField(settings, "permissions")
 	if err != nil {
-		return nil, err
+		return claudePolicyChanges{}, err
 	}
 	deny, err := stringSliceField(permissions, "deny")
 	if err != nil {
-		return nil, err
+		return claudePolicyChanges{}, err
 	}
-	missing := make([]string, 0, len(claudeDeniedCommands))
+	allow, err := stringSliceField(permissions, "allow")
+	if err != nil {
+		return claudePolicyChanges{}, err
+	}
+	changes := claudePolicyChanges{
+		addedToDeny:      make([]string, 0, len(claudeDeniedCommands)),
+		removedFromAllow: make([]string, 0, len(claudeDeniedCommands)),
+	}
 	for _, rule := range claudeDeniedCommands {
 		if !containsString(deny, rule) {
 			deny = append(deny, rule)
-			missing = append(missing, rule)
+			changes.addedToDeny = append(changes.addedToDeny, rule)
 		}
 	}
+	filteredAllow := make([]string, 0, len(allow))
+	for _, rule := range allow {
+		if containsString(claudeDeniedCommands, rule) {
+			changes.removedFromAllow = append(changes.removedFromAllow, rule)
+			continue
+		}
+		filteredAllow = append(filteredAllow, rule)
+	}
 	permissions["deny"] = deny
+	if len(changes.removedFromAllow) != 0 {
+		permissions["allow"] = filteredAllow
+	}
 	settings["permissions"] = permissions
-	return missing, nil
+	return changes, nil
 }
 
 func objectField(parent map[string]any, key string) (map[string]any, error) {
@@ -536,6 +569,17 @@ func formatClaudeDenyBefore(original []byte) string {
 	return "permissions.deny: existing entries preserved; JSON spacing and key order may be normalized"
 }
 
+func formatClaudePolicyAfter(changes claudePolicyChanges) string {
+	parts := make([]string, 0, 2)
+	if len(changes.addedToDeny) != 0 {
+		parts = append(parts, "permissions.deny adds: "+strings.Join(changes.addedToDeny, ", "))
+	}
+	if len(changes.removedFromAllow) != 0 {
+		parts = append(parts, "permissions.allow removes conflicts: "+strings.Join(changes.removedFromAllow, ", "))
+	}
+	return strings.Join(parts, "; ")
+}
+
 type codexConfig struct {
 	ApprovalPolicy     string `toml:"approval_policy"`
 	SandboxMode        string `toml:"sandbox_mode"`
@@ -555,16 +599,44 @@ func analyseCodexConfiguration(agentHome, source string, output io.Writer) (*con
 		printCodexRecommendations(output, config, metadata)
 	}
 	rulesPath := filepath.Join(agentHome, "rules", "sdlc.rules")
-	if _, err := os.Stat(rulesPath); err == nil {
-		fmt.Fprintf(output, "Configuration: existing %s left unchanged; compare it with the repository example manually.\n", rulesPath)
-		return nil, nil
-	} else if !errors.Is(err, os.ErrNotExist) {
-		return nil, fmt.Errorf("inspecting %s: %w", rulesPath, err)
-	}
 	templatePath := filepath.Join(source, "templates", "codex-sdlc.rules.example")
 	contents, err := os.ReadFile(templatePath)
 	if err != nil {
 		return nil, fmt.Errorf("reading Codex rules template %s: %w", templatePath, err)
+	}
+	info, err := os.Lstat(rulesPath)
+	if err == nil {
+		if !info.Mode().IsRegular() {
+			fmt.Fprintf(output, "Configuration: %s is not a regular file; cannot safely migrate it automatically.\n", rulesPath)
+			return nil, nil
+		}
+		current, readErr := os.ReadFile(rulesPath)
+		if readErr != nil {
+			return nil, fmt.Errorf("reading %s: %w", rulesPath, readErr)
+		}
+		merged, changed, safe, mergeErr := mergeCodexRules(current, contents)
+		if mergeErr != nil {
+			return nil, fmt.Errorf("analysing %s: %w", rulesPath, mergeErr)
+		}
+		if !safe {
+			fmt.Fprintf(output, "Configuration: existing %s cannot safely migrate automatically; compare it with the repository example manually.\n", rulesPath)
+			return nil, nil
+		}
+		if !changed {
+			fmt.Fprintln(output, "Configuration: Codex rules already contain the SDLC command restrictions.")
+			return nil, nil
+		}
+		fmt.Fprintf(output, "Recommendation: migrate the managed SDLC command restrictions in %s.\n", rulesPath)
+		return &configurationChange{
+			path:        rulesPath,
+			beforeLabel: "recognized existing SDLC rules; unrelated rules preserved",
+			afterLabel:  "managed SDLC Python command restrictions updated",
+			contents:    merged,
+			mode:        info.Mode().Perm(),
+		}, nil
+	}
+	if !errors.Is(err, os.ErrNotExist) {
+		return nil, fmt.Errorf("inspecting %s: %w", rulesPath, err)
 	}
 	fmt.Fprintf(output, "Recommendation: create %s from %s.\n", rulesPath, templatePath)
 	return &configurationChange{
@@ -574,6 +646,51 @@ func analyseCodexConfiguration(agentHome, source string, output io.Writer) (*con
 		contents:    contents,
 		mode:        0o600,
 	}, nil
+}
+
+func mergeCodexRules(current, desired []byte) ([]byte, bool, bool, error) {
+	if bytes.Equal(current, desired) {
+		return current, false, true, nil
+	}
+	desiredBlock, err := markedBlock(desired, codexPythonRulesStart, codexPythonRulesEnd)
+	if err != nil {
+		return nil, false, false, fmt.Errorf("invalid repository rules template: %w", err)
+	}
+	startCount := bytes.Count(current, []byte(codexPythonRulesStart))
+	endCount := bytes.Count(current, []byte(codexPythonRulesEnd))
+	if startCount > 1 || endCount > 1 || startCount != endCount {
+		return nil, false, false, nil
+	}
+	if startCount == 1 {
+		currentBlock, blockErr := markedBlock(current, codexPythonRulesStart, codexPythonRulesEnd)
+		if blockErr != nil {
+			return nil, false, false, nil
+		}
+		merged := bytes.Replace(current, currentBlock, desiredBlock, 1)
+		return merged, !bytes.Equal(current, merged), true, nil
+	}
+	for _, legacyRule := range []string{"rm", "sed", "awk", "source"} {
+		if !bytes.Contains(current, []byte(`pattern = ["`+legacyRule+`"]`)) {
+			return nil, false, false, nil
+		}
+	}
+	if bytes.Contains(current, []byte(`pattern = ["python"]`)) || bytes.Contains(current, []byte(`pattern = ["python3"]`)) {
+		return nil, false, false, nil
+	}
+	merged := append(bytes.TrimRight(current, "\n"), '\n', '\n')
+	merged = append(merged, desiredBlock...)
+	merged = append(merged, '\n')
+	return merged, true, true, nil
+}
+
+func markedBlock(contents []byte, startMarker, endMarker string) ([]byte, error) {
+	start := bytes.Index(contents, []byte(startMarker))
+	end := bytes.Index(contents, []byte(endMarker))
+	if start < 0 || end < start || bytes.Count(contents, []byte(startMarker)) != 1 || bytes.Count(contents, []byte(endMarker)) != 1 {
+		return nil, errors.New("managed rule markers are missing or ambiguous")
+	}
+	end += len(endMarker)
+	return contents[start:end], nil
 }
 
 func readCodexConfig(path string) (codexConfig, toml.MetaData, bool, error) {

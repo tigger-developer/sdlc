@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+Added cross-provider prohibitions for agent-submitted `python` and `python3` interpreter commands, including idempotent Claude and Codex configuration migration and a Hermes-compatible command guard.
+
 ## v1.0.1 - 2026-08-17
 
 Restored the public repository URL in the README clone instructions.

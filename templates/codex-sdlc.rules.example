@@ -1,4 +1,4 @@
-# Review before copying to ~/.codex/rules/sdlc.rules.
+# Managed by sdlc-install after explicit configuration confirmation.
 # These rules reinforce commands prohibited by the default SDLC shell policy.
 
 prefix_rule(
@@ -24,3 +24,27 @@ prefix_rule(
     decision = "forbidden",
     justification = "Run explicit commands rather than sourcing arbitrary shell files.",
 )
+
+# BEGIN SDLC MANAGED PYTHON RULES
+host_executable(
+    name = "python",
+    paths = ["/usr/bin/python", "/usr/local/bin/python", "/opt/homebrew/bin/python"],
+)
+
+host_executable(
+    name = "python3",
+    paths = ["/usr/bin/python3", "/usr/local/bin/python3", "/opt/homebrew/bin/python3"],
+)
+
+prefix_rule(
+    pattern = ["python"],
+    decision = "forbidden",
+    justification = "Use the task-appropriate tool or a project-owned entry point rather than an ad hoc Python interpreter command.",
+)
+
+prefix_rule(
+    pattern = ["python3"],
+    decision = "forbidden",
+    justification = "Use the task-appropriate tool or a project-owned entry point rather than an ad hoc Python interpreter command.",
+)
+# END SDLC MANAGED PYTHON RULES

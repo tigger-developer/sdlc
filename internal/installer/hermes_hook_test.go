@@ -3,8 +3,10 @@ package installer_test
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -22,6 +24,9 @@ func TestHermesCommandPolicyHook(t *testing.T) {
 		{name: "compound", command: "printf x && python -V", blocked: true},
 		{name: "shell wrapper", command: "/opt/homebrew/bin/bash -lc 'python3 -V'", blocked: true},
 		{name: "nested shell wrapper compound", command: "bash -c 'printf x; python -V'", blocked: true},
+		{name: "environment wrapper", command: "env MODE=test python3 -V", blocked: true},
+		{name: "control flow", command: "if true; then python3 -V; fi", blocked: true},
+		{name: "command substitution", command: "printf '%s' $(python -V)", blocked: true},
 		{name: "make entry point", command: "make test", blocked: false},
 		{name: "argument", command: "printf '%s\\n' python3", blocked: false},
 		{name: "substring executable", command: "pythonista --version", blocked: false},
@@ -39,7 +44,7 @@ func TestHermesCommandPolicyHook(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Marshal() error = %v", err)
 			}
-			command := exec.Command(hookPath)
+			command := exec.Command("bash", hookPath)
 			command.Stdin = bytes.NewReader(payload)
 			output, err := command.Output()
 			if err != nil {
@@ -59,5 +64,29 @@ func TestHermesCommandPolicyHook(t *testing.T) {
 				t.Fatalf("hook decision = %q, want block", response["decision"])
 			}
 		})
+	}
+}
+
+func TestCommandPolicyHookRetainsClaudeExitContract(t *testing.T) {
+	hookPath := filepath.Join("..", "..", "hooks", "agent-command-guard.sh")
+	payload, err := json.Marshal(map[string]any{
+		"hook_event_name": "PreToolUse",
+		"tool_name":       "Bash",
+		"tool_input":      map[string]string{"command": "python3 -V"},
+	})
+	if err != nil {
+		t.Fatalf("Marshal() error = %v", err)
+	}
+	command := exec.Command("bash", hookPath)
+	command.Stdin = bytes.NewReader(payload)
+	var stderr bytes.Buffer
+	command.Stderr = &stderr
+	err = command.Run()
+	var exitError *exec.ExitError
+	if !errors.As(err, &exitError) || exitError.ExitCode() != 2 {
+		t.Fatalf("hook error = %v, want exit code 2", err)
+	}
+	if !strings.Contains(stderr.String(), "Blocked by agent-command-guard") {
+		t.Fatalf("Claude block reason missing: %s", stderr.String())
 	}
 }

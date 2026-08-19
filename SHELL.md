@@ -98,6 +98,8 @@ count+=1
 - Source code refactors: `ast-grep` (`sg`) for cross-file structural changes, direct editing for single-file
 - Streaming substitution in pipelines (log redaction, fixture normalization): a purpose-built tool (`detect-secrets`, `gitleaks`) or a small program in Go or Python
 
+**Direct `python` and `python3` interpreter commands are forbidden for agent-submitted shell work.** Use the task-appropriate format-aware tool or a project-owned entry point such as `make test`. This restriction applies to the command the agent submits; it does not prohibit a Make target, test runner, or other approved project entry point from launching Python internally.
+
 If a case comes up that none of the substitutes solve, surface it -- the deny is itself a canary, and a triggered case is either misbehaviour worth catching or a legitimate edge case worth feeding back into the SDLC.
 
 **`grep` is for plaintext streams or files where a newline character is the delimiter** -- logs, command output, single-file pattern matches. **`ripgrep` (`rg`) is for finding files**, not for extracting content. In shell scripts, the only routine use of `rg` is `rg -l` to enumerate files for further processing by a format-aware tool. Reaching for `rg` to pull content out of a file is usually a sign the wrong tool is being used downstream.
