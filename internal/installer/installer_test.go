@@ -230,7 +230,7 @@ func TestClaudeAnalysisNamesMissingCommandRestrictions(t *testing.T) {
 func TestClaudeConfigurationRequiresConfirmationAndPreservesUnknownFields(t *testing.T) {
 	source, agentHome := newFixture(t, ".claude")
 	settingsPath := filepath.Join(agentHome, "settings.json")
-	original := []byte(`{"permissions":{"allow":["Read(**/*)","Bash(python:*)","Bash(python3:*)"],"deny":[]},"custom":"preserve"}`)
+	original := []byte(`{"permissions":{"allow":["Read(**/*)","Bash(sed:*)","Bash(python:*)","Bash(python3:*)"],"deny":[]},"custom":"preserve"}`)
 	writeFile(t, settingsPath, original)
 	var declinedOutput bytes.Buffer
 
@@ -280,7 +280,7 @@ func TestClaudeConfigurationRequiresConfirmationAndPreservesUnknownFields(t *tes
 		}
 	}
 	allow := permissions["allow"].([]any)
-	for _, rule := range []string{"Bash(python:*)", "Bash(python3:*)"} {
+	for _, rule := range []string{"Bash(sed:*)", "Bash(python:*)", "Bash(python3:*)"} {
 		if containsAnyString(allow, rule) {
 			t.Errorf("allow list retains conflicting %q: %#v", rule, allow)
 		}
