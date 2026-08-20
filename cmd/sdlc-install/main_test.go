@@ -9,36 +9,8 @@ import (
 )
 
 func TestRunParsesUserFacingFlags(t *testing.T) {
-	root := t.TempDir()
-	source := filepath.Join(root, "sdlc")
+	root, source := newCLIFixture(t)
 	agentHome := filepath.Join(root, ".codex")
-	if err := os.MkdirAll(source, 0o700); err != nil {
-		t.Fatalf("MkdirAll() error = %v", err)
-	}
-	if err := os.MkdirAll(filepath.Join(source, "templates"), 0o700); err != nil {
-		t.Fatalf("MkdirAll(templates) error = %v", err)
-	}
-	if err := os.MkdirAll(filepath.Join(source, "commands"), 0o700); err != nil {
-		t.Fatalf("MkdirAll(commands) error = %v", err)
-	}
-	if err := os.MkdirAll(filepath.Join(source, "skills", "audit-code"), 0o700); err != nil {
-		t.Fatalf("MkdirAll(skills) error = %v", err)
-	}
-	if err := os.WriteFile(filepath.Join(source, "MAIN.md"), []byte("# SDLC\n"), 0o600); err != nil {
-		t.Fatalf("WriteFile(MAIN.md) error = %v", err)
-	}
-	if err := os.WriteFile(filepath.Join(source, "README.md"), []byte("# Quickstart\n"), 0o600); err != nil {
-		t.Fatalf("WriteFile(README.md) error = %v", err)
-	}
-	if err := os.WriteFile(filepath.Join(source, "templates", "codex-sdlc.rules.example"), []byte("prefix_rule()\n"), 0o600); err != nil {
-		t.Fatalf("WriteFile(codex rules template) error = %v", err)
-	}
-	if err := os.WriteFile(filepath.Join(source, "commands", "build.md"), []byte("# Build\n"), 0o600); err != nil {
-		t.Fatalf("WriteFile(build command) error = %v", err)
-	}
-	if err := os.WriteFile(filepath.Join(source, "skills", "audit-code", "SKILL.md"), []byte("# Audit\n"), 0o600); err != nil {
-		t.Fatalf("WriteFile(audit skill) error = %v", err)
-	}
 	var output bytes.Buffer
 
 	err := run([]string{
@@ -54,6 +26,23 @@ func TestRunParsesUserFacingFlags(t *testing.T) {
 	}
 }
 
+func TestDefaultRunDetectsInstalledProviderSubset_RT4_4(t *testing.T) {
+	root, source := newCLIFixture(t)
+	for _, name := range []string{".codex", ".hermes"} {
+		if err := os.MkdirAll(filepath.Join(root, name), 0o700); err != nil {
+			t.Fatal(err)
+		}
+	}
+	t.Setenv("HOME", root)
+	var output bytes.Buffer
+	if err := run([]string{"--source", source}, strings.NewReader("no\n"), &output); err != nil {
+		t.Fatalf("run() error = %v", err)
+	}
+	if got := output.String(); !strings.Contains(got, "Detected agents: codex, hermes") || strings.Contains(got, "claude adapters") || strings.Contains(got, "copilot adapters") {
+		t.Fatalf("provider detection output = %q", got)
+	}
+}
+
 func TestRunHelpIsSuccessful(t *testing.T) {
 	var output bytes.Buffer
 
@@ -66,4 +55,27 @@ func TestRunHelpIsSuccessful(t *testing.T) {
 			t.Errorf("help output missing %q: %q", flagName, output.String())
 		}
 	}
+}
+
+func newCLIFixture(t *testing.T) (string, string) {
+	t.Helper()
+	root := t.TempDir()
+	source := filepath.Join(root, "sdlc")
+	for path, content := range map[string]string{
+		"MAIN.md":                            "# SDLC\n",
+		"README.md":                          "# Quickstart\n",
+		"templates/codex-sdlc.rules.example": "prefix_rule()\n",
+		"commands/build.md":                  "# Build\n",
+		"skills/audit-code/SKILL.md":         "# Audit\n",
+		"templates/hermes-bootstrap.md":      "Read the SDLC.\n",
+	} {
+		fullPath := filepath.Join(source, filepath.FromSlash(path))
+		if err := os.MkdirAll(filepath.Dir(fullPath), 0o700); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(fullPath, []byte(content), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	return root, source
 }

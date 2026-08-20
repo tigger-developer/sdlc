@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+Changed `make install` to run an interactive multi-agent deployment. It detects
+installed provider homes, asks once for the shared live tree, and asks
+separately for each provider adapter that differs. The reusable CLI link moved
+to `make install-cli`, and provider configuration remains an explicit workflow.
+
+Simplified deployment comparison by using rsync dry-run itemization for the
+same repository-owned tree that rsync applies.
+
 Changed `sdlc-install` to synchronize the complete staging tree into the common
 live deployment at `~/.agents/sdlc`, exclude Git metadata, deploy every skill,
 and point provider adapters only to live common paths.

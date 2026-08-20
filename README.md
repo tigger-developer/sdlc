@@ -30,25 +30,37 @@ provider home:
 git clone https://github.com/tigger-developer/sdlc.git ~/code/sdlc
 ```
 
-Enter the clone and inspect the proposed installation and configuration recommendations. Analysis is the default and makes no changes:
+Enter the clone and start the interactive installer:
 
 ```bash
-go run ./cmd/sdlc-install --agent codex
+make install
 ```
 
-Apply the installation after reviewing the plan:
+The installer detects the supported provider homes that exist, checks the
+shared live deployment once, then checks each detected provider adapter. It
+asks separately before changing the shared deployment or any provider. A
+declined item is left unchanged, and matching items do not prompt.
+
+Provider-configuration analysis remains an explicit operation. Build the
+command, inspect one provider, and add `--apply` or `--configure` only when
+that specific operation is wanted:
 
 ```bash
-go run ./cmd/sdlc-install --agent codex --apply
+make build
 ```
-
-Request provider-configuration changes separately. The installer shows the proposed change and asks for an ordinary yes-or-no confirmation before writing it:
 
 ```bash
-go run ./cmd/sdlc-install --agent codex --apply --configure
+bin/sdlc-install --agent codex
 ```
 
-Replace `codex` with `claude`, `copilot`, or `hermes` as appropriate. For an unrecognized provider, supply both `--agent custom` and `--agent-home`.
+```bash
+bin/sdlc-install --agent codex --configure
+```
+
+Replace `codex` with `claude`, `copilot`, or `hermes` as appropriate. For an
+unrecognized provider, supply both `--agent custom` and `--agent-home`. Run
+`make install-cli` only when a reusable `~/.local/bin/sdlc-install` link is
+wanted.
 
 ## One Staging Clone, Multiple Agents
 
@@ -60,31 +72,16 @@ into the common live directory at `~/.agents/sdlc`, then points each provider's
 git clone https://github.com/tigger-developer/sdlc.git ~/code/sdlc
 ```
 
-From `~/code/sdlc`, inspect and then apply each target independently:
+From `~/code/sdlc`, run one command:
 
 ```bash
-go run ./cmd/sdlc-install --agent claude --agent-home ~/.claude
+make install
 ```
 
-```bash
-go run ./cmd/sdlc-install --agent claude --agent-home ~/.claude --apply
-```
-
-```bash
-go run ./cmd/sdlc-install --agent codex --agent-home ~/.codex --apply
-```
-
-```bash
-go run ./cmd/sdlc-install --agent copilot --agent-home ~/.copilot --apply
-```
-
-```bash
-go run ./cmd/sdlc-install --agent hermes --agent-home ~/.hermes --apply --configure
-```
-
-Every provider then resolves its framework through `<agent-home>/sdlc` into the
-same live copy. A `git pull` updates staging only; an accepted installer run is
-required to deploy that change.
+Accept the shared deployment and whichever detected provider adapters should
+be installed. Each accepted provider resolves its framework through
+`<agent-home>/sdlc` into the same live copy. A `git pull` updates staging only;
+an accepted installer run is required to deploy that change.
 
 ### Manual alternative
 
@@ -151,9 +148,15 @@ The canary chain remains present on later responses. It proves which documents r
 
 The installer has three deliberately separate responsibilities:
 
-1. Detect the target provider from `--agent` or `--agent-home`, while requiring the staging clone to remain outside the provider home.
-2. Analyse installation and known provider configuration, then print recommendations without writing by default.
-3. With `--apply`, recursively synchronize staging into `~/.agents/sdlc` using `rsync --archive --delete`, exclude `.git`, and install live-tree adapters. Supported provider configuration changes still require `--configure` plus interactive confirmation.
+1. `make install` detects existing supported provider homes and compares only
+   the shared deployment and adapters owned by this repository.
+2. It asks once before synchronizing staging into `~/.agents/sdlc` with
+   `rsync --archive --delete`, excluding `.git`, and once for each changed
+   provider adapter set.
+3. Explicit `--agent` mode analyses one provider and retains `--apply` and
+   `--configure` for automation or deliberate provider-configuration work.
+
+Interactive multi-agent installation never changes provider configuration.
 
 It never overwrites an existing non-matching destination. Provider adapters add only the integrations that their current public interfaces support:
 
@@ -193,9 +196,9 @@ git pull
 ```
 
 Provider homes continue to see the previous live deployment after `git pull`.
-Re-run the installer without `--apply` to review the synchronization and any
-new configuration recommendations, then use `--apply` to deploy the accepted
-staging state.
+Re-run `make install` to review and accept the shared and provider deployment
+changes. Review provider-configuration recommendations separately with an
+explicit `bin/sdlc-install --agent <name>` invocation.
 
 ## Further Reading
 

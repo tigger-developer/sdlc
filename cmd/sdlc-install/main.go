@@ -24,7 +24,7 @@ func run(arguments []string, input io.Reader, output io.Writer) error {
 	}
 	flags := flag.NewFlagSet("sdlc-install", flag.ContinueOnError)
 	flags.SetOutput(output)
-	agent := flags.String("agent", "auto", "target agent: auto, claude, codex, copilot, hermes, or custom")
+	agent := flags.String("agent", "", "target one agent: auto, claude, codex, copilot, hermes, or custom; omit for interactive detection")
 	agentHome := flags.String("agent-home", "", "provider home receiving live-tree adapters")
 	source := flags.String("source", workingDirectory, "staging SDLC clone")
 	apply := flags.Bool("apply", false, "synchronize the live tree and create provider adapters")
@@ -37,6 +37,12 @@ func run(arguments []string, input io.Reader, output io.Writer) error {
 	}
 	if flags.NArg() != 0 {
 		return fmt.Errorf("unexpected positional arguments: %v", flags.Args())
+	}
+	if *agent == "" && *agentHome == "" {
+		if *apply || *configure {
+			return errors.New("--apply and --configure require an explicit --agent or --agent-home; omit them for interactive installation")
+		}
+		return installer.RunInteractive(*source, "", input, output)
 	}
 	return installer.Run(installer.Options{
 		Agent:     *agent,

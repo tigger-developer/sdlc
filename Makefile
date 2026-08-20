@@ -1,4 +1,7 @@
-.PHONY: build test lint install uninstall
+.PHONY: build test test-one-off lint install install-cli uninstall
+
+INSTALLER ?= bin/sdlc-install
+INSTALL_FLAGS ?=
 
 build:
 	go build -o bin/sdlc-install ./cmd/sdlc-install
@@ -6,13 +9,19 @@ build:
 test: lint
 	go test ./...
 
+test-one-off:
+	tests/one_off/install_makefile_test.sh
+
 lint:
 	go vet ./...
 	golangci-lint run ./...
-	shellcheck hooks/agent-command-guard.sh
-	shfmt -i 4 -d hooks/agent-command-guard.sh
+	shellcheck hooks/agent-command-guard.sh tests/one_off/install_makefile_test.sh
+	shfmt -i 4 -d hooks/agent-command-guard.sh tests/one_off/install_makefile_test.sh
 
 install: build
+	@$(INSTALLER) $(INSTALL_FLAGS)
+
+install-cli: build
 	mkdir -p "$(HOME)/.local/bin"
 	ln -s "$(CURDIR)/bin/sdlc-install" "$(HOME)/.local/bin/sdlc-install"
 

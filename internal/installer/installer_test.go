@@ -303,6 +303,141 @@ func TestStagingChangesRequireDeployment_RT3_9(t *testing.T) {
 	assertFileEquals(t, liveMain, []byte("# Changed staging SDLC\n"))
 }
 
+func TestSharedDriftProducesOneConfirmation_RT4_1(t *testing.T) {
+	source, root := newInteractiveFixture(t, "codex")
+	output := runInteractive(t, source, root, "no\nno\n")
+	if strings.Count(output, "Deploy shared SDLC tree? [yes/no]:") != 1 {
+		t.Fatalf("shared confirmation count was not one: %q", output)
+	}
+}
+
+func TestDecliningSharedDeploymentLeavesLiveTreeUnchanged_RT4_2(t *testing.T) {
+	source, root := newInteractiveFixture(t, "codex")
+	marker := filepath.Join(root, ".agents", "personal.txt")
+	writeFile(t, marker, []byte("personal\n"))
+	runInteractive(t, source, root, "no\nno\n")
+	assertFileEquals(t, marker, []byte("personal\n"))
+	if _, err := os.Lstat(filepath.Join(root, ".agents", "sdlc")); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("declined shared deployment created live tree: %v", err)
+	}
+}
+
+func TestAcceptingSharedDeploymentSynchronizesOwnedTree_RT4_3(t *testing.T) {
+	source, root := newInteractiveFixture(t, "codex")
+	runInteractive(t, source, root, "yes\nno\n")
+	live := filepath.Join(root, ".agents", "sdlc")
+	assertDirectoryNotSymlink(t, live)
+	assertFileEquals(t, filepath.Join(live, "MAIN.md"), []byte("# SDLC\n"))
+	if _, err := os.Lstat(filepath.Join(live, ".git")); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("root Git metadata was deployed: %v", err)
+	}
+}
+
+func TestCurrentProviderAdaptersNeedNoConfirmation_RT4_5(t *testing.T) {
+	source, root := newInteractiveFixture(t, "codex")
+	runInteractive(t, source, root, "yes\nyes\n")
+	output := runInteractive(t, source, root, "")
+	assertContains(t, output, "Provider codex adapters are current.")
+	if strings.Contains(output, "[yes/no]") {
+		t.Fatalf("current deployment requested confirmation: %q", output)
+	}
+}
+
+func TestEachChangedProviderGetsOneConfirmation_RT4_6(t *testing.T) {
+	source, root := newInteractiveFixture(t, "codex", "hermes")
+	runInteractive(t, source, root, "yes\nno\nno\n")
+	output := runInteractive(t, source, root, "no\nno\n")
+	for _, agent := range []string{"codex", "hermes"} {
+		if strings.Count(output, "Install "+agent+" adapters? [yes/no]:") != 1 {
+			t.Fatalf("%s confirmation count was not one: %q", agent, output)
+		}
+	}
+}
+
+func TestMixedProviderResponsesApplyOnlyAcceptedAdapters_RT4_7(t *testing.T) {
+	source, root := newInteractiveFixture(t, "codex", "hermes")
+	runInteractive(t, source, root, "yes\nyes\nno\n")
+	assertProviderBaseLink(t, root, "codex")
+	if _, err := os.Lstat(filepath.Join(root, ".hermes", "sdlc")); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("declined Hermes adapter changed: %v", err)
+	}
+}
+
+func TestDecliningAllPromptsLeavesDestinationsUnchanged_RT4_8(t *testing.T) {
+	source, root := newInteractiveFixture(t, "codex", "hermes")
+	marker := filepath.Join(root, ".hermes", "personal.txt")
+	writeFile(t, marker, []byte("personal\n"))
+	runInteractive(t, source, root, "no\nno\nno\n")
+	assertFileEquals(t, marker, []byte("personal\n"))
+	if _, err := os.Lstat(filepath.Join(root, ".codex", "sdlc")); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("declined Codex adapter changed: %v", err)
+	}
+}
+
+func TestInteractiveInstallationDoesNotChangeProviderConfiguration_RT4_9(t *testing.T) {
+	source, root := newInteractiveFixture(t, "codex", "hermes")
+	codexConfig := filepath.Join(root, ".codex", "config.toml")
+	hermesConfig := filepath.Join(root, ".hermes", "config.yaml")
+	writeFile(t, codexConfig, []byte("approval_policy = \"personal\"\n"))
+	writeFile(t, hermesConfig, []byte("personal: true\n"))
+	runInteractive(t, source, root, "yes\nyes\nyes\n")
+	assertFileEquals(t, codexConfig, []byte("approval_policy = \"personal\"\n"))
+	assertFileEquals(t, hermesConfig, []byte("personal: true\n"))
+}
+
+func TestEverySourceSkillGetsACommonLiveLink_RT4_10(t *testing.T) {
+	source, root := newInteractiveFixture(t, "codex")
+	writeFile(t, filepath.Join(source, "skills", "new-skill", "SKILL.md"), []byte("# New skill\n"))
+	writeFile(t, filepath.Join(source, "skills", "new-skill", "nested", "reference.md"), []byte("nested\n"))
+	runInteractive(t, source, root, "yes\nno\n")
+	assertAllCommonSkillLinks(t, source, root)
+}
+
+func TestProviderAdapterTableCoversEveryDetectedAgent_RT4_11(t *testing.T) {
+	source, root := newInteractiveFixture(t, "claude", "codex", "copilot", "hermes")
+	runInteractive(t, source, root, "yes\nyes\nyes\nyes\nyes\n")
+	for _, agent := range []string{"claude", "codex", "copilot", "hermes"} {
+		assertProviderBaseLink(t, root, agent)
+	}
+	assertSymlinkTarget(t, filepath.Join(root, ".claude", "commands", "build.md"), filepath.Join(root, ".agents", "sdlc", "commands", "build.md"))
+	assertSymlinkTarget(t, filepath.Join(root, ".codex", "prompts-commands"), filepath.Join(root, ".agents", "sdlc", "commands"))
+	assertSymlinkTarget(t, filepath.Join(root, ".copilot", "prompts-commands"), filepath.Join(root, ".agents", "sdlc", "commands"))
+	for _, agent := range []string{"claude", "copilot", "hermes"} {
+		assertAllProviderSkillLinks(t, source, root, agent)
+	}
+}
+
+func TestUnrelatedCommonAndProviderEntriesSurvive_RT4_12(t *testing.T) {
+	source, root := newInteractiveFixture(t, "codex")
+	commonFile := filepath.Join(root, ".agents", "personal.txt")
+	commonSkill := filepath.Join(root, ".agents", "skills", "personal", "SKILL.md")
+	providerFile := filepath.Join(root, ".codex", "personal.txt")
+	writeFile(t, commonFile, []byte("common\n"))
+	writeFile(t, commonSkill, []byte("skill\n"))
+	writeFile(t, providerFile, []byte("provider\n"))
+	runInteractive(t, source, root, "yes\nyes\n")
+	assertFileEquals(t, commonFile, []byte("common\n"))
+	assertFileEquals(t, commonSkill, []byte("skill\n"))
+	assertFileEquals(t, providerFile, []byte("provider\n"))
+}
+
+func TestRepeatedInteractiveInstallHasNoFilesystemWork_RT4_13(t *testing.T) {
+	source, root := newInteractiveFixture(t, "codex")
+	runInteractive(t, source, root, "yes\nyes\n")
+	output := runInteractive(t, source, root, "")
+	if strings.Contains(output, "would synchronize") || strings.Contains(output, "would create symlink") || strings.Contains(output, "[yes/no]") {
+		t.Fatalf("repeated install planned filesystem work: %q", output)
+	}
+}
+
+func TestMatchingInteractiveAnalysisReportsCurrent_RT4_14(t *testing.T) {
+	source, root := newInteractiveFixture(t, "codex")
+	runInteractive(t, source, root, "yes\nyes\n")
+	output := runInteractive(t, source, root, "")
+	assertContains(t, output, "Shared deployment is current.")
+	assertContains(t, output, "Provider codex adapters are current.")
+}
+
 func TestClaudeAnalysisNamesMissingCommandRestrictions(t *testing.T) {
 	source, agentHome := newFixture(t, ".claude")
 	settings := []byte(`{"permissions":{"allow":["Read(**/*)"],"deny":[]},"custom":"preserve"}`)
@@ -593,6 +728,61 @@ func newFixture(t *testing.T, homeName string) (string, string) {
 	writeFile(t, filepath.Join(source, "skills", "draft-design-issue", "references", "nested.md"), []byte("nested draft skill\n"))
 	writeFile(t, filepath.Join(source, ".git", "sentinel"), []byte("staging metadata\n"))
 	return source, agentHome
+}
+
+func newInteractiveFixture(t *testing.T, agents ...string) (string, string) {
+	t.Helper()
+	source, firstHome := newFixture(t, "."+agents[0])
+	root := filepath.Dir(firstHome)
+	for _, agent := range agents[1:] {
+		if err := os.MkdirAll(filepath.Join(root, "."+agent), 0o700); err != nil {
+			t.Fatal(err)
+		}
+	}
+	return source, root
+}
+
+func runInteractive(t *testing.T, source, root, input string) string {
+	t.Helper()
+	var output bytes.Buffer
+	if err := installer.RunInteractive(source, root, strings.NewReader(input), &output); err != nil {
+		t.Fatalf("Run() error = %v\n%s", err, output.String())
+	}
+	return output.String()
+}
+
+func assertProviderBaseLink(t *testing.T, root, agent string) {
+	t.Helper()
+	assertSymlinkTarget(t, filepath.Join(root, "."+agent, "sdlc"), filepath.Join(root, ".agents", "sdlc"))
+}
+
+func assertAllCommonSkillLinks(t *testing.T, source, root string) {
+	t.Helper()
+	for _, skill := range sourceSkillNames(t, source) {
+		assertSymlinkTarget(t, filepath.Join(root, ".agents", "skills", skill), filepath.Join(root, ".agents", "sdlc", "skills", skill))
+	}
+}
+
+func assertAllProviderSkillLinks(t *testing.T, source, root, agent string) {
+	t.Helper()
+	for _, skill := range sourceSkillNames(t, source) {
+		assertSymlinkTarget(t, filepath.Join(root, "."+agent, "skills", skill), filepath.Join(root, ".agents", "skills", skill))
+	}
+}
+
+func sourceSkillNames(t *testing.T, source string) []string {
+	t.Helper()
+	entries, err := os.ReadDir(filepath.Join(source, "skills"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var names []string
+	for _, entry := range entries {
+		if entry.IsDir() {
+			names = append(names, entry.Name())
+		}
+	}
+	return names
 }
 
 func writeFile(t *testing.T, path string, data []byte) {
