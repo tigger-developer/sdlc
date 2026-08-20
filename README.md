@@ -1,6 +1,6 @@
 # SDLC for AI Coding Agents
 
-An opinionated, issue-driven software development lifecycle for a human working with AI coding agents. The repository is the canonical source for process rules, craft standards, workflow commands, and advisory skills. Provider configuration remains in the provider's own home directory.
+An opinionated, issue-driven software development lifecycle for a human working with AI coding agents. The repository is the staging source for process rules, craft standards, workflow commands, and skills. The deployed `~/.agents/sdlc` tree is the canonical live version. Provider configuration remains in the provider's own home directory.
 
 The framework began with Claude Code and now separates the durable SDLC from personal `AGENTS.md` and `CLAUDE.md` files. [LEARNINGS.md](LEARNINGS.md) preserves the failures, design reasoning, and accumulated guidance that produced the current rules.
 
@@ -23,10 +23,11 @@ The framework began with Claude Code and now separates the durable SDLC from per
 
 ## Quickstart
 
-Clone the repository directly into one agent home:
+Clone the staging repository at a stable development path outside every
+provider home:
 
 ```bash
-git clone https://github.com/tigger-developer/sdlc.git ~/.codex/sdlc
+git clone https://github.com/tigger-developer/sdlc.git ~/code/sdlc
 ```
 
 Enter the clone and inspect the proposed installation and configuration recommendations. Analysis is the default and makes no changes:
@@ -49,9 +50,11 @@ go run ./cmd/sdlc-install --agent codex --apply --configure
 
 Replace `codex` with `claude`, `copilot`, or `hermes` as appropriate. For an unrecognized provider, supply both `--agent custom` and `--agent-home`.
 
-## One Clone, Multiple Agents
+## One Staging Clone, Multiple Agents
 
-Keep one physical clone at a stable path, then let each provider home contain a symlink named `sdlc`:
+Keep one physical staging clone at a stable path. The installer synchronizes it
+into the common live directory at `~/.agents/sdlc`, then points each provider's
+`sdlc` adapter to that deployment:
 
 ```bash
 git clone https://github.com/tigger-developer/sdlc.git ~/code/sdlc
@@ -79,29 +82,44 @@ go run ./cmd/sdlc-install --agent copilot --agent-home ~/.copilot --apply
 go run ./cmd/sdlc-install --agent hermes --agent-home ~/.hermes --apply --configure
 ```
 
-Every provider then resolves its framework through `<agent-home>/sdlc`, while a single `git pull` updates the shared clone.
+Every provider then resolves its framework through `<agent-home>/sdlc` into the
+same live copy. A `git pull` updates staging only; an accepted installer run is
+required to deploy that change.
 
 ### Manual alternative
 
-The installer is optional. From a stable clone at `~/code/sdlc`, create the same links manually:
+The installer is optional. To reproduce its main deployment boundary manually,
+first synchronize the staging tree while excluding Git metadata:
 
 ```bash
-ln -s ~/code/sdlc ~/.claude/sdlc
+mkdir -p ~/.agents/sdlc
 ```
 
 ```bash
-ln -s ~/code/sdlc ~/.codex/sdlc
+rsync -a --delete --exclude=/.git --delete-excluded ~/code/sdlc/ ~/.agents/sdlc/
+```
+
+Then create provider adapters to the common live tree, never to staging:
+
+```bash
+ln -s ~/.agents/sdlc ~/.claude/sdlc
 ```
 
 ```bash
-ln -s ~/code/sdlc ~/.copilot/sdlc
+ln -s ~/.agents/sdlc ~/.codex/sdlc
 ```
 
 ```bash
-ln -s ~/code/sdlc ~/.hermes/sdlc
+ln -s ~/.agents/sdlc ~/.copilot/sdlc
 ```
 
-Do not replace an existing path. Inspect it first and choose a different clone or agent-home path if it already contains unrelated material.
+```bash
+ln -s ~/.agents/sdlc ~/.hermes/sdlc
+```
+
+The automated installer also creates common and provider skill links. Do not
+replace an existing path manually. Inspect it first and use the installer to
+migrate recognized staging links safely.
 
 ## Connect the Agent to the SDLC
 
@@ -133,21 +151,24 @@ The canary chain remains present on later responses. It proves which documents r
 
 The installer has three deliberately separate responsibilities:
 
-1. Detect the target provider from `--agent`, `--agent-home`, or a clone already located at `<agent-home>/sdlc`.
+1. Detect the target provider from `--agent` or `--agent-home`, while requiring the staging clone to remain outside the provider home.
 2. Analyse installation and known provider configuration, then print recommendations without writing by default.
-3. Apply the `sdlc` symlink only with `--apply`, and alter supported provider configuration only with `--configure` plus interactive confirmation.
+3. With `--apply`, recursively synchronize staging into `~/.agents/sdlc` using `rsync --archive --delete`, exclude `.git`, and install live-tree adapters. Supported provider configuration changes still require `--configure` plus interactive confirmation.
 
 It never overwrites an existing non-matching destination. Provider adapters add only the integrations that their current public interfaces support:
 
 | Agent | Commands | Skills |
 |---|---|---|
-| Claude Code | Individual links under `~/.claude/commands/` | Advisory skill links under `~/.claude/skills/` |
-| Codex | `~/.codex/prompts-commands` as a reference library, not claimed as slash commands | Advisory skill links under `~/.agents/skills/` |
-| Copilot CLI | `~/.copilot/prompts-commands` as a reference library | Advisory skill links under `~/.copilot/skills/` |
-| Hermes | Repository link only | No provider-specific skill links |
-| Custom | Repository link only | No provider-specific assumptions |
+| Claude Code | Individual links under `~/.claude/commands/` to live command files | All skill links under `~/.claude/skills/` point to common skill entries |
+| Codex | `~/.codex/prompts-commands` links to the live command library, not claimed as slash commands | All live SDLC skill entries are linked under `~/.agents/skills/` for direct discovery |
+| Copilot CLI | `~/.copilot/prompts-commands` links to the live command library | All provider skill links point to common skill entries |
+| Hermes | Live repository adapter only | All provider skill links point to common skill entries |
+| Custom | Live repository adapter only | Common skill entries are installed without provider-specific assumptions |
 
-Only advisory skills are linked automatically. Drafting, state-changing, and gate-adjacent workflows remain in the repository for deliberate, provider-specific invocation.
+Every top-level directory under staging `skills/` is deployed. Each common
+entry at `~/.agents/skills/<skill>` points to
+`~/.agents/sdlc/skills/<skill>`. Installation makes a skill discoverable; it
+does not authorize invocation or alter the human-only gate rules.
 
 Claude configuration analysis is based on `settings.json`; the confirmed change adds missing SDLC command restrictions to `permissions.deny`, removes the same restrictions from `permissions.allow`, and preserves unknown fields. JSON spacing and key order may be normalized. The installer refuses to replace a symlinked settings file and recommends editing its target manually. Codex analysis checks `config.toml`; the confirmed change creates `rules/sdlc.rules` when absent and can upgrade a recognized prior SDLC rules file while preserving unrelated rules. Ambiguous or non-regular destinations remain untouched. After migration, repeating the installer reports the current policy unchanged.
 
@@ -165,13 +186,16 @@ Configuration recommendations are advisory. Review every proposed permission cha
 
 ## Updating
 
-Update the canonical clone normally:
+Update the staging clone normally:
 
 ```bash
 git pull
 ```
 
-Symlinked agent homes see the update immediately. Re-run the installer without `--apply` to review newly available configuration recommendations before choosing whether to apply them.
+Provider homes continue to see the previous live deployment after `git pull`.
+Re-run the installer without `--apply` to review the synchronization and any
+new configuration recommendations, then use `--apply` to deploy the accepted
+staging state.
 
 ## Further Reading
 

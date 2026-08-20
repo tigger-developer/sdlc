@@ -88,7 +88,7 @@ The stages below describe design progression rather than a dated release timelin
 8. **Provider-neutral distribution.** Agent-specific assumptions gave way to `[sdlc-home]`, root-level standards, provider adapters, and a unified installer that replaced provider-specific setup scripts. The framework moved from its personal configuration repository into this standalone project.
 9. **Audited delivery mode.** MODE DELIVER added a master/child delivery tree, mandatory pre-code and post-code audits, and one consolidated human review without weakening human-only architecture, access, or user-test decisions.
 
-Claude Code supplied the original implementation context. Codex and Copilot adapters later established the boundary between shared lifecycle rules and provider-specific integration. Provider homes now act as installation adapters around one canonical clone.
+Claude Code supplied the original implementation context. Codex and Copilot adapters later established the boundary between shared lifecycle rules and provider-specific integration. Provider homes now act as installation adapters around one canonical live deployment copied from a separate staging clone.
 
 ## Current Architecture and Loading Model
 
@@ -319,11 +319,12 @@ The normative files define current behaviour. This section records why each comp
 
 ### Installer, Templates, and Provider Adapters
 
-**Current role:** `sdlc-install`, the templates, and the optional command guard adapt one canonical clone to Claude, Codex, Copilot, or a custom provider without turning provider configuration into lifecycle policy. Analysis is the default; installation and supported configuration changes remain separate, explicit acts.
+**Current role:** `sdlc-install`, the templates, and the optional command guard synchronize one staging clone into the common live tree and adapt that deployment to Claude, Codex, Copilot, Hermes, or a custom provider without turning provider configuration into lifecycle policy. Analysis is the default; installation and supported configuration changes remain separate, explicit acts.
 
 **How it evolved:**
 - Provider-specific setup scripts initially encoded the same linking logic separately and drifted as provider capabilities diverged
 - The unified installer made analysis the safe default, exposed recommendations before mutation, and kept configuration changes independent from link installation
+- Direct provider links to the staging clone made uninstalled edits live and left non-advisory skills undiscoverable. Deployment therefore became an explicit recursive copy into `~/.agents/sdlc`, with all common and provider skill links targeting that live tree
 - Provider configuration remained outside the SDLC repository because permission models, command discovery, and skill locations are integration concerns rather than lifecycle rules
 - The shared command guard remained optional because hook support and invocation semantics differ between providers
 

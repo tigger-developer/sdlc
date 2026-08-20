@@ -13,7 +13,7 @@ import (
 	"github.com/tigger-developer/sdlc/internal/installer"
 )
 
-func TestDryRunReportsPlanWithoutWriting(t *testing.T) {
+func TestDryRunReportsPlanWithoutWriting_RT3_1(t *testing.T) {
 	source, agentHome := newFixture(t, ".codex")
 	var output bytes.Buffer
 
@@ -29,15 +29,25 @@ func TestDryRunReportsPlanWithoutWriting(t *testing.T) {
 	}
 
 	assertContains(t, output.String(), "DRY RUN")
+	assertContains(t, output.String(), "would synchronize")
 	assertContains(t, output.String(), "would create symlink")
 	_, err = os.Lstat(filepath.Join(agentHome, "sdlc"))
 	if !errors.Is(err, os.ErrNotExist) {
 		t.Fatalf("dry run created destination: Lstat() error = %v", err)
 	}
+	_, err = os.Lstat(filepath.Join(filepath.Dir(agentHome), ".agents", "sdlc"))
+	if !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("dry run created live SDLC tree: Lstat() error = %v", err)
+	}
 }
 
-func TestApplyCreatesSymlinkToCanonicalClone(t *testing.T) {
+func TestApplyCopiesCanonicalLiveTreeAndLinksClaude_RT3_2(t *testing.T) {
 	source, agentHome := newFixture(t, ".claude")
+	commonHome := filepath.Join(filepath.Dir(agentHome), ".agents")
+	liveSDLC := filepath.Join(commonHome, "sdlc")
+	sharedSkills := filepath.Join(commonHome, "skills")
+	writeFile(t, filepath.Join(liveSDLC, ".git", "stale"), []byte("old metadata\n"))
+	writeFile(t, filepath.Join(liveSDLC, "stale.txt"), []byte("old live content\n"))
 	var output bytes.Buffer
 
 	err := installer.Run(installer.Options{
@@ -52,23 +62,25 @@ func TestApplyCreatesSymlinkToCanonicalClone(t *testing.T) {
 		t.Fatalf("Run() error = %v", err)
 	}
 
-	destination := filepath.Join(agentHome, "sdlc")
-	target, err := os.Readlink(destination)
-	if err != nil {
-		t.Fatalf("Readlink(%q) error = %v", destination, err)
+	assertDirectoryNotSymlink(t, liveSDLC)
+	assertFileEquals(t, filepath.Join(liveSDLC, "MAIN.md"), []byte("# SDLC\n"))
+	assertFileEquals(t, filepath.Join(liveSDLC, "skills", "draft-design-issue", "references", "nested.md"), []byte("nested draft skill\n"))
+	if _, err := os.Lstat(filepath.Join(liveSDLC, ".git")); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("live SDLC tree contains staging Git metadata: Lstat() error = %v", err)
 	}
-	if target != source {
-		t.Fatalf("symlink target = %q, want %q", target, source)
+	if _, err := os.Lstat(filepath.Join(liveSDLC, "stale.txt")); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("live SDLC tree contains stale content: Lstat() error = %v", err)
 	}
-	assertSymlinkTarget(t, filepath.Join(agentHome, "commands", "build.md"), filepath.Join(source, "commands", "build.md"))
-	assertSymlinkTarget(t, filepath.Join(agentHome, "skills", "audit-code"), filepath.Join(source, "skills", "audit-code"))
-	if _, err := os.Lstat(filepath.Join(agentHome, "skills", "draft-issue")); !errors.Is(err, os.ErrNotExist) {
-		t.Fatalf("state-changing skill was installed: Lstat() error = %v", err)
-	}
+	assertSymlinkTarget(t, filepath.Join(agentHome, "sdlc"), liveSDLC)
+	assertSymlinkTarget(t, filepath.Join(agentHome, "commands", "build.md"), filepath.Join(liveSDLC, "commands", "build.md"))
+	assertSymlinkTarget(t, filepath.Join(sharedSkills, "audit-code"), filepath.Join(liveSDLC, "skills", "audit-code"))
+	assertSymlinkTarget(t, filepath.Join(sharedSkills, "draft-design-issue"), filepath.Join(liveSDLC, "skills", "draft-design-issue"))
+	assertSymlinkTarget(t, filepath.Join(agentHome, "skills", "audit-code"), filepath.Join(sharedSkills, "audit-code"))
+	assertSymlinkTarget(t, filepath.Join(agentHome, "skills", "draft-design-issue"), filepath.Join(sharedSkills, "draft-design-issue"))
 	assertContains(t, output.String(), "installed")
 }
 
-func TestCodexApplyLinksPromptLibraryAndAdvisorySkills(t *testing.T) {
+func TestCodexApplyLinksLivePromptLibraryAndAllSkills_RT3_3(t *testing.T) {
 	source, agentHome := newFixture(t, ".codex")
 
 	err := installer.Run(installer.Options{
@@ -83,15 +95,16 @@ func TestCodexApplyLinksPromptLibraryAndAdvisorySkills(t *testing.T) {
 		t.Fatalf("Run() error = %v", err)
 	}
 
-	assertSymlinkTarget(t, filepath.Join(agentHome, "prompts-commands"), filepath.Join(source, "commands"))
-	sharedSkills := filepath.Join(filepath.Dir(agentHome), ".agents", "skills")
-	assertSymlinkTarget(t, filepath.Join(sharedSkills, "audit-code"), filepath.Join(source, "skills", "audit-code"))
-	if _, err := os.Lstat(filepath.Join(sharedSkills, "draft-issue")); !errors.Is(err, os.ErrNotExist) {
-		t.Fatalf("state-changing skill was installed: Lstat() error = %v", err)
-	}
+	commonHome := filepath.Join(filepath.Dir(agentHome), ".agents")
+	liveSDLC := filepath.Join(commonHome, "sdlc")
+	assertSymlinkTarget(t, filepath.Join(agentHome, "sdlc"), liveSDLC)
+	assertSymlinkTarget(t, filepath.Join(agentHome, "prompts-commands"), filepath.Join(liveSDLC, "commands"))
+	sharedSkills := filepath.Join(commonHome, "skills")
+	assertSymlinkTarget(t, filepath.Join(sharedSkills, "audit-code"), filepath.Join(liveSDLC, "skills", "audit-code"))
+	assertSymlinkTarget(t, filepath.Join(sharedSkills, "draft-design-issue"), filepath.Join(liveSDLC, "skills", "draft-design-issue"))
 }
 
-func TestCopilotApplyLinksAdvisorySkills(t *testing.T) {
+func TestCopilotApplyLinksAllLiveSkills_RT3_4(t *testing.T) {
 	source, agentHome := newFixture(t, ".copilot")
 
 	err := installer.Run(installer.Options{
@@ -106,8 +119,35 @@ func TestCopilotApplyLinksAdvisorySkills(t *testing.T) {
 		t.Fatalf("Run() error = %v", err)
 	}
 
-	assertSymlinkTarget(t, filepath.Join(agentHome, "prompts-commands"), filepath.Join(source, "commands"))
-	assertSymlinkTarget(t, filepath.Join(agentHome, "skills", "audit-code"), filepath.Join(source, "skills", "audit-code"))
+	commonHome := filepath.Join(filepath.Dir(agentHome), ".agents")
+	liveSDLC := filepath.Join(commonHome, "sdlc")
+	sharedSkills := filepath.Join(commonHome, "skills")
+	assertSymlinkTarget(t, filepath.Join(agentHome, "prompts-commands"), filepath.Join(liveSDLC, "commands"))
+	assertSymlinkTarget(t, filepath.Join(agentHome, "skills", "audit-code"), filepath.Join(sharedSkills, "audit-code"))
+	assertSymlinkTarget(t, filepath.Join(agentHome, "skills", "draft-design-issue"), filepath.Join(sharedSkills, "draft-design-issue"))
+}
+
+func TestHermesApplyLinksAllLiveSkills_RT3_5(t *testing.T) {
+	source, agentHome := newFixture(t, ".hermes")
+
+	err := installer.Run(installer.Options{
+		Agent:     "hermes",
+		AgentHome: agentHome,
+		Source:    source,
+		Apply:     true,
+		Input:     strings.NewReader(""),
+		Output:    &bytes.Buffer{},
+	})
+	if err != nil {
+		t.Fatalf("Run() error = %v", err)
+	}
+
+	commonHome := filepath.Join(filepath.Dir(agentHome), ".agents")
+	liveSDLC := filepath.Join(commonHome, "sdlc")
+	sharedSkills := filepath.Join(commonHome, "skills")
+	assertSymlinkTarget(t, filepath.Join(agentHome, "sdlc"), liveSDLC)
+	assertSymlinkTarget(t, filepath.Join(agentHome, "skills", "audit-code"), filepath.Join(sharedSkills, "audit-code"))
+	assertSymlinkTarget(t, filepath.Join(agentHome, "skills", "draft-design-issue"), filepath.Join(sharedSkills, "draft-design-issue"))
 }
 
 func TestApplyRefusesToReplaceExistingDestination(t *testing.T) {
@@ -159,7 +199,7 @@ func TestAgentIsInferredFromAgentHome(t *testing.T) {
 	assertContains(t, output.String(), "Agent: codex")
 }
 
-func TestAgentIsInferredWhenCloneAlreadyLivesInAgentHome(t *testing.T) {
+func TestAgentIsInferredWhenCloneAlreadyLivesInAgentHome_RT3_6(t *testing.T) {
 	root := t.TempDir()
 	agentHome := filepath.Join(root, ".codex")
 	source := filepath.Join(agentHome, "sdlc")
@@ -177,14 +217,13 @@ func TestAgentIsInferredWhenCloneAlreadyLivesInAgentHome(t *testing.T) {
 		Input:  strings.NewReader(""),
 		Output: &output,
 	})
-	if err != nil {
-		t.Fatalf("Run() error = %v", err)
+	if err == nil {
+		t.Fatal("Run() error = nil, want staging-location conflict")
 	}
-	assertContains(t, output.String(), "Agent: codex")
-	assertContains(t, output.String(), "already resolves")
+	assertContains(t, err.Error(), "move the staging clone")
 }
 
-func TestApplyIsIdempotentForManagedLinks(t *testing.T) {
+func TestApplyIsIdempotentForManagedLinks_RT3_7(t *testing.T) {
 	source, agentHome := newFixture(t, ".claude")
 	options := installer.Options{
 		Agent:     "claude",
@@ -204,6 +243,64 @@ func TestApplyIsIdempotentForManagedLinks(t *testing.T) {
 		t.Fatalf("second Run() error = %v", err)
 	}
 	assertContains(t, secondOutput.String(), "already resolves")
+	assertContains(t, secondOutput.String(), "already matches")
+}
+
+func TestApplyMigratesRecognizedStagingLinks_RT3_8(t *testing.T) {
+	source, agentHome := newFixture(t, ".claude")
+	commonHome := filepath.Join(filepath.Dir(agentHome), ".agents")
+	liveSDLC := filepath.Join(commonHome, "sdlc")
+	sharedSkills := filepath.Join(commonHome, "skills")
+	makeSymlink(t, source, filepath.Join(agentHome, "sdlc"))
+	makeSymlink(t, filepath.Join(source, "commands", "build.md"), filepath.Join(agentHome, "commands", "build.md"))
+	for _, skill := range []string{"audit-code", "draft-design-issue"} {
+		stagingSkill := filepath.Join(source, "skills", skill)
+		makeSymlink(t, stagingSkill, filepath.Join(sharedSkills, skill))
+		makeSymlink(t, stagingSkill, filepath.Join(agentHome, "skills", skill))
+	}
+
+	if err := installer.Run(installer.Options{
+		Agent:     "claude",
+		AgentHome: agentHome,
+		Source:    source,
+		Apply:     true,
+		Input:     strings.NewReader("no\n"),
+		Output:    &bytes.Buffer{},
+	}); err != nil {
+		t.Fatalf("Run() error = %v", err)
+	}
+
+	assertDirectoryNotSymlink(t, liveSDLC)
+	assertSymlinkTarget(t, filepath.Join(agentHome, "sdlc"), liveSDLC)
+	assertSymlinkTarget(t, filepath.Join(agentHome, "commands", "build.md"), filepath.Join(liveSDLC, "commands", "build.md"))
+	for _, skill := range []string{"audit-code", "draft-design-issue"} {
+		assertSymlinkTarget(t, filepath.Join(sharedSkills, skill), filepath.Join(liveSDLC, "skills", skill))
+		assertSymlinkTarget(t, filepath.Join(agentHome, "skills", skill), filepath.Join(sharedSkills, skill))
+	}
+}
+
+func TestStagingChangesRequireDeployment_RT3_9(t *testing.T) {
+	source, agentHome := newFixture(t, ".codex")
+	options := installer.Options{
+		Agent:     "codex",
+		AgentHome: agentHome,
+		Source:    source,
+		Apply:     true,
+		Input:     strings.NewReader(""),
+		Output:    &bytes.Buffer{},
+	}
+	if err := installer.Run(options); err != nil {
+		t.Fatalf("first Run() error = %v", err)
+	}
+
+	liveMain := filepath.Join(filepath.Dir(agentHome), ".agents", "sdlc", "MAIN.md")
+	writeFile(t, filepath.Join(source, "MAIN.md"), []byte("# Changed staging SDLC\n"))
+	assertFileEquals(t, liveMain, []byte("# SDLC\n"))
+
+	if err := installer.Run(options); err != nil {
+		t.Fatalf("second Run() error = %v", err)
+	}
+	assertFileEquals(t, liveMain, []byte("# Changed staging SDLC\n"))
 }
 
 func TestClaudeAnalysisNamesMissingCommandRestrictions(t *testing.T) {
@@ -492,7 +589,9 @@ func newFixture(t *testing.T, homeName string) (string, string) {
 	writeFile(t, filepath.Join(source, "templates", "codex-sdlc.rules.example"), []byte("prefix_rule(\n    pattern = [\"sed\"],\n    decision = \"forbidden\",\n)\n\n# BEGIN SDLC MANAGED PYTHON RULES\nprefix_rule(\n    pattern = [\"python\"],\n    decision = \"forbidden\",\n)\n\nprefix_rule(\n    pattern = [\"python3\"],\n    decision = \"forbidden\",\n)\n# END SDLC MANAGED PYTHON RULES\n"))
 	writeFile(t, filepath.Join(source, "commands", "build.md"), []byte("# Build\n"))
 	writeFile(t, filepath.Join(source, "skills", "audit-code", "SKILL.md"), []byte("# Audit code\n"))
-	writeFile(t, filepath.Join(source, "skills", "draft-issue", "SKILL.md"), []byte("# Draft issue\n"))
+	writeFile(t, filepath.Join(source, "skills", "draft-design-issue", "SKILL.md"), []byte("# Draft design issue\n"))
+	writeFile(t, filepath.Join(source, "skills", "draft-design-issue", "references", "nested.md"), []byte("nested draft skill\n"))
+	writeFile(t, filepath.Join(source, ".git", "sentinel"), []byte("staging metadata\n"))
 	return source, agentHome
 }
 
@@ -503,6 +602,16 @@ func writeFile(t *testing.T, path string, data []byte) {
 	}
 	if err := os.WriteFile(path, data, 0o600); err != nil {
 		t.Fatalf("WriteFile(%q) error = %v", path, err)
+	}
+}
+
+func makeSymlink(t *testing.T, target, path string) {
+	t.Helper()
+	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
+		t.Fatalf("MkdirAll(%q) error = %v", filepath.Dir(path), err)
+	}
+	if err := os.Symlink(target, path); err != nil {
+		t.Fatalf("Symlink(%q, %q) error = %v", target, path, err)
 	}
 }
 
@@ -541,5 +650,16 @@ func assertSymlinkTarget(t *testing.T, path, want string) {
 	}
 	if got != want {
 		t.Fatalf("symlink %q target = %q, want %q", path, got, want)
+	}
+}
+
+func assertDirectoryNotSymlink(t *testing.T, path string) {
+	t.Helper()
+	info, err := os.Lstat(path)
+	if err != nil {
+		t.Fatalf("Lstat(%q) error = %v", path, err)
+	}
+	if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
+		t.Fatalf("%q is not a regular directory: mode = %v", path, info.Mode())
 	}
 }
