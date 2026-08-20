@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v1.0.2 - 2026-08-20
+
 Changed `make install` to run an interactive multi-agent deployment. It detects
 installed provider homes, asks once for the shared live tree, and asks
 separately for each provider adapter that differs. The reusable CLI link moved
