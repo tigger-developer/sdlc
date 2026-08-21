@@ -25,9 +25,9 @@ func run(arguments []string, input io.Reader, output io.Writer) error {
 	flags := flag.NewFlagSet("sdlc-install", flag.ContinueOnError)
 	flags.SetOutput(output)
 	agent := flags.String("agent", "", "target one agent: auto, claude, codex, copilot, hermes, or custom; omit for interactive detection")
-	agentHome := flags.String("agent-home", "", "provider home receiving live-tree adapters")
+	agentHome := flags.String("agent-home", "", "provider home receiving SDLC copies")
 	source := flags.String("source", workingDirectory, "staging SDLC clone")
-	apply := flags.Bool("apply", false, "synchronize the live tree and create provider adapters")
+	apply := flags.Bool("apply", false, "synchronize SDLC-owned copies for one provider")
 	configure := flags.Bool("configure", false, "offer supported provider configuration changes for confirmation")
 	if err := flags.Parse(arguments); err != nil {
 		if errors.Is(err, flag.ErrHelp) {

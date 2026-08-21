@@ -4,7 +4,7 @@ Read this document in its entirety before taking any action governed by it. Do n
 
 Loaded only in a Coding-Agent Session when working with code, scripts, software, configuration, builds, tests, deployment, or systems. Builds on the user's provider-level instructions as the shared and coding-agent baseline; this document adds code-specific rules.
 
-`[sdlc-home]` means the directory containing this `MAIN.md`. A normal installation places or symlinks the repository at `~/.claude/sdlc`, `~/.codex/sdlc`, `~/.copilot/sdlc`, or another agent home chosen by the user. Resolve every `[sdlc-home]/...` reference against that single directory.
+`[sdlc-home]` means the directory containing this `MAIN.md`. A normal installation copies the repository to `~/.claude/sdlc`, `~/.codex/sdlc`, `~/.copilot/sdlc`, `~/.hermes/sdlc`, or another agent home chosen by the user. Resolve every `[sdlc-home]/...` reference against that single directory.
 
 ## Loading Contract
 

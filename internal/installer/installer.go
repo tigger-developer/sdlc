@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/BurntSushi/toml"
 )
@@ -25,17 +26,16 @@ const (
 )
 
 type providerDefinition struct {
-	name             string
-	commandDirectory bool
-	commandFiles     bool
-	skillLinks       bool
+	name        string
+	commandPath string
+	skills      bool
 }
 
 var providerDefinitions = []providerDefinition{
-	{name: agentClaude, commandFiles: true, skillLinks: true},
-	{name: agentCodex, commandDirectory: true},
-	{name: agentCopilot, commandDirectory: true, skillLinks: true},
-	{name: agentHermes, skillLinks: true},
+	{name: agentClaude, commandPath: "commands", skills: true},
+	{name: agentCodex, commandPath: "prompts-commands"},
+	{name: agentCopilot, commandPath: "prompts-commands", skills: true},
+	{name: agentHermes, skills: true},
 }
 
 var claudeDeniedCommands = []string{
@@ -68,28 +68,19 @@ type configurationChange struct {
 	afterLabel  string
 	contents    []byte
 	mode        os.FileMode
-	backup      bool
-}
-
-type managedLink struct {
-	source      string
-	destination string
-	legacy      []string
-	needsLink   bool
-	replaceLink bool
 }
 
 type managedSync struct {
-	source      string
-	destination string
-	excludeGit  bool
-	needsSync   bool
-	replaceLink bool
+	source            string
+	destination       string
+	excludeGit        bool
+	needsSync         bool
+	backupExisting    bool
+	destinationExists bool
 }
 
 type installationPlan struct {
 	syncs []managedSync
-	links []managedLink
 }
 
 func Run(options Options) error {
@@ -114,7 +105,7 @@ func Run(options Options) error {
 		return err
 	}
 	if options.Apply {
-		if err := applyInstallation(plan); err != nil {
+		if err := applyInstallation(plan, options.Output); err != nil {
 			return err
 		}
 		verified, verifyErr := planInstallation(agent, source, agentHome)
@@ -124,7 +115,7 @@ func Run(options Options) error {
 		if installationHasChanges(verified) {
 			return errors.New("installation verification still reports changes")
 		}
-		fmt.Fprintln(options.Output, "Installation: synchronized the live tree and installed all planned links.")
+		fmt.Fprintln(options.Output, "Installation: synchronized all planned copies.")
 	}
 	if options.Configure {
 		return offerConfigurationChange(change, options.Input, options.Output)
@@ -156,27 +147,26 @@ func RunInteractive(sourcePath, userHome string, input io.Reader, output io.Writ
 	if err != nil {
 		return fmt.Errorf("resolving user home %q: %w", userHome, err)
 	}
-	commonHome := filepath.Join(userHome, ".agents")
-	sharedPlan, err := planSharedInstallation(source, commonHome)
-	if err != nil {
-		return err
-	}
 	agents, err := detectedAgents(userHome)
 	if err != nil {
 		return err
 	}
-	type namedPlan struct {
-		agent string
-		plan  installationPlan
+	plan := installationPlan{}
+	commonHome := filepath.Join(userHome, ".agents")
+	if directoryExists(commonHome) {
+		shared, planErr := planSharedInstallation(source, commonHome)
+		if planErr != nil {
+			return planErr
+		}
+		plan.syncs = append(plan.syncs, shared.syncs...)
 	}
-	providerPlans := make([]namedPlan, 0, len(agents))
 	for _, agent := range agents {
 		agentHome := filepath.Join(userHome, "."+agent)
-		plan, err := planProviderInstallation(agent, source, filepath.Join(commonHome, "sdlc"), agentHome)
-		if err != nil {
-			return err
+		provider, planErr := planProviderInstallation(agent, source, agentHome)
+		if planErr != nil {
+			return planErr
 		}
-		providerPlans = append(providerPlans, namedPlan{agent: agent, plan: plan})
+		plan.syncs = append(plan.syncs, provider.syncs...)
 	}
 
 	fmt.Fprintln(output, "SDLC installer: INTERACTIVE")
@@ -185,61 +175,56 @@ func RunInteractive(sourcePath, userHome string, input io.Reader, output io.Writ
 	} else {
 		fmt.Fprintf(output, "Detected agents: %s\n", strings.Join(agents, ", "))
 	}
-	reader := bufio.NewReader(input)
-	if installationHasChanges(sharedPlan) {
-		printInstallationPlan(output, sharedPlan, false)
-		accepted, confirmErr := confirm(reader, output, "Deploy shared SDLC tree? [yes/no]: ")
-		if confirmErr != nil {
-			return confirmErr
-		}
-		if accepted {
-			if err := applyInstallation(sharedPlan); err != nil {
-				return err
-			}
-			verified, verifyErr := planSharedInstallation(source, commonHome)
-			if verifyErr != nil {
-				return verifyErr
-			}
-			if installationHasChanges(verified) {
-				return errors.New("shared deployment verification still reports changes")
-			}
-			fmt.Fprintln(output, "Shared deployment installed.")
-		} else {
-			fmt.Fprintln(output, "Shared deployment declined.")
-		}
-	} else {
-		fmt.Fprintln(output, "Shared deployment is current.")
+	if !installationHasChanges(plan) {
+		fmt.Fprintln(output, "All detected SDLC copies are current.")
+		return nil
 	}
-
-	for _, provider := range providerPlans {
-		agent := provider.agent
-		plan := provider.plan
-		if !installationHasChanges(plan) {
-			fmt.Fprintf(output, "Provider %s adapters are current.\n", agent)
-			continue
-		}
-		printInstallationPlan(output, plan, false)
-		accepted, confirmErr := confirm(reader, output, fmt.Sprintf("Install %s adapters? [yes/no]: ", agent))
-		if confirmErr != nil {
-			return confirmErr
-		}
-		if !accepted {
-			fmt.Fprintf(output, "Provider %s adapters declined.\n", agent)
-			continue
-		}
-		if err := applyInstallation(plan); err != nil {
-			return err
-		}
-		verified, verifyErr := planProviderInstallation(agent, source, filepath.Join(commonHome, "sdlc"), filepath.Join(userHome, "."+agent))
-		if verifyErr != nil {
-			return verifyErr
-		}
-		if installationHasChanges(verified) {
-			return fmt.Errorf("%s adapter verification still reports changes", agent)
-		}
-		fmt.Fprintf(output, "Provider %s adapters installed.\n", agent)
+	printInstallationPlan(output, plan, false)
+	accepted, confirmErr := confirm(bufio.NewReader(input), output, "Deploy all listed SDLC changes? [yes/no]: ")
+	if confirmErr != nil {
+		return confirmErr
 	}
+	if !accepted {
+		fmt.Fprintln(output, "Deployment declined; no changes were made.")
+		return nil
+	}
+	if err := applyInstallation(plan, output); err != nil {
+		return err
+	}
+	verified, verifyErr := planDetectedInstallation(source, userHome, agents)
+	if verifyErr != nil {
+		return verifyErr
+	}
+	if installationHasChanges(verified) {
+		return errors.New("deployment verification still reports changes")
+	}
+	fmt.Fprintln(output, "All listed SDLC changes were installed.")
 	return nil
+}
+
+func planDetectedInstallation(source, userHome string, agents []string) (installationPlan, error) {
+	plan := installationPlan{}
+	commonHome := filepath.Join(userHome, ".agents")
+	if directoryExists(commonHome) {
+		shared, err := planSharedInstallation(source, commonHome)
+		if err != nil {
+			return installationPlan{}, err
+		}
+		plan.syncs = append(plan.syncs, shared.syncs...)
+	}
+	for _, agent := range agents {
+		provider, err := planProviderInstallation(agent, source, filepath.Join(userHome, "."+agent))
+		if err != nil {
+			return installationPlan{}, err
+		}
+		plan.syncs = append(plan.syncs, provider.syncs...)
+	}
+	return plan, nil
+}
+
+func directoryExists(path string) bool {
+	info, err := os.Stat(path)
+	return err == nil && info.IsDir()
 }
 
 func confirm(reader *bufio.Reader, output io.Writer, prompt string) (bool, error) {
@@ -271,11 +256,6 @@ func detectedAgents(userHome string) ([]string, error) {
 func installationHasChanges(plan installationPlan) bool {
 	for _, sync := range plan.syncs {
 		if sync.needsSync {
-			return true
-		}
-	}
-	for _, link := range plan.links {
-		if link.needsLink {
 			return true
 		}
 	}
@@ -405,20 +385,23 @@ func defaultAgentHome(agent string) (string, error) {
 
 func planInstallation(agent, source, agentHome string) (installationPlan, error) {
 	commonHome := filepath.Join(filepath.Dir(agentHome), ".agents")
-	liveSDLC := filepath.Join(commonHome, "sdlc")
 	if filepath.Clean(source) == filepath.Clean(filepath.Join(agentHome, "sdlc")) {
-		return installationPlan{}, fmt.Errorf("source %q is inside the provider home; move the staging clone outside the provider home before installing the live adapter", source)
+		return installationPlan{}, fmt.Errorf("source %q is inside the provider home; move the staging clone outside the provider home before installing the provider copy", source)
 	}
-	shared, err := planSharedInstallation(source, commonHome)
+	plan := installationPlan{}
+	if directoryExists(commonHome) {
+		shared, err := planSharedInstallation(source, commonHome)
+		if err != nil {
+			return installationPlan{}, err
+		}
+		plan.syncs = append(plan.syncs, shared.syncs...)
+	}
+	provider, err := planProviderInstallation(agent, source, agentHome)
 	if err != nil {
 		return installationPlan{}, err
 	}
-	provider, err := planProviderInstallation(agent, source, liveSDLC, agentHome)
-	if err != nil {
-		return installationPlan{}, err
-	}
-	shared.links = append(shared.links, provider.links...)
-	return shared, nil
+	plan.syncs = append(plan.syncs, provider.syncs...)
+	return plan, nil
 }
 
 func planSharedInstallation(source, commonHome string) (installationPlan, error) {
@@ -430,139 +413,63 @@ func planSharedInstallation(source, commonHome string) (installationPlan, error)
 	if err != nil {
 		return installationPlan{}, err
 	}
-	links, err := childLinks(filepath.Join(source, "skills"), filepath.Join(liveSDLC, "skills"), filepath.Join(commonHome, "skills"), true)
+	skills, err := planChildDirectories(filepath.Join(source, "skills"), filepath.Join(commonHome, "skills"))
 	if err != nil {
 		return installationPlan{}, err
 	}
-	plan := installationPlan{syncs: []managedSync{sync}}
-	planned, err := planLinks(links)
-	if err != nil {
-		return installationPlan{}, err
-	}
-	plan.links = planned
-	return plan, nil
+	return installationPlan{syncs: append([]managedSync{sync}, skills...)}, nil
 }
 
-func planProviderInstallation(agent, source, liveSDLC, agentHome string) (installationPlan, error) {
+func planProviderInstallation(agent, source, agentHome string) (installationPlan, error) {
 	if filepath.Clean(source) == filepath.Clean(filepath.Join(agentHome, "sdlc")) {
-		return installationPlan{}, fmt.Errorf("source %q is inside the provider home; move the staging clone outside the provider home before installing the live adapter", source)
+		return installationPlan{}, fmt.Errorf("source %q is inside the provider home; move the staging clone outside the provider home before installing the provider copy", source)
 	}
-	links, err := providerLinks(agent, source, liveSDLC, agentHome)
+	base, err := planDirectorySync(source, filepath.Join(agentHome, "sdlc"), true)
 	if err != nil {
 		return installationPlan{}, err
 	}
-	planned, err := planLinks(links)
-	if err != nil {
-		return installationPlan{}, err
-	}
-	return installationPlan{links: planned}, nil
-}
-
-func planLinks(links []managedLink) ([]managedLink, error) {
-	planned := make([]managedLink, 0, len(links))
-	for _, link := range links {
-		item, planErr := planLink(link)
-		if planErr != nil {
-			return nil, planErr
-		}
-		planned = append(planned, item)
-	}
-	return planned, nil
-}
-
-func providerLinks(agent, source, liveSDLC, agentHome string) ([]managedLink, error) {
-	commonSkills := filepath.Join(filepath.Dir(agentHome), ".agents", "skills")
-	links := []managedLink{{
-		source:      liveSDLC,
-		destination: filepath.Join(agentHome, "sdlc"),
-		legacy:      []string{source},
-	}}
+	plan := installationPlan{syncs: []managedSync{base}}
 	if agent == agentCustom {
-		return links, nil
+		return plan, nil
 	}
 	provider, found := providerDefinitionFor(agent)
 	if !found {
-		return nil, fmt.Errorf("planning unsupported agent %q", agent)
+		return installationPlan{}, fmt.Errorf("planning unsupported agent %q", agent)
 	}
-	if provider.commandFiles {
-		commandLinks, err := childLinks(filepath.Join(source, "commands"), filepath.Join(liveSDLC, "commands"), filepath.Join(agentHome, "commands"), false)
-		if err != nil {
-			return nil, err
+	if provider.commandPath != "" {
+		commands, planErr := planDirectorySync(filepath.Join(source, "commands"), filepath.Join(agentHome, provider.commandPath), false)
+		if planErr != nil {
+			return installationPlan{}, planErr
 		}
-		links = append(links, commandLinks...)
+		plan.syncs = append(plan.syncs, commands)
 	}
-	if provider.commandDirectory {
-		links = append(links, managedLink{
-			source:      filepath.Join(liveSDLC, "commands"),
-			destination: filepath.Join(agentHome, "prompts-commands"),
-			legacy:      []string{filepath.Join(source, "commands")},
-		})
-	}
-	if provider.skillLinks {
-		providerSkills, err := childLinks(filepath.Join(source, "skills"), commonSkills, filepath.Join(agentHome, "skills"), true)
-		if err != nil {
-			return nil, err
+	if provider.skills {
+		skills, planErr := planChildDirectories(filepath.Join(source, "skills"), filepath.Join(agentHome, "skills"))
+		if planErr != nil {
+			return installationPlan{}, planErr
 		}
-		links = append(links, providerSkills...)
+		plan.syncs = append(plan.syncs, skills...)
 	}
-	return links, nil
+	return plan, nil
 }
 
-func childLinks(stagingDirectory, sourceDirectory, destinationDirectory string, directoriesOnly bool) ([]managedLink, error) {
-	entries, err := os.ReadDir(stagingDirectory)
+func planChildDirectories(sourceDirectory, destinationDirectory string) ([]managedSync, error) {
+	entries, err := os.ReadDir(sourceDirectory)
 	if err != nil {
-		return nil, fmt.Errorf("reading install source %q: %w", stagingDirectory, err)
+		return nil, fmt.Errorf("reading install source %q: %w", sourceDirectory, err)
 	}
-	links := make([]managedLink, 0, len(entries))
+	syncs := make([]managedSync, 0, len(entries))
 	for _, entry := range entries {
-		if directoriesOnly && !entry.IsDir() {
+		if !entry.IsDir() {
 			continue
 		}
-		links = append(links, managedLink{
-			source:      filepath.Join(sourceDirectory, entry.Name()),
-			destination: filepath.Join(destinationDirectory, entry.Name()),
-			legacy:      []string{filepath.Join(stagingDirectory, entry.Name())},
-		})
-	}
-	return links, nil
-}
-
-func planLink(link managedLink) (managedLink, error) {
-	if sameLexicalPath(link.source, link.destination) {
-		return managedLink{}, fmt.Errorf("managed link source and destination are the same path %q", link.source)
-	}
-	info, err := os.Lstat(link.destination)
-	if errors.Is(err, os.ErrNotExist) {
-		link.needsLink = true
-		return link, nil
-	}
-	if err != nil {
-		return managedLink{}, fmt.Errorf("inspecting destination %q: %w", link.destination, err)
-	}
-	if info.Mode()&os.ModeSymlink != 0 {
-		target, readErr := os.Readlink(link.destination)
-		if readErr != nil {
-			return managedLink{}, fmt.Errorf("reading destination symlink %q: %w", link.destination, readErr)
+		sync, planErr := planDirectorySync(filepath.Join(sourceDirectory, entry.Name()), filepath.Join(destinationDirectory, entry.Name()), false)
+		if planErr != nil {
+			return nil, planErr
 		}
-		if linkTargetMatches(link.destination, target, link.source) {
-			return link, nil
-		}
-		for _, legacy := range link.legacy {
-			if linkTargetMatches(link.destination, target, legacy) {
-				link.needsLink = true
-				link.replaceLink = true
-				return link, nil
-			}
-		}
+		syncs = append(syncs, sync)
 	}
-	return managedLink{}, fmt.Errorf("destination %q already exists and does not point to %q", link.destination, link.source)
-}
-
-func linkTargetMatches(linkPath, target, wanted string) bool {
-	if !filepath.IsAbs(target) {
-		target = filepath.Join(filepath.Dir(linkPath), target)
-	}
-	return sameLexicalPath(target, wanted)
+	return syncs, nil
 }
 
 func sameLexicalPath(left, right string) bool {
@@ -589,48 +496,31 @@ func printInstallationPlan(output io.Writer, plan installationPlan, apply bool) 
 			continue
 		}
 		verb := "would synchronize"
+		if sync.backupExisting {
+			verb = "would back up the existing path and synchronize"
+		} else if sync.destinationExists {
+			verb = "would back up drifted files and synchronize"
+		}
 		if apply {
 			verb = "will synchronize"
+			if sync.backupExisting {
+				verb = "will back up the existing path and synchronize"
+			} else if sync.destinationExists {
+				verb = "will back up drifted files and synchronize"
+			}
 		}
 		fmt.Fprintf(output, "Installation: %s %s -> %s\n", verb, sync.source, sync.destination)
 	}
-	for _, link := range plan.links {
-		if !link.needsLink {
-			fmt.Fprintf(output, "Installation: %s already resolves to %s.\n", link.destination, link.source)
-			continue
-		}
-		verb := "would create symlink"
-		if apply {
-			verb = "will create symlink"
-		}
-		fmt.Fprintf(output, "Installation: %s %s -> %s\n", verb, link.destination, link.source)
-	}
 }
 
-func applyInstallation(plan installationPlan) error {
+func applyInstallation(plan installationPlan, output io.Writer) error {
+	epoch := time.Now().Unix()
 	for _, sync := range plan.syncs {
 		if !sync.needsSync {
 			continue
 		}
-		if err := synchronizeDirectory(sync); err != nil {
+		if err := synchronizeDirectory(sync, epoch, output); err != nil {
 			return err
-		}
-	}
-	for _, link := range plan.links {
-		if !link.needsLink {
-			continue
-		}
-		directory := filepath.Dir(link.destination)
-		if err := os.MkdirAll(directory, 0o700); err != nil {
-			return fmt.Errorf("creating install directory %q: %w", directory, err)
-		}
-		if link.replaceLink {
-			if err := os.Remove(link.destination); err != nil {
-				return fmt.Errorf("removing recognized legacy symlink %q: %w", link.destination, err)
-			}
-		}
-		if err := os.Symlink(link.source, link.destination); err != nil {
-			return fmt.Errorf("creating symlink %q: %w", link.destination, err)
 		}
 	}
 	return nil
@@ -646,65 +536,169 @@ func planDirectorySync(source, destination string, excludeGit bool) (managedSync
 	if err != nil {
 		return managedSync{}, fmt.Errorf("inspecting live directory %q: %w", destination, err)
 	}
+	sync.destinationExists = true
 	if info.Mode()&os.ModeSymlink != 0 {
-		target, readErr := os.Readlink(destination)
-		if readErr != nil {
-			return managedSync{}, fmt.Errorf("reading live directory symlink %q: %w", destination, readErr)
-		}
-		if !linkTargetMatches(destination, target, source) {
-			return managedSync{}, fmt.Errorf("live directory %q points to unrelated target %q", destination, target)
-		}
 		sync.needsSync = true
-		sync.replaceLink = true
+		sync.backupExisting = true
 		return sync, nil
 	}
 	if !info.IsDir() {
-		return managedSync{}, fmt.Errorf("live directory %q exists and is not a directory", destination)
+		sync.needsSync = true
+		sync.backupExisting = true
+		return sync, nil
 	}
-	changes, compareErr := rsyncDirectory(sync, true)
+	differs, compareErr := directoryDiffers(sync)
 	if compareErr != nil {
 		return managedSync{}, fmt.Errorf("comparing live directory %q: %w", destination, compareErr)
 	}
-	sync.needsSync = len(bytes.TrimSpace(changes)) != 0
+	sync.needsSync = differs
 	return sync, nil
 }
 
-func synchronizeDirectory(sync managedSync) error {
-	if sync.replaceLink {
-		if err := os.Remove(sync.destination); err != nil {
-			return fmt.Errorf("removing recognized staging symlink %q: %w", sync.destination, err)
+func synchronizeDirectory(sync managedSync, epoch int64, output io.Writer) error {
+	if info, err := os.Lstat(sync.destination); err == nil && (!info.IsDir() || info.Mode()&os.ModeSymlink != 0) {
+		if _, backupErr := backupArtifact(output, sync.destination, epoch); backupErr != nil {
+			return backupErr
 		}
+	} else if err != nil && !errors.Is(err, os.ErrNotExist) {
+		return err
 	}
 	if err := os.MkdirAll(sync.destination, 0o700); err != nil {
 		return fmt.Errorf("creating live directory %q: %w", sync.destination, err)
 	}
-	if _, err := rsyncDirectory(sync, false); err != nil {
+	if err := backupDriftedEntries(output, sync, epoch); err != nil {
 		return err
 	}
-	changes, err := rsyncDirectory(sync, true)
-	if err != nil {
-		return fmt.Errorf("verifying live directory %q: %w", sync.destination, err)
-	}
-	if len(bytes.TrimSpace(changes)) != 0 {
-		return fmt.Errorf("verifying live directory %q: rsync still reports changes: %s", sync.destination, strings.TrimSpace(string(changes)))
+	if err := rsyncDirectory(sync); err != nil {
+		return err
 	}
 	return nil
 }
 
-func rsyncDirectory(sync managedSync, dryRun bool) ([]byte, error) {
-	arguments := []string{"-a", "--delete"}
+func rsyncDirectory(sync managedSync) error {
+	arguments := []string{"-a"}
 	if sync.excludeGit {
-		arguments = append(arguments, "--exclude=/.git", "--delete-excluded")
-	}
-	if dryRun {
-		arguments = append(arguments, "--dry-run", "--itemize-changes")
+		arguments = append(arguments, "--exclude=/.git/")
 	}
 	arguments = append(arguments, "--", sync.source+string(os.PathSeparator), sync.destination+string(os.PathSeparator))
 	output, err := exec.Command("rsync", arguments...).CombinedOutput()
 	if err != nil {
-		return nil, fmt.Errorf("synchronizing %q to %q: %w: %s", sync.source, sync.destination, err, strings.TrimSpace(string(output)))
+		return fmt.Errorf("synchronizing %q to %q: %w: %s", sync.source, sync.destination, err, strings.TrimSpace(string(output)))
 	}
-	return output, nil
+	return nil
+}
+
+func backupDriftedEntries(output io.Writer, sync managedSync, epoch int64) error {
+	return filepath.Walk(sync.source, func(sourcePath string, sourceInfo os.FileInfo, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		relative, err := filepath.Rel(sync.source, sourcePath)
+		if err != nil || relative == "." {
+			return err
+		}
+		if excludedFromSync(relative, sourceInfo, sync.excludeGit) {
+			if sourceInfo.IsDir() {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		destinationPath := filepath.Join(sync.destination, relative)
+		destinationInfo, err := os.Lstat(destinationPath)
+		if errors.Is(err, os.ErrNotExist) {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		if sourceInfo.IsDir() && destinationInfo.IsDir() && destinationInfo.Mode()&os.ModeSymlink == 0 {
+			return nil
+		}
+		if sourceInfo.Mode().IsRegular() && destinationInfo.Mode().IsRegular() {
+			equal, compareErr := regularFilesEqual(sourcePath, sourceInfo, destinationPath, destinationInfo)
+			if compareErr != nil || equal {
+				return compareErr
+			}
+		}
+		_, err = backupArtifact(output, destinationPath, epoch)
+		return err
+	})
+}
+
+func directoryDiffers(sync managedSync) (bool, error) {
+	differs := false
+	err := filepath.Walk(sync.source, func(sourcePath string, sourceInfo os.FileInfo, walkErr error) error {
+		if walkErr != nil || differs {
+			return walkErr
+		}
+		relative, err := filepath.Rel(sync.source, sourcePath)
+		if err != nil || relative == "." {
+			return err
+		}
+		if excludedFromSync(relative, sourceInfo, sync.excludeGit) {
+			if sourceInfo.IsDir() {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+		destinationPath := filepath.Join(sync.destination, relative)
+		destinationInfo, err := os.Lstat(destinationPath)
+		if errors.Is(err, os.ErrNotExist) {
+			differs = true
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		if sourceInfo.IsDir() {
+			differs = !destinationInfo.IsDir() || destinationInfo.Mode()&os.ModeSymlink != 0
+			return nil
+		}
+		if !sourceInfo.Mode().IsRegular() || !destinationInfo.Mode().IsRegular() {
+			differs = true
+			return nil
+		}
+		equal, compareErr := regularFilesEqual(sourcePath, sourceInfo, destinationPath, destinationInfo)
+		if compareErr != nil {
+			return compareErr
+		}
+		differs = !equal
+		return nil
+	})
+	return differs, err
+}
+
+func excludedFromSync(relative string, info os.FileInfo, excludeGit bool) bool {
+	return excludeGit && info.IsDir() && strings.Split(relative, string(os.PathSeparator))[0] == ".git"
+}
+
+func regularFilesEqual(sourcePath string, sourceInfo os.FileInfo, destinationPath string, destinationInfo os.FileInfo) (bool, error) {
+	if sourceInfo.Size() != destinationInfo.Size() || sourceInfo.Mode().Perm() != destinationInfo.Mode().Perm() || !sourceInfo.ModTime().Equal(destinationInfo.ModTime()) {
+		return false, nil
+	}
+	sourceContent, err := os.ReadFile(sourcePath)
+	if err != nil {
+		return false, err
+	}
+	destinationContent, err := os.ReadFile(destinationPath)
+	if err != nil {
+		return false, err
+	}
+	return bytes.Equal(sourceContent, destinationContent), nil
+}
+
+func backupArtifact(output io.Writer, path string, epoch int64) (string, error) {
+	backup := fmt.Sprintf("%s.%d.bak", path, epoch)
+	if _, err := os.Lstat(backup); err == nil {
+		return "", fmt.Errorf("backup destination already exists: %s", backup)
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return "", err
+	}
+	if err := os.Rename(path, backup); err != nil {
+		return "", fmt.Errorf("backing up drifted artefact %q: %w", path, err)
+	}
+	fmt.Fprintf(output, "Backup: %s\n", backup)
+	return backup, nil
 }
 
 func analyseConfiguration(agent, agentHome, source string, output io.Writer) (*configurationChange, error) {
@@ -1069,16 +1063,17 @@ func offerConfigurationChange(change *configurationChange, input io.Reader, outp
 		fmt.Fprintln(output, "Configuration unchanged.")
 		return nil
 	}
-	if change.backup {
-		backupPath, err := backupConfiguration(change.path)
-		if err != nil {
-			return err
-		}
-		if backupPath != "" {
-			fmt.Fprintf(output, "Backup: %s\n", backupPath)
-		}
+	backupPath, err := backupConfiguration(change.path)
+	if err != nil {
+		return err
+	}
+	if backupPath != "" {
+		fmt.Fprintf(output, "Backup: %s\n", backupPath)
 	}
 	if err := writeFileAtomic(change.path, change.contents, change.mode); err != nil {
+		if backupPath != "" {
+			_ = os.Rename(backupPath, change.path)
+		}
 		return err
 	}
 	fmt.Fprintf(output, "Configuration updated: %s\n", change.path)
@@ -1086,22 +1081,14 @@ func offerConfigurationChange(change *configurationChange, input io.Reader, outp
 }
 
 func backupConfiguration(path string) (string, error) {
-	contents, err := os.ReadFile(path)
+	_, err := os.Lstat(path)
 	if errors.Is(err, os.ErrNotExist) {
 		return "", nil
 	}
 	if err != nil {
-		return "", fmt.Errorf("reading configuration backup source %q: %w", path, err)
+		return "", fmt.Errorf("inspecting configuration backup source %q: %w", path, err)
 	}
-	directory, err := os.MkdirTemp("", "sdlc-install-hermes-config-")
-	if err != nil {
-		return "", fmt.Errorf("creating Hermes configuration backup directory: %w", err)
-	}
-	backupPath := filepath.Join(directory, filepath.Base(path))
-	if err := os.WriteFile(backupPath, contents, 0o600); err != nil {
-		return "", fmt.Errorf("writing Hermes configuration backup %q: %w", backupPath, err)
-	}
-	return backupPath, nil
+	return backupArtifact(io.Discard, path, time.Now().Unix())
 }
 
 func writeFileAtomic(path string, contents []byte, mode os.FileMode) error {

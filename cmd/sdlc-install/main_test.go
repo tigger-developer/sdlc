@@ -38,7 +38,7 @@ func TestDefaultRunDetectsInstalledProviderSubset_RT4_4(t *testing.T) {
 	if err := run([]string{"--source", source}, strings.NewReader("no\n"), &output); err != nil {
 		t.Fatalf("run() error = %v", err)
 	}
-	if got := output.String(); !strings.Contains(got, "Detected agents: codex, hermes") || strings.Contains(got, "claude adapters") || strings.Contains(got, "copilot adapters") {
+	if got := output.String(); !strings.Contains(got, "Detected agents: codex, hermes") || strings.Contains(got, ".claude") || strings.Contains(got, ".copilot") {
 		t.Fatalf("provider detection output = %q", got)
 	}
 }
@@ -67,7 +67,6 @@ func newCLIFixture(t *testing.T) (string, string) {
 		"templates/codex-sdlc.rules.example": "prefix_rule()\n",
 		"commands/build.md":                  "# Build\n",
 		"skills/audit-code/SKILL.md":         "# Audit\n",
-		"templates/hermes-bootstrap.md":      "Read the SDLC.\n",
 	} {
 		fullPath := filepath.Join(source, filepath.FromSlash(path))
 		if err := os.MkdirAll(filepath.Dir(fullPath), 0o700); err != nil {

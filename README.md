@@ -36,10 +36,9 @@ Enter the clone and start the interactive installer:
 make install
 ```
 
-The installer detects the supported provider homes that exist, checks the
-shared live deployment once, then checks each detected provider adapter. It
-asks separately before changing the shared deployment or any provider. A
-declined item is left unchanged, and matching items do not prompt.
+The installer detects the supported provider homes that exist, compares every
+SDLC-owned destination, and asks once before applying the complete batch.
+Matching destinations do not prompt.
 
 Provider-configuration analysis remains an explicit operation. Build the
 command, inspect one provider, and add `--apply` or `--configure` only when
@@ -64,9 +63,9 @@ wanted.
 
 ## One Staging Clone, Multiple Agents
 
-Keep one physical staging clone at a stable path. The installer synchronizes it
-into the common live directory at `~/.agents/sdlc`, then points each provider's
-`sdlc` adapter to that deployment:
+Keep one physical staging clone at a stable path. The installer copies it into
+the existing common and provider homes; no provider is linked to staging or to
+another provider's copy:
 
 ```bash
 git clone https://github.com/tigger-developer/sdlc.git ~/code/sdlc
@@ -78,10 +77,8 @@ From `~/code/sdlc`, run one command:
 make install
 ```
 
-Accept the shared deployment and whichever detected provider adapters should
-be installed. Each accepted provider resolves its framework through
-`<agent-home>/sdlc` into the same live copy. A `git pull` updates staging only;
-an accepted installer run is required to deploy that change.
+Accept the single deployment batch. A `git pull` updates staging only; an
+accepted installer run is required to deploy that change.
 
 ### Manual alternative
 
@@ -93,30 +90,29 @@ mkdir -p ~/.agents/sdlc
 ```
 
 ```bash
-rsync -a --delete --exclude=/.git --delete-excluded ~/code/sdlc/ ~/.agents/sdlc/
+rsync -a --exclude=/.git/ ~/code/sdlc/ ~/.agents/sdlc/
 ```
 
-Then create provider adapters to the common live tree, never to staging:
+Repeat the same ordinary copy for each installed provider:
 
 ```bash
-ln -s ~/.agents/sdlc ~/.claude/sdlc
-```
-
-```bash
-ln -s ~/.agents/sdlc ~/.codex/sdlc
+rsync -a --exclude=/.git/ ~/code/sdlc/ ~/.claude/sdlc/
 ```
 
 ```bash
-ln -s ~/.agents/sdlc ~/.copilot/sdlc
+rsync -a --exclude=/.git/ ~/code/sdlc/ ~/.codex/sdlc/
 ```
 
 ```bash
-ln -s ~/.agents/sdlc ~/.hermes/sdlc
+rsync -a --exclude=/.git/ ~/code/sdlc/ ~/.copilot/sdlc/
 ```
 
-The automated installer also creates common and provider skill links. Do not
-replace an existing path manually. Inspect it first and use the installer to
-migrate recognized staging links safely.
+```bash
+rsync -a --exclude=/.git/ ~/code/sdlc/ ~/.hermes/sdlc/
+```
+
+The automated installer also copies skills and supported commands. It never
+passes `--delete` to rsync, so destination-only items are preserved.
 
 ## Connect the Agent to the SDLC
 
@@ -127,8 +123,8 @@ Common destinations are:
 | Agent | Provider-level instructions | SDLC location |
 |---|---|---|
 | Claude Code | `~/.claude/CLAUDE.md` | `~/.claude/sdlc` |
-| Codex | `~/.codex/AGENTS.md` | `~/.codex/sdlc` |
-| Hermes | `~/.hermes/SOUL.md` plus `agent.system_prompt` | `~/.hermes/sdlc` |
+| Codex | `~/.agents/AGENTS.md` | `~/.codex/sdlc` |
+| Hermes | Private configuration outside this project | `~/.hermes/sdlc` |
 | Copilot or another agent | Provider-specific instruction file | `<agent-home>/sdlc` |
 
 Project-level `AGENTS.md` or `CLAUDE.md` files should describe only project-specific conventions and should rely on the provider-level file to load this framework.
@@ -149,33 +145,41 @@ The canary chain remains present on later responses. It proves which documents r
 The installer has three deliberately separate responsibilities:
 
 1. `make install` detects existing supported provider homes and compares only
-   the shared deployment and adapters owned by this repository.
-2. It asks once before synchronizing staging into `~/.agents/sdlc` with
-   `rsync --archive --delete`, excluding `.git`, and once for each changed
-   provider adapter set.
+   the copies, skills, and commands owned by this repository.
+2. It asks once before synchronizing the complete batch with `rsync --archive`,
+   excluding `.git` and never using `--delete`.
 3. Explicit `--agent` mode analyses one provider and retains `--apply` and
    `--configure` for automation or deliberate provider-configuration work.
 
 Interactive multi-agent installation never changes provider configuration.
 
-It never overwrites an existing non-matching destination. Provider adapters add only the integrations that their current public interfaces support:
+Before any existing SDLC-owned artefact is replaced, it is renamed beside the
+live path as `<path>.<epoch>.bak`. This includes drifted files, stale links,
+wrong destination types, and configuration files. The canonical copy is
+written only after the backup succeeds. Provider copies add only the
+integrations their current public interfaces support:
 
 | Agent | Commands | Skills |
 |---|---|---|
-| Claude Code | Individual links under `~/.claude/commands/` to live command files | All skill links under `~/.claude/skills/` point to common skill entries |
-| Codex | `~/.codex/prompts-commands` links to the live command library, not claimed as slash commands | All live SDLC skill entries are linked under `~/.agents/skills/` for direct discovery |
-| Copilot CLI | `~/.copilot/prompts-commands` links to the live command library | All provider skill links point to common skill entries |
-| Hermes | Live repository adapter only | All provider skill links point to common skill entries |
-| Custom | Live repository adapter only | Common skill entries are installed without provider-specific assumptions |
+| Claude Code | Ordinary files under `~/.claude/commands/` | Ordinary skill directories under `~/.claude/skills/` |
+| Codex | Ordinary files under `~/.codex/prompts-commands/` | Ordinary skill directories under `~/.agents/skills/` |
+| Copilot CLI | Ordinary files under `~/.copilot/prompts-commands/` | Ordinary skill directories under `~/.copilot/skills/` |
+| Hermes | No command adapter | Ordinary skill directories under `~/.hermes/skills/` |
+| Custom | Repository copy only | No provider-specific assumptions |
 
-Every top-level directory under staging `skills/` is deployed. Each common
-entry at `~/.agents/skills/<skill>` points to
-`~/.agents/sdlc/skills/<skill>`. Installation makes a skill discoverable; it
-does not authorize invocation or alter the human-only gate rules.
+Every top-level directory under staging `skills/` is recursively copied to its
+supported destinations. Installation makes a skill discoverable; it does not
+authorize invocation or alter the human-only gate rules.
 
 Claude configuration analysis is based on `settings.json`; the confirmed change adds missing SDLC command restrictions to `permissions.deny`, removes the same restrictions from `permissions.allow`, and preserves unknown fields. JSON spacing and key order may be normalized. The installer refuses to replace a symlinked settings file and recommends editing its target manually. Codex analysis checks `config.toml`; the confirmed change creates `rules/sdlc.rules` when absent and can upgrade a recognized prior SDLC rules file while preserving unrelated rules. Ambiguous or non-regular destinations remain untouched. After migration, repeating the installer reports the current policy unchanged.
 
-Hermes analysis structurally parses `config.yaml`, adds or updates one delimited operations-bootstrap block in `agent.system_prompt`, and registers the shared command guard for the `terminal` tool. It preserves custom prompt text, unrelated YAML values, existing hooks, and first-use hook consent. Before rewriting an existing file, it stores a recovery copy in an operating system temporary directory and prints the path. Invalid YAML, ambiguous management markers, and non-regular configuration paths remain untouched.
+Hermes analysis structurally parses `config.yaml` and registers only the SDLC
+command guard for the `terminal` tool. Private instructions and custom prompt
+text belong to the user's private agent configuration, not this public
+project. The merge preserves prompt text, unrelated YAML values, existing
+hooks, and first-use hook consent. Before rewriting an existing file, it stores
+a recovery copy in an operating system temporary directory and prints the
+path. Invalid YAML and non-regular configuration paths remain untouched.
 
 The shared command guard at `hooks/agent-command-guard.sh` speaks Hermes's `pre_tool_call` hook protocol. It prohibits direct `python` and `python3` interpreter commands, including path-qualified, compound, pipeline, and shell-wrapper forms, without blocking project entry points such as `make test`.
 

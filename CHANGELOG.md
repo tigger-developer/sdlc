@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+Replaced the shared-live-tree/provider-symlink deployment with ordinary copies
+in every detected agent home. Installation now preflights one complete batch,
+asks once, discovers skills and commands from their source directories, and
+uses rsync without `--delete` so unrelated and agent-created content survives.
+
+Added adjacent `<path>.<epoch>.bak` backups before any drifted deployment or
+configuration artefact is replaced.
+
+Restricted SDLC ownership of Hermes configuration to the command-guard hook.
+Private operations instructions and their bootstrap now remain entirely
+outside this public project.
+
 ## v1.0.2 - 2026-08-20
 
 Changed `make install` to run an interactive multi-agent deployment. It detects
