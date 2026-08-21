@@ -43,11 +43,11 @@ MODE PAIR is active by default at the start of every new conversation. It uses t
 
 A line containing only `MODE PAIR` changes the active mode to MODE PAIR. Only the human may issue it or otherwise change mode.
 
-### Entering MODE DELIVER
+### Checking delivery readiness
 
-A line containing only `MODE DELIVER` requests autonomous delivery; it does not activate the mode. The agent must first decide whether the goal is sufficiently defined for autonomous delivery.
+A line containing only `CHECK DELIVER` requests a delivery-readiness assessment; it does not activate MODE DELIVER or authorize issue creation, code, configuration, or other delivery work. The agent must first decide whether the goal is sufficiently defined for autonomous delivery. The distinct directive prevents a stale instruction set that treats `MODE DELIVER` as immediate activation from misreading the request.
 
-If the goal is materially ambiguous, refuse to enter MODE DELIVER and remain in MODE PAIR. State what is unclear, why each ambiguity affects delivery, exactly what information or decision is required, and the recommended answer for each point.
+If the goal is materially ambiguous, decline the delivery request and remain in MODE PAIR. State what is unclear, why each ambiguity affects delivery, exactly what information or decision is required, and the recommended answer for each point.
 
 If the goal is sufficiently defined, state:
 
@@ -238,7 +238,7 @@ The table above lists **SDLC-flow** tools. Other skills exist outside this flow 
 /draft-design-issue -> PROCEED n -> /build n -> APPROVED n
 (or, decomposed: /draft-issue -> /design-solution -> PROCEED n -> /write-tests -> /implement -> /review -> APPROVED n)
 
-MODE DELIVER -> goal statement -> CONFIRM DELIVER -> master issue
+CHECK DELIVER -> goal statement -> CONFIRM DELIVER -> master issue
   -> per-child draft/design -> audit-acs + audit-tests -> implementation -> audit-code -> child closure
   -> rolled-up UT resolution -> APPROVED n (n = master issue number)
 ```
