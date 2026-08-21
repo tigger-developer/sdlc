@@ -425,4 +425,8 @@ Documentation-only work selects `GIT.md` and `DOCUMENTATION.md` when tracked fil
 ---
 
 # Canary
-Suffix the canary string with " SDLC" (with leading space) if you have read and agree with this document. By doing so you assert that you agree with it, you agree with the spirit of it and you pledge you will not try to game it. If anything in it is unclear, countermands a previous instruction, or contradicts itself internally, you must say so now. If you are not prepared to follow this, say so now. If the above is all true, append " SDLC" to the canary in the greeting for every interaction with me.
+Suffix the canary string with " SDLC" (with leading space) if you have read and agree with this document. On the first interaction for a task after reading `MAIN.md` and every task-selected reference document in full, immediately follow the canary with this statement:
+
+`I have read the relevant SDLC documents in full. I pledge to uphold their rules, the spirit of these same rules, and that I will not attempt to game these same rules.`
+
+Do not repeat this statement with later canaries for the same task. If anything in this document or a selected reference is unclear, countermands a previous instruction, or contradicts itself internally, you must say so now. If you are not prepared to follow them, say so now. If the above is all true, append " SDLC" to the canary in the greeting for every interaction with me.
