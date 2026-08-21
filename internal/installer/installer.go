@@ -492,7 +492,9 @@ func printHeading(output io.Writer, agent, source, agentHome string, apply, conf
 func printInstallationPlan(output io.Writer, plan installationPlan, apply bool) {
 	for _, sync := range plan.syncs {
 		if !sync.needsSync {
-			fmt.Fprintf(output, "Installation: %s already matches %s.\n", sync.destination, sync.source)
+			if os.Getenv("VERBOSE") == "1" {
+				fmt.Fprintf(output, "Installation: %s already matches %s.\n", sync.destination, sync.source)
+			}
 			continue
 		}
 		verb := "would synchronize"
@@ -673,7 +675,7 @@ func excludedFromSync(relative string, info os.FileInfo, excludeGit bool) bool {
 }
 
 func regularFilesEqual(sourcePath string, sourceInfo os.FileInfo, destinationPath string, destinationInfo os.FileInfo) (bool, error) {
-	if sourceInfo.Size() != destinationInfo.Size() || sourceInfo.Mode().Perm() != destinationInfo.Mode().Perm() || !sourceInfo.ModTime().Equal(destinationInfo.ModTime()) {
+	if sourceInfo.Size() != destinationInfo.Size() || sourceInfo.Mode().Perm() != destinationInfo.Mode().Perm() {
 		return false, nil
 	}
 	sourceContent, err := os.ReadFile(sourcePath)

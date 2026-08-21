@@ -40,6 +40,13 @@ The installer detects the supported provider homes that exist, compares every
 SDLC-owned destination, and asks once before applying the complete batch.
 Matching destinations do not prompt.
 
+The default plan lists only destinations that differ. Set `VERBOSE=1` to
+include every matching destination:
+
+```bash
+VERBOSE=1 make install
+```
+
 Provider-configuration analysis remains an explicit operation. Build the
 command, inspect one provider, and add `--apply` or `--configure` only when
 that specific operation is wanted:
@@ -150,6 +157,9 @@ The installer has three deliberately separate responsibilities:
    excluding `.git` and never using `--delete`.
 3. Explicit `--agent` mode analyses one provider and retains `--apply` and
    `--configure` for automation or deliberate provider-configuration work.
+
+The default installation plan contains only differing destinations. Set
+`VERBOSE=1` to include matching destinations in the plan.
 
 Interactive multi-agent installation never changes provider configuration.
 

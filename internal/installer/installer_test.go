@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 type fixture struct {
@@ -79,6 +80,66 @@ func TestInteractiveCopiesEveryOwnedItemToDetectedHomes(t *testing.T) {
 	}
 	if !strings.Contains(output.String(), "All detected SDLC copies are current") || strings.Contains(output.String(), "[yes/no]") {
 		t.Fatalf("repeated install was not current:\n%s", output.String())
+	}
+}
+
+// RT-5.1
+func TestInteractiveIgnoresTimestampOnlySourceChanges(t *testing.T) {
+	f := newFixture(t, "agents", "codex")
+	if err := RunInteractive(f.source, f.root, strings.NewReader("yes\n"), &bytes.Buffer{}); err != nil {
+		t.Fatal(err)
+	}
+
+	mainPath := filepath.Join(f.source, "MAIN.md")
+	newTime := time.Now().Add(time.Minute)
+	if err := os.Chtimes(mainPath, newTime, newTime); err != nil {
+		t.Fatal(err)
+	}
+
+	var output bytes.Buffer
+	if err := RunInteractive(f.source, f.root, strings.NewReader(""), &output); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(output.String(), "All detected SDLC copies are current") || strings.Contains(output.String(), "[yes/no]") {
+		t.Fatalf("timestamp-only change created deployment variance:\n%s", output.String())
+	}
+}
+
+// RT-5.2
+func TestInteractiveDefaultOutputListsOnlyVariances(t *testing.T) {
+	f := newFixture(t, "agents", "codex")
+	if err := RunInteractive(f.source, f.root, strings.NewReader("yes\n"), &bytes.Buffer{}); err != nil {
+		t.Fatal(err)
+	}
+	writeFile(t, filepath.Join(f.source, "MAIN.md"), []byte("# Changed main\n"))
+
+	var output bytes.Buffer
+	if err := RunInteractive(f.source, f.root, strings.NewReader("no\n"), &output); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(output.String(), "would back up drifted files and synchronize") {
+		t.Fatalf("default output omitted variance:\n%s", output.String())
+	}
+	if strings.Contains(output.String(), "already matches") {
+		t.Fatalf("default output included matching destinations:\n%s", output.String())
+	}
+}
+
+// RT-5.3
+func TestInteractiveVerboseOutputIncludesMatchingDestinations(t *testing.T) {
+	t.Setenv("VERBOSE", "1")
+	f := newFixture(t, "agents", "codex")
+	if err := RunInteractive(f.source, f.root, strings.NewReader("yes\n"), &bytes.Buffer{}); err != nil {
+		t.Fatal(err)
+	}
+	writeFile(t, filepath.Join(f.source, "MAIN.md"), []byte("# Changed main\n"))
+
+	var output bytes.Buffer
+	if err := RunInteractive(f.source, f.root, strings.NewReader("no\n"), &output); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(output.String(), "would back up drifted files and synchronize") || !strings.Contains(output.String(), "already matches") {
+		t.Fatalf("verbose output did not include variances and matching destinations:\n%s", output.String())
 	}
 }
 
