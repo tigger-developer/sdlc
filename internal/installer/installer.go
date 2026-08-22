@@ -115,6 +115,9 @@ func Run(options Options) error {
 		if installationHasChanges(verified) {
 			return errors.New("installation verification still reports changes")
 		}
+		if err := verifyCanonicalMain(filepath.Join(filepath.Dir(agentHome), ".agents")); err != nil {
+			return err
+		}
 		fmt.Fprintln(options.Output, "Installation: synchronized all planned copies.")
 	}
 	if options.Configure {
@@ -153,13 +156,11 @@ func RunInteractive(sourcePath, userHome string, input io.Reader, output io.Writ
 	}
 	plan := installationPlan{}
 	commonHome := filepath.Join(userHome, ".agents")
-	if directoryExists(commonHome) {
-		shared, planErr := planSharedInstallation(source, commonHome)
-		if planErr != nil {
-			return planErr
-		}
-		plan.syncs = append(plan.syncs, shared.syncs...)
+	shared, planErr := planSharedInstallation(source, commonHome)
+	if planErr != nil {
+		return planErr
 	}
+	plan.syncs = append(plan.syncs, shared.syncs...)
 	for _, agent := range agents {
 		agentHome := filepath.Join(userHome, "."+agent)
 		provider, planErr := planProviderInstallation(agent, source, agentHome)
@@ -198,6 +199,9 @@ func RunInteractive(sourcePath, userHome string, input io.Reader, output io.Writ
 	if installationHasChanges(verified) {
 		return errors.New("deployment verification still reports changes")
 	}
+	if err := verifyCanonicalMain(commonHome); err != nil {
+		return err
+	}
 	fmt.Fprintln(output, "All listed SDLC changes were installed.")
 	return nil
 }
@@ -205,13 +209,11 @@ func RunInteractive(sourcePath, userHome string, input io.Reader, output io.Writ
 func planDetectedInstallation(source, userHome string, agents []string) (installationPlan, error) {
 	plan := installationPlan{}
 	commonHome := filepath.Join(userHome, ".agents")
-	if directoryExists(commonHome) {
-		shared, err := planSharedInstallation(source, commonHome)
-		if err != nil {
-			return installationPlan{}, err
-		}
-		plan.syncs = append(plan.syncs, shared.syncs...)
+	shared, err := planSharedInstallation(source, commonHome)
+	if err != nil {
+		return installationPlan{}, err
 	}
+	plan.syncs = append(plan.syncs, shared.syncs...)
 	for _, agent := range agents {
 		provider, err := planProviderInstallation(agent, source, filepath.Join(userHome, "."+agent))
 		if err != nil {
@@ -220,11 +222,6 @@ func planDetectedInstallation(source, userHome string, agents []string) (install
 		plan.syncs = append(plan.syncs, provider.syncs...)
 	}
 	return plan, nil
-}
-
-func directoryExists(path string) bool {
-	info, err := os.Stat(path)
-	return err == nil && info.IsDir()
 }
 
 func confirm(reader *bufio.Reader, output io.Writer, prompt string) (bool, error) {
@@ -385,17 +382,12 @@ func defaultAgentHome(agent string) (string, error) {
 
 func planInstallation(agent, source, agentHome string) (installationPlan, error) {
 	commonHome := filepath.Join(filepath.Dir(agentHome), ".agents")
-	if filepath.Clean(source) == filepath.Clean(filepath.Join(agentHome, "sdlc")) {
-		return installationPlan{}, fmt.Errorf("source %q is inside the provider home; move the staging clone outside the provider home before installing the provider copy", source)
-	}
 	plan := installationPlan{}
-	if directoryExists(commonHome) {
-		shared, err := planSharedInstallation(source, commonHome)
-		if err != nil {
-			return installationPlan{}, err
-		}
-		plan.syncs = append(plan.syncs, shared.syncs...)
+	shared, err := planSharedInstallation(source, commonHome)
+	if err != nil {
+		return installationPlan{}, err
 	}
+	plan.syncs = append(plan.syncs, shared.syncs...)
 	provider, err := planProviderInstallation(agent, source, agentHome)
 	if err != nil {
 		return installationPlan{}, err
@@ -420,15 +412,20 @@ func planSharedInstallation(source, commonHome string) (installationPlan, error)
 	return installationPlan{syncs: append([]managedSync{sync}, skills...)}, nil
 }
 
-func planProviderInstallation(agent, source, agentHome string) (installationPlan, error) {
-	if filepath.Clean(source) == filepath.Clean(filepath.Join(agentHome, "sdlc")) {
-		return installationPlan{}, fmt.Errorf("source %q is inside the provider home; move the staging clone outside the provider home before installing the provider copy", source)
-	}
-	base, err := planDirectorySync(source, filepath.Join(agentHome, "sdlc"), true)
+func verifyCanonicalMain(commonHome string) error {
+	mainPath := filepath.Join(commonHome, "sdlc", "MAIN.md")
+	info, err := os.Stat(mainPath)
 	if err != nil {
-		return installationPlan{}, err
+		return fmt.Errorf("verifying canonical SDLC entry point %q: %w", mainPath, err)
 	}
-	plan := installationPlan{syncs: []managedSync{base}}
+	if !info.Mode().IsRegular() {
+		return fmt.Errorf("verifying canonical SDLC entry point %q: expected a regular file", mainPath)
+	}
+	return nil
+}
+
+func planProviderInstallation(agent, source, agentHome string) (installationPlan, error) {
+	plan := installationPlan{}
 	if agent == agentCustom {
 		return plan, nil
 	}

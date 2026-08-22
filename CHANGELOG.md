@@ -10,10 +10,16 @@ Added ambiguity classification, consolidated blocker handbacks, and the
 human-only `RESUME DELIVER n` directive for reconstructing an open delivery
 after context loss or in a new session.
 
-Replaced the shared-live-tree/provider-symlink deployment with ordinary copies
-in every detected agent home. Installation now preflights one complete batch,
-asks once, discovers skills and commands from their source directories, and
-uses rsync without `--delete` so unrelated and agent-created content survives.
+Established `~/.agents/sdlc` as the only canonical live SDLC tree and removed
+provider-local SDLC copies from installer plans. Installation creates the
+common root for a fresh home, deploys provider-native skill and command
+adapters, preflights one complete batch, asks once, and uses rsync without
+`--delete` so unrelated and agent-created content survives.
+
+Replaced every SDLC-root placeholder with the literal canonical path and added
+strict no-discovery wording to independently invoked skills, commands, and the
+provider template. Clarified that documentation and prompt wording contracts
+require human UT sign-off rather than source-inspection RTs.
 
 Added adjacent `<path>.<epoch>.bak` backups before any drifted deployment or
 configuration artefact is replaced.

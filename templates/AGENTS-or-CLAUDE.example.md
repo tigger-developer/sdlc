@@ -41,11 +41,11 @@ The agent may autonomously invoke only these repository-managed advisory skills 
 
 ## SDLC Integration
 
-`[sdlc-home]` is `<agent-home>/sdlc`, the canonical SDLC repository for this agent. Resolve every `[sdlc-home]/...` reference against that directory.
+The canonical SDLC root is exactly `~/.agents/sdlc`. Do not search, enumerate directories, traverse mounted volumes, inspect network shares, or use `find`, `locate`, Spotlight, or equivalent discovery to resolve this path. If `~/.agents/sdlc/MAIN.md` is absent or unreadable, stop and report that exact path.
 
 When the human establishes a coding-agent session:
 
-1. Read `[sdlc-home]/MAIN.md` in full before acting.
+1. Read `~/.agents/sdlc/MAIN.md` in full before acting.
 2. Follow its reference-document routing table.
 3. Read every selected document in full.
 4. In the first response after loading, name every selected document read in full and explain briefly why it was selected.

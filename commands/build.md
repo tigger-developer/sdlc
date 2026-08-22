@@ -8,7 +8,9 @@ When invoked by the human, treat PROCEED as having been received for issue #n. R
 
 ## 1. Load standards
 
-Load `[sdlc-home]/CODING.md` and the relevant `[sdlc-home]/<LANGUAGE>.md` for the language(s) in use on this issue. In the first-load report, state which documents were read in full and why each was selected. Keep their canary suffixes in later responses, for example `... CODE ... SHELL` for shell work.
+The canonical SDLC root is exactly `~/.agents/sdlc`. Do not search, enumerate directories, traverse mounted volumes, inspect network shares, or use `find`, `locate`, Spotlight, or equivalent discovery to resolve this path. If `~/.agents/sdlc/MAIN.md` is absent or unreadable, stop and report that exact path.
+
+Load `~/.agents/sdlc/CODING.md` and the relevant language document under `~/.agents/sdlc/` for the language(s) in use on this issue. In the first-load report, state which documents were read in full and why each was selected. Keep their canary suffixes in later responses, for example `... CODE ... SHELL` for shell work.
 
 ## 2. Write tests (TDD red)
 

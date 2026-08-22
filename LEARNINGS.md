@@ -85,17 +85,17 @@ The stages below describe design progression rather than a dated release timelin
 5. **Three gates with tool-driven workflow.** Approval and closure collapsed into one gate; the checklist decomposed into invocable commands and skills. This exposed the need to distinguish human authorization from agent-usable tools.
 6. **Layered instructions and standards.** Universal provider-level rules separated from code-specific lifecycle machinery. Testing, issue, Git, documentation, and language standards became selectively loaded references. Canary suffixes made the selected load visible.
 7. **Two gates with designed issues.** `SATISFIED` was retired after issue drafting incorporated requirements, acceptance-criteria checks, test planning, and solution design before `PROCEED`. `APPROVED` continued to control closure.
-8. **Provider-neutral distribution.** Agent-specific assumptions gave way to `[sdlc-home]`, root-level standards, provider adapters, and a unified installer that replaced provider-specific setup scripts. The framework moved from its personal configuration repository into this standalone project.
+8. **Provider-neutral distribution.** Agent-specific assumptions gave way to one literal `~/.agents/sdlc` root, root-level standards, provider adapters, and a unified installer that replaced provider-specific setup scripts. The framework moved from its personal configuration repository into this standalone project.
 9. **Audited delivery mode.** MODE DELIVER added a master/child delivery tree, mandatory pre-code and post-code audits, and one consolidated human review without weakening human-only architecture, access, or user-test decisions.
 
 Claude Code supplied the original implementation context. Codex and Copilot adapters later established the boundary between shared lifecycle rules and provider-specific integration. Provider homes now act as installation adapters around one canonical live deployment copied from a separate staging clone.
 
 ## Current Architecture and Loading Model
 
-The current repository keeps the entry point and every routed standard at its root. This makes `[sdlc-home]` unambiguous and prevents the entry point from being mistaken for the complete SDLC load.
+The current repository keeps the entry point and every routed standard at its root. Installation places that tree at the literal `~/.agents/sdlc` path, preventing path discovery and keeping the entry point distinct from the complete SDLC load.
 
 ```
-<sdlc-home>/
+~/.agents/sdlc/
   MAIN.md                  # Lifecycle entry point and reference router
   ISSUES.md                # Issue and acceptance-criteria standards
   TESTING.md               # Test design and evidence standards
@@ -110,7 +110,7 @@ The current repository keeps the entry point and every routed standard at its ro
   cmd/sdlc-install/        # Installer and configuration analyser
 ```
 
-Provider-level `AGENTS.md` or `CLAUDE.md` files remain outside this repository. They route the session, enforce personal or organizational safeguards, and direct applicable coding work to `<agent-home>/sdlc/MAIN.md`. Project-level instruction files add only project-specific conventions.
+Provider-level `AGENTS.md` or `CLAUDE.md` files remain outside this repository. They route the session, enforce personal or organizational safeguards, and direct applicable coding work to `~/.agents/sdlc/MAIN.md`. Project-level instruction files add only project-specific conventions.
 
 The loading model separates session routing, process, and craft:
 

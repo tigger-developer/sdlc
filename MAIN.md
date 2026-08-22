@@ -4,7 +4,7 @@ Read this document in its entirety before taking any action governed by it. Do n
 
 Loaded only in a Coding-Agent Session when working with code, scripts, software, configuration, builds, tests, deployment, or systems. Builds on the user's provider-level instructions as the shared and coding-agent baseline; this document adds code-specific rules.
 
-`[sdlc-home]` means the directory containing this `MAIN.md`. A normal installation copies the repository to `~/.claude/sdlc`, `~/.codex/sdlc`, `~/.copilot/sdlc`, `~/.hermes/sdlc`, or another agent home chosen by the user. Resolve every `[sdlc-home]/...` reference against that single directory.
+The canonical SDLC root is exactly `~/.agents/sdlc`. Never search, enumerate directories, traverse mounted volumes, inspect network shares, or use `find`, `locate`, Spotlight, or equivalent discovery to locate it. If `~/.agents/sdlc/MAIN.md` is absent or unreadable, stop and report that exact path.
 
 ## Loading Contract
 
@@ -64,7 +64,7 @@ After `CONFIRM DELIVER`, the agent must create a master issue that records the c
 
 Confirmed MODE DELIVER authority is a continuation contract. Continue until the delivery completion matrix in the master issue is satisfied, the final human-only checkpoint is ready, or a genuine blocker prevents all remaining in-scope work. A progress report, commit, completed child, audit result, warning, or partial milestone is not a terminal condition. After reporting progress, continue with the next executable item in the completion matrix.
 
-At the start of delivery, after context compaction, after closing a child, and before any final response, re-read the master issue's goal, scope, exclusions, completion matrix, decisions, child status, and user-test roll-up. An unchecked item with an executable next action means work remains. The required master structure and evidence formats are defined in `[sdlc-home]/ISSUES.md`.
+At the start of delivery, after context compaction, after closing a child, and before any final response, re-read the master issue's goal, scope, exclusions, completion matrix, decisions, child status, and user-test roll-up. An unchecked item with an executable next action means work remains. The required master structure and evidence formats are defined in `~/.agents/sdlc/ISSUES.md`.
 
 For every child issue, including one discovered during implementation:
 
@@ -75,7 +75,7 @@ For every child issue, including one discovered during implementation:
 5. Invoke `audit-code` for that issue. Remediate every introduced finding and repeat the audit until it reports PASS before moving to another child.
 6. Close the child only when its automated verification and audits pass, its ACs have been migrated, its pending UTs have been transferred to the master issue, and no genuine blocker remains.
 
-Each MODE DELIVER audit records its verdict and evidence on the affected issue using the quality-check format in `[sdlc-home]/ISSUES.md`. PASS advances immediately to the next lifecycle action. FAIL initiates remediation and re-evaluation; it is not a handback by itself.
+Each MODE DELIVER audit records its verdict and evidence on the affected issue using the quality-check format in `~/.agents/sdlc/ISSUES.md`. PASS advances immediately to the next lifecycle action. FAIL initiates remediation and re-evaluation; it is not a handback by itself.
 
 If a small delivery is implemented directly on the master rather than a child, steps 1-5 apply to the master before any code is written; the master remains open for human review and does not use child closure. For a bug-fix ticket, audit the cited existing ACs and the regression test plan without manufacturing a new AC table.
 
@@ -172,7 +172,7 @@ Never stop after merely reporting an error, failing command, list of problems, o
 Classify uncertainty before deciding whether to continue:
 
 - **Unknown fact:** investigate using available evidence, record material findings, and continue. Lack of immediate knowledge is not a blocker.
-- **Routine implementation ambiguity:** when multiple safe, reversible choices satisfy the same confirmed scope, architecture, ACs, and user-visible result, choose the best-supported option, record the decision and evidence using `[sdlc-home]/ISSUES.md`, and continue.
+- **Routine implementation ambiguity:** when multiple safe, reversible choices satisfy the same confirmed scope, architecture, ACs, and user-visible result, choose the best-supported option, record the decision and evidence using `~/.agents/sdlc/ISSUES.md`, and continue.
 - **Material ambiguity:** when the alternatives materially change user-visible behaviour, product scope, architecture, security, persisted data, access, or irreversible outcomes, make a genuine-blocker handback. The prohibition on autonomous product decisions still applies.
 - **Out-of-scope discovery:** record it without implementation and continue the confirmed work. Escalate only when it prevents all remaining in-scope progress.
 
@@ -217,7 +217,7 @@ A handback is permitted only when further progress genuinely requires one of the
 - resolution of overlapping human or other-agent changes that cannot be separated safely;
 - correction of an external contract or infrastructure condition for which no compliant project-side action exists;
 - an architecture change requiring the mandatory architecture stop above;
-- a shell-complexity tripwire under `[sdlc-home]/SHELL.md`; or
+- a shell-complexity tripwire under `~/.agents/sdlc/SHELL.md`; or
 - the stalled-work circuit breaker above.
 
 Before making a handback, complete every independent unblocked item that remains in scope, inspect the completion matrix for additional blockers, and consolidate all currently known blockers into one handback. Human attention and execution context are finite; an avoidable handback is not a neutral or automatically safer action.
@@ -374,7 +374,7 @@ If you disagree, state your hypothesis as a hypothesis:
 Do not present plans ephemerally. When forming a plan:
 
 1. Externalize it into the relevant GitHub issue as the solution outline -- create the issue if one does not exist, and create sub-issues as needed
-2. All issues and sub-issues must conform to `[sdlc-home]/ISSUES.md`
+2. All issues and sub-issues must conform to `~/.agents/sdlc/ISSUES.md`
 3. Give me the issue URL(s), then follow the two gates (§2)
 
 ### In a GitHub repository
@@ -435,17 +435,17 @@ Only if tool discovery fails -- not unconditionally.
 
 | Document | Select when |
 |---|---|
-| `[sdlc-home]/ISSUES.md` | Creating, changing, auditing, implementing, reviewing, or closing issue-tracked work |
-| `[sdlc-home]/TESTING.md` | Specifying, writing, changing, running, or reviewing tests, or implementing behaviour that requires regression coverage |
-| `[sdlc-home]/CODING.md` | Writing, changing, reviewing, or recommending source code, scripts, configuration, build logic, or executable tooling |
-| `[sdlc-home]/GIT.md` | Performing tracked-file work in a Git repository |
-| `[sdlc-home]/DOCUMENTATION.md` | Writing, changing, or reviewing documentation |
-| `[sdlc-home]/SHELL.md` | Shell commands or scripts are part of the task |
-| `[sdlc-home]/PYTHON.md` | Python is part of the task |
-| `[sdlc-home]/PERL.md` | Perl is part of the task |
-| `[sdlc-home]/GO.md` | Go is part of the task |
-| `[sdlc-home]/SWIFT.md` | Swift is part of the task |
-| `[sdlc-home]/WEB.md` | HTML, CSS, or JavaScript is part of the task |
+| `~/.agents/sdlc/ISSUES.md` | Creating, changing, auditing, implementing, reviewing, or closing issue-tracked work |
+| `~/.agents/sdlc/TESTING.md` | Specifying, writing, changing, running, or reviewing tests, or implementing behaviour that requires regression coverage |
+| `~/.agents/sdlc/CODING.md` | Writing, changing, reviewing, or recommending source code, scripts, configuration, build logic, or executable tooling |
+| `~/.agents/sdlc/GIT.md` | Performing tracked-file work in a Git repository |
+| `~/.agents/sdlc/DOCUMENTATION.md` | Writing, changing, or reviewing documentation |
+| `~/.agents/sdlc/SHELL.md` | Shell commands or scripts are part of the task |
+| `~/.agents/sdlc/PYTHON.md` | Python is part of the task |
+| `~/.agents/sdlc/PERL.md` | Perl is part of the task |
+| `~/.agents/sdlc/GO.md` | Go is part of the task |
+| `~/.agents/sdlc/SWIFT.md` | Swift is part of the task |
+| `~/.agents/sdlc/WEB.md` | HTML, CSS, or JavaScript is part of the task |
 
 Documentation-only work selects `GIT.md` and `DOCUMENTATION.md` when tracked files will change. It does not require `ISSUES.md`, `TESTING.md`, or `CODING.md` unless the task also enters those concerns. A task spanning several rows selects and reads every applicable document in full; do not stop after the first match.
 

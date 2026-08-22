@@ -2,7 +2,9 @@
 description: Open a discovery (sketch) session for exploratory or UX work. Opens an issue tagged `discovery` with `[DISCOVERY]` title prefix and NO AC table. Sketches only. See ISSUES.md §"Discovery issues".
 ---
 
-Open a discovery session for the current task. Read and follow `[sdlc-home]/ISSUES.md` §"Discovery issues".
+The canonical SDLC root is exactly `~/.agents/sdlc`. Do not search, enumerate directories, traverse mounted volumes, inspect network shares, or use `find`, `locate`, Spotlight, or equivalent discovery to resolve this path. If `~/.agents/sdlc/MAIN.md` is absent or unreadable, stop and report that exact path.
+
+Open a discovery session for the current task. Read and follow `~/.agents/sdlc/ISSUES.md` §"Discovery issues".
 
 **This skill is user-invoked only.** Per the provider-level coding safeguards, you may never invoke `/start-discovery` on your own initiative. If you find yourself reaching for it, stop and surface the suggestion in chat instead.
 

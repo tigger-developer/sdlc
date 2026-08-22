@@ -1,6 +1,6 @@
 # Swift Standards
 
-Swift-specific standards. The general coding standards in `[sdlc-home]/CODING.md` apply on top of these.
+Swift-specific standards. The general coding standards in `~/.agents/sdlc/CODING.md` apply on top of these.
 
 Primary references:
 
@@ -106,7 +106,7 @@ For app projects, follow Xcode's structure unless there is a clear project conve
 
 ## Testing
 
-See `[sdlc-home]/TESTING.md` for cross-language testing standards.
+See `~/.agents/sdlc/TESTING.md` for cross-language testing standards.
 
 - Test user-observable behaviour, not private implementation details.
 - Use async tests for async APIs.

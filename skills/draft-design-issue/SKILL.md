@@ -3,7 +3,9 @@ name: draft-design-issue
 description: Draft a GitHub issue with full requirements and solution design in one pass. No code is written.
 ---
 
-Create a GitHub issue with full requirements and solution design in one pass. Read and follow `[sdlc-home]/ISSUES.md` for all issue structure and AC quality standards. Do not write any code.
+The canonical SDLC root is exactly `~/.agents/sdlc`. Do not search, enumerate directories, traverse mounted volumes, inspect network shares, or use `find`, `locate`, Spotlight, or equivalent discovery to resolve this path. If `~/.agents/sdlc/MAIN.md` is absent or unreadable, stop and report that exact path.
+
+Create a GitHub issue with full requirements and solution design in one pass. Read and follow `~/.agents/sdlc/ISSUES.md` for all issue structure and AC quality standards. Do not write any code.
 
 ### Phase 1: Requirements
 

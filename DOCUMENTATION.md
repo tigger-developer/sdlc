@@ -24,7 +24,7 @@ Project documentation files (under `./docs/` in a project) should include a vers
 
 When making significant changes, increment the version and note what changed in a brief changelog at the end of the document.
 
-Global framework documents under `[sdlc-home]` are version-controlled via git and do not require version headers. Provider-specific live configuration under `~/.claude`, `~/.codex`, `~/.copilot`, or another agent home is not a documentation source.
+Global framework documents under `~/.agents/sdlc` are version-controlled via git and do not require version headers. Provider-specific live configuration under `~/.claude`, `~/.codex`, `~/.copilot`, or another agent home is not a documentation source.
 
 ## Process
 

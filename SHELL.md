@@ -1,6 +1,6 @@
 # Shell Standards
 
-Shell-specific standards covering both interactive shell commands and scripts. The general coding standards in `[sdlc-home]/CODING.md` apply on top of these; this document does not repeat cross-language rules.
+Shell-specific standards covering both interactive shell commands and scripts. The general coding standards in `~/.agents/sdlc/CODING.md` apply on top of these; this document does not repeat cross-language rules.
 
 Most rules apply equally to one-shot commands typed at the prompt and to scripts. The Mandatory Safety Header, Portability, Error Handling traps, and Schedulers sections are script-specific and noted as such; everything else applies universally.
 
@@ -18,7 +18,7 @@ Treat these as tripwires:
 - The script talks to multiple external systems or APIs.
 - Error handling needs more than simple fail-fast behaviour and local cleanup.
 
-When a tripwire appears, do not silently continue making the shell script larger. This is a mandatory handback under `[sdlc-home]/MAIN.md` in both MODE PAIR and MODE DELIVER. State the complexity signal, recommend whether to keep the current shell implementation or rewrite, and explain the target language and migration path. Do not add further shell complexity until the human decides how to proceed.
+When a tripwire appears, do not silently continue making the shell script larger. This is a mandatory handback under `~/.agents/sdlc/MAIN.md` in both MODE PAIR and MODE DELIVER. State the complexity signal, recommend whether to keep the current shell implementation or rewrite, and explain the target language and migration path. Do not add further shell complexity until the human decides how to proceed.
 
 ## Version Targeting
 
@@ -104,7 +104,7 @@ If a case comes up that none of the substitutes solve, surface it -- the deny is
 
 **`grep` is for plaintext streams or files where a newline character is the delimiter** -- logs, command output, single-file pattern matches. **`ripgrep` (`rg`) is for finding files**, not for extracting content. In shell scripts, the only routine use of `rg` is `rg -l` to enumerate files for further processing by a format-aware tool. Reaching for `rg` to pull content out of a file is usually a sign the wrong tool is being used downstream.
 
-Tests must never pass by grepping or otherwise introspecting source code -- see `[sdlc-home]/TESTING.md`.
+Tests must never pass by grepping or otherwise introspecting source code -- see `~/.agents/sdlc/TESTING.md`.
 
 ### Tools
 
@@ -121,7 +121,7 @@ Tests must never pass by grepping or otherwise introspecting source code -- see 
 | CLI output -> JSON | `jc` | `jc` | Wrap `ps`/`df`/`mount`/`netstat`/etc. before parsing. |
 | Multi-format | `dasel` | `dasel` | One selector syntax across JSON/YAML/TOML/XML/CSV. |
 
-For HTML, CSS, and JavaScript tooling (htmlq, htmltest, stylelint, eslint) see `[sdlc-home]/WEB.md`.
+For HTML, CSS, and JavaScript tooling (htmlq, htmltest, stylelint, eslint) see `~/.agents/sdlc/WEB.md`.
 
 ### yq pitfall
 
@@ -164,7 +164,7 @@ User config is parsed into the language's native types at load time and must not
 
 ## Error Handling
 
-The general principles (fail fast, fail loud, fail safe; exit codes 0/1/2; errors to stderr) are in `[sdlc-home]/CODING.md`. Shell-specific patterns:
+The general principles (fail fast, fail loud, fail safe; exit codes 0/1/2; errors to stderr) are in `~/.agents/sdlc/CODING.md`. Shell-specific patterns:
 
 - Validate inputs early; reject bad data at the boundary
 - Clean up resources on failure using traps:
@@ -181,7 +181,7 @@ trap cleanup EXIT
 - Use `trash` instead of `rm` to allow recovery
   - **Exception:** a script or program may delete the exact directory it created with `mktemp -d` through explicit cleanup/teardown logic. Do not use globs, shared parent directories, or ad hoc `rm` commands as an agent shell action.
 - Create scratch directories with `mktemp -d`, which selects the operating system temporary directory. Do not hard-code `/tmp`, assume `$TMP` is set, or create scratch directories inside the project.
-- Register cleanup immediately after allocation and handle success, failure, and signals. Tests must also enforce the output limits in `[sdlc-home]/TESTING.md`.
+- Register cleanup immediately after allocation and handle success, failure, and signals. Tests must also enforce the output limits in `~/.agents/sdlc/TESTING.md`.
 - Atomic writes: write to temp, then `mv`
 - Use `flock` when multiple processes may write
 

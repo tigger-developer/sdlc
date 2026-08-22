@@ -98,12 +98,12 @@ All linting must pass for changed files regardless of language. Secondary refere
 
 Language-specific standards live in their own documents and are loaded alongside this one:
 
-- Shell: `[sdlc-home]/SHELL.md`
-- Python: `[sdlc-home]/PYTHON.md`
-- Perl: `[sdlc-home]/PERL.md`
-- Go: `[sdlc-home]/GO.md`
-- Swift: `[sdlc-home]/SWIFT.md`
-- Web (HTML, CSS, JavaScript): `[sdlc-home]/WEB.md`
+- Shell: `~/.agents/sdlc/SHELL.md`
+- Python: `~/.agents/sdlc/PYTHON.md`
+- Perl: `~/.agents/sdlc/PERL.md`
+- Go: `~/.agents/sdlc/GO.md`
+- Swift: `~/.agents/sdlc/SWIFT.md`
+- Web (HTML, CSS, JavaScript): `~/.agents/sdlc/WEB.md`
 
 When a language-specific document exists, its rules take precedence over the general guidance here for that language. The general guidance still applies for cross-cutting concerns (security, dependencies, error handling principles, etc.).
 
@@ -116,13 +116,13 @@ When a language-specific document exists, its rules take precedence over the gen
 
 ## Data Handling
 
-**Use format-aware parsers, not regex or line-oriented tools, to read structured data** (JSON, YAML, TOML, XML, HTML, CSV, or any nested format). In compiled or interpreted languages use the standard library or established parsing libraries. In shell scripts use the format-aware CLI tools listed in `[sdlc-home]/SHELL.md`.
+**Use format-aware parsers, not regex or line-oriented tools, to read structured data** (JSON, YAML, TOML, XML, HTML, CSV, or any nested format). In compiled or interpreted languages use the standard library or established parsing libraries. In shell scripts use the format-aware CLI tools listed in `~/.agents/sdlc/SHELL.md`.
 
 **Never use sed, awk, perl, or any line-based stream editor to modify data of any kind.** `perl -pi -e` and `perl -ne` are sed with extra steps and fall under the same prohibition. For source code, use direct editing or `ast-grep` (`sg`) for cross-file structural refactors. For structured data, use a parser. For plaintext, use direct editing.
 
 `grep` and `ripgrep` are correct for searching plaintext where the meaningful unit is a line break. Once meaning depends on nesting, escaping, or types, switch to a parser.
 
-Tests must never pass by grepping or otherwise introspecting source code -- see `[sdlc-home]/TESTING.md`.
+Tests must never pass by grepping or otherwise introspecting source code -- see `~/.agents/sdlc/TESTING.md`.
 
 ---
 
@@ -341,7 +341,7 @@ When using containers:
 
 - Atomic writes: write to temp, then `mv` (rename is atomic on POSIX)
 - Use file locking when multiple processes may write
-- Shell-specific tooling (`trash`, `flock`) is covered in `[sdlc-home]/SHELL.md`
+- Shell-specific tooling (`trash`, `flock`) is covered in `~/.agents/sdlc/SHELL.md`
 
 ## Network Operations
 

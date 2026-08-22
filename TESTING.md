@@ -6,6 +6,8 @@ This document defines how to write, structure, and organize tests. The TDD workf
 
 Tests must verify observable behaviour through the same entry point a user would use. Before marking any RT as passing, state in chat: *what user action does this test simulate, and what would the user observe?* If the answer references internal APIs, database rows, source code grep results, or any artefact the user never sees - the test doesn't match its spec. Rewrite it.
 
+Documentation and prompt wording are human-readable contracts, so verify their clarity and completeness with a UT. Never create an RT that greps, parses, snapshots, or otherwise introspects documentation, prompts, skills, commands, templates, or instruction source to prove required wording is present. The general requirement to define test coverage does not override this rule: use a UT when human reading is the valid sign-off. An installer RT may verify observable deployment behaviour such as destination creation, file availability, and idempotence through the installer entry point, but it must not pass by inspecting prose for required text.
+
 This is not a rule about any specific shortcut. It is the question that all the other testing rules exist to enforce: *"Would this test have caught a real bug?"*
 
 **Anti-patterns this catches:**

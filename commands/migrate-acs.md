@@ -2,7 +2,9 @@
 description: Migrate ACs from a legacy (closed) issue into the central document `./docs/ACs.md`. See ISSUES.md §"Legacy AC migration".
 ---
 
-Migrate the ACs from a single legacy issue into `./docs/ACs.md`. Read and follow `[sdlc-home]/ISSUES.md` §"Central AC document" and §"Legacy AC migration".
+The canonical SDLC root is exactly `~/.agents/sdlc`. Do not search, enumerate directories, traverse mounted volumes, inspect network shares, or use `find`, `locate`, Spotlight, or equivalent discovery to resolve this path. If `~/.agents/sdlc/MAIN.md` is absent or unreadable, stop and report that exact path.
+
+Migrate the ACs from a single legacy issue into `./docs/ACs.md`. Read and follow `~/.agents/sdlc/ISSUES.md` §"Central AC document" and §"Legacy AC migration".
 
 **This skill is user-invoked only.** Per the provider-level coding safeguards, you may never invoke `/migrate-acs` on your own initiative. Migration is the user's call.
 

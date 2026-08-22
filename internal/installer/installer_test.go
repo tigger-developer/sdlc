@@ -34,8 +34,9 @@ func newFixture(t *testing.T, providers ...string) fixture {
 	return f
 }
 
-func TestInteractiveCopiesEveryOwnedItemToDetectedHomes(t *testing.T) {
-	f := newFixture(t, "agents", "claude", "codex", "copilot", "hermes")
+// RT-6.1, RT-6.3
+func TestInteractiveInstallsOneCanonicalTreeAndProviderAdapters(t *testing.T) {
+	f := newFixture(t, "claude", "codex", "copilot", "hermes")
 	claudeConfig := filepath.Join(f.root, ".claude", "settings.json")
 	codexConfig := filepath.Join(f.root, ".codex", "config.toml")
 	hermesConfig := filepath.Join(f.root, ".hermes", "config.yaml")
@@ -51,10 +52,11 @@ func TestInteractiveCopiesEveryOwnedItemToDetectedHomes(t *testing.T) {
 		t.Fatalf("expected one batch confirmation:\n%s", output.String())
 	}
 
-	for _, home := range []string{".agents", ".claude", ".codex", ".copilot", ".hermes"} {
-		assertRegularTree(t, filepath.Join(f.root, home, "sdlc"))
-		assertFile(t, filepath.Join(f.root, home, "sdlc", "MAIN.md"), "# Main\n")
-		assertAbsent(t, filepath.Join(f.root, home, "sdlc", ".git"))
+	assertRegularTree(t, filepath.Join(f.root, ".agents", "sdlc"))
+	assertFile(t, filepath.Join(f.root, ".agents", "sdlc", "MAIN.md"), "# Main\n")
+	assertAbsent(t, filepath.Join(f.root, ".agents", "sdlc", ".git"))
+	for _, home := range []string{".claude", ".codex", ".copilot", ".hermes"} {
+		assertAbsent(t, filepath.Join(f.root, home, "sdlc"))
 	}
 	for _, skill := range sourceDirectories(t, filepath.Join(f.source, "skills")) {
 		for _, home := range []string{".agents", ".claude", ".copilot", ".hermes"} {
@@ -160,7 +162,7 @@ func TestDeclineWritesNothingAndWrongTypesAreBackedUp(t *testing.T) {
 	assertRegularTree(t, filepath.Join(f.root, ".agents", "sdlc"))
 	backup := assertOneBackup(t, filepath.Join(f.root, ".agents", "sdlc"))
 	assertFile(t, backup, "wrong type\n")
-	assertRegularTree(t, filepath.Join(f.root, ".claude", "sdlc"))
+	assertAbsent(t, filepath.Join(f.root, ".claude", "sdlc"))
 }
 
 func TestStaleLinksBecomeCopiesAndDestinationOnlyFilesSurvive(t *testing.T) {
@@ -192,12 +194,14 @@ func TestStaleLinksBecomeCopiesAndDestinationOnlyFilesSurvive(t *testing.T) {
 	assertFile(t, unowned, "personal\n")
 }
 
-func TestExplicitAgentLimitsProviderCopies(t *testing.T) {
+// RT-6.2
+func TestExplicitAgentInstallsCanonicalTreeAndSelectedProviderAdapters(t *testing.T) {
 	f := newFixture(t, "claude", "hermes")
 	if err := Run(Options{Agent: "claude", AgentHome: filepath.Join(f.root, ".claude"), Source: f.source, Apply: true, Output: &bytes.Buffer{}}); err != nil {
 		t.Fatal(err)
 	}
-	assertRegularTree(t, filepath.Join(f.root, ".claude", "sdlc"))
+	assertRegularTree(t, filepath.Join(f.root, ".agents", "sdlc"))
+	assertAbsent(t, filepath.Join(f.root, ".claude", "sdlc"))
 	assertSameDirectory(t, filepath.Join(f.source, "commands"), filepath.Join(f.root, ".claude", "commands"))
 	assertAbsent(t, filepath.Join(f.root, ".hermes", "sdlc"))
 }
@@ -211,6 +215,7 @@ func TestDryRunReportsDriftWithoutWriting(t *testing.T) {
 	if !strings.Contains(output.String(), "would synchronize") {
 		t.Fatalf("dry run omitted drift:\n%s", output.String())
 	}
+	assertAbsent(t, filepath.Join(f.root, ".agents", "sdlc"))
 	assertAbsent(t, filepath.Join(f.root, ".codex", "sdlc"))
 }
 
