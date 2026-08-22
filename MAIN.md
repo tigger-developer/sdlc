@@ -62,6 +62,10 @@ Then request one confirmation. A line containing only `CONFIRM DELIVER`, written
 
 After `CONFIRM DELIVER`, the agent must create a master issue that records the confirmed goal, definition of done, scope, exclusions, child links, delivery status, and user-test roll-up. It may create and design the child issues required to deliver that goal. `CONFIRM DELIVER` substitutes for PROCEED only for that master and its in-scope children; it does not authorize unrelated work.
 
+Confirmed MODE DELIVER authority is a continuation contract. Continue until the delivery completion matrix in the master issue is satisfied, the final human-only checkpoint is ready, or a genuine blocker prevents all remaining in-scope work. A progress report, commit, completed child, audit result, warning, or partial milestone is not a terminal condition. After reporting progress, continue with the next executable item in the completion matrix.
+
+At the start of delivery, after context compaction, after closing a child, and before any final response, re-read the master issue's goal, scope, exclusions, completion matrix, decisions, child status, and user-test roll-up. An unchecked item with an executable next action means work remains. The required master structure and evidence formats are defined in `[sdlc-home]/ISSUES.md`.
+
 For every child issue, including one discovered during implementation:
 
 1. Create and design the issue before writing its code.
@@ -71,6 +75,8 @@ For every child issue, including one discovered during implementation:
 5. Invoke `audit-code` for that issue. Remediate every introduced finding and repeat the audit until it reports PASS before moving to another child.
 6. Close the child only when its automated verification and audits pass, its ACs have been migrated, its pending UTs have been transferred to the master issue, and no genuine blocker remains.
 
+Each MODE DELIVER audit records its verdict and evidence on the affected issue using the quality-check format in `[sdlc-home]/ISSUES.md`. PASS advances immediately to the next lifecycle action. FAIL initiates remediation and re-evaluation; it is not a handback by itself.
+
 If a small delivery is implemented directly on the master rather than a child, steps 1-5 apply to the master before any code is written; the master remains open for human review and does not use child closure. For a bug-fix ticket, audit the cited existing ACs and the regression test plan without manufacturing a new AC table.
 
 Only pre-existing code smells may remain after `audit-code`, and only when they are identified as pre-existing, outside the child scope, and accompanied by a concrete justification. Universal prohibitions, human-only UT judgements, access permissions, and restrictions on product decisions remain unchanged in MODE DELIVER.
@@ -78,6 +84,12 @@ Only pre-existing code smells may remain after `audit-code`, and only when they 
 The master issue remains open and is the single human review point. Before presenting it, run the full regression suite and resolve every error and new warning. Present one consolidated review package ending `READY FOR REVIEW - master issue #n`, with the master issue link. A human **APPROVED n** directive for that master accepts the complete delivery tree, including every child closed through the MODE DELIVER lifecycle; separate APPROVED directives are not required for those children. The master may not close while any rolled-up UT remains pending, failing, or lacks an explicit human result.
 
 If **APPROVED n** is received for the master before every rolled-up UT has a human-confirmed passing result, do not close the master and do not bank the directive for later. Report the unresolved UT IDs, statuses, and master link, remediate failed UTs within the confirmed scope, and require a fresh **APPROVED n** after all rolled-up UTs pass.
+
+### Resuming an existing delivery
+
+A line containing only `RESUME DELIVER n`, written by the human, resumes MODE DELIVER for open master issue `n`. The agent may never issue this directive or infer it from an issue, prior conversation, or incomplete phrase.
+
+On receipt, verify that the issue is an open MODE DELIVER master, reload its confirmed goal, definition of done, scope, exclusions, completion matrix, decisions, children, verification evidence, and user-test roll-up, then reconstruct the next executable action. State the recovered state and continue without repeating delivery readiness or requesting another confirmation. If the master record is absent, malformed, closed, or requires material scope expansion, remain in MODE PAIR and report the exact discrepancy. Material expansion still requires a revised delivery statement and a new `CONFIRM DELIVER`.
 
 ### The two gates
 
@@ -135,6 +147,8 @@ Everything else requires both gates or confirmed MODE DELIVER authority.
 
 In MODE PAIR, I drive the workflow with gate keywords. The gates (PROCEED, APPROVED) are the planned human checkpoints -- between gates, do the work without waiting for further instruction unless a mandatory handback below applies. In MODE DELIVER, the confirmed goal replaces per-child gate handbacks; complete the delivery lifecycle without waiting between children unless a mandatory handback applies or the work is otherwise genuinely blocked.
 
+Progress reporting is non-terminal in MODE DELIVER. Send the update through the provider's progress channel when one exists, update durable issue state where required, and continue in the same run. Do not turn a status update into a final handback while safe, in-scope work remains executable.
+
 - After **PROCEED n [n ...]**: for every listed issue, proceed through writing tests (TDD red), implementation (green), and review, and end with `READY FOR REVIEW - issue #n`. Do not stop in the middle for me to invoke each phase.
 - After **APPROVED n [n ...]**: close every listed issue whose documented closure prerequisites are satisfied (see Phase 5: Closure below). An early MODE DELIVER master approval is not banked.
 
@@ -152,6 +166,15 @@ When an obstacle appears:
 6. If the first solution does not work, use the new evidence to revise the diagnosis and try reasonable alternatives before declaring a blocker.
 
 Never stop after merely reporting an error, failing command, list of problems, or incomplete result. Do not give me work that you can perform yourself, and do not expect me to diagnose or repair a problem you have not investigated.
+
+#### Ambiguity classification
+
+Classify uncertainty before deciding whether to continue:
+
+- **Unknown fact:** investigate using available evidence, record material findings, and continue. Lack of immediate knowledge is not a blocker.
+- **Routine implementation ambiguity:** when multiple safe, reversible choices satisfy the same confirmed scope, architecture, ACs, and user-visible result, choose the best-supported option, record the decision and evidence using `[sdlc-home]/ISSUES.md`, and continue.
+- **Material ambiguity:** when the alternatives materially change user-visible behaviour, product scope, architecture, security, persisted data, access, or irreversible outcomes, make a genuine-blocker handback. The prohibition on autonomous product decisions still applies.
+- **Out-of-scope discovery:** record it without implementation and continue the confirmed work. Escalate only when it prevents all remaining in-scope progress.
 
 #### Mandatory architecture stop
 
@@ -197,6 +220,8 @@ A handback is permitted only when further progress genuinely requires one of the
 - a shell-complexity tripwire under `[sdlc-home]/SHELL.md`; or
 - the stalled-work circuit breaker above.
 
+Before making a handback, complete every independent unblocked item that remains in scope, inspect the completion matrix for additional blockers, and consolidate all currently known blockers into one handback. Human attention and execution context are finite; an avoidable handback is not a neutral or automatically safer action.
+
 When genuinely blocked, the handback must contain:
 
 1. The intended outcome and the current state.
@@ -241,6 +266,8 @@ The table above lists **SDLC-flow** tools. Other skills exist outside this flow 
 CHECK DELIVER -> goal statement -> CONFIRM DELIVER -> master issue
   -> per-child draft/design -> audit-acs + audit-tests -> implementation -> audit-code -> child closure
   -> rolled-up UT resolution -> APPROVED n (n = master issue number)
+
+RESUME DELIVER n -> reload open master state -> continue next unchecked executable item
 ```
 
 In MODE PAIR, I may skip, reorder, or repeat commands and skills as needed; audits are optional unless another rule requires them. In MODE DELIVER, the per-implementation-ticket `audit-acs`, `audit-tests`, and `audit-code` passes are mandatory. The rules in §"Code-Specific Prohibitions" and §"Operating Modes and the Two Gates" always apply.

@@ -145,6 +145,7 @@ A MODE DELIVER master issue is a coordination and acceptance issue, not a duplic
 - the confirmed goal and definition of done;
 - scope and exclusions;
 - links and status for every child issue;
+- a delivery completion matrix with evidence and the next executable action;
 - consolidated verification evidence and residual risk; and
 - a user-test roll-up containing every pending UT transferred from a closed child.
 
@@ -157,6 +158,62 @@ When the human resolves a transferred UT, update the status marker in its centra
 **APPROVED n**, where n is the master issue number, accepts the master and all children in its delivery tree, including children already closed through the MODE DELIVER lifecycle. The master must not close while any rolled-up UT remains pending, failing, or lacks an explicit human result.
 
 An approval directive received before all rolled-up UTs have human-confirmed passing results is not banked. Leave the master open, report every unresolved UT and its status, remediate failures within the confirmed scope, and require a fresh **APPROVED n** after all rolled-up UTs pass.
+
+### Delivery completion matrix
+
+Every MODE DELIVER master contains this current-state checklist. Repeat child-specific rows as required and link every checked row to its evidence:
+
+```markdown
+## Completion matrix
+
+- [ ] Scope decomposed into designed child issues
+- [ ] Child #n passed AC audit
+- [ ] Child #n passed test audit
+- [ ] Child #n passed automated verification
+- [ ] Child #n passed code audit
+- [ ] Child #n completed AC migration, UT transfer, and closure
+- [ ] Full regression suite passed without new warnings
+- [ ] Documentation impact validated
+- [ ] Every rolled-up user test has a human-confirmed result
+- [ ] Consolidated review package prepared
+
+Next executable action: <one concrete action, or `none` only when every row is resolved>
+```
+
+The body records current state. An unchecked item with an executable next action means delivery work remains and a progress update is not a terminal handback. Only the human may check a row whose evidence depends on human approval or user-test judgement.
+
+### Delivery decision records
+
+Record each material routine implementation assumption as an immutable comment on the master or affected child:
+
+```markdown
+DECISION D-<n>
+
+- Question:
+- Classification: routine implementation ambiguity
+- Chosen interpretation:
+- Evidence:
+- Reversibility:
+- Affected issues, ACs, and tests:
+```
+
+Do not use this record to authorize product, architecture, security, access, data-format, or scope decisions that require a handback under `MAIN.md`.
+
+### MODE DELIVER quality-check records
+
+After each AC, test, or code audit, post this immutable comment on the affected issue before returning to the delivery workflow:
+
+```markdown
+QUALITY CHECK: <AC AUDIT | TEST AUDIT | CODE AUDIT>
+
+- Verdict: PASS | FAIL
+- Evidence:
+- Findings:
+- Remediation:
+- Attempt:
+```
+
+A PASS advances immediately to the next lifecycle action. A FAIL records the required remediation and returns to that work; it is not a handback unless its diagnosed root cause meets a genuine-blocker condition or the stalled-work circuit breaker trips.
 
 ---
 

@@ -23,4 +23,4 @@ Review the test specifications for the current issue. Do not write any code or m
 
 End with `PASS` when no unresolved findings remain; otherwise end with `FINDINGS` and the concrete remediation for each finding.
 
-In MODE PAIR, do not proceed past this audit; wait for the human's response. In MODE DELIVER, return control to the delivery workflow. The workflow must remediate every finding and repeat this audit until it reports PASS. No code may be written for the ticket before both `audit-acs` and `audit-tests` report PASS.
+In MODE PAIR, do not proceed past this audit; wait for the human's response. In MODE DELIVER, post a `QUALITY CHECK: TEST AUDIT` comment on the affected issue using the verdict, evidence, findings, remediation, and attempt fields defined in `ISSUES.md`, then return control to the delivery workflow. PASS advances immediately to implementation when the AC audit has also passed. FAIL returns to remediation and re-evaluation; it is not a handback by itself. The workflow must remediate every finding and repeat this audit until it reports PASS. No code may be written for the ticket before both `audit-acs` and `audit-tests` report PASS.

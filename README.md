@@ -201,6 +201,26 @@ Gate-equivalent workflows remain human-invoked commands. They must not be repack
 
 Configuration recommendations are advisory. Review every proposed permission change against the provider's current documentation and your own threat model before accepting it.
 
+## Long-running delivery
+
+MODE DELIVER records its goal, scope, completion matrix, decisions, quality
+checks, child status, and user tests on one master issue. Progress reports are
+non-terminal while safe, in-scope work remains executable. Routine reversible
+implementation ambiguity is recorded and resolved by the agent; material
+product, architecture, security, access, data, and scope decisions remain
+human handbacks.
+
+After context loss or in a new session, the human can resume an open delivery
+master with:
+
+```text
+RESUME DELIVER n
+```
+
+The agent reloads the durable master state and continues the next unchecked
+action without repeating delivery readiness. The directive cannot resume a
+closed master or expand its recorded scope.
+
 ## Updating
 
 Update the staging clone normally:

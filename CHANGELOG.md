@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+Made MODE DELIVER a durable continuation contract. Delivery masters now carry
+a completion matrix, decision records, and quality-check evidence; progress
+reports are explicitly non-terminal while in-scope work remains executable.
+
+Added ambiguity classification, consolidated blocker handbacks, and the
+human-only `RESUME DELIVER n` directive for reconstructing an open delivery
+after context loss or in a new session.
+
 Replaced the shared-live-tree/provider-symlink deployment with ordinary copies
 in every detected agent home. Installation now preflights one complete batch,
 asks once, discovers skills and commands from their source directories, and
