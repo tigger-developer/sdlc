@@ -59,6 +59,12 @@ Never execute code from strings or discovery:
 - Running scripts found via `find` or globbing
 - Wiring discovered paths into schedulers or services
 
+The sole narrow exception is the MODE PAIR review-report contract in
+`~/.agents/sdlc/commands/review.md`: `HTML_PREVIEW_TOOL` may supply one
+executable path after it has been confirmed to exist and be executable. Never
+interpret its value as shell code, split it into arguments, or use it in MODE
+DELIVER.
+
 ## Safe Alternatives
 
 - Functions or `case` dispatch for behaviour selection

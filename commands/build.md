@@ -35,7 +35,7 @@ Confirm tests pass.
 
 ## 4. Review
 
-Run the work described in `/review` for issue #n: `make test` (or skip with a stated reason if just run with no changes), hard-block checks (zero errors, no new warnings, no tracked agent-runtime paths, and no unexpectedly large generated files), update the AC table on the issue in place, update project documentation including help text if executables changed, commit and push, add an issue comment, allocate a unique report directory with `mktemp -d`, write the review markdown there, then render/open it if a renderer is available. Use `AGENT_HTML_RENDERER` when set; otherwise use `pandhtml` if present. If neither exists, report the temporary markdown path. Retain the report only for the active review and remove the exact directory through explicit teardown afterwards.
+Run the work described in `/review` for issue #n: `make test` (or skip with a stated reason if just run with no changes), hard-block checks (zero errors, no new warnings, no tracked agent-runtime paths, and no unexpectedly large generated files), update the AC table on the issue in place, update project documentation including help text if executables changed, commit and push, add an issue comment, allocate a unique report directory with `mktemp -d`, and write the review Markdown there. In MODE PAIR, use the executable path in `HTML_PREVIEW_TOOL` when it is set and available; treat its value as one executable, never shell code or a compound command. If it is unset or unavailable, choose an available text editor and open the Markdown report there. In MODE DELIVER, ignore `HTML_PREVIEW_TOOL`, do not open the report in a renderer or editor, record the Markdown evidence, and continue. Retain the report only for the active review and remove the exact directory through explicit teardown afterwards.
 
 ## 5. End-of-gate presentation (mandatory)
 
@@ -44,7 +44,7 @@ Run the work described in `/review` for issue #n: `make test` (or skip with a st
 Present in chat:
 
 1. Test result summary: pass/fail counts; hard-block confirmation.
-2. Path to the rendered review HTML.
+2. Path to the rendered review report, or to the Markdown report opened in a text editor when `HTML_PREVIEW_TOOL` is unset or unavailable.
 3. For each pending UT in the AC table: launch the relevant tool or application, prepare representative data and configuration, and place it at the exact state I must inspect. Show what is on screen and ask "Does this pass UT-{n}.{k}?" as a yes/no question. Never ask me to run commands, perform setup, or navigate through a series of actions. I should need only visual or subjective judgement and, when the UT inherently requires interaction, at most one reasonable action. Split independent actions into separate UTs.
 4. If the AC table has no UTs (or all UTs are already answered): state this explicitly -- "No UTs to verify" or "All UTs previously answered". The absence of UTs is not permission to skip this section.
 5. **Post-approval plan.** State what will happen after APPROVED, do not do any of it yet:

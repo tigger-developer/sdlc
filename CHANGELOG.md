@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+Made review-report presentation explicitly mode-dependent. MODE PAIR uses the
+optional `HTML_PREVIEW_TOOL` and falls back to an available text editor, while
+MODE DELIVER ignores preview tooling, records the Markdown evidence, and
+continues without opening the report or treating it as a checkpoint.
+
 Made MODE DELIVER a durable continuation contract. Delivery masters now carry
 a completion matrix, decision records, and quality-check evidence; progress
 reports are explicitly non-terminal while in-scope work remains executable.

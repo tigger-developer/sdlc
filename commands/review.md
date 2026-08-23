@@ -2,7 +2,7 @@
 description: Full review of the current issue's implementation -- run tests, check standards, demo user tests.
 ---
 
-Perform a full review of the current issue's implementation. Allocate a unique review directory with `mktemp -d` before running tests. Long-form output (test logs, standards check, summary) is written there and rendered to HTML; the terminal stays short. Retain the directory only for the active review and remove that exact directory through explicit teardown afterwards.
+Perform a full review of the current issue's implementation. Allocate a unique review directory with `mktemp -d` before running tests. Long-form output (test logs, standards check, summary) is written there; the terminal stays short. Retain the directory only for the active review and remove that exact directory through explicit teardown afterwards.
 
 1. Run `make test` (includes lint) and capture the full output in the review directory -- unless it has just been run and no changes have been made since then, in which case skip and note this. **In chat: one line stating pass/fail and total counts.** Save the full output for the review file in step 10.
 2. Verify: zero errors, no new warnings. These are hard blocks -- no exceptions. **In chat: one line confirming hard blocks pass.**
@@ -21,8 +21,10 @@ Perform a full review of the current issue's implementation. Allocate a unique r
    - UT results from step 5
    - Summary of all actions taken
    - Commit hash and push confirmation
-11. Convert and open the report if a renderer is available. Use `AGENT_HTML_RENDERER` when set; otherwise use `pandhtml` if present. If neither exists, skip rendering and report the temporary markdown path. **In chat: one line stating the report path.**
+11. Handle the report according to the active mode:
+    - **MODE PAIR:** If `HTML_PREVIEW_TOOL` names an available executable, use it to render and open the Markdown report. Treat its value as one executable path, not shell code or a compound command. If it is unset or unavailable, choose an available text editor and open the Markdown report there. **In chat: one line stating the rendered or Markdown report path.**
+    - **MODE DELIVER:** Do not render or open the report. Record the Markdown report path and relevant evidence on the affected issue, then continue with the next delivery action. A review report is an artefact, not a checkpoint or terminal condition.
 
-Do not seek APPROVED or end with READY FOR REVIEW while any UT is pending, unpresented, or failing.
+In MODE PAIR, do not seek APPROVED or end with READY FOR REVIEW while any UT is pending, unpresented, or failing.
 
-**End with:** `READY FOR REVIEW - issue #NNN` and the issue link. **STOP.**
+In MODE PAIR, end with `READY FOR REVIEW - issue #NNN` and the issue link, then stop at the human review gate. In MODE DELIVER, ignore `HTML_PREVIEW_TOOL`, do not open the report in a renderer or editor, and do not emit READY FOR REVIEW or stop here; return control to the delivery workflow and continue.
