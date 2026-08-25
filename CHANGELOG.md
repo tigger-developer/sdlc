@@ -13,6 +13,10 @@ and `awk` to match the shared command policy. Hermes registration now targets
 the provider-neutral `~/.agents/sdlc` hook and removes recognized obsolete
 provider-local registrations during migration.
 
+Made Hermes configuration analysis compare only the managed command-guard
+semantics. Compliant Hermes-generated YAML is now retained byte-for-byte, while
+required hook migrations preserve comments, key order, and unrelated values.
+
 Required every human-facing ID to include a short adjacent descriptor.
 
 Made operating modes explicitly code-only and self-contained within the SDLC.

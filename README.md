@@ -169,10 +169,12 @@ command guard at the provider-neutral `~/.agents/sdlc` root for the `terminal`
 tool. A recognized older registration under the Hermes home is replaced rather
 than retained as a second hook. Private instructions and custom prompt text
 belong to the user's private agent configuration, not this public project. The
-merge preserves prompt text, unrelated YAML values, existing hooks, and
-first-use hook consent. Before rewriting an existing file, it stores a recovery
-copy in an operating system temporary directory and prints the path. Invalid
-YAML and non-regular configuration paths remain untouched.
+merge compares only the managed hook semantics. A compliant file is retained
+byte-for-byte regardless of comments, key order, quoting, or formatting. A
+required migration preserves YAML comments, prompt text, unrelated values,
+existing hooks, and first-use hook consent. Before rewriting an existing file,
+it stores a recovery copy in an operating system temporary directory and prints
+the path. Invalid YAML and non-regular configuration paths remain untouched.
 
 Hermes must complete its startup TUI and model selection before installation.
 If a Hermes home exists without `config.yaml`, the installer stops the complete
