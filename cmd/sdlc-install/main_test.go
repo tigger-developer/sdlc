@@ -66,11 +66,12 @@ func newCLIFixture(t *testing.T) (string, string) {
 	root := t.TempDir()
 	source := filepath.Join(root, "sdlc")
 	for path, content := range map[string]string{
-		"MAIN.md":                            "# SDLC\n",
+		"src/MAIN.md":                        "# SDLC\n",
 		"README.md":                          "# Quickstart\n",
 		"templates/codex-sdlc.rules.example": "prefix_rule()\n",
 		"commands/build.md":                  "# Build\n",
 		"skills/audit-code/SKILL.md":         "# Audit\n",
+		"hooks/agent-command-guard.sh":       "#!/bin/sh\n",
 	} {
 		fullPath := filepath.Join(source, filepath.FromSlash(path))
 		if err := os.MkdirAll(filepath.Dir(fullPath), 0o700); err != nil {

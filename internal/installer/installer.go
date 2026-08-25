@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -73,7 +72,6 @@ type configurationChange struct {
 type managedSync struct {
 	source            string
 	destination       string
-	excludeGit        bool
 	needsSync         bool
 	backupExisting    bool
 	destinationExists bool
@@ -316,7 +314,7 @@ func validateSource(source string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("resolving source %q: %w", source, err)
 	}
-	for _, required := range []string{"MAIN.md", "README.md"} {
+	for _, required := range []string{filepath.Join("src", "MAIN.md"), "README.md"} {
 		path := filepath.Join(absolute, required)
 		info, statErr := os.Stat(path)
 		if statErr != nil {
@@ -437,15 +435,23 @@ func planSharedInstallation(source, commonHome string) (installationPlan, error)
 	if sameLexicalPath(source, liveSDLC) {
 		return installationPlan{}, fmt.Errorf("source %q is the live SDLC directory; use a separate staging clone", source)
 	}
-	sync, err := planDirectorySync(source, liveSDLC, true)
-	if err != nil {
-		return installationPlan{}, err
+	plan := installationPlan{}
+	for _, mapping := range []struct {
+		source, destination string
+	}{
+		{filepath.Join(source, "src"), liveSDLC},
+		{filepath.Join(source, "commands"), filepath.Join(liveSDLC, "commands")},
+		{filepath.Join(source, "skills"), filepath.Join(liveSDLC, "skills")},
+		{filepath.Join(source, "hooks"), filepath.Join(liveSDLC, "hooks")},
+		{filepath.Join(source, "skills"), filepath.Join(commonHome, "skills")},
+	} {
+		files, err := planDirectoryFiles(mapping.source, mapping.destination)
+		if err != nil {
+			return installationPlan{}, err
+		}
+		plan.syncs = append(plan.syncs, files...)
 	}
-	skills, err := planChildDirectories(filepath.Join(source, "skills"), filepath.Join(commonHome, "skills"))
-	if err != nil {
-		return installationPlan{}, err
-	}
-	return installationPlan{syncs: append([]managedSync{sync}, skills...)}, nil
+	return plan, nil
 }
 
 func verifyCanonicalMain(commonHome string) error {
@@ -470,39 +476,20 @@ func planProviderInstallation(agent, source, agentHome string) (installationPlan
 		return installationPlan{}, fmt.Errorf("planning unsupported agent %q", agent)
 	}
 	if provider.commandPath != "" {
-		commands, planErr := planDirectorySync(filepath.Join(source, "commands"), filepath.Join(agentHome, provider.commandPath), false)
+		commands, planErr := planDirectoryFiles(filepath.Join(source, "commands"), filepath.Join(agentHome, provider.commandPath))
 		if planErr != nil {
 			return installationPlan{}, planErr
 		}
-		plan.syncs = append(plan.syncs, commands)
+		plan.syncs = append(plan.syncs, commands...)
 	}
 	if provider.skills {
-		skills, planErr := planChildDirectories(filepath.Join(source, "skills"), filepath.Join(agentHome, "skills"))
+		skills, planErr := planDirectoryFiles(filepath.Join(source, "skills"), filepath.Join(agentHome, "skills"))
 		if planErr != nil {
 			return installationPlan{}, planErr
 		}
 		plan.syncs = append(plan.syncs, skills...)
 	}
 	return plan, nil
-}
-
-func planChildDirectories(sourceDirectory, destinationDirectory string) ([]managedSync, error) {
-	entries, err := os.ReadDir(sourceDirectory)
-	if err != nil {
-		return nil, fmt.Errorf("reading install source %q: %w", sourceDirectory, err)
-	}
-	syncs := make([]managedSync, 0, len(entries))
-	for _, entry := range entries {
-		if !entry.IsDir() {
-			continue
-		}
-		sync, planErr := planDirectorySync(filepath.Join(sourceDirectory, entry.Name()), filepath.Join(destinationDirectory, entry.Name()), false)
-		if planErr != nil {
-			return nil, planErr
-		}
-		syncs = append(syncs, sync)
-	}
-	return syncs, nil
 }
 
 func sameLexicalPath(left, right string) bool {
@@ -526,25 +513,25 @@ func printInstallationPlan(output io.Writer, plan installationPlan, apply bool) 
 	for _, sync := range plan.syncs {
 		if !sync.needsSync {
 			if os.Getenv("VERBOSE") == "1" {
-				fmt.Fprintf(output, "Installation: %s already matches %s.\n", sync.destination, sync.source)
+				fmt.Fprintf(output, "Installation: current %s <- %s\n", sync.destination, sync.source)
 			}
 			continue
 		}
-		verb := "would synchronize"
+		verb := "would install missing file"
 		if sync.backupExisting {
-			verb = "would back up the existing path and synchronize"
+			verb = "would back up and replace differing file"
 		} else if sync.destinationExists {
-			verb = "would back up drifted files and synchronize"
+			verb = "would back up and replace differing file"
 		}
 		if apply {
-			verb = "will synchronize"
+			verb = "will install missing file"
 			if sync.backupExisting {
-				verb = "will back up the existing path and synchronize"
+				verb = "will back up and replace differing file"
 			} else if sync.destinationExists {
-				verb = "will back up drifted files and synchronize"
+				verb = "will back up and replace differing file"
 			}
 		}
-		fmt.Fprintf(output, "Installation: %s %s -> %s\n", verb, sync.source, sync.destination)
+		fmt.Fprintf(output, "Installation: %s %s <- %s\n", verb, sync.destination, sync.source)
 	}
 }
 
@@ -554,157 +541,164 @@ func applyInstallation(plan installationPlan, output io.Writer) error {
 		if !sync.needsSync {
 			continue
 		}
-		if err := synchronizeDirectory(sync, epoch, output); err != nil {
+		if err := synchronizeFile(sync, epoch, output); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func planDirectorySync(source, destination string, excludeGit bool) (managedSync, error) {
-	sync := managedSync{source: source, destination: destination, excludeGit: excludeGit}
+func planDirectoryFiles(sourceRoot, destinationRoot string) ([]managedSync, error) {
+	rootInfo, err := os.Stat(sourceRoot)
+	if err != nil {
+		return nil, fmt.Errorf("inspecting install source %q: %w", sourceRoot, err)
+	}
+	if !rootInfo.IsDir() {
+		return nil, fmt.Errorf("install source %q is not a directory", sourceRoot)
+	}
+	var syncs []managedSync
+	err = filepath.Walk(sourceRoot, func(sourcePath string, sourceInfo os.FileInfo, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		if sourceInfo.IsDir() {
+			return nil
+		}
+		if !sourceInfo.Mode().IsRegular() {
+			return fmt.Errorf("install source %q is not a regular file", sourcePath)
+		}
+		relative, err := filepath.Rel(sourceRoot, sourcePath)
+		if err != nil {
+			return err
+		}
+		sync, err := planFileSync(sourcePath, filepath.Join(destinationRoot, relative), destinationRoot)
+		if err != nil {
+			return err
+		}
+		syncs = append(syncs, sync)
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("discovering install source %q: %w", sourceRoot, err)
+	}
+	return syncs, nil
+}
+
+func planFileSync(source, destination, destinationRoot string) (managedSync, error) {
+	sync := managedSync{source: source, destination: destination}
+	obstructed, err := destinationParentObstructed(destination, destinationRoot)
+	if err != nil {
+		return managedSync{}, err
+	}
+	if obstructed {
+		sync.needsSync = true
+		return sync, nil
+	}
 	info, err := os.Lstat(destination)
 	if errors.Is(err, os.ErrNotExist) {
 		sync.needsSync = true
 		return sync, nil
 	}
 	if err != nil {
-		return managedSync{}, fmt.Errorf("inspecting live directory %q: %w", destination, err)
+		return managedSync{}, fmt.Errorf("inspecting live file %q: %w", destination, err)
 	}
 	sync.destinationExists = true
-	if info.Mode()&os.ModeSymlink != 0 {
+	if !info.Mode().IsRegular() || info.Mode()&os.ModeSymlink != 0 {
 		sync.needsSync = true
 		sync.backupExisting = true
 		return sync, nil
 	}
-	if !info.IsDir() {
-		sync.needsSync = true
-		sync.backupExisting = true
-		return sync, nil
+	sourceInfo, err := os.Stat(source)
+	if err != nil {
+		return managedSync{}, fmt.Errorf("inspecting install source %q: %w", source, err)
 	}
-	differs, compareErr := directoryDiffers(sync)
-	if compareErr != nil {
-		return managedSync{}, fmt.Errorf("comparing live directory %q: %w", destination, compareErr)
+	equal, err := regularFilesEqual(source, sourceInfo, destination, info)
+	if err != nil {
+		return managedSync{}, fmt.Errorf("comparing live file %q: %w", destination, err)
 	}
-	sync.needsSync = differs
+	sync.needsSync = !equal
 	return sync, nil
 }
 
-func synchronizeDirectory(sync managedSync, epoch int64, output io.Writer) error {
-	if info, err := os.Lstat(sync.destination); err == nil && (!info.IsDir() || info.Mode()&os.ModeSymlink != 0) {
-		if _, backupErr := backupArtifact(output, sync.destination, epoch); backupErr != nil {
-			return backupErr
+func destinationParentObstructed(destination, destinationRoot string) (bool, error) {
+	var unresolved error
+	reachedRoot := false
+	for directory := filepath.Dir(destination); ; directory = filepath.Dir(directory) {
+		info, err := os.Lstat(directory)
+		if err == nil {
+			if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
+				return true, nil
+			}
+			if reachedRoot {
+				return false, unresolved
+			}
+		} else if !errors.Is(err, os.ErrNotExist) && unresolved == nil {
+			unresolved = fmt.Errorf("inspecting destination parent %q: %w", directory, err)
 		}
-	} else if err != nil && !errors.Is(err, os.ErrNotExist) {
-		return err
+		if sameLexicalPath(directory, destinationRoot) {
+			reachedRoot = true
+			if unresolved != nil {
+				continue
+			}
+			return false, nil
+		}
+		parent := filepath.Dir(directory)
+		if parent == directory {
+			if unresolved != nil {
+				return false, unresolved
+			}
+			return false, nil
+		}
 	}
-	if err := os.MkdirAll(sync.destination, 0o700); err != nil {
-		return fmt.Errorf("creating live directory %q: %w", sync.destination, err)
-	}
-	if err := backupDriftedEntries(output, sync, epoch); err != nil {
-		return err
-	}
-	if err := rsyncDirectory(sync); err != nil {
-		return err
-	}
-	return nil
 }
 
-func rsyncDirectory(sync managedSync) error {
-	arguments := []string{"-a"}
-	if sync.excludeGit {
-		arguments = append(arguments, "--exclude=/.git/")
+func synchronizeFile(sync managedSync, epoch int64, output io.Writer) error {
+	if err := ensureRegularDirectory(filepath.Dir(sync.destination), epoch, output); err != nil {
+		return err
 	}
-	arguments = append(arguments, "--", sync.source+string(os.PathSeparator), sync.destination+string(os.PathSeparator))
-	output, err := exec.Command("rsync", arguments...).CombinedOutput()
+	if _, err := os.Lstat(sync.destination); err == nil {
+		if _, err := backupArtifact(output, sync.destination, epoch); err != nil {
+			return err
+		}
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return fmt.Errorf("inspecting live file %q: %w", sync.destination, err)
+	}
+	contents, err := os.ReadFile(sync.source)
 	if err != nil {
-		return fmt.Errorf("synchronizing %q to %q: %w: %s", sync.source, sync.destination, err, strings.TrimSpace(string(output)))
+		return fmt.Errorf("reading install source %q: %w", sync.source, err)
 	}
+	info, err := os.Stat(sync.source)
+	if err != nil {
+		return fmt.Errorf("inspecting install source %q: %w", sync.source, err)
+	}
+	if err := writeFileAtomic(sync.destination, contents, info.Mode().Perm()); err != nil {
+		return err
+	}
+	fmt.Fprintf(output, "Installation updated: %s\n", sync.destination)
 	return nil
 }
 
-func backupDriftedEntries(output io.Writer, sync managedSync, epoch int64) error {
-	return filepath.Walk(sync.source, func(sourcePath string, sourceInfo os.FileInfo, walkErr error) error {
-		if walkErr != nil {
-			return walkErr
-		}
-		relative, err := filepath.Rel(sync.source, sourcePath)
-		if err != nil || relative == "." {
-			return err
-		}
-		if excludedFromSync(relative, sourceInfo, sync.excludeGit) {
-			if sourceInfo.IsDir() {
-				return filepath.SkipDir
-			}
-			return nil
-		}
-		destinationPath := filepath.Join(sync.destination, relative)
-		destinationInfo, err := os.Lstat(destinationPath)
-		if errors.Is(err, os.ErrNotExist) {
-			return nil
-		}
-		if err != nil {
-			return err
-		}
-		if sourceInfo.IsDir() && destinationInfo.IsDir() && destinationInfo.Mode()&os.ModeSymlink == 0 {
-			return nil
-		}
-		if sourceInfo.Mode().IsRegular() && destinationInfo.Mode().IsRegular() {
-			equal, compareErr := regularFilesEqual(sourcePath, sourceInfo, destinationPath, destinationInfo)
-			if compareErr != nil || equal {
-				return compareErr
-			}
-		}
-		_, err = backupArtifact(output, destinationPath, epoch)
-		return err
-	})
-}
-
-func directoryDiffers(sync managedSync) (bool, error) {
-	differs := false
-	err := filepath.Walk(sync.source, func(sourcePath string, sourceInfo os.FileInfo, walkErr error) error {
-		if walkErr != nil || differs {
-			return walkErr
-		}
-		relative, err := filepath.Rel(sync.source, sourcePath)
-		if err != nil || relative == "." {
-			return err
-		}
-		if excludedFromSync(relative, sourceInfo, sync.excludeGit) {
-			if sourceInfo.IsDir() {
-				return filepath.SkipDir
-			}
-			return nil
-		}
-		destinationPath := filepath.Join(sync.destination, relative)
-		destinationInfo, err := os.Lstat(destinationPath)
-		if errors.Is(err, os.ErrNotExist) {
-			differs = true
-			return nil
-		}
-		if err != nil {
-			return err
-		}
-		if sourceInfo.IsDir() {
-			differs = !destinationInfo.IsDir() || destinationInfo.Mode()&os.ModeSymlink != 0
-			return nil
-		}
-		if !sourceInfo.Mode().IsRegular() || !destinationInfo.Mode().IsRegular() {
-			differs = true
-			return nil
-		}
-		equal, compareErr := regularFilesEqual(sourcePath, sourceInfo, destinationPath, destinationInfo)
-		if compareErr != nil {
-			return compareErr
-		}
-		differs = !equal
+func ensureRegularDirectory(directory string, epoch int64, output io.Writer) error {
+	info, err := os.Lstat(directory)
+	if err == nil && info.IsDir() && info.Mode()&os.ModeSymlink == 0 {
 		return nil
-	})
-	return differs, err
-}
-
-func excludedFromSync(relative string, info os.FileInfo, excludeGit bool) bool {
-	return excludeGit && info.IsDir() && strings.Split(relative, string(os.PathSeparator))[0] == ".git"
+	}
+	if errors.Is(err, os.ErrNotExist) {
+		parent := filepath.Dir(directory)
+		if parent != directory {
+			if err := ensureRegularDirectory(parent, epoch, output); err != nil {
+				return err
+			}
+		}
+		return os.Mkdir(directory, 0o700)
+	}
+	if err != nil {
+		return fmt.Errorf("inspecting installation directory %q: %w", directory, err)
+	}
+	if _, err := backupArtifact(output, directory, epoch); err != nil {
+		return err
+	}
+	return os.Mkdir(directory, 0o700)
 }
 
 func regularFilesEqual(sourcePath string, sourceInfo os.FileInfo, destinationPath string, destinationInfo os.FileInfo) (bool, error) {

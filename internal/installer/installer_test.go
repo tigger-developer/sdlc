@@ -23,6 +23,9 @@ func newFixture(t *testing.T, providers ...string) fixture {
 	writeFile(t, filepath.Join(f.source, "src", "guides", "nested.md"), []byte("# Nested\n"))
 	writeFile(t, filepath.Join(f.source, "README.md"), []byte("# Readme\n"))
 	writeFile(t, filepath.Join(f.source, "CHANGELOG.md"), []byte("# Changelog\n"))
+	writeFile(t, filepath.Join(f.source, "LEARNINGS.md"), []byte("# Learnings\n"))
+	writeFile(t, filepath.Join(f.source, "docs", "ACs.md"), []byte("# Acceptance criteria\n"))
+	writeFile(t, filepath.Join(f.source, "cmd", "sdlc-install", "main.go"), []byte("package main\n"))
 	writeFile(t, filepath.Join(f.source, "internal", "installer", "installer.go"), []byte("package installer\n"))
 	writeFile(t, filepath.Join(f.source, "go.mod"), []byte("module example.test/sdlc\n"))
 	writeFile(t, filepath.Join(f.source, "commands", "build.md"), []byte("# Build\n"))
@@ -38,7 +41,7 @@ func newFixture(t *testing.T, providers ...string) fixture {
 	return f
 }
 
-// RT-6.1, RT-6.3, RT-7.1
+// RT-6.1, RT-6.3, RT-7.1, RT-8.1, RT-8.4
 func TestInteractiveInstallsOneCanonicalTreeAndProviderAdapters(t *testing.T) {
 	f := newFixture(t, "claude", "codex", "copilot", "hermes")
 	claudeConfig := filepath.Join(f.root, ".claude", "settings.json")
@@ -60,7 +63,7 @@ func TestInteractiveInstallsOneCanonicalTreeAndProviderAdapters(t *testing.T) {
 	assertFile(t, filepath.Join(f.root, ".agents", "sdlc", "MAIN.md"), "# Main\n")
 	assertFile(t, filepath.Join(f.root, ".agents", "sdlc", "guides", "nested.md"), "# Nested\n")
 	assertAbsent(t, filepath.Join(f.root, ".agents", "sdlc", ".git"))
-	for _, relative := range []string{"src", "README.md", "CHANGELOG.md", "internal", "go.mod", "templates"} {
+	for _, relative := range []string{"src", "README.md", "CHANGELOG.md", "LEARNINGS.md", "cmd", "docs", "internal", "go.mod", "templates"} {
 		assertAbsent(t, filepath.Join(f.root, ".agents", "sdlc", relative))
 	}
 	for _, home := range []string{".claude", ".codex", ".copilot", ".hermes"} {
@@ -119,7 +122,7 @@ func TestInteractiveIgnoresTimestampOnlySourceChanges(t *testing.T) {
 	}
 }
 
-// RT-5.2
+// RT-5.2, RT-8.3
 func TestInteractiveDefaultOutputListsOnlyVariances(t *testing.T) {
 	f := newFixture(t, "agents", "codex")
 	if err := RunInteractive(f.source, f.root, strings.NewReader("yes\n"), &bytes.Buffer{}); err != nil {
@@ -131,18 +134,18 @@ func TestInteractiveDefaultOutputListsOnlyVariances(t *testing.T) {
 	if err := RunInteractive(f.source, f.root, strings.NewReader("no\n"), &output); err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(output.String(), "would back up drifted files and synchronize") {
+	if !strings.Contains(output.String(), "would back up and replace differing file") {
 		t.Fatalf("default output omitted variance:\n%s", output.String())
 	}
 	if !strings.Contains(output.String(), filepath.Join(f.root, ".agents", "sdlc", "MAIN.md")) {
 		t.Fatalf("default output omitted the exact differing file:\n%s", output.String())
 	}
-	if strings.Contains(output.String(), "already matches") {
+	if strings.Contains(output.String(), "Installation: current") {
 		t.Fatalf("default output included matching destinations:\n%s", output.String())
 	}
 }
 
-// RT-5.3
+// RT-5.3, RT-8.3
 func TestInteractiveVerboseOutputIncludesMatchingDestinations(t *testing.T) {
 	t.Setenv("VERBOSE", "1")
 	f := newFixture(t, "agents", "codex")
@@ -155,7 +158,7 @@ func TestInteractiveVerboseOutputIncludesMatchingDestinations(t *testing.T) {
 	if err := RunInteractive(f.source, f.root, strings.NewReader("no\n"), &output); err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(output.String(), "would back up drifted files and synchronize") || !strings.Contains(output.String(), "already matches") {
+	if !strings.Contains(output.String(), "would back up and replace differing file") || !strings.Contains(output.String(), "Installation: current") {
 		t.Fatalf("verbose output did not include variances and matching destinations:\n%s", output.String())
 	}
 }
@@ -204,8 +207,9 @@ func TestStaleLinksBecomeCopiesAndDestinationOnlyFilesSurvive(t *testing.T) {
 	mkdirAll(t, stale)
 	symlink(t, stale, filepath.Join(f.root, ".agents", "skills", "audit-code"))
 	symlink(t, filepath.Join(f.source, "commands"), filepath.Join(f.root, ".codex", "prompts-commands"))
-	if err := RunInteractive(f.source, f.root, strings.NewReader("yes\n"), &bytes.Buffer{}); err != nil {
-		t.Fatal(err)
+	var output bytes.Buffer
+	if err := RunInteractive(f.source, f.root, strings.NewReader("yes\n"), &output); err != nil {
+		t.Fatalf("%v\n%s", err, output.String())
 	}
 	assertSameDirectory(t, filepath.Join(f.source, "skills", "audit-code"), filepath.Join(f.root, ".agents", "skills", "audit-code"))
 	assertSameDirectory(t, filepath.Join(f.source, "commands"), filepath.Join(f.root, ".codex", "prompts-commands"))
@@ -245,7 +249,7 @@ func TestDryRunReportsDriftWithoutWriting(t *testing.T) {
 	if err := Run(Options{Agent: "codex", AgentHome: filepath.Join(f.root, ".codex"), Source: f.source, Output: &output}); err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(output.String(), "would synchronize") {
+	if !strings.Contains(output.String(), "would install missing file") {
 		t.Fatalf("dry run omitted drift:\n%s", output.String())
 	}
 	assertAbsent(t, filepath.Join(f.root, ".agents", "sdlc"))

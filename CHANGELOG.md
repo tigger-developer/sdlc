@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+Separated agent-runtime instructions from repository content under `src/` and
+made installation discover deployable files recursively from convention-based
+runtime directories. Deployment decisions and default output are now per file;
+changes to README, changelog, installer code, tests, build metadata, templates,
+or project records cannot become file-deployment variances. Installer templates
+remain available to the provider-configuration analysers that intentionally use
+them.
+
 Made direct `python` and `python3` interpreter commands operator-only while
 retaining Python development through project-owned entry points.
 

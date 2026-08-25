@@ -8,15 +8,13 @@ The framework began with Claude Code and now separates the durable SDLC from per
 
 | Path | Purpose |
 |---|---|
-| `MAIN.md` | SDLC entry point and process rules |
+| `src/` | Deployable SDLC entry point, process rules, and routed standards |
 | `CHANGELOG.md` | High-level repository history from the public extraction onward |
 | `LEARNINGS.md` | Design rationale, observed failures, and framework evolution |
-| `ISSUES.md`, `TESTING.md`, `CODING.md`, `GIT.md`, `DOCUMENTATION.md` | Cross-cutting craft standards |
-| `SHELL.md`, `PYTHON.md`, `PERL.md`, `GO.md`, `SWIFT.md`, `WEB.md` | Language-specific standards loaded only when relevant |
 | `commands/` | Human-invoked workflow prompts, including gate-adjacent commands |
 | `skills/` | Advisory and drafting skills |
 | `hooks/` | Optional command guard used by supported provider configuration |
-| `templates/` | Provider-instruction and configuration examples |
+| `templates/` | Installer inputs and provider-configuration examples; not deployed into agent instruction trees |
 | `cmd/sdlc-install/` | Installer and configuration analyser |
 
 The canonical live SDLC root is exactly `~/.agents/sdlc`.
@@ -36,9 +34,16 @@ Enter the clone and start the interactive installer:
 make install
 ```
 
-The installer detects the supported provider homes that exist, compares every
-SDLC-owned destination and managed provider-configuration fragment, and asks
-once before applying the complete batch. Matching destinations do not prompt.
+The installer detects the supported provider homes that exist and recursively
+discovers runtime files beneath `src/`, `commands/`, `skills/`, and `hooks/`.
+The contents of `src/` map directly to `~/.agents/sdlc`; the other runtime
+directories retain their names. Files outside those roots are never agent
+deployment candidates.
+
+Each discovered file is compared with its destination by content and
+permissions. The installer asks once before applying a batch only when a file
+is absent or differs, or a managed provider-configuration fragment varies.
+Matching destinations do not prompt.
 
 The default plan lists only destinations that differ. Set `VERBOSE=1` to
 include every matching destination:
@@ -241,8 +246,8 @@ managed provider-configuration changes in one batch.
 
 - [CHANGELOG.md](CHANGELOG.md) records the public repository's high-level history.
 - [LEARNINGS.md](LEARNINGS.md) explains why the framework is structured this way and records the failures behind the rules.
-- [MAIN.md](MAIN.md) is normative for the SDLC process.
-- The other root-level standards are normative only when `MAIN.md` selects them for the current task.
+- [src/MAIN.md](src/MAIN.md) is normative for the SDLC process and deploys as `~/.agents/sdlc/MAIN.md`.
+- The other standards under `src/` are normative only when `MAIN.md` selects them for the current task.
 
 ## Licence
 

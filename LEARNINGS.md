@@ -1,6 +1,6 @@
 # SDLC Design History and Learnings
 
-This document explains why the SDLC exists, how its structure emerged, and which observed failures produced its rules. It is design history, not installation guidance or a second copy of the normative process. Use [README.md](README.md) for installation, [MAIN.md](MAIN.md) for the current lifecycle, and [CHANGELOG.md](CHANGELOG.md) for repository-level changes.
+This document explains why the SDLC exists, how its structure emerged, and which observed failures produced its rules. It is design history, not installation guidance or a second copy of the normative process. Use [README.md](README.md) for installation, [MAIN.md](src/MAIN.md) for the current lifecycle, and [CHANGELOG.md](CHANGELOG.md) for repository-level changes.
 
 The framework began as a small set of coding instructions in a single `CLAUDE.md`. Over the last year or so, repeated use exposed failure modes that required explicit gates, testing standards, reference documents, commands, skills, provider adapters, and visible evidence that the right material had been read. The result was extracted from its Claude Code-specific predecessor into this standalone, provider-neutral repository.
 
@@ -64,7 +64,7 @@ The specific patterns underlying the headline failures, named so they can be ref
 - *Functions too large or too deeply nested.* >50 lines, >3 levels deep, god objects. Hides bugs and obstructs review.
 - *`rm` instead of `trash`.* Permanent deletion when recoverable deletion is available.
 
-The catalogue under [MAIN.md](MAIN.md) "Known Failure Modes" names fourteen of these patterns so they can be cited rather than re-argued. The rules each one produced are spread across the files described below.
+The catalogue under [MAIN.md](src/MAIN.md) "Known Failure Modes" names fourteen of these patterns so they can be cited rather than re-argued. The rules each one produced are spread across the files described below.
 
 ## Objectives
 
@@ -188,7 +188,7 @@ The normative files define current behaviour. This section records why each comp
 
 ### MAIN.md -- Code-Specific Process
 
-**Current role:** [MAIN.md](MAIN.md) is the lifecycle entry point. It defines operating modes, authorization gates, issue and delivery flow, named failure modes, blocker handling, and the routing table that selects the craft standards required for a task.
+**Current role:** [MAIN.md](src/MAIN.md) is the lifecycle entry point. It defines operating modes, authorization gates, issue and delivery flow, named failure modes, blocker handling, and the routing table that selects the craft standards required for a task.
 
 **How it evolved:**
 - Started life as part of `CLAUDE.md`; extracted to `SDLC.md`, then renamed `MAIN.md` when the SDLC became a standalone repository with an explicit entry point
@@ -200,7 +200,7 @@ The normative files define current behaviour. This section records why each comp
 
 ### ISSUES.md -- GitHub Issue Standards
 
-**Current role:** [ISSUES.md](ISSUES.md) defines how requirements become one auditable issue record, especially the boundary between acceptance criteria and tests, the single-table rule, multi-condition coverage, and the point at which identifiers become immutable.
+**Current role:** [ISSUES.md](src/ISSUES.md) defines how requirements become one auditable issue record, especially the boundary between acceptance criteria and tests, the single-table rule, multi-condition coverage, and the point at which identifiers become immutable.
 
 **How it evolved:**
 - Did not exist in the initial commit -- it was created when acceptance criteria quality became a persistent bottleneck
@@ -212,7 +212,7 @@ The normative files define current behaviour. This section records why each comp
 
 ### TESTING.md -- Testing Standards
 
-**Current role:** [TESTING.md](TESTING.md) turns acceptance criteria into evidence. Its central contribution is the real-user-test principle, supported by explicit regression, one-off, and human-judgement categories, stable test identifiers, behavioural boundaries, and resistance to source-introspection or string-presence substitutes.
+**Current role:** [TESTING.md](src/TESTING.md) turns acceptance criteria into evidence. Its central contribution is the real-user-test principle, supported by explicit regression, one-off, and human-judgement categories, stable test identifiers, behavioural boundaries, and resistance to source-introspection or string-presence substitutes.
 
 **How it evolved:**
 - Started as a basic six-step TDD checklist
@@ -225,7 +225,7 @@ The normative files define current behaviour. This section records why each comp
 
 ### CODING.md -- Cross-Language Coding Standards
 
-**Current role:** [CODING.md](CODING.md) holds rules that genuinely cross language boundaries: tool-selection hierarchy, format-aware data handling, embedded-language and escaping safety, error handling, security, structure, dependencies, and the index into narrower language standards.
+**Current role:** [CODING.md](src/CODING.md) holds rules that genuinely cross language boundaries: tool-selection hierarchy, format-aware data handling, embedded-language and escaping safety, error handling, security, structure, dependencies, and the index into narrower language standards.
 
 **How it evolved:**
 - Started as a short coding guide covering only shell and Python
@@ -238,7 +238,7 @@ The normative files define current behaviour. This section records why each comp
 
 ### SHELL.md -- Shell Standards
 
-**Current role:** [SHELL.md](SHELL.md) governs both interactive commands and scripts, with safety defaults, complexity tripwires, structured-data boundaries, portable file handling, and named shell-specific traps that otherwise invite error suppression or unsafe command construction.
+**Current role:** [SHELL.md](src/SHELL.md) governs both interactive commands and scripts, with safety defaults, complexity tripwires, structured-data boundaries, portable file handling, and named shell-specific traps that otherwise invite error suppression or unsafe command construction.
 
 **How it evolved:**
 - Extracted from CODING.md when the shell-heavy bias started biasing agents toward shell as the default
@@ -249,7 +249,7 @@ The normative files define current behaviour. This section records why each comp
 
 ### PYTHON.md -- Python Standards
 
-**Current role:** [PYTHON.md](PYTHON.md) defines a reproducible Python baseline around managed runtimes, mandatory virtual environments, predictable project layout, package metadata, and Ruff-based formatting and linting.
+**Current role:** [PYTHON.md](src/PYTHON.md) defines a reproducible Python baseline around managed runtimes, mandatory virtual environments, predictable project layout, package metadata, and Ruff-based formatting and linting.
 
 **How it evolved:**
 - Extracted from CODING.md as part of the language-doc split. Content essentially unchanged from the original Python section
@@ -257,7 +257,7 @@ The normative files define current behaviour. This section records why each comp
 
 ### PERL.md -- Perl Standards
 
-**Current role:** [PERL.md](PERL.md) supports careful maintenance of existing Perl without making it a shortcut around the shell or structured-data standards. It supplies the language-specific tooling, I/O, encoding, and error-handling baseline needed for that boundary.
+**Current role:** [PERL.md](src/PERL.md) supports careful maintenance of existing Perl without making it a shortcut around the shell or structured-data standards. It supplies the language-specific tooling, I/O, encoding, and error-handling baseline needed for that boundary.
 
 **How it evolved:**
 - Added because Perl occasionally appears in maintenance work, and without a focused doc agents are likely to treat Perl as either forbidden shell-adjacent syntax or as permission to use one-liners.
@@ -265,7 +265,7 @@ The normative files define current behaviour. This section records why each comp
 
 ### GO.md -- Go Standards
 
-**Current role:** [GO.md](GO.md) captures the conventions that repeatedly mattered in deployed Go tooling: explicit configuration, complete error handling, safe HTTP clients, shell boundaries, function decomposition, managed concurrency, cross-compilation, and a standard-library-first dependency posture.
+**Current role:** [GO.md](src/GO.md) captures the conventions that repeatedly mattered in deployed Go tooling: explicit configuration, complete error handling, safe HTTP clients, shell boundaries, function decomposition, managed concurrency, cross-compilation, and a standard-library-first dependency posture.
 
 **How it evolved:**
 - Created when migration from shell to Go binaries began. Most conventions trace to a code audit of an actual deployment toolchain, where each finding traced to a real bug:
@@ -278,7 +278,7 @@ The normative files define current behaviour. This section records why each comp
 
 ### SWIFT.md -- Swift Standards
 
-**Current role:** [SWIFT.md](SWIFT.md) applies the Swift API guidelines while naming the traps most likely to escape generic standards: force unwraps, discarded errors, unstructured concurrency, hidden UI side effects, business logic in views, and leaky interop boundaries.
+**Current role:** [SWIFT.md](src/SWIFT.md) applies the Swift API guidelines while naming the traps most likely to escape generic standards: force unwraps, discarded errors, unstructured concurrency, hidden UI side effects, business logic in views, and leaky interop boundaries.
 
 **How it evolved:**
 - Added once Swift was significant enough in the project set to deserve the same focused treatment as Go, Python, Shell, and Web.
@@ -286,7 +286,7 @@ The normative files define current behaviour. This section records why each comp
 
 ### WEB.md -- Web Standards
 
-**Current role:** [WEB.md](WEB.md) defines semantic, accessible HTML, maintainable CSS, and modern JavaScript while separating source, rendered output, and browser-presented behaviour so tests operate at the right user-visible boundary.
+**Current role:** [WEB.md](src/WEB.md) defines semantic, accessible HTML, maintainable CSS, and modern JavaScript while separating source, rendered output, and browser-presented behaviour so tests operate at the right user-visible boundary.
 
 **How it evolved:**
 - Created when web-content tooling started accreting across multiple documents, including HTML tooling in the shell standard and CSS guidance in the cross-language standard. Web is its own domain spanning HTML, CSS, JavaScript, build, and accessibility
@@ -295,7 +295,7 @@ The normative files define current behaviour. This section records why each comp
 
 ### GIT.md -- Git and Source Control
 
-**Current role:** [GIT.md](GIT.md) protects recoverability and review integrity through commit conventions, issue attribution, non-bypassable hooks, explicit handling of hook failures, and a formal exception process rather than improvised shortcuts.
+**Current role:** [GIT.md](src/GIT.md) protects recoverability and review integrity through commit conventions, issue attribution, non-bypassable hooks, explicit handling of hook failures, and a formal exception process rather than improvised shortcuts.
 
 **How it evolved:**
 - Started with `--no-verify` as the only forbidden flag. The list was expanded after the agent used `--no-hooks` and `--no-pre-commit-hook` as alternatives
@@ -307,7 +307,7 @@ The normative files define current behaviour. This section records why each comp
 
 ### DOCUMENTATION.md -- Documentation Standards
 
-**Current role:** [DOCUMENTATION.md](DOCUMENTATION.md) keeps project documentation impersonal, versioned, structurally predictable, and synchronized with implementation. It also defines when inconsistencies must stop work rather than being silently worked around.
+**Current role:** [DOCUMENTATION.md](src/DOCUMENTATION.md) keeps project documentation impersonal, versioned, structurally predictable, and synchronized with implementation. It also defines when inconsistencies must stop work rather than being silently worked around.
 
 **How it evolved:**
 - Started as a structural guide
@@ -330,7 +330,7 @@ The normative files define current behaviour. This section records why each comp
 
 ## Commands, Skills, and Authorization
 
-Commands and skills are separated by authority, not by convenience. Their current inventory and exact contracts live in [MAIN.md](MAIN.md), `commands/`, and `skills/`; duplicating them here previously allowed this history to drift.
+Commands and skills are separated by authority, not by convenience. Their current inventory and exact contracts live in [MAIN.md](src/MAIN.md), `commands/`, and `skills/`; duplicating them here previously allowed this history to drift.
 
 - **Commands** represent deliberate, human-invoked workflow actions. Gate-equivalent commands remain commands because implicit model selection must never create authorization.
 - **Drafting and design skills** prepare issue material without authorizing implementation. MODE DELIVER may invoke the explicitly allowlisted set inside an already confirmed delivery scope.
