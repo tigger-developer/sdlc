@@ -10,6 +10,7 @@ import (
 	"testing"
 )
 
+// RT-7.4, RT-7.5, RT-7.6, RT-7.7
 func TestHermesCommandPolicyHook(t *testing.T) {
 	hookPath := filepath.Join("..", "..", "hooks", "agent-command-guard.sh")
 	tests := []struct {
@@ -22,6 +23,8 @@ func TestHermesCommandPolicyHook(t *testing.T) {
 		{name: "rm", command: "rm obsolete.txt", blocked: true},
 		{name: "sed", command: "sed -n '1p' README.md", blocked: true},
 		{name: "awk", command: "awk '{print $1}' README.md", blocked: true},
+		{name: "absolute sed path", command: "/usr/bin/sed -n '1p' README.md", blocked: true},
+		{name: "environment rm wrapper", command: "env MODE=test rm obsolete.txt", blocked: true},
 		{name: "absolute path", command: "/opt/homebrew/bin/python3 -V", blocked: true},
 		{name: "pipeline", command: "printf x | python3 -c 'import sys'", blocked: true},
 		{name: "compound", command: "printf x && python -V", blocked: true},
@@ -32,6 +35,7 @@ func TestHermesCommandPolicyHook(t *testing.T) {
 		{name: "command substitution", command: "printf '%s' $(python -V)", blocked: true},
 		{name: "make entry point", command: "make test", blocked: false},
 		{name: "argument", command: "printf '%s\\n' python3", blocked: false},
+		{name: "prohibited name as argument", command: "printf '%s\\n' sed", blocked: false},
 		{name: "substring executable", command: "pythonista --version", blocked: false},
 		{name: "versioned executable", command: "python3.14 --version", blocked: false},
 		{name: "filename", command: "rg python3 README.md", blocked: false},

@@ -66,6 +66,7 @@ func TestHermesMalformedConfigurationStopsWithoutWriting(t *testing.T) {
 	}
 }
 
+// RT-7.3
 func TestInteractiveHermesRequiresFirstRunConfiguration(t *testing.T) {
 	f := newFixture(t, "hermes")
 	var output bytes.Buffer

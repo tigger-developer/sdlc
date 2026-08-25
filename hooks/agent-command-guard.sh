@@ -26,6 +26,7 @@ block() {
 
 TOKENS=()
 TOKEN_TYPES=()
+BLOCK_REASON=""
 
 append_word() {
     local word="$1"
@@ -97,7 +98,7 @@ is_assignment() {
     [[ "$1" =~ ^[a-zA-Z_][a-zA-Z0-9_]*= ]]
 }
 
-segment_invokes_python() {
+segment_invokes_prohibited_command() {
     local start="$1"
     local end="$2"
     local index="$start"
@@ -111,6 +112,15 @@ segment_invokes_python() {
         basename="${executable##*/}"
         case "$basename" in
         python | python3)
+            BLOCK_REASON='direct python and python3 interpreter commands are prohibited; use the task-appropriate tool or a project-owned entry point.'
+            return 0
+            ;;
+        rm)
+            BLOCK_REASON='rm is prohibited; use recoverable deletion such as trash.'
+            return 0
+            ;;
+        sed | awk)
+            BLOCK_REASON='sed and awk are prohibited; use format-aware tools or an explicit patch.'
             return 0
             ;;
         env | command | sudo)
@@ -131,7 +141,7 @@ segment_invokes_python() {
             for ((index += 1; index < end; index++)); do
                 argument="${TOKENS[index]}"
                 if [[ "$argument" =~ ^-[a-zA-Z]*c[a-zA-Z]*$ && $((index + 1)) -lt "$end" ]]; then
-                    if (command_invokes_python "${TOKENS[index + 1]}"); then
+                    if command_invokes_prohibited "${TOKENS[index + 1]}"; then
                         return 0
                     fi
                     return 1
@@ -147,7 +157,7 @@ segment_invokes_python() {
     return 1
 }
 
-command_invokes_python() {
+command_invokes_prohibited() {
     local command="$1"
     local segment_start=0
     local index
@@ -155,7 +165,7 @@ command_invokes_python() {
     tokenize_shell_command "$command"
     for ((index = 0; index <= ${#TOKENS[@]}; index++)); do
         if [[ "$index" -eq ${#TOKENS[@]} || "${TOKEN_TYPES[index]}" == "separator" ]]; then
-            if segment_invokes_python "$segment_start" "$index"; then
+            if segment_invokes_prohibited_command "$segment_start" "$index"; then
                 return 0
             fi
             segment_start=$((index + 1))
@@ -164,12 +174,8 @@ command_invokes_python() {
     return 1
 }
 
-if command_invokes_python "$command_text"; then
-    block 'direct python and python3 interpreter commands are prohibited; use the task-appropriate tool or a project-owned entry point.'
-fi
-
-if [[ "$command_text" =~ (^|[[:space:];|&])(rm|sed|awk)([[:space:]]|$) ]]; then
-    block 'rm, sed, and awk are prohibited; use recoverable deletion, format-aware tools, or an explicit patch.'
+if command_invokes_prohibited "$command_text"; then
+    block "$BLOCK_REASON"
 fi
 
 if [[ "$command_text" =~ (^|[[:space:]])--no-verify([[:space:]]|$) ]]; then

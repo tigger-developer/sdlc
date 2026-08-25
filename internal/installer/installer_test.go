@@ -34,7 +34,7 @@ func newFixture(t *testing.T, providers ...string) fixture {
 	return f
 }
 
-// RT-6.1, RT-6.3
+// RT-6.1, RT-6.3, RT-7.1
 func TestInteractiveInstallsOneCanonicalTreeAndProviderAdapters(t *testing.T) {
 	f := newFixture(t, "claude", "codex", "copilot", "hermes")
 	claudeConfig := filepath.Join(f.root, ".claude", "settings.json")

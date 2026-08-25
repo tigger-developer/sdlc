@@ -26,6 +26,7 @@ func TestRunParsesUserFacingFlags(t *testing.T) {
 	}
 }
 
+// RT-7.2
 func TestDefaultRunDetectsInstalledProviderSubset_RT4_4(t *testing.T) {
 	root, source := newCLIFixture(t)
 	for _, name := range []string{".codex", ".hermes"} {
