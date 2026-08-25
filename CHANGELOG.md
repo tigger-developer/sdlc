@@ -9,7 +9,9 @@ Included supported provider-configuration variances in the interactive
 installer's single preflight and confirmation batch. A detected Hermes home
 without its first-run `config.yaml` now stops before any write with a visible,
 actionable diagnostic. The Hermes command guard now also blocks `rm`, `sed`,
-and `awk` to match the shared command policy.
+and `awk` to match the shared command policy. Hermes registration now targets
+the provider-neutral `~/.agents/sdlc` hook and removes recognized obsolete
+provider-local registrations during migration.
 
 Required every human-facing ID to include a short adjacent descriptor.
 

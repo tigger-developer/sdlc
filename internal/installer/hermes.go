@@ -27,8 +27,9 @@ func analyseHermesConfiguration(agentHome, _ string, output io.Writer) (*configu
 		return nil, fmt.Errorf("Hermes configuration %s is not a regular file", path)
 	}
 	mode := info.Mode().Perm()
-	hookCommand := fmt.Sprintf("bash %q", filepath.Join(agentHome, "sdlc", "hooks", "agent-command-guard.sh"))
-	desired, changed, err := mergeHermesCommandGuardConfiguration(current, hookCommand)
+	hookCommand := fmt.Sprintf("bash %q", filepath.Join(filepath.Dir(agentHome), ".agents", "sdlc", "hooks", "agent-command-guard.sh"))
+	legacyHookCommand := fmt.Sprintf("bash %q", filepath.Join(agentHome, "sdlc", "hooks", "agent-command-guard.sh"))
+	desired, changed, err := mergeHermesCommandGuardConfiguration(current, hookCommand, legacyHookCommand)
 	if err != nil {
 		return nil, fmt.Errorf("analysing %s: %w", path, err)
 	}
@@ -46,14 +47,14 @@ func analyseHermesConfiguration(agentHome, _ string, output io.Writer) (*configu
 	}, nil
 }
 
-func mergeHermesCommandGuardConfiguration(current []byte, hookCommand string) ([]byte, bool, error) {
+func mergeHermesCommandGuardConfiguration(current []byte, hookCommand string, obsoleteHookCommands ...string) ([]byte, bool, error) {
 	values := map[string]any{}
 	if len(bytes.TrimSpace(current)) != 0 {
 		if err := yaml.Unmarshal(current, &values); err != nil {
 			return nil, false, fmt.Errorf("invalid YAML: %w", err)
 		}
 	}
-	if err := mergeHermesCommandGuard(values, hookCommand); err != nil {
+	if err := mergeHermesCommandGuard(values, hookCommand, obsoleteHookCommands...); err != nil {
 		return nil, false, err
 	}
 	var output bytes.Buffer
@@ -69,7 +70,7 @@ func mergeHermesCommandGuardConfiguration(current []byte, hookCommand string) ([
 	return desired, !bytes.Equal(current, desired), nil
 }
 
-func mergeHermesCommandGuard(values map[string]any, hookCommand string) error {
+func mergeHermesCommandGuard(values map[string]any, hookCommand string, obsoleteHookCommands ...string) error {
 	hooksValue, exists := values["hooks"]
 	var hooks map[string]any
 	if !exists || hooksValue == nil {
@@ -93,22 +94,34 @@ func mergeHermesCommandGuard(values map[string]any, hookCommand string) error {
 			return fmt.Errorf("hooks.pre_tool_call is %T, not a list", entriesValue)
 		}
 	}
+	normalized := make([]any, 0, len(entries)+1)
+	managedEntryAdded := false
 	for _, raw := range entries {
 		entry, ok := raw.(map[string]any)
 		if !ok {
 			return fmt.Errorf("hooks.pre_tool_call contains %T, not a mapping", raw)
 		}
-		if entry["command"] == hookCommand {
+		command, _ := entry["command"].(string)
+		managed := command == hookCommand || containsString(obsoleteHookCommands, command)
+		if !managed {
+			normalized = append(normalized, raw)
+			continue
+		}
+		if !managedEntryAdded {
+			entry["command"] = hookCommand
 			entry["matcher"] = "terminal"
 			entry["timeout"] = 5
-			hooks["pre_tool_call"] = entries
-			return nil
+			normalized = append(normalized, entry)
+			managedEntryAdded = true
 		}
 	}
-	hooks["pre_tool_call"] = append(entries, map[string]any{
-		"matcher": "terminal",
-		"command": hookCommand,
-		"timeout": 5,
-	})
+	if !managedEntryAdded {
+		normalized = append(normalized, map[string]any{
+			"matcher": "terminal",
+			"command": hookCommand,
+			"timeout": 5,
+		})
+	}
+	hooks["pre_tool_call"] = normalized
 	return nil
 }

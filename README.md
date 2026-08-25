@@ -165,12 +165,14 @@ authorize invocation or alter the human-only gate rules.
 Claude configuration analysis is based on `settings.json`; the confirmed change adds missing SDLC command restrictions to `permissions.deny`, removes the same restrictions from `permissions.allow`, and preserves unknown fields. JSON spacing and key order may be normalized. The installer refuses to replace a symlinked settings file and recommends editing its target manually. Codex analysis checks `config.toml`; the confirmed change creates `rules/sdlc.rules` when absent and can upgrade a recognized prior SDLC rules file while preserving unrelated rules. Ambiguous or non-regular destinations remain untouched. After migration, repeating the installer reports the current policy unchanged.
 
 Hermes analysis structurally parses `config.yaml` and registers only the SDLC
-command guard for the `terminal` tool. Private instructions and custom prompt
-text belong to the user's private agent configuration, not this public
-project. The merge preserves prompt text, unrelated YAML values, existing
-hooks, and first-use hook consent. Before rewriting an existing file, it stores
-a recovery copy in an operating system temporary directory and prints the
-path. Invalid YAML and non-regular configuration paths remain untouched.
+command guard at the provider-neutral `~/.agents/sdlc` root for the `terminal`
+tool. A recognized older registration under the Hermes home is replaced rather
+than retained as a second hook. Private instructions and custom prompt text
+belong to the user's private agent configuration, not this public project. The
+merge preserves prompt text, unrelated YAML values, existing hooks, and
+first-use hook consent. Before rewriting an existing file, it stores a recovery
+copy in an operating system temporary directory and prints the path. Invalid
+YAML and non-regular configuration paths remain untouched.
 
 Hermes must complete its startup TUI and model selection before installation.
 If a Hermes home exists without `config.yaml`, the installer stops the complete
