@@ -52,6 +52,26 @@ func TestHermesConfigurationOwnsOnlyCommandGuard(t *testing.T) {
 	}
 }
 
+// RT-7.8
+func TestHermesConfigurationMigratesProviderLocalCommandGuard(t *testing.T) {
+	f := newFixture(t, "hermes")
+	configPath := filepath.Join(f.root, ".hermes", "config.yaml")
+	legacyCommand := "bash \"" + filepath.Join(f.root, ".hermes", "sdlc", "hooks", "agent-command-guard.sh") + "\""
+	writeFile(t, configPath, []byte("hooks:\n  pre_tool_call:\n    - matcher: terminal\n      command: "+legacyCommand+"\n      timeout: 5\n"))
+
+	if err := Run(Options{
+		Agent: "hermes", AgentHome: filepath.Join(f.root, ".hermes"), Source: f.source,
+		Configure: true, Input: strings.NewReader("yes\n"), Output: &bytes.Buffer{},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	serialized := string(mustReadFile(t, configPath))
+	canonicalCommand := "bash \"" + filepath.Join(f.root, ".agents", "sdlc", "hooks", "agent-command-guard.sh") + "\""
+	if !strings.Contains(serialized, canonicalCommand) || strings.Contains(serialized, legacyCommand) {
+		t.Fatalf("Hermes command guard was not migrated to the canonical root:\n%s", serialized)
+	}
+}
+
 func TestHermesMalformedConfigurationStopsWithoutWriting(t *testing.T) {
 	f := newFixture(t, "hermes")
 	configPath := filepath.Join(f.root, ".hermes", "config.yaml")
