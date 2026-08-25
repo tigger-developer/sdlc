@@ -19,6 +19,9 @@ func TestHermesCommandPolicyHook(t *testing.T) {
 	}{
 		{name: "python", command: "python -V", blocked: true},
 		{name: "python3", command: "python3 -c 'print(1)'", blocked: true},
+		{name: "rm", command: "rm obsolete.txt", blocked: true},
+		{name: "sed", command: "sed -n '1p' README.md", blocked: true},
+		{name: "awk", command: "awk '{print $1}' README.md", blocked: true},
 		{name: "absolute path", command: "/opt/homebrew/bin/python3 -V", blocked: true},
 		{name: "pipeline", command: "printf x | python3 -c 'import sys'", blocked: true},
 		{name: "compound", command: "printf x && python -V", blocked: true},

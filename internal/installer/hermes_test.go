@@ -66,6 +66,21 @@ func TestHermesMalformedConfigurationStopsWithoutWriting(t *testing.T) {
 	}
 }
 
+func TestInteractiveHermesRequiresFirstRunConfiguration(t *testing.T) {
+	f := newFixture(t, "hermes")
+	var output bytes.Buffer
+	err := RunInteractive(f.source, f.root, strings.NewReader("yes\n"), &output)
+	if err == nil {
+		t.Fatal("interactive install accepted Hermes without first-run configuration")
+	}
+	for _, expected := range []string{"⚠️", "Hermes first-run setup is incomplete", filepath.Join(f.root, ".hermes", "config.yaml")} {
+		if !strings.Contains(err.Error(), expected) {
+			t.Fatalf("error %q lacks %q", err, expected)
+		}
+	}
+	assertAbsent(t, filepath.Join(f.root, ".agents", "sdlc"))
+}
+
 func indent(value string, spaces int) string {
 	prefix := strings.Repeat(" ", spaces)
 	return prefix + strings.ReplaceAll(value, "\n", "\n"+prefix)

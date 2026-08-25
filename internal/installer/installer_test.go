@@ -72,9 +72,13 @@ func TestInteractiveInstallsOneCanonicalTreeAndProviderAdapters(t *testing.T) {
 	}
 	assertAbsent(t, filepath.Join(f.root, ".codex", "skills", "audit-code"))
 	assertAbsent(t, filepath.Join(f.root, ".hermes", "commands"))
-	assertFile(t, claudeConfig, "{\"personal\":true}\n")
+	if claude := string(mustReadFile(t, claudeConfig)); !strings.Contains(claude, "\"personal\": true") || !strings.Contains(claude, "Bash(sed:*)") {
+		t.Fatalf("interactive install did not preserve and configure Claude:\n%s", claude)
+	}
 	assertFile(t, codexConfig, "personal = true\n")
-	assertFile(t, hermesConfig, "personal: true\n")
+	if hermes := string(mustReadFile(t, hermesConfig)); !strings.Contains(hermes, "personal: true") || !strings.Contains(hermes, "agent-command-guard.sh") {
+		t.Fatalf("interactive install did not preserve and configure Hermes:\n%s", hermes)
+	}
 
 	output.Reset()
 	if err := RunInteractive(f.source, f.root, strings.NewReader(""), &output); err != nil {
