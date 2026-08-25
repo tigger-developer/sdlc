@@ -37,6 +37,7 @@ These are absolute. No exception process applies. No justification overrides the
 - Never renumber **once signed off**: issues, ACs, and tests become immutable after **PROCEED n**, or after the required AC and test audits first pass for a MODE DELIVER issue. Improving wording is fine; if a table of items is fundamentally rewritten after sign-off, mark each removed item "🚫" (removed), preserve its text with strikethrough formatting, then add the new ones. **Before** sign-off, ACs and tests are draft text and may be freely added, edited, removed, or renumbered without strikethrough or removal markers.
 - Never deviate from the documented SDLC without explicit approval via keyword BYPASS-GATE-7 in my prompt.
 - Never ask me for approval without providing me a link to the issue.
+- Never present an ID to the human without a short adjacent descriptor. This includes issue, AC, test, decision, and commit IDs.
 
 ---
 

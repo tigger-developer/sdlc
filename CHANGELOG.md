@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+Required every human-facing ID to include a short adjacent descriptor.
+
 Made operating modes explicitly code-only and self-contained within the SDLC.
 Provider bootstrap instructions now decide only whether to load the SDLC and
 no longer duplicate mode defaults, transitions, skill authority, or canaries.
