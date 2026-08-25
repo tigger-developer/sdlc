@@ -58,7 +58,7 @@ func TestHermesConfigurationMigratesProviderLocalCommandGuard(t *testing.T) {
 	configPath := filepath.Join(f.root, ".hermes", "config.yaml")
 	legacyCommand := "bash \"" + filepath.Join(f.root, ".hermes", "sdlc", "hooks", "agent-command-guard.sh") + "\""
 	canonicalCommand := "bash \"" + filepath.Join(f.root, ".agents", "sdlc", "hooks", "agent-command-guard.sh") + "\""
-	writeFile(t, configPath, []byte("hooks:\n  pre_tool_call:\n    - matcher: terminal\n      command: "+legacyCommand+"\n      timeout: 5\n    - matcher: terminal\n      command: "+canonicalCommand+"\n      timeout: 5\n"))
+	writeFile(t, configPath, []byte("# Hermes-managed commentary must survive a required migration.\nmodel:\n  default: gpt-5.6-terra # retain inline comments\nhooks:\n  pre_tool_call:\n    - matcher: terminal\n      command: "+legacyCommand+"\n      timeout: 5\n    - matcher: terminal\n      command: "+canonicalCommand+"\n      timeout: 5\n"))
 
 	if err := Run(Options{
 		Agent: "hermes", AgentHome: filepath.Join(f.root, ".hermes"), Source: f.source,
@@ -69,6 +69,34 @@ func TestHermesConfigurationMigratesProviderLocalCommandGuard(t *testing.T) {
 	serialized := string(mustReadFile(t, configPath))
 	if strings.Count(serialized, canonicalCommand) != 1 || strings.Contains(serialized, legacyCommand) {
 		t.Fatalf("Hermes command guard was not migrated to the canonical root:\n%s", serialized)
+	}
+	for _, comment := range []string{"# Hermes-managed commentary must survive a required migration.", "# retain inline comments"} {
+		if !strings.Contains(serialized, comment) {
+			t.Fatalf("Hermes command guard migration discarded %q:\n%s", comment, serialized)
+		}
+	}
+}
+
+// RT-7.9
+func TestHermesGeneratedCompliantConfigurationIsPreservedByteForByte(t *testing.T) {
+	f := newFixture(t, "hermes")
+	configPath := filepath.Join(f.root, ".hermes", "config.yaml")
+	canonicalCommand := "bash \"" + filepath.Join(f.root, ".agents", "sdlc", "hooks", "agent-command-guard.sh") + "\""
+	original := []byte("model:\n  provider: openai-codex\n  default: 'gpt-5.6-terra'\nhooks:\n  pre_tool_call:\n    - command: " + canonicalCommand + "\n      matcher: terminal\n      timeout: 5\n# Security defaults are documented by Hermes.\n# security:\n#   redact_secrets: true\n_config_version: 37\n")
+	writeFile(t, configPath, original)
+
+	var output bytes.Buffer
+	if err := Run(Options{
+		Agent: "hermes", AgentHome: filepath.Join(f.root, ".hermes"), Source: f.source,
+		Configure: true, Input: strings.NewReader("yes\n"), Output: &output,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(output.String(), "already contain the SDLC command guard") {
+		t.Fatalf("compliant Hermes configuration was reported as drift:\n%s", output.String())
+	}
+	if got := mustReadFile(t, configPath); !bytes.Equal(got, original) {
+		t.Fatalf("compliant Hermes configuration changed:\n%s", got)
 	}
 }
 
