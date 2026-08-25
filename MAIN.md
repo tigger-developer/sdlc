@@ -32,6 +32,10 @@ These are absolute. No exception process applies. No justification overrides the
 - Never mark a UT (user test) as ✅ passing or ❌ failing. Only I verify UTs. Leave as ⏳ pending.
 - Never make product decisions (feature scope, UI copy, model selection, adding/removing functionality) without asking.
 - Never use `--no-verify`, `--no-hooks`, or `--no-pre-commit-hook`.
+- Never invoke `python` or `python3`. Python development is allowed, but direct
+  interpreter commands are run only by the operator, case by case, within a
+  Python project. Never use Python to answer a question or as an ad hoc
+  calculation, inspection, or transformation tool.
 - Never use `ssh`, `scp`, or `sftp` without explicit human permission for that specific connection and action. Permission is case-by-case only. If permission has not been granted, provide the relevant commands to the human and explain what they are for.
 - Never create a second AC table in an issue. Exactly one AC table exists per issue, in the body or first comment. Edit it in place.
 - Never renumber **once signed off**: issues, ACs, and tests become immutable after **PROCEED n**, or after the required AC and test audits first pass for a MODE DELIVER issue. Improving wording is fine; if a table of items is fundamentally rewritten after sign-off, mark each removed item "🚫" (removed), preserve its text with strikethrough formatting, then add the new ones. **Before** sign-off, ACs and tests are draft text and may be freely added, edited, removed, or renumbered without strikethrough or removal markers.

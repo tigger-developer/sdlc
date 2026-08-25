@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+Made direct `python` and `python3` interpreter commands operator-only while
+retaining Python development through project-owned entry points.
+
 Included supported provider-configuration variances in the interactive
 installer's single preflight and confirmation batch. A detected Hermes home
 without its first-run `config.yaml` now stops before any write with a visible,
