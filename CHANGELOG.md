@@ -5,8 +5,6 @@
 Made operating modes explicitly code-only and self-contained within the SDLC.
 Provider bootstrap instructions now decide only whether to load the SDLC and
 no longer duplicate mode defaults, transitions, skill authority, or canaries.
-Documentation-only work, including edits to the SDLC itself, no longer
-activates the coding workflow by implication.
 
 Prohibited final handbacks while MODE DELIVER remains active. Agent-initiated
 delivery exit now requires an auditable declaration that accounts for all

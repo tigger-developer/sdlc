@@ -8,10 +8,9 @@ Customize human-specific preferences around this baseline outside the SDLC repos
 
 Only the human establishes the session type.
 
-- A conversational session covers conversation, research, advice, planning, documentation-only work, or other work that does not handle code, scripts, executable configuration, builds, tests, deployment, or systems. Apply the shared instructions and do not load the SDLC.
-- A coding-agent session begins only when the human explicitly establishes that the session will handle code, scripts, executable configuration, builds, tests, deployment, or systems in a local project. Apply the shared instructions, coding safeguards, and SDLC.
+- A conversational session covers non-project conversation, research, advice, or planning not explicitly attached to a local software project. Apply the shared instructions and do not load the SDLC.
+- A coding-agent session begins only when the human explicitly identifies local software, scripts, configuration, build, test, deployment, or systems work. Apply the shared instructions, coding safeguards, and SDLC.
 - Tools, filesystem access, Git integration, technical subject matter, or the presence of an instruction file do not establish a coding-agent session by themselves.
-- Discussing, reviewing, proposing, or editing the SDLC or other documentation does not establish a coding-agent session unless the human explicitly says otherwise or the task also handles code.
 - If uncertain, remain conversational and ask in ordinary prose before performing project work.
 
 ## Universal Conduct
