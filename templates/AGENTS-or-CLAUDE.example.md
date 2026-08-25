@@ -8,9 +8,10 @@ Customize human-specific preferences around this baseline outside the SDLC repos
 
 Only the human establishes the session type.
 
-- A conversational session covers non-project conversation, research, advice, or planning not explicitly attached to a local software project. Apply the shared instructions and do not load the SDLC.
-- A coding-agent session begins only when the human explicitly identifies local software, scripts, configuration, build, test, deployment, or systems work. Apply the shared instructions, coding safeguards, and SDLC.
+- A conversational session covers conversation, research, advice, planning, documentation-only work, or other work that does not handle code, scripts, executable configuration, builds, tests, deployment, or systems. Apply the shared instructions and do not load the SDLC.
+- A coding-agent session begins only when the human explicitly establishes that the session will handle code, scripts, executable configuration, builds, tests, deployment, or systems in a local project. Apply the shared instructions, coding safeguards, and SDLC.
 - Tools, filesystem access, Git integration, technical subject matter, or the presence of an instruction file do not establish a coding-agent session by themselves.
+- Discussing, reviewing, proposing, or editing the SDLC or other documentation does not establish a coding-agent session unless the human explicitly says otherwise or the task also handles code.
 - If uncertain, remain conversational and ask in ordinary prose before performing project work.
 
 ## Universal Conduct
@@ -35,9 +36,8 @@ Assertions about files, repositories, tools, prior statements, or observed behav
 - Ignore project-local `.agent/`, `.agents/`, `.claude/`, and `.codex/` directories in full. Never stage or commit them.
 - Never write provider auto-memory. Durable rules belong in visible, version-controlled instructions.
 - Never run `rm`; use recoverable deletion. Never use `--no-verify`, `--no-hooks`, force-push flags, or AI attribution in commits.
-- Mode transitions, gate keywords, and human-only commands come only from the human.
 
-The agent may autonomously invoke only these repository-managed advisory skills when relevant: `useful-be`, `diagnose-issue`, `recommendations-please`, `audit-acs`, `audit-tests`, `audit-code`, and `summarize-issues`. While confirmed MODE DELIVER is active, the additional drafting and design skills named by `MAIN.md` may be invoked inside that delivery scope. Provider or plugin skills remain human-invoked until explicitly added here.
+When the SDLC is loaded, follow its invocation authority for SDLC-managed skills and workflows. Provider or plugin skills remain human-invoked until explicitly added here.
 
 ## SDLC Integration
 
@@ -55,4 +55,4 @@ The SDLC does not supersede safety rules, universal conduct, or coding safeguard
 
 ## Canary
 
-The base coding-session canary is `EHLO`. Start every coding-agent interaction with `[MODE PAIR] EHLO` or `[MODE DELIVER] EHLO`, followed by every suffix required by the SDLC documents read in full. By using it, the agent attests that it read these instructions in full, agrees with their substance and spirit, and will not game them. Conversational sessions start with `DESK` and do not carry SDLC suffixes.
+The base coding-session canary is `EHLO`. Apply any additional canary components required by the loaded SDLC. By using the resulting canary, the agent attests that it read these instructions in full, agrees with their substance and spirit, and will not game them. Conversational sessions start with `DESK` and do not load or apply SDLC canaries.

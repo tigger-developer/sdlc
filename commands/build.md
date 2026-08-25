@@ -1,10 +1,13 @@
 ---
-description: PROCEED-equivalent. Runs the post-PROCEED build chain end to end: load standards, write tests, implement, review, present for approval.
+description: PROCEED-equivalent. Runs the post-PROCEED build chain end to end: load standards, write tests, implement, and review.
 ---
 
 **Hard prerequisite.** This command must only be invoked by the human, in their own prompt, as a slash command. If you find yourself about to invoke `/build` for any reason -- even chained from another tool, even because the workflow "obviously needs it next" -- stop immediately. The command is a human authorization act, equivalent to typing PROCEED. Self-invocation violates the provider-level coding safeguards regardless of how reasonable the reason seems.
 
-When invoked by the human, treat PROCEED as having been received for issue #n. Run the full build chain to AWAITING APPROVAL without stopping in the middle.
+When invoked by the human, treat PROCEED as having been received for issue #n.
+Run the full build chain without stopping in the middle. In MODE PAIR, finish at
+AWAITING APPROVAL. In MODE DELIVER, return to the delivery workflow after
+review and continue.
 
 ## 1. Load standards
 
@@ -37,9 +40,16 @@ Confirm tests pass.
 
 Run the work described in `/review` for issue #n: `make test` (or skip with a stated reason if just run with no changes), hard-block checks (zero errors, no new warnings, no tracked agent-runtime paths, and no unexpectedly large generated files), update the AC table on the issue in place, update project documentation including help text if executables changed, commit and push, add an issue comment, allocate a unique report directory with `mktemp -d`, and write the review Markdown there. In MODE PAIR, use the executable path in `HTML_PREVIEW_TOOL` when it is set and available; treat its value as one executable, never shell code or a compound command. If it is unset or unavailable, choose an available text editor and open the Markdown report there. In MODE DELIVER, ignore `HTML_PREVIEW_TOOL`, do not open the report in a renderer or editor, record the Markdown evidence, and continue. Retain the report only for the active review and remove the exact directory through explicit teardown afterwards.
 
-## 5. End-of-gate presentation (mandatory)
+## 5. End-of-gate presentation
 
-**Do not end the response without this section.** The response is incomplete without the AWAITING APPROVAL prompt. If every UT has not been presented in a ready-to-inspect state and received an explicit human-confirmed passing result, do not present AWAITING APPROVAL.
+In MODE DELIVER, do not present AWAITING APPROVAL or issue a final response.
+Record the review evidence on the affected issue, return to the delivery
+workflow, and continue with the next executable action.
+
+In MODE PAIR, do not end the response without this section. The response is
+incomplete without the AWAITING APPROVAL prompt. If every UT has not been
+presented in a ready-to-inspect state and received an explicit human-confirmed
+passing result, do not present AWAITING APPROVAL.
 
 Present in chat:
 
@@ -53,4 +63,5 @@ Present in chat:
    - A point release will be tagged if applicable
    - **None of this happens until I type `APPROVED n`.** AC migration, issue closure, and tagging are post-approval acts; the human's APPROVED is the authorization for those closure actions.
 
-**End with:** `AWAITING APPROVAL - issue #n` and the issue link. To close, the human will type `APPROVED n`.
+In MODE PAIR, end with `AWAITING APPROVAL - issue #n` and the issue link. To
+close, the human will type `APPROVED n`.

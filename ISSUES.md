@@ -157,7 +157,12 @@ When the human resolves a transferred UT, update the status marker in its centra
 
 **APPROVED n**, where n is the master issue number, accepts the master and all children in its delivery tree, including children already closed through the MODE DELIVER lifecycle. The master must not close while any rolled-up UT remains pending, failing, or lacks an explicit human result.
 
-An approval directive received before all rolled-up UTs have human-confirmed passing results is not banked. Leave the master open, report every unresolved UT and its status, remediate failures within the confirmed scope, and require a fresh **APPROVED n** after all rolled-up UTs pass.
+An approval directive received before all rolled-up UTs have human-confirmed
+passing results is not banked. Leave the master open and report every
+unresolved UT and its status. A failed in-scope UT may return to autonomous
+remediation through `RESUME DELIVER n`; otherwise it follows the MODE PAIR
+gates or requires revised delivery scope. Require a fresh **APPROVED n** after
+all rolled-up UTs pass.
 
 ### Delivery completion matrix
 
@@ -177,10 +182,41 @@ Every MODE DELIVER master contains this current-state checklist. Repeat child-sp
 - [ ] Every rolled-up user test has a human-confirmed result
 - [ ] Consolidated review package prepared
 
-Next executable action: <one concrete action, or `none` only when every row is resolved>
+Next executable action: <one concrete agent action, or `none` only when no safe, authorized, executable agent action remains>
 ```
 
-The body records current state. An unchecked item with an executable next action means delivery work remains and a progress update is not a terminal handback. Only the human may check a row whose evidence depends on human approval or user-test judgement.
+The body records current state. An unchecked item with an executable agent
+action means delivery work remains and a progress update is not terminal. A
+human-gated row may remain unchecked only when the delivery exit declaration
+identifies it and justifies why the agent cannot advance it. Only the human may
+check a row whose evidence depends on human approval or user-test judgement.
+
+### Delivery exit records
+
+Before an agent-initiated transition from MODE DELIVER to MODE PAIR, post this
+immutable comment on the master issue:
+
+```markdown
+DELIVERY EXIT
+
+- Verdict: DELIVERY READY | DELIVERY BLOCKED
+- Goal and definition of done:
+- Completed scope and evidence:
+- Incomplete scope:
+- Justification for each incomplete item:
+- Why no further agent action remains:
+- Human action required:
+- Latest committed checkpoint:
+- Residual risks:
+```
+
+Every confirmed scope item must be accounted for. `DELIVERY READY` applies
+only when every autonomous delivery action is evidenced, no safe, authorized,
+executable agent action remains, and the remaining items require human review,
+user-test judgement, approval, or another human-only checkpoint.
+`DELIVERY BLOCKED` applies only when a genuine blocker prevents every remaining
+autonomous action. The recorded verdict and the handback occur with an atomic
+transition to MODE PAIR.
 
 ### Delivery decision records
 
@@ -197,7 +233,9 @@ DECISION D-<n>
 - Affected issues, ACs, and tests:
 ```
 
-Do not use this record to authorize product, architecture, security, access, data-format, or scope decisions that require a handback under `MAIN.md`.
+Do not use this record to authorize product, architecture, security, access,
+data-format, or scope decisions that require a MODE PAIR handback or MODE
+DELIVER exit under `MAIN.md`.
 
 ### MODE DELIVER quality-check records
 
@@ -213,7 +251,10 @@ QUALITY CHECK: <AC AUDIT | TEST AUDIT | CODE AUDIT>
 - Attempt:
 ```
 
-A PASS advances immediately to the next lifecycle action. A FAIL records the required remediation and returns to that work; it is not a handback unless its diagnosed root cause meets a genuine-blocker condition or the stalled-work circuit breaker trips.
+A PASS advances immediately to the next lifecycle action. A FAIL records the
+required remediation and returns to that work; it does not justify the MODE
+DELIVER exit gate unless its diagnosed root cause meets a genuine-blocker
+condition or the stalled-work circuit breaker trips.
 
 ---
 

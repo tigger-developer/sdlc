@@ -4,6 +4,11 @@ Read this document in its entirety before taking any action governed by it. Do n
 
 Loaded only in a Coding-Agent Session when working with code, scripts, software, configuration, builds, tests, deployment, or systems. Builds on the user's provider-level instructions as the shared and coding-agent baseline; this document adds code-specific rules.
 
+MODE PAIR and MODE DELIVER are SDLC concepts. They exist only after this
+document has been loaded for a Coding-Agent Session. Never apply them to a
+Conversational Session or load this document for conversation, research,
+planning, creative work, or other non-coding activity.
+
 The canonical SDLC root is exactly `~/.agents/sdlc`. Never search, enumerate directories, traverse mounted volumes, inspect network shares, or use `find`, `locate`, Spotlight, or equivalent discovery to locate it. If `~/.agents/sdlc/MAIN.md` is absent or unreadable, stop and report that exact path.
 
 ## Loading Contract
@@ -39,9 +44,16 @@ These are absolute. No exception process applies. No justification overrides the
 
 ### MODE PAIR
 
-MODE PAIR is active by default at the start of every new conversation. It uses the two gates and supports collaborative, stepwise work: keep the human informed and ask about materially different choices. The obstacle and blocker rules in §3 still apply; MODE PAIR is not permission to hand work back at the first routine problem.
+MODE PAIR is the interactive coding state and is active by default when this
+SDLC is loaded. It uses the two gates and supports collaborative, stepwise
+work: keep the human informed and ask about materially different choices. The
+obstacle and blocker rules in §3 still apply; MODE PAIR is not permission to
+hand work back at the first routine problem.
 
-A line containing only `MODE PAIR` changes the active mode to MODE PAIR. Only the human may issue it or otherwise change mode.
+A line containing only `MODE PAIR`, written by the human, changes the active
+mode to MODE PAIR immediately. The human may use it to interrupt delivery at
+any time. Apart from that human directive, the agent may enter MODE PAIR only
+by passing the MODE DELIVER exit gate below.
 
 ### Checking delivery readiness
 
@@ -56,13 +68,26 @@ If the goal is sufficiently defined, state:
 3. the scope and exclusions; and
 4. known human-only checkpoints.
 
-Then request one confirmation. A line containing only `CONFIRM DELIVER`, written by the human, activates MODE DELIVER for the most recently stated goal and definition of done in the same conversation. Material expansion of that goal requires a revised delivery statement and another `CONFIRM DELIVER`. The agent may not silently change or leave the active mode.
+Then request one confirmation. A line containing only `CONFIRM DELIVER`, written by the human, activates MODE DELIVER for the most recently stated goal and definition of done in the same conversation. Material expansion of that goal requires a revised delivery statement and another `CONFIRM DELIVER`. Only the human may activate MODE DELIVER. The agent may leave it only through the MODE DELIVER exit gate.
 
 ### MODE DELIVER authority
 
 After `CONFIRM DELIVER`, the agent must create a master issue that records the confirmed goal, definition of done, scope, exclusions, child links, delivery status, and user-test roll-up. It may create and design the child issues required to deliver that goal. `CONFIRM DELIVER` substitutes for PROCEED only for that master and its in-scope children; it does not authorize unrelated work.
 
 Confirmed MODE DELIVER authority is a continuation contract. Continue until the delivery completion matrix in the master issue is satisfied, the final human-only checkpoint is ready, or a genuine blocker prevents all remaining in-scope work. A progress report, commit, completed child, audit result, warning, or partial milestone is not a terminal condition. After reporting progress, continue with the next executable item in the completion matrix.
+
+MODE DELIVER is the autonomous coding state. The agent owns the next action
+while safe, authorized, executable work remains. A final response, approval
+request, decision request, blocker handback, or any other transfer of control
+to the human is prohibited while MODE DELIVER remains active. Progress reports
+are non-terminal: after reporting progress, continue without waiting for a
+response.
+
+A progress or status question does not implicitly change the mode. Answer it
+through a non-terminal update and continue. An in-scope correction or
+instruction also leaves MODE DELIVER active: incorporate it and continue.
+Material scope expansion still requires a revised delivery statement and a
+new `CONFIRM DELIVER`.
 
 At the start of delivery, after context compaction, after closing a child, and before any final response, re-read the master issue's goal, scope, exclusions, completion matrix, decisions, child status, and user-test roll-up. An unchecked item with an executable next action means work remains. The required master structure and evidence formats are defined in `~/.agents/sdlc/ISSUES.md`.
 
@@ -81,9 +106,58 @@ If a small delivery is implemented directly on the master rather than a child, s
 
 Only pre-existing code smells may remain after `audit-code`, and only when they are identified as pre-existing, outside the child scope, and accompanied by a concrete justification. Universal prohibitions, human-only UT judgements, access permissions, and restrictions on product decisions remain unchanged in MODE DELIVER.
 
-The master issue remains open and is the single human review point. Before presenting it, run the full regression suite and resolve every error and new warning. Present one consolidated review package ending `READY FOR REVIEW - master issue #n`, with the master issue link. A human **APPROVED n** directive for that master accepts the complete delivery tree, including every child closed through the MODE DELIVER lifecycle; separate APPROVED directives are not required for those children. The master may not close while any rolled-up UT remains pending, failing, or lacks an explicit human result.
+The master issue remains open and is the single human review point. Before
+presenting it, run the full regression suite and resolve every error and new
+warning. Prepare one consolidated review package. When no autonomous delivery
+action remains, record human review, pending user-test judgement, approval, AC
+migration, issue closure, and release actions as incomplete human-gated work
+where applicable. Pass the MODE DELIVER exit gate with `DELIVERY READY`,
+transition to MODE PAIR, and present `DELIVERY READY - master issue #n` with
+the master issue link. A human **APPROVED n** directive for that master accepts
+the complete delivery tree, including every child closed through the MODE
+DELIVER lifecycle; separate APPROVED directives are not required for those
+children. The master may not close while any rolled-up UT remains pending,
+failing, or lacks an explicit human result.
 
-If **APPROVED n** is received for the master before every rolled-up UT has a human-confirmed passing result, do not close the master and do not bank the directive for later. Report the unresolved UT IDs, statuses, and master link, remediate failed UTs within the confirmed scope, and require a fresh **APPROVED n** after all rolled-up UTs pass.
+If **APPROVED n** is received for the master before every rolled-up UT has a
+human-confirmed passing result, do not close the master and do not bank the
+directive for later. Report the unresolved UT IDs, statuses, and master link.
+A failed UT may return to autonomous remediation through `RESUME DELIVER n`
+when the correction remains inside the confirmed scope; otherwise it follows
+the MODE PAIR gates or requires revised delivery scope. Require a fresh
+**APPROVED n** after all rolled-up UTs pass.
+
+### MODE DELIVER exit gate
+
+MODE DELIVER has one agent-initiated exit: an explicit, atomic transition to
+MODE PAIR. Before leaving, record the exit declaration on the master issue
+using the format in `~/.agents/sdlc/ISSUES.md`, then declare:
+
+1. the confirmed goal and definition of done;
+2. every completed scope item, with evidence;
+3. every incomplete scope item;
+4. a specific justification for each incomplete item;
+5. why no further safe, authorized, executable work remains;
+6. the precise human action, decision, approval, permission, or judgement now
+   required; and
+7. the latest committed checkpoint and residual risks.
+
+The gate has two valid verdicts:
+
+- `DELIVERY READY`: every autonomous delivery action is evidenced, no safe,
+  authorized, executable agent action remains, and only human review,
+  user-test judgement, approval, or another human-only checkpoint remains.
+- `DELIVERY BLOCKED`: no autonomous delivery work can continue because a
+  documented genuine blocker requires human intervention.
+
+Difficulty, uncertainty, elapsed time, a failed command, a failed audit, an
+incomplete phase, or routine remediation does not pass the gate. Complete all
+other independent, safe, authorized, executable work before evaluating
+`DELIVERY BLOCKED`.
+
+Passing the gate and handing control to the human are one event. Prefix that
+final response with the MODE PAIR canary. A final response carrying the MODE
+DELIVER canary is invalid.
 
 ### Resuming an existing delivery
 
@@ -145,7 +219,13 @@ Everything else requires both gates or confirmed MODE DELIVER authority.
 
 ## 3. Process Checklist
 
-In MODE PAIR, I drive the workflow with gate keywords. The gates (PROCEED, APPROVED) are the planned human checkpoints -- between gates, do the work without waiting for further instruction unless a mandatory handback below applies. In MODE DELIVER, the confirmed goal replaces per-child gate handbacks; complete the delivery lifecycle without waiting between children unless a mandatory handback applies or the work is otherwise genuinely blocked.
+In MODE PAIR, I drive the workflow with gate keywords. The gates (PROCEED,
+APPROVED) are the planned human checkpoints. Between gates, do the work without
+waiting for further instruction unless a mandatory handback below applies. In
+MODE DELIVER, the confirmed goal replaces per-child handbacks. Complete the
+delivery lifecycle without waiting between children. When a genuine blocker
+prevents every remaining autonomous action, use the MODE DELIVER exit gate
+rather than handing back while still in delivery.
 
 Progress reporting is non-terminal in MODE DELIVER. Send the update through the provider's progress channel when one exists, update durable issue state where required, and continue in the same run. Do not turn a status update into a final handback while safe, in-scope work remains executable.
 
@@ -173,12 +253,16 @@ Classify uncertainty before deciding whether to continue:
 
 - **Unknown fact:** investigate using available evidence, record material findings, and continue. Lack of immediate knowledge is not a blocker.
 - **Routine implementation ambiguity:** when multiple safe, reversible choices satisfy the same confirmed scope, architecture, ACs, and user-visible result, choose the best-supported option, record the decision and evidence using `~/.agents/sdlc/ISSUES.md`, and continue.
-- **Material ambiguity:** when the alternatives materially change user-visible behaviour, product scope, architecture, security, persisted data, access, or irreversible outcomes, make a genuine-blocker handback. The prohibition on autonomous product decisions still applies.
+- **Material ambiguity:** when the alternatives materially change user-visible behaviour, product scope, architecture, security, persisted data, access, or irreversible outcomes, stop before making that decision. In MODE PAIR, make a genuine-blocker handback. In MODE DELIVER, complete other executable work, then use the exit gate with `DELIVERY BLOCKED`. The prohibition on autonomous product decisions still applies.
 - **Out-of-scope discovery:** record it without implementation and continue the confirmed work. Escalate only when it prevents all remaining in-scope progress.
 
 #### Mandatory architecture stop
 
-An architecture change not explicitly described in the authorized solution design or confirmed MODE DELIVER scope is an immediate mandatory handback in both operating modes. Do not implement, prototype, or partially introduce it.
+An architecture change not explicitly described in the authorized solution
+design or confirmed MODE DELIVER scope is a mandatory stop. Do not implement,
+prototype, or partially introduce it. In MODE PAIR, make the architecture
+handback immediately. In MODE DELIVER, complete every independent executable
+item first, then use the exit gate with `DELIVERY BLOCKED`.
 
 Architecture changes include:
 
@@ -190,11 +274,22 @@ Architecture changes include:
 - introducing a new cross-cutting abstraction that materially changes component relationships; or
 - replacing a documented architectural pattern rather than implementing within it.
 
-The handback must describe the evidence showing why the existing architecture is insufficient, identify the affected architectural boundary, present the materially different options and their consequences, recommend one option with justification, and identify the issue, ACs, tests, design, and delivery scope that would require amendment. Await an explicit human decision before proceeding.
+The MODE PAIR handback or MODE DELIVER exit declaration must describe the
+evidence showing why the existing architecture is insufficient, identify the
+affected architectural boundary, present the materially different options and
+their consequences, recommend one option with justification, and identify the
+issue, ACs, tests, design, and delivery scope that would require amendment.
+Await an explicit human decision in MODE PAIR before proceeding.
 
 #### Stalled-work circuit breaker
 
-Stop and make a blocker handback when either three attempted remediation cycles against the same obstacle have failed or 45 minutes have elapsed without verified progress towards the current checkpoint, whichever occurs first. Record the start time when the obstacle is first observed and reset it only when verified progress occurs.
+Trigger the stalled-work stop when either three attempted remediation cycles
+against the same obstacle have failed or 45 minutes have elapsed without
+verified progress towards the current checkpoint, whichever occurs first.
+Record the start time when the obstacle is first observed and reset it only
+when verified progress occurs. In MODE PAIR, make a blocker handback. In MODE
+DELIVER, complete other executable work, then use the exit gate with
+`DELIVERY BLOCKED`.
 
 A remediation cycle counts only when it applies a distinct evidence-based remedy and verifies the result. Repeating substantially the same command, edit, diagnosis, or workaround is not a new cycle.
 
@@ -208,7 +303,8 @@ Verified progress means at least one of:
 
 The circuit breaker is not a substitute for attempting reasonable remedies. It prevents unbounded repetition after the required diagnosis and remediation work has ceased to produce evidence or progress.
 
-A handback is permitted only when further progress genuinely requires one of the following:
+A MODE PAIR handback or MODE DELIVER `DELIVERY BLOCKED` exit is permitted only
+when further progress genuinely requires one of the following:
 
 - human-only authorization, approval, or user-test judgement required by this SDLC;
 - resolution of materially ambiguous requirements or a product decision with meaningfully different user-visible outcomes;
@@ -220,9 +316,14 @@ A handback is permitted only when further progress genuinely requires one of the
 - a shell-complexity tripwire under `~/.agents/sdlc/SHELL.md`; or
 - the stalled-work circuit breaker above.
 
-Before making a handback, complete every independent unblocked item that remains in scope, inspect the completion matrix for additional blockers, and consolidate all currently known blockers into one handback. Human attention and execution context are finite; an avoidable handback is not a neutral or automatically safer action.
+Before a MODE PAIR handback or MODE DELIVER exit, complete every independent
+unblocked item that remains in scope, inspect the completion matrix for
+additional blockers, and consolidate all currently known blockers. Human
+attention and execution context are finite; an avoidable transition is not a
+neutral or automatically safer action.
 
-When genuinely blocked, the handback must contain:
+When genuinely blocked, the MODE PAIR handback or MODE DELIVER exit declaration
+must contain:
 
 1. The intended outcome and the current state.
 2. The evidence and root-cause diagnosis.
@@ -231,9 +332,20 @@ When genuinely blocked, the handback must contain:
 5. One precise decision, action, permission, or piece of information required from me.
 6. The latest committed checkpoint if changes were made, any uncommitted human or unrelated changes left untouched, and the residual risk.
 
-Hard quality-gate failures remain work to resolve. They justify a handback only when their root cause meets one of the genuine-blocker conditions above.
+Hard quality-gate failures remain work to resolve. They justify a MODE PAIR
+handback or MODE DELIVER exit only when their root cause meets one of the
+genuine-blocker conditions above.
 
-Commands and skills are tools, not gates. Commands remain human-invoked. The exact-name skill allowlist in the provider-level instructions defines which skills the agent may invoke autonomously; MODE DELIVER adds its explicitly listed drafting and design skills. You do not "wait for the next tool" -- if work is authorized by a gate or confirmed MODE DELIVER, the work until the next human-only checkpoint is yours to do. Never tell me you are waiting for me to invoke an allowlisted skill.
+Commands and skills are tools, not gates. Commands remain human-invoked. The
+agent may autonomously invoke `useful-be`, `diagnose-issue`,
+`recommendations-please`, `audit-acs`, `audit-tests`, `audit-code`, and
+`summarize-issues` when relevant to authorized SDLC work. In MODE DELIVER, it
+may additionally invoke `draft-issue`, `draft-design-issue`, `draft-bug-fix`,
+and `design-solution` within the confirmed scope. This authority is defined
+here and does not depend on personal provider instructions. Provider or plugin
+skills remain subject to their provider-level invocation rules. Do not wait
+for the next tool: if work is authorized by a gate or confirmed MODE DELIVER,
+the work until the next human-only checkpoint belongs to the agent.
 
 ### Available commands and skills
 
@@ -265,7 +377,9 @@ The table above lists **SDLC-flow** tools. Other skills exist outside this flow 
 
 CHECK DELIVER -> goal statement -> CONFIRM DELIVER -> master issue
   -> per-child draft/design -> audit-acs + audit-tests -> implementation -> audit-code -> child closure
+  -> full regression and consolidated review -> DELIVERY READY -> MODE PAIR
   -> rolled-up UT resolution -> APPROVED n (n = master issue number)
+  -> failed in-scope UT -> RESUME DELIVER n -> audited remediation child
 
 RESUME DELIVER n -> reload open master state -> continue next unchecked executable item
 ```
@@ -302,7 +416,12 @@ An eligible MODE DELIVER child closes without separate APPROVED only after the p
 
 Do not tag a release for an individual MODE DELIVER child. Tag once, if applicable, when the approved master closes.
 
-A pending or failed rolled-up UT blocks master closure. Diagnose a failed UT under the confirmed goal and create an audited remediation child when the correction remains in scope; otherwise make a genuine-blocker handback. Only the human may mark a rolled-up UT passing or failing. The UT record remains on the master issue after resolution as part of the delivery history.
+A pending or failed rolled-up UT blocks master closure. Only the human may mark
+a rolled-up UT passing or failing. After a `DELIVERY READY` transition, a
+failed in-scope UT may return to autonomous delivery through `RESUME DELIVER
+n`; create an audited remediation child after resumption. Otherwise, use the
+MODE PAIR gates or revise the confirmed delivery scope. The UT record remains
+on the master issue after resolution as part of the delivery history.
 
 When the human resolves a rolled-up UT, update the status marker in the central AC provenance entry to match the human result while keeping the full UT definition and delivery history on the master.
 
@@ -452,6 +571,12 @@ Documentation-only work selects `GIT.md` and `DOCUMENTATION.md` when tracked fil
 ---
 
 # Canary
+After this SDLC is loaded, prefix the provider's base coding canary with
+`[MODE PAIR]` or `[MODE DELIVER]` to report the active coding mode. MODE PAIR
+is the default. An agent-initiated delivery exit uses `[MODE PAIR]` because the
+exit and handback are atomic. These prefixes never apply when the SDLC has not
+been loaded.
+
 Suffix the canary string with " SDLC" (with leading space) if you have read and agree with this document. On the first interaction for a task after reading `MAIN.md` and every task-selected reference document in full, immediately follow the canary with this statement:
 
 `I have read the relevant SDLC documents in full. I pledge to uphold their rules, the spirit of these same rules, and that I will not attempt to game these same rules.`

@@ -29,4 +29,4 @@ Draft a bug-fix issue for the current task. Read and follow `~/.agents/sdlc/ISSU
    - Regression tests target the original AC, not a new parallel one. ✓
 5. Post the issue.
 
-In MODE PAIR, end with `AWAITING PROCEED - issue #NNN`, the issue link, and **STOP**; no code may be written until PROCEED is received. In MODE DELIVER, return the issue link and completed design to the delivery workflow for the mandatory per-ticket AC and test audits; do not request PROCEED. If choosing between backfill and a new feature requires a material product decision, make a genuine-blocker handback instead of guessing.
+In MODE PAIR, end with `AWAITING PROCEED - issue #NNN`, the issue link, and **STOP**; no code may be written until PROCEED is received. In MODE DELIVER, return the issue link and completed design to the delivery workflow for the mandatory per-ticket AC and test audits; do not request PROCEED. If choosing between backfill and a new feature requires a material product decision, complete other executable work and use the MODE DELIVER exit gate with `DELIVERY BLOCKED` instead of guessing.

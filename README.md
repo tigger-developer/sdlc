@@ -186,12 +186,23 @@ Configuration recommendations are advisory. Review every proposed permission cha
 
 ## Long-running delivery
 
+MODE PAIR and MODE DELIVER are code-only concepts defined entirely by the SDLC
+after `MAIN.md` is loaded for a coding-agent session. Provider instructions
+decide when to load the SDLC but do not define its modes. Conversational
+sessions do not load the SDLC and do not inherit either mode.
+
 MODE DELIVER records its goal, scope, completion matrix, decisions, quality
-checks, child status, and user tests on one master issue. Progress reports are
-non-terminal while safe, in-scope work remains executable. Routine reversible
-implementation ambiguity is recorded and resolved by the agent; material
-product, architecture, security, access, data, and scope decisions remain
-human handbacks.
+checks, child status, and user tests on one master issue. The agent owns the
+next action while delivery remains active. Progress reports are non-terminal,
+and a final handback in MODE DELIVER is prohibited.
+
+When no safe, authorized, executable agent action remains, the agent records a
+delivery exit on the master. `DELIVERY READY` confirms that every autonomous
+delivery action is evidenced and accounts for work awaiting a human-only
+checkpoint; `DELIVERY BLOCKED` accounts for work stopped by a genuine blocker.
+Either verdict atomically returns the session to MODE PAIR before control is
+handed to the human. Routine reversible implementation ambiguity is recorded
+and resolved without exiting delivery.
 
 After context loss or in a new session, the human can resume an open delivery
 master with:

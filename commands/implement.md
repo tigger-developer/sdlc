@@ -11,4 +11,8 @@ Write the implementation code to pass the tests for the current issue.
 3. Never overwrite my edits. If I have edited something, that edit is authoritative.
 4. Never make product decisions without asking.
 
-When tests pass, proceed to the review phase: run `make test`, check standards, demo the UTs, summarize, and end with `READY FOR REVIEW - issue #NNN`. Do not stop and wait for me to invoke `/review`.
+When tests pass, proceed to the review phase: run `make test`, check standards,
+demo the UTs, and summarize. In MODE PAIR, end with
+`READY FOR REVIEW - issue #NNN`. In MODE DELIVER, record the evidence, return
+to the delivery workflow, and continue. Do not stop and wait for me to invoke
+`/review`.

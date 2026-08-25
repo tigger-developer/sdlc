@@ -32,7 +32,7 @@ Create a GitHub issue with full requirements and solution design in one pass. Re
     - Language, frameworks, and libraries to use
     - Patterns to follow
     - Anti-patterns to avoid (cite specific CODING.md sections)
-11. Review the solution against the codebase. In MODE DELIVER, resolve safe in-scope contradictions and repeat the review; make a genuine-blocker handback only when resolution requires a material product decision or other human-only input. In MODE PAIR, alert me and **STOP** if the solution is contradictory or unsound.
+11. Review the solution against the codebase. In MODE DELIVER, resolve safe in-scope contradictions and repeat the review; if resolution requires a material product decision or other human-only input, complete other executable work and use the MODE DELIVER exit gate with `DELIVERY BLOCKED`. In MODE PAIR, alert me and **STOP** if the solution is contradictory or unsound.
 12. Allocate test file locations and test IDs.
 
 In MODE PAIR, end with `AWAITING PROCEED - issue #NNN`, the issue link, and **STOP**; no code may be written until PROCEED is received. In MODE DELIVER, return the issue link and completed design to the delivery workflow for the mandatory per-ticket AC and test audits; do not request PROCEED or write code before both audits report PASS.

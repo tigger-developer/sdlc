@@ -12,7 +12,7 @@ Document the solution design for the current issue. Do not write any code.
    - Language, frameworks, and libraries to use
    - Patterns to follow
    - Anti-patterns to avoid (cite specific CODING.md sections)
-5. Review the solution against the codebase. In MODE DELIVER, resolve safe in-scope contradictions and repeat the review; make a genuine-blocker handback only when resolution requires a material product decision or other human-only input. In MODE PAIR, alert me and **STOP** if the solution is contradictory or unsound.
+5. Review the solution against the codebase. In MODE DELIVER, resolve safe in-scope contradictions and repeat the review; if resolution requires a material product decision or other human-only input, complete other executable work and use the MODE DELIVER exit gate with `DELIVERY BLOCKED`. In MODE PAIR, alert me and **STOP** if the solution is contradictory or unsound.
 6. Allocate test file locations and test IDs.
 
 In MODE PAIR, end with `AWAITING PROCEED - issue #NNN`, the issue link, and **STOP**. In MODE DELIVER, return the issue link and completed design to the delivery workflow for the mandatory per-ticket AC and test audits; do not request PROCEED.

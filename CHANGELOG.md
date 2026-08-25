@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+Made operating modes explicitly code-only and self-contained within the SDLC.
+Provider bootstrap instructions now decide only whether to load the SDLC and
+no longer duplicate mode defaults, transitions, skill authority, or canaries.
+Documentation-only work, including edits to the SDLC itself, no longer
+activates the coding workflow by implication.
+
+Prohibited final handbacks while MODE DELIVER remains active. Agent-initiated
+delivery exit now requires an auditable declaration that accounts for all
+completed and incomplete scope, justifies every unfinished item, and records
+either `DELIVERY READY` or `DELIVERY BLOCKED` before atomically returning to
+MODE PAIR.
+
 Made review-report presentation explicitly mode-dependent. MODE PAIR uses the
 optional `HTML_PREVIEW_TOOL` and falls back to an available text editor, while
 MODE DELIVER ignores preview tooling, records the Markdown evidence, and

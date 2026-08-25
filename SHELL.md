@@ -18,7 +18,13 @@ Treat these as tripwires:
 - The script talks to multiple external systems or APIs.
 - Error handling needs more than simple fail-fast behaviour and local cleanup.
 
-When a tripwire appears, do not silently continue making the shell script larger. This is a mandatory handback under `~/.agents/sdlc/MAIN.md` in both MODE PAIR and MODE DELIVER. State the complexity signal, recommend whether to keep the current shell implementation or rewrite, and explain the target language and migration path. Do not add further shell complexity until the human decides how to proceed.
+When a tripwire appears, do not silently continue making the shell script
+larger. State the complexity signal, recommend whether to keep the current
+shell implementation or rewrite, and explain the target language and migration
+path. In MODE PAIR, make the mandatory handback directly. In MODE DELIVER,
+complete other executable work and pass the exit gate with `DELIVERY BLOCKED`
+before handing control to the human. Do not add further shell complexity until
+the human decides how to proceed.
 
 ## Version Targeting
 
