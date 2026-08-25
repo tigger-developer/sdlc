@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+Included supported provider-configuration variances in the interactive
+installer's single preflight and confirmation batch. A detected Hermes home
+without its first-run `config.yaml` now stops before any write with a visible,
+actionable diagnostic. The Hermes command guard now also blocks `rm`, `sed`,
+and `awk` to match the shared command policy.
+
 Required every human-facing ID to include a short adjacent descriptor.
 
 Made operating modes explicitly code-only and self-contained within the SDLC.

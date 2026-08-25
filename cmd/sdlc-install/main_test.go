@@ -33,6 +33,9 @@ func TestDefaultRunDetectsInstalledProviderSubset_RT4_4(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+	if err := os.WriteFile(filepath.Join(root, ".hermes", "config.yaml"), []byte("model:\n  provider: test\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
 	t.Setenv("HOME", root)
 	var output bytes.Buffer
 	if err := run([]string{"--source", source}, strings.NewReader("no\n"), &output); err != nil {

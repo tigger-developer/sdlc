@@ -37,8 +37,8 @@ make install
 ```
 
 The installer detects the supported provider homes that exist, compares every
-SDLC-owned destination, and asks once before applying the complete batch.
-Matching destinations do not prompt.
+SDLC-owned destination and managed provider-configuration fragment, and asks
+once before applying the complete batch. Matching destinations do not prompt.
 
 The default plan lists only destinations that differ. Set `VERBOSE=1` to
 include every matching destination:
@@ -47,9 +47,8 @@ include every matching destination:
 VERBOSE=1 make install
 ```
 
-Provider-configuration analysis remains an explicit operation. Build the
-command, inspect one provider, and add `--apply` or `--configure` only when
-that specific operation is wanted:
+Explicit provider mode remains available for inspecting or changing one
+provider independently:
 
 ```bash
 make build
@@ -138,13 +137,12 @@ The installer has three deliberately separate responsibilities:
    detects existing supported provider homes for native skills and commands.
 2. It asks once before synchronizing the complete batch with `rsync --archive`,
    excluding `.git` and never using `--delete`.
-3. Explicit `--agent` mode analyses one provider and retains `--apply` and
-   `--configure` for automation or deliberate provider-configuration work.
+3. It includes supported provider-configuration changes in the same preflight
+   and confirmation batch. Explicit `--agent` mode retains `--apply` and
+   `--configure` for automation or one-provider work.
 
 The default installation plan contains only differing destinations. Set
 `VERBOSE=1` to include matching destinations in the plan.
-
-Interactive multi-agent installation never changes provider configuration.
 
 Before any existing SDLC-owned artefact is replaced, it is renamed beside the
 live path as `<path>.<epoch>.bak`. This includes drifted files, stale links,
@@ -174,7 +172,15 @@ hooks, and first-use hook consent. Before rewriting an existing file, it stores
 a recovery copy in an operating system temporary directory and prints the
 path. Invalid YAML and non-regular configuration paths remain untouched.
 
-The shared command guard at `hooks/agent-command-guard.sh` speaks Hermes's `pre_tool_call` hook protocol. It prohibits direct `python` and `python3` interpreter commands, including path-qualified, compound, pipeline, and shell-wrapper forms, without blocking project entry points such as `make test`.
+Hermes must complete its startup TUI and model selection before installation.
+If a Hermes home exists without `config.yaml`, the installer stops the complete
+preflight with a visible diagnostic instead of manufacturing an incomplete
+provider configuration.
+
+The shared command guard at `hooks/agent-command-guard.sh` speaks Hermes's
+`pre_tool_call` hook protocol. It prohibits `rm`, `sed`, `awk`, and direct
+`python` and `python3` interpreter commands without blocking project entry
+points such as `make test`.
 
 Claude's current personal skill and legacy command locations are documented in its official [skills guide](https://code.claude.com/docs/en/slash-commands). Current Codex configuration, command-rule, and personal-skill semantics are documented in the official [configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference.md), [rules guide](https://learn.chatgpt.com/docs/agent-configuration/rules.md), and [skills guide](https://learn.chatgpt.com/docs/build-skills). Copilot personal skill and instruction locations are documented in GitHub's official [skill guide](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-skills) and [custom-instruction guide](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-custom-instructions). Copilot and custom targets receive generic configuration recommendations until provider-specific permission changes are explicitly implemented and tested.
 
@@ -224,9 +230,8 @@ git pull
 ```
 
 Provider homes continue to see the previous live deployment after `git pull`.
-Re-run `make install` to review and accept the shared and provider deployment
-changes. Review provider-configuration recommendations separately with an
-explicit `bin/sdlc-install --agent <name>` invocation.
+Re-run `make install` to review and accept the shared, provider-adapter, and
+managed provider-configuration changes in one batch.
 
 ## Further Reading
 

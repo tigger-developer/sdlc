@@ -80,7 +80,8 @@ type managedSync struct {
 }
 
 type installationPlan struct {
-	syncs []managedSync
+	syncs          []managedSync
+	configurations []*configurationChange
 }
 
 func Run(options Options) error {
@@ -169,6 +170,11 @@ func RunInteractive(sourcePath, userHome string, input io.Reader, output io.Writ
 		}
 		plan.syncs = append(plan.syncs, provider.syncs...)
 	}
+	configurations, err := planDetectedConfigurations(source, userHome, agents)
+	if err != nil {
+		return err
+	}
+	plan.configurations = configurations
 
 	fmt.Fprintln(output, "SDLC installer: INTERACTIVE")
 	if len(agents) == 0 {
@@ -181,6 +187,9 @@ func RunInteractive(sourcePath, userHome string, input io.Reader, output io.Writ
 		return nil
 	}
 	printInstallationPlan(output, plan, false)
+	for _, change := range plan.configurations {
+		printConfigurationChange(output, change)
+	}
 	accepted, confirmErr := confirm(bufio.NewReader(input), output, "Deploy all listed SDLC changes? [yes/no]: ")
 	if confirmErr != nil {
 		return confirmErr
@@ -191,6 +200,11 @@ func RunInteractive(sourcePath, userHome string, input io.Reader, output io.Writ
 	}
 	if err := applyInstallation(plan, output); err != nil {
 		return err
+	}
+	for _, change := range plan.configurations {
+		if err := applyConfigurationChange(change, output); err != nil {
+			return err
+		}
 	}
 	verified, verifyErr := planDetectedInstallation(source, userHome, agents)
 	if verifyErr != nil {
@@ -221,7 +235,26 @@ func planDetectedInstallation(source, userHome string, agents []string) (install
 		}
 		plan.syncs = append(plan.syncs, provider.syncs...)
 	}
+	configurations, err := planDetectedConfigurations(source, userHome, agents)
+	if err != nil {
+		return installationPlan{}, err
+	}
+	plan.configurations = configurations
 	return plan, nil
+}
+
+func planDetectedConfigurations(source, userHome string, agents []string) ([]*configurationChange, error) {
+	var changes []*configurationChange
+	for _, agent := range agents {
+		change, err := analyseConfiguration(agent, filepath.Join(userHome, "."+agent), source, io.Discard)
+		if err != nil {
+			return nil, err
+		}
+		if change != nil {
+			changes = append(changes, change)
+		}
+	}
+	return changes, nil
 }
 
 func confirm(reader *bufio.Reader, output io.Writer, prompt string) (bool, error) {
@@ -251,6 +284,9 @@ func detectedAgents(userHome string) ([]string, error) {
 }
 
 func installationHasChanges(plan installationPlan) bool {
+	if len(plan.configurations) != 0 {
+		return true
+	}
 	for _, sync := range plan.syncs {
 		if sync.needsSync {
 			return true
@@ -1047,8 +1083,7 @@ func offerConfigurationChange(change *configurationChange, input io.Reader, outp
 		fmt.Fprintln(output, "Configuration: no automatic change is available for this target.")
 		return nil
 	}
-	fmt.Fprintf(output, "Proposed configuration change: %s\n", change.path)
-	fmt.Fprintf(output, "- before: %s\n+ after: %s\n", change.beforeLabel, change.afterLabel)
+	printConfigurationChange(output, change)
 	fmt.Fprint(output, "Apply this configuration change? Type yes to continue: ")
 	scanner := bufio.NewScanner(input)
 	if !scanner.Scan() {
@@ -1062,6 +1097,15 @@ func offerConfigurationChange(change *configurationChange, input io.Reader, outp
 		fmt.Fprintln(output, "Configuration unchanged.")
 		return nil
 	}
+	return applyConfigurationChange(change, output)
+}
+
+func printConfigurationChange(output io.Writer, change *configurationChange) {
+	fmt.Fprintf(output, "Proposed configuration change: %s\n", change.path)
+	fmt.Fprintf(output, "- before: %s\n+ after: %s\n", change.beforeLabel, change.afterLabel)
+}
+
+func applyConfigurationChange(change *configurationChange, output io.Writer) error {
 	backupPath, err := backupConfiguration(change.path)
 	if err != nil {
 		return err

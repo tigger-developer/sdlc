@@ -13,20 +13,20 @@ import (
 func analyseHermesConfiguration(agentHome, _ string, output io.Writer) (*configurationChange, error) {
 	path := filepath.Join(agentHome, "config.yaml")
 	current, err := os.ReadFile(path)
-	mode := os.FileMode(0o600)
-	if err != nil && !os.IsNotExist(err) {
+	if os.IsNotExist(err) {
+		return nil, fmt.Errorf("⚠️ Hermes first-run setup is incomplete. Launch Hermes, complete the startup TUI and model selection, then rerun make install. Expected configuration: %s", path)
+	}
+	if err != nil {
 		return nil, fmt.Errorf("reading Hermes configuration %s: %w", path, err)
 	}
-	if err == nil {
-		info, statErr := os.Lstat(path)
-		if statErr != nil {
-			return nil, fmt.Errorf("inspecting Hermes configuration %s: %w", path, statErr)
-		}
-		if !info.Mode().IsRegular() {
-			return nil, fmt.Errorf("Hermes configuration %s is not a regular file", path)
-		}
-		mode = info.Mode().Perm()
+	info, statErr := os.Lstat(path)
+	if statErr != nil {
+		return nil, fmt.Errorf("inspecting Hermes configuration %s: %w", path, statErr)
 	}
+	if !info.Mode().IsRegular() {
+		return nil, fmt.Errorf("Hermes configuration %s is not a regular file", path)
+	}
+	mode := info.Mode().Perm()
 	hookCommand := fmt.Sprintf("bash %q", filepath.Join(agentHome, "sdlc", "hooks", "agent-command-guard.sh"))
 	desired, changed, err := mergeHermesCommandGuardConfiguration(current, hookCommand)
 	if err != nil {

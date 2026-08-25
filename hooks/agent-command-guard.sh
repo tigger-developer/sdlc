@@ -168,6 +168,10 @@ if command_invokes_python "$command_text"; then
     block 'direct python and python3 interpreter commands are prohibited; use the task-appropriate tool or a project-owned entry point.'
 fi
 
+if [[ "$command_text" =~ (^|[[:space:];|&])(rm|sed|awk)([[:space:]]|$) ]]; then
+    block 'rm, sed, and awk are prohibited; use recoverable deletion, format-aware tools, or an explicit patch.'
+fi
+
 if [[ "$command_text" =~ (^|[[:space:]])--no-verify([[:space:]]|$) ]]; then
     block 'git hook bypass flags are prohibited; run the hooks or surface the failing hook.'
 fi
