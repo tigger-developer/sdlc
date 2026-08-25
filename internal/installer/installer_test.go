@@ -19,8 +19,12 @@ func newFixture(t *testing.T, providers ...string) fixture {
 	t.Helper()
 	root := t.TempDir()
 	f := fixture{root: root, source: filepath.Join(root, "staging", "sdlc")}
-	writeFile(t, filepath.Join(f.source, "MAIN.md"), []byte("# Main\n"))
+	writeFile(t, filepath.Join(f.source, "src", "MAIN.md"), []byte("# Main\n"))
+	writeFile(t, filepath.Join(f.source, "src", "guides", "nested.md"), []byte("# Nested\n"))
 	writeFile(t, filepath.Join(f.source, "README.md"), []byte("# Readme\n"))
+	writeFile(t, filepath.Join(f.source, "CHANGELOG.md"), []byte("# Changelog\n"))
+	writeFile(t, filepath.Join(f.source, "internal", "installer", "installer.go"), []byte("package installer\n"))
+	writeFile(t, filepath.Join(f.source, "go.mod"), []byte("module example.test/sdlc\n"))
 	writeFile(t, filepath.Join(f.source, "commands", "build.md"), []byte("# Build\n"))
 	writeFile(t, filepath.Join(f.source, "commands", "nested", "review.md"), []byte("# Review\n"))
 	writeFile(t, filepath.Join(f.source, "skills", "audit-code", "SKILL.md"), []byte("# Audit\n"))
@@ -54,7 +58,11 @@ func TestInteractiveInstallsOneCanonicalTreeAndProviderAdapters(t *testing.T) {
 
 	assertRegularTree(t, filepath.Join(f.root, ".agents", "sdlc"))
 	assertFile(t, filepath.Join(f.root, ".agents", "sdlc", "MAIN.md"), "# Main\n")
+	assertFile(t, filepath.Join(f.root, ".agents", "sdlc", "guides", "nested.md"), "# Nested\n")
 	assertAbsent(t, filepath.Join(f.root, ".agents", "sdlc", ".git"))
+	for _, relative := range []string{"src", "README.md", "CHANGELOG.md", "internal", "go.mod", "templates"} {
+		assertAbsent(t, filepath.Join(f.root, ".agents", "sdlc", relative))
+	}
 	for _, home := range []string{".claude", ".codex", ".copilot", ".hermes"} {
 		assertAbsent(t, filepath.Join(f.root, home, "sdlc"))
 	}
@@ -96,7 +104,7 @@ func TestInteractiveIgnoresTimestampOnlySourceChanges(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	mainPath := filepath.Join(f.source, "MAIN.md")
+	mainPath := filepath.Join(f.source, "src", "MAIN.md")
 	newTime := time.Now().Add(time.Minute)
 	if err := os.Chtimes(mainPath, newTime, newTime); err != nil {
 		t.Fatal(err)
@@ -117,7 +125,7 @@ func TestInteractiveDefaultOutputListsOnlyVariances(t *testing.T) {
 	if err := RunInteractive(f.source, f.root, strings.NewReader("yes\n"), &bytes.Buffer{}); err != nil {
 		t.Fatal(err)
 	}
-	writeFile(t, filepath.Join(f.source, "MAIN.md"), []byte("# Changed main\n"))
+	writeFile(t, filepath.Join(f.source, "src", "MAIN.md"), []byte("# Changed main\n"))
 
 	var output bytes.Buffer
 	if err := RunInteractive(f.source, f.root, strings.NewReader("no\n"), &output); err != nil {
@@ -125,6 +133,9 @@ func TestInteractiveDefaultOutputListsOnlyVariances(t *testing.T) {
 	}
 	if !strings.Contains(output.String(), "would back up drifted files and synchronize") {
 		t.Fatalf("default output omitted variance:\n%s", output.String())
+	}
+	if !strings.Contains(output.String(), filepath.Join(f.root, ".agents", "sdlc", "MAIN.md")) {
+		t.Fatalf("default output omitted the exact differing file:\n%s", output.String())
 	}
 	if strings.Contains(output.String(), "already matches") {
 		t.Fatalf("default output included matching destinations:\n%s", output.String())
@@ -138,7 +149,7 @@ func TestInteractiveVerboseOutputIncludesMatchingDestinations(t *testing.T) {
 	if err := RunInteractive(f.source, f.root, strings.NewReader("yes\n"), &bytes.Buffer{}); err != nil {
 		t.Fatal(err)
 	}
-	writeFile(t, filepath.Join(f.source, "MAIN.md"), []byte("# Changed main\n"))
+	writeFile(t, filepath.Join(f.source, "src", "MAIN.md"), []byte("# Changed main\n"))
 
 	var output bytes.Buffer
 	if err := RunInteractive(f.source, f.root, strings.NewReader("no\n"), &output); err != nil {
@@ -146,6 +157,24 @@ func TestInteractiveVerboseOutputIncludesMatchingDestinations(t *testing.T) {
 	}
 	if !strings.Contains(output.String(), "would back up drifted files and synchronize") || !strings.Contains(output.String(), "already matches") {
 		t.Fatalf("verbose output did not include variances and matching destinations:\n%s", output.String())
+	}
+}
+
+// RT-8.2
+func TestInteractiveIgnoresRepositoryOnlyChanges(t *testing.T) {
+	f := newFixture(t, "agents", "codex")
+	if err := RunInteractive(f.source, f.root, strings.NewReader("yes\n"), &bytes.Buffer{}); err != nil {
+		t.Fatal(err)
+	}
+	writeFile(t, filepath.Join(f.source, "README.md"), []byte("# Changed readme\n"))
+	writeFile(t, filepath.Join(f.source, "internal", "installer", "installer.go"), []byte("package changed\n"))
+
+	var output bytes.Buffer
+	if err := RunInteractive(f.source, f.root, strings.NewReader(""), &output); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(output.String(), "All detected SDLC copies are current") || strings.Contains(output.String(), "[yes/no]") {
+		t.Fatalf("repository-only changes created a deployment variance:\n%s", output.String())
 	}
 }
 
