@@ -7,23 +7,29 @@ adapter model.
 
 ### Detection and confirmation
 
-- `make install` detects only existing `~/.agents`, `~/.claude`, `~/.codex`,
-  `~/.copilot`, and `~/.hermes` directories.
+- `make install` creates the common `~/.agents` home when it is absent and
+  detects existing `~/.claude`, `~/.codex`, `~/.copilot`, and `~/.hermes`
+  provider homes.
 - It preflights every SDLC-owned destination before writing.
 - One `yes` applies the complete detected batch; one refusal writes nothing.
 - Explicit `--agent` mode limits provider deployment and retains deliberate
   `--apply` and `--configure` operations.
 
-### Copies
+### Canonical runtime and provider adapters
 
-- Each detected home receives an ordinary `sdlc/` directory copied from the
-  staging repository without `.git` metadata.
+- The canonical runtime exists only at `~/.agents/sdlc`; provider homes do not
+  receive alternate SDLC trees.
+- Files discovered recursively beneath `src/` deploy directly to the canonical
+  root. Files beneath `commands/`, `skills/`, and `hooks/` retain those
+  directory names.
+- README, changelog, learnings, project documentation, templates, installer
+  source, tests, and build metadata are not runtime deployment candidates.
 - Every top-level SDLC skill is discovered from `skills/` and recursively
   copied to each supported skill home.
 - Commands are copied to Claude `commands/` and Codex/Copilot
   `prompts-commands/`.
 - No SDLC-owned deployed destination is a symlink.
-- Rsync is never called with `--delete`; destination-only content survives.
+- Destination-only content survives deployment.
 
 ### Shared ownership
 
@@ -32,6 +38,8 @@ adapter model.
   canonical replacement is copied.
 - A failed backup stops replacement of that artefact.
 - The installer never claims an entire agent, skill, or command directory.
+- Deployment decisions are made per managed file. Repository-level changes
+  outside the runtime roots do not create deployment variances.
 - Hermes configuration changes own only the SDLC command-guard hook and
   preserve private instructions and unrelated configuration.
 - A repeated installation is idempotent and requires no confirmation.

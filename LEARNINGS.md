@@ -1,6 +1,6 @@
 # SDLC Design History and Learnings
 
-This document explains why the SDLC exists, how its structure emerged, and which observed failures produced its rules. It is design history, not installation guidance or a second copy of the normative process. Use [README.md](README.md) for installation, [MAIN.md](src/MAIN.md) for the current lifecycle, and [CHANGELOG.md](CHANGELOG.md) for repository-level changes.
+This document explains why the SDLC exists, how its structure emerged, and which observed failures produced its rules. It is design history, not installation guidance or a second copy of the normative process. Use [README.md](README.md) for installation, [the architecture guide](docs/ARCHITECTURE.md) for the current framework structure, [MAIN.md](src/MAIN.md) for the normative lifecycle, and [CHANGELOG.md](CHANGELOG.md) for repository-level changes.
 
 The framework began as a small set of coding instructions in a single `CLAUDE.md`. Over the last year or so, repeated use exposed failure modes that required explicit gates, testing standards, reference documents, commands, skills, provider adapters, and visible evidence that the right material had been read. The result was extracted from its Claude Code-specific predecessor into this standalone, provider-neutral repository.
 
@@ -92,25 +92,24 @@ Claude Code supplied the original implementation context. Codex and Copilot adap
 
 ## Current Architecture and Loading Model
 
-The current repository keeps the entry point and every routed standard at its root. Installation places that tree at the literal `~/.agents/sdlc` path, preventing path discovery and keeping the entry point distinct from the complete SDLC load.
+The public repository separates deployable runtime material from explanatory and implementation material. Files under `src/` become the root of the literal `~/.agents/sdlc` installation; `commands/`, `skills/`, and `hooks/` retain their directory names. Repository documentation, installer source, tests, templates, and build metadata remain outside the installed agent context.
 
 ```
-~/.agents/sdlc/
-  MAIN.md                  # Lifecycle entry point and reference router
-  ISSUES.md                # Issue and acceptance-criteria standards
-  TESTING.md               # Test design and evidence standards
-  CODING.md                # Cross-language coding standards
-  GIT.md                   # Source-control standards
-  DOCUMENTATION.md         # Documentation standards
-  SHELL.md ... WEB.md      # Language and domain standards
-  commands/                # Human-invoked workflow prompts
-  skills/                  # Drafting and advisory capabilities
-  hooks/                   # Optional provider-integrated command guard
-  templates/               # Provider configuration examples
-  cmd/sdlc-install/        # Installer and configuration analyser
+sdlc/                      ~/.agents/sdlc/
+  src/                       MAIN.md
+    MAIN.md                  ISSUES.md
+    ISSUES.md                TESTING.md
+    TESTING.md               other routed standards
+    other standards          commands/
+  commands/                  skills/
+  skills/                    hooks/
+  hooks/
+  docs/                    provider-native adapters
+  templates/                 supported commands and skills only
+  installer source
 ```
 
-Provider-level `AGENTS.md` or `CLAUDE.md` files remain outside this repository. They route the session, enforce personal or organizational safeguards, and direct applicable coding work to `~/.agents/sdlc/MAIN.md`. Project-level instruction files add only project-specific conventions.
+Provider-level instructions remain outside this repository. They may contain personal or organizational safeguards and direct applicable coding work to `~/.agents/sdlc/MAIN.md`, but the public SDLC cannot assume that any particular private configuration exists. Project-level instruction files add only project-specific conventions.
 
 The loading model separates session routing, process, and craft:
 
@@ -118,6 +117,7 @@ The loading model separates session routing, process, and craft:
 - **Process** lives in `MAIN.md`: operating modes, authorization gates, lifecycle steps, failure modes, and reference routing.
 - **Craft** lives in the selected root-level standards. Only documents relevant to the current task are read.
 - **Installation** lives in `README.md` and `sdlc-install`, not in this history.
+- **Architecture** is documented for public users in `docs/ARCHITECTURE.md`, rather than depending on knowledge of the private repository from which the framework originated.
 
 | Document | When loaded |
 |---|---|
@@ -125,6 +125,14 @@ The loading model separates session routing, process, and craft:
 | `MAIN.md` | For applicable coding, configuration, build, test, deployment, or systems work |
 | Root-level references | When selected by the routing table in `MAIN.md` |
 | Project instructions and documentation | When working in that project |
+
+The standalone architecture guide was added after the public extraction made a
+hidden assumption visible: the maintainer knew how the private provider layer,
+public lifecycle, installed tree, and project instructions fitted together,
+but a new user saw only installation commands and normative prompt text. A
+public framework must explain its own boundaries and topology without relying
+on private context. Keeping that explanation outside the runtime documents
+also avoids charging every coding interaction for maintainer-oriented context.
 
 Each SDLC document carries a canary suffix. The complete chain, when every reference is selected, is:
 

@@ -2,7 +2,7 @@
 
 An opinionated, issue-driven software development lifecycle for a human working with AI coding agents. The repository is the staging source for process rules, craft standards, workflow commands, and skills. The deployed `~/.agents/sdlc` tree is the canonical live version. Provider configuration remains in the provider's own home directory.
 
-The framework began with Claude Code and now separates the durable SDLC from personal `AGENTS.md` and `CLAUDE.md` files. [LEARNINGS.md](LEARNINGS.md) preserves the failures, design reasoning, and accumulated guidance that produced the current rules.
+The framework began with Claude Code and now separates the durable public SDLC from every user's personal and provider-specific instructions. It has no dependency on the author's private agent configuration. [The architecture guide](docs/ARCHITECTURE.md) explains how the framework is assembled and loaded. [LEARNINGS.md](LEARNINGS.md) preserves the failures, design reasoning, and accumulated guidance that produced the current rules.
 
 ## Repository Layout
 
@@ -11,6 +11,7 @@ The framework began with Claude Code and now separates the durable SDLC from per
 | `src/` | Deployable SDLC entry point, process rules, and routed standards |
 | `CHANGELOG.md` | High-level repository history from the public extraction onward |
 | `LEARNINGS.md` | Design rationale, observed failures, and framework evolution |
+| `docs/ARCHITECTURE.md` | Public framework boundaries, components, loading model, and extension points |
 | `commands/` | Human-invoked workflow prompts, including gate-adjacent commands |
 | `skills/` | Advisory and drafting skills |
 | `hooks/` | Optional command guard used by supported provider configuration |
@@ -101,7 +102,23 @@ mkdir -p ~/.agents/sdlc
 ```
 
 ```bash
-rsync -a --exclude=/.git/ ~/code/sdlc/ ~/.agents/sdlc/
+rsync -a ~/code/sdlc/src/ ~/.agents/sdlc/
+```
+
+Synchronize the remaining runtime sources independently so repository
+documentation, installer source, templates, tests, and build metadata do not
+enter the live agent context:
+
+```bash
+rsync -a ~/code/sdlc/commands/ ~/.agents/sdlc/commands/
+```
+
+```bash
+rsync -a ~/code/sdlc/skills/ ~/.agents/sdlc/skills/
+```
+
+```bash
+rsync -a ~/code/sdlc/hooks/ ~/.agents/sdlc/hooks/
 ```
 
 Do not create provider-local SDLC copies. The automated installer also copies
@@ -117,7 +134,7 @@ Common destinations are:
 | Agent | Provider-level instructions | SDLC location |
 |---|---|---|
 | Claude Code | `~/.claude/CLAUDE.md` | `~/.agents/sdlc` |
-| Codex | `~/.agents/AGENTS.md` | `~/.agents/sdlc` |
+| Codex | `~/.codex/AGENTS.md` | `~/.agents/sdlc` |
 | Hermes | Private configuration outside this project | `~/.agents/sdlc` |
 | Copilot or another agent | Provider-specific instruction file | `~/.agents/sdlc` |
 
@@ -244,6 +261,7 @@ managed provider-configuration changes in one batch.
 
 ## Further Reading
 
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) explains the public framework boundary, repository and installed layouts, loading model, lifecycle, installer ownership, and extension points.
 - [CHANGELOG.md](CHANGELOG.md) records the public repository's high-level history.
 - [LEARNINGS.md](LEARNINGS.md) explains why the framework is structured this way and records the failures behind the rules.
 - [src/MAIN.md](src/MAIN.md) is normative for the SDLC process and deploys as `~/.agents/sdlc/MAIN.md`.

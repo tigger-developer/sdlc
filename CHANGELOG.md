@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+Added a self-contained public architecture guide covering the framework
+boundary, repository and installed layouts, progressive loading, delivery
+lifecycle, commands and skills, installer ownership, and extension points.
+Updated the README and design learnings so users need no knowledge of the
+author's private agent configuration to understand or adopt the SDLC.
+
 Separated agent-runtime instructions from repository content under `src/` and
 made installation discover deployable files recursively from convention-based
 runtime directories. Deployment decisions and default output are now per file;
