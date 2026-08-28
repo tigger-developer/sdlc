@@ -735,6 +735,21 @@ principles and one authority and ownership hierarchy. The controlling test is:
 "Would changing this require amending the constitution?" Importance alone does
 not make project behaviour constitutional.
 
+A second clean trial showed that the first filter overcorrected. The delivery
+agent produced no project-specific principles because privacy, moderation,
+workflow, accessibility, technology, migration, and testing were already
+covered by authoritative project documents. This treated supporting evidence
+as prohibited duplication and excluded durable invariants along with their
+lower-level detail.
+
+The invocation now distinguishes constitutional elevation from duplication. A
+principle may express a concise project-wide invariant supported by authoritative
+documentation, while its detailed requirements, mechanisms, examples, and
+procedures remain in that documentation. Zero principles remain valid only when
+no evidenced invariant would require a constitutional amendment to change. The
+mere existence of an invariant in another authoritative document is not a
+reason to omit it.
+
 ## Remaining pilot work
 
 - Review the corrected constitution and its source mapping.

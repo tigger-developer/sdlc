@@ -25,7 +25,9 @@ Tightened the project initializer's constitution invocation after a clean
 brownfield trial still promoted feature requirements and detailed design into
 project governance. The delivery prompt now applies explicit inclusion and
 exclusion tests, limits project-specific principles, and requires one concise
-authority hierarchy.
+authority hierarchy. A second trial clarified that authoritative project
+documentation may support a constitutional invariant without its detailed
+requirements being copied into the constitution.
 
 Moved technology standards under `src/technologies/` for automatic discovery.
 The installer now backs up and retires the former root-level copies and obsolete
