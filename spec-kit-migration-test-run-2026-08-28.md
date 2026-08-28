@@ -605,6 +605,29 @@ verified during coaching included:
 
 The constitution remains a draft until the operator explicitly ratifies it.
 
+### Shared standards path ambiguity
+
+A later constitution-revision prompt incorrectly listed `ISSUES.md` among the
+Writeback sources. The delivery agent established that no such project-local
+file existed, checked the exact path and repository history, and stopped for
+clarification. The intended source was the shared standards document at
+`~/.agents/sdlc/ISSUES.md`, which had already been selected for the Engineering
+Standards Profile.
+
+The corrected continuation was:
+
+```text
+Correction: `ISSUES.md` refers to the canonical SDLC standards document at `~/.agents/sdlc/ISSUES.md`, not a file in the Writeback repository.
+
+Read `~/.agents/sdlc/ISSUES.md` in full. Do not continue searching Writeback for another issue file. Then continue the original constitution revision, validation and constitution-only commit.
+```
+
+Reusable migration prompts must distinguish project-relative sources from
+shared standards. Every shared SDLC source must use its full canonical path,
+including the `~/.agents/sdlc/` prefix. Conventional project sources that have
+not been confirmed to exist must be identified as optional so their absence is
+recorded without becoming an unintended blocker.
+
 ## Trial observations to carry forward
 
 | Stage | Observation | Candidate improvement |
@@ -616,6 +639,7 @@ The constitution remains a draft until the operator explicitly ratifies it.
 | Initialization | The `sh` selector installs Bash scripts. | Explain the selector accurately. |
 | Preset resolution | Agent-time composition requires ambient Python and PyYAML. | Remove or provision the undeclared dependency. |
 | Constitution | Brownfield traceability instructions were omitted from the first draft and added after an explicit correction. | Strengthen the preset or constitution prompt using trial evidence. |
+| Constitution | An unqualified `ISSUES.md` reference was interpreted as project-local and stopped the revision. | Use full canonical paths for every shared SDLC source and distinguish required from optional project sources. |
 | Standards profile | Installed copies do not expose their source revision. | Deploy a release or revision marker. |
 
 ## Remaining pilot work
