@@ -750,6 +750,27 @@ no evidenced invariant would require a constitutional amendment to change. The
 mere existence of an invariant in another authoritative document is not a
 reason to omit it.
 
+A third clean trial produced the first concise candidate worth retaining: four
+project-wide principles covering purpose-limited stewardship, participant
+authorship, server-side authority, and platform independence. The generated
+baseline and audit requirements remained intact, while feature requirements and
+detailed mechanisms stayed in their owning documents.
+
+The trial also exposed two reusable governance gaps. Its generic authority
+hierarchy placed undifferentiated project documentation above approved feature
+specifications, allowing stale narrative documentation to obstruct a deliberate
+specification change. Its Governance section did not name the human amendment
+authority, define version transitions, state the deviation status, or require a
+compliance report. It also described ratification as the sole blocker while an
+SDLC-revision TODO remained.
+
+The initializer prompt now requires a concern-specific hierarchy for governance,
+product purpose, specifications, design, operational and evidence documents,
+implementation evidence, and external contracts. It also requires explicit
+human ratification and amendment authority, pre-ratification and
+post-ratification version rules, deviation status, compliance-review duties, and
+an exhaustive blocker list.
+
 ## Remaining pilot work
 
 - Review the corrected constitution and its source mapping.

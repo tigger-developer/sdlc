@@ -172,6 +172,13 @@ func TestLaunchConstitutionRequiresProjectWideFiltering(t *testing.T) {
 		"Add up to four concise project-specific principles",
 		"Zero is valid only when no evidenced project-wide invariant",
 		"not, by itself, a reason to omit it",
+		"Make the authority hierarchy concern-specific",
+		"Approved feature specifications govern observable behaviour",
+		"Code and tests record implemented state and evidence",
+		"Do not place undifferentiated project documentation above approved specifications",
+		"The Governance section must name the human ratification and amendment authority",
+		"Use a pre-1.0 version for an unratified draft",
+		"List every unresolved ratification blocker",
 		"Would changing this require amending the constitution?",
 		"Produce only `.specify/memory/constitution.md`",
 	} {

@@ -27,7 +27,9 @@ project governance. The delivery prompt now applies explicit inclusion and
 exclusion tests, limits project-specific principles, and requires one concise
 authority hierarchy. A second trial clarified that authoritative project
 documentation may support a constitutional invariant without its detailed
-requirements being copied into the constitution.
+requirements being copied into the constitution. A third trial added
+concern-specific source authority, explicit human governance, versioning,
+deviation, compliance-review, and exhaustive-blocker requirements.
 
 Moved technology standards under `src/technologies/` for automatic discovery.
 The installer now backs up and retires the former root-level copies and obsolete
