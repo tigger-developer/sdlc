@@ -21,6 +21,12 @@ path. The resolver now returns the generated baseline before parsing preset
 manifests, avoiding an otherwise unnecessary ambient PyYAML dependency during
 constitution creation.
 
+Tightened the project initializer's constitution invocation after a clean
+brownfield trial still promoted feature requirements and detailed design into
+project governance. The delivery prompt now applies explicit inclusion and
+exclusion tests, limits project-specific principles, and requires one concise
+authority hierarchy.
+
 Moved technology standards under `src/technologies/` for automatic discovery.
 The installer now backs up and retires the former root-level copies and obsolete
 constitution addendum while preserving unrelated destination-only material.

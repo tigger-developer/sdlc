@@ -704,6 +704,37 @@ without preset composition. The initializer was corrected to use that supported
 override path. This removes PyYAML from the constitution route and preserves
 Spec Kit's core template as an upstream-owned fallback.
 
+### Clean constitution generation comparison
+
+The first consolidation retained useful project findings from an archived
+constitution, raising the possibility that the archive had caused the agent to
+promote feature and design material into the constitution. A clean trial removed
+both the active constitution and the archive before invoking the generated
+baseline again.
+
+The clean run did not correct the problem. It produced a 180-line constitution,
+compared with the 112-line consolidated candidate, and reintroduced concrete
+circulation rules, actor permissions, document-conversion behaviour, state
+transitions, database-migration mechanics, and detailed ownership lists. The
+archive was therefore not the primary cause. The initializer's instruction to
+add "durable project-specific principles" did not give the delivery agent a
+precise enough test for constitutional content.
+
+The initializer invocation now defines constitution generation as a filtering
+exercise rather than a project-documentation summary. A project-specific clause
+qualifies only when it applies across unrelated features, is expected to remain
+stable for years, requires constitutional approval to change, defines
+project-wide authority or policy, and does not duplicate an authoritative
+project document. The prompt explicitly excludes requirements, acceptance
+criteria, workflows, permissions, state transitions, migrations, commands,
+test gates, validation procedures, detailed architecture, operational
+mechanisms, historical examples, and unresolved feature or design questions.
+
+The generated constitution is limited to four concise project-specific
+principles and one authority and ownership hierarchy. The controlling test is:
+"Would changing this require amending the constitution?" Importance alone does
+not make project behaviour constitutional.
+
 ## Remaining pilot work
 
 - Review the corrected constitution and its source mapping.

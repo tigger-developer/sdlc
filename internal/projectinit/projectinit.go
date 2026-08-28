@@ -642,7 +642,7 @@ func validateProviderModelPairs(config resolvedConfig) error {
 }
 
 func launchConstitution(config resolvedConfig, projectRoot, templatePath string, options Options) error {
-	prompt := "$speckit-constitution\n\nUse the generated constitution template at `" + templatePath + "` as an immutable baseline. Read the project documentation, add durable project-specific principles and ownership boundaries, record explicit deviations, and leave unresolved matters explicit. Do not remove or weaken generated clauses. Produce only the constitution."
+	prompt := constitutionPrompt(templatePath)
 	harness := strings.ToLower(config.Harness)
 	var arguments []string
 	switch harness {
@@ -666,6 +666,44 @@ func launchConstitution(config resolvedConfig, projectRoot, templatePath string,
 		}
 	}
 	return options.RunCommand(harness, arguments, projectRoot, options.Input, options.Output, options.ErrorOutput)
+}
+
+func constitutionPrompt(templatePath string) string {
+	return strings.Join([]string{
+		"$speckit-constitution",
+		"",
+		"Create an unratified project constitution using the generated template at `" + templatePath + "` as an immutable baseline.",
+		"",
+		"This is a filtering exercise, not a summary of the project documentation. Read the project documentation as evidence, but do not restate its important requirements.",
+		"",
+		"Include a project-specific clause only when all of these are true:",
+		"",
+		"1. It applies across unrelated future features.",
+		"2. It is expected to remain stable for years.",
+		"3. Changing it would require a constitutional decision, not merely an approved feature specification or technical design.",
+		"4. It defines project-wide authority, ownership, policy, or an invariant.",
+		"5. It does not duplicate an authoritative project document.",
+		"",
+		"Exclude:",
+		"",
+		"- feature requirements and acceptance criteria;",
+		"- user journeys, actor permissions, approval sequences, and state transitions;",
+		"- migration algorithms, schema procedures, commands, test gates, and validation procedures;",
+		"- detailed architecture, component responsibilities, interfaces, and operational mechanisms; and",
+		"- historical examples and unresolved feature or design questions.",
+		"",
+		"Important behaviour may remain solely in its authoritative specification, architecture, testing, operational, or user documentation. Importance alone does not make it constitutional.",
+		"",
+		"Add no more than four concise project-specific principles. Use one concise authority and ownership hierarchy. Record only explicit standards deviations and genuine ratification blockers. Do not repeat or expand the generated baseline.",
+		"",
+		"Before writing, test every proposed clause against this question:",
+		"",
+		"Would changing this require amending the constitution?",
+		"",
+		"If not, omit it.",
+		"",
+		"Produce only `.specify/memory/constitution.md`.",
+	}, "\n")
 }
 
 func runCommand(name string, arguments []string, directory string, input io.Reader, output, errorOutput io.Writer) error {

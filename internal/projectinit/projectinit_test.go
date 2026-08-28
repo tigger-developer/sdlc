@@ -139,6 +139,44 @@ func TestRunIsIdempotentAndDoesNotRelaunch(t *testing.T) {
 	}
 }
 
+func TestLaunchConstitutionRequiresProjectWideFiltering(t *testing.T) {
+	var command string
+	var arguments []string
+	var directory string
+	runner := func(name string, gotArguments []string, gotDirectory string, _ io.Reader, _, _ io.Writer) error {
+		command = name
+		arguments = append([]string(nil), gotArguments...)
+		directory = gotDirectory
+		return nil
+	}
+	templatePath := filepath.Join("project", ".specify", "templates", "overrides", "constitution-template.md")
+	projectRoot := filepath.Join("project")
+	options := Options{RunCommand: runner, Input: strings.NewReader(""), Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{}}
+	if err := launchConstitution(resolvedConfig{Harness: "codex"}, projectRoot, templatePath, options); err != nil {
+		t.Fatal(err)
+	}
+	if command != "codex" || directory != projectRoot || len(arguments) != 1 {
+		t.Fatalf("constitution launch = command %q, arguments %#v, directory %q", command, arguments, directory)
+	}
+	prompt := arguments[0]
+	for _, required := range []string{
+		"`" + templatePath + "` as an immutable baseline",
+		"This is a filtering exercise, not a summary",
+		"It applies across unrelated future features",
+		"Changing it would require a constitutional decision",
+		"feature requirements and acceptance criteria",
+		"migration algorithms, schema procedures, commands, test gates",
+		"Importance alone does not make it constitutional",
+		"Add no more than four concise project-specific principles",
+		"Would changing this require amending the constitution?",
+		"Produce only `.specify/memory/constitution.md`",
+	} {
+		if !strings.Contains(prompt, required) {
+			t.Errorf("constitution launch prompt omitted %q:\n%s", required, prompt)
+		}
+	}
+}
+
 func TestWriteManagedEnvPreservesUnmanagedValuesAndGitignore(t *testing.T) {
 	directory := t.TempDir()
 	envPath := filepath.Join(directory, ".env")
