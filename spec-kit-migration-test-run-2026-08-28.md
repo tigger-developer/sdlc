@@ -642,6 +642,53 @@ recorded without becoming an unintended blocker.
 | Constitution | An unqualified `ISSUES.md` reference was interpreted as project-local and stopped the revision. | Use full canonical paths for every shared SDLC source and distinguish required from optional project sources. |
 | Standards profile | Installed copies do not expose their source revision. | Deploy a release or revision marker. |
 
+## Deterministic constitution and audit prototype
+
+Review of the first Writeback constitution showed that a generic Spec Kit
+scaffold plus a short standards addendum could produce a long constitution
+while still omitting concrete coding standards, anti-pattern protection, and
+independent audits. The next prototype therefore divides project setup into two
+stages:
+
+1. `sdlc-project-init` deterministically discovers and selects the shared
+   standards, renders the immutable constitution baseline, and records optional
+   external infrastructure ownership.
+2. The selected Codex, Claude, or Hermes harness invokes
+   `speckit.constitution` to add only durable project-specific principles and
+   ownership boundaries supported by project evidence.
+
+Technology documents move to `~/.agents/sdlc/technologies/`, allowing the
+initializer to build its prompt from the directory rather than a hard-coded
+list. Universal specification, coding, testing, documentation, and Git
+standards always apply. Detailed standards are referenced, not copied into the
+constitution.
+
+The prototype records selections in a project `.env` ignored by Git. Runtime
+configuration distinguishes the delivery provider/model from the independent
+audit provider/model and permits project values to override user defaults.
+External infrastructure ownership is optional and generic; no private fleet or
+contract is embedded in the public repository.
+
+The audit sequence is:
+
+1. `audit-spec` PASS before planning;
+2. `audit-design` PASS before test design and tasks;
+3. `audit-tests` PASS before implementation; and
+4. `audit-code` PASS before completion or convergence.
+
+Every audit runs in a fresh context, is findings-only, identifies the provider
+and model used, and emits a machine-checkable PASS or FAIL verdict. Any finding,
+missing or malformed verdict, or later artefact change invalidates PASS. The
+active feature retains the receipt in `audits.md`; `speckit-analyze` remains a
+cross-artefact consistency check rather than an independent audit.
+
+The first `audit-design` uses a portable architecture-review core: requirement
+traceability; component, data, trust, deployment, and ownership boundaries;
+failure and recovery scenarios; security and privacy; migration and rollback;
+dependency and complexity trade-offs; operability; observability; and
+testability. Selected technology standards customize that review without
+duplicating their content in the skill.
+
 ## Remaining pilot work
 
 - Review the corrected constitution and its source mapping.

@@ -1,6 +1,9 @@
 ---
 name: audit-tests
 description: Challenge test specifications for coverage gaps, gaming opportunities, and integration risks. Advisory only; no file changes.
+metadata:
+  preferred_provider: openai-codex
+  preferred_model: gpt-5.6-luna
 ---
 
 The canonical SDLC root is exactly `~/.agents/sdlc`. Never search the
@@ -26,7 +29,27 @@ Check:
 - every identifier in the report has an adjacent descriptor.
 
 For each finding, state the requirement and test with descriptors, the risk, and
-the smallest useful correction. Do not write tests, modify files, or approve the
-test design.
+the smallest useful correction. Do not write tests or modify files.
 
-End with either `NO FINDINGS` or a numbered findings list ordered by severity.
+Run in a fresh context that did not author the test design. End with exactly:
+
+```text
+AUDIT: audit-tests
+AUDITOR_PROVIDER: <provider used for this audit>
+AUDITOR_MODEL: <model used for this audit>
+VERDICT: PASS
+```
+
+or, when any finding exists:
+
+```text
+AUDIT: audit-tests
+AUDITOR_PROVIDER: <provider used for this audit>
+AUDITOR_MODEL: <model used for this audit>
+VERDICT: FAIL
+
+1. <finding ordered by severity>
+```
+
+Any finding requires `FAIL`. Do not modify the artefact or mark your own
+finding resolved. A changed artefact requires a fresh audit.

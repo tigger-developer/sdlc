@@ -1,10 +1,12 @@
 .PHONY: build test lint install install-cli uninstall
 
 INSTALLER ?= bin/sdlc-install
+PROJECT_INITIALIZER ?= bin/sdlc-project-init
 INSTALL_FLAGS ?=
 
 build:
-	go build -o bin/sdlc-install ./cmd/sdlc-install
+	go build -o $(INSTALLER) ./cmd/sdlc-install
+	go build -o $(PROJECT_INITIALIZER) ./cmd/sdlc-project-init
 
 test: lint
 	go test ./...
@@ -20,7 +22,9 @@ install: build
 
 install-cli: build
 	mkdir -p "$(HOME)/.local/bin"
-	ln -s "$(CURDIR)/bin/sdlc-install" "$(HOME)/.local/bin/sdlc-install"
+	ln -sfn "$(CURDIR)/$(INSTALLER)" "$(HOME)/.local/bin/sdlc-install"
+	ln -sfn "$(CURDIR)/$(PROJECT_INITIALIZER)" "$(HOME)/.local/bin/sdlc-project-init"
 
 uninstall:
 	trash "$(HOME)/.local/bin/sdlc-install"
+	trash "$(HOME)/.local/bin/sdlc-project-init"

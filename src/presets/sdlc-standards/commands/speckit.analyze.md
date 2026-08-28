@@ -10,3 +10,7 @@ Read `~/.agents/sdlc/MAIN.md`,
 tasks agree; every material decision is defined at the correct layer; compound
 requirements have complete evidence; and no test can pass by inspecting only
 source or prose. Give every cited identifier an adjacent descriptor.
+
+This consistency analysis does not replace `audit-spec`, `audit-design`,
+`audit-tests`, or `audit-code`. Any change made after an audit invalidates that
+artefact's PASS and requires a fresh independent audit.

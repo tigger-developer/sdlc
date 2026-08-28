@@ -28,9 +28,10 @@ adapter model.
 - A branch that contains the optional legacy `commands/` source copies its
   commands to Claude `commands/` and Codex/Copilot `prompts-commands/`.
 - No SDLC-owned deployed destination is a symlink.
-- The seven retired workflow commands and four retired drafting or design skills
-  are backed up and removed from active discovery when their source paths are
-  absent.
+- The seven retired workflow commands, retired drafting or design skills,
+  `audit-acs`, root-level technology documents, and obsolete constitution
+  addendum are backed up and removed from active discovery when their source
+  paths are absent.
 - All other destination-only content survives deployment.
 
 ### Shared ownership
@@ -47,3 +48,33 @@ adapter model.
 - Hermes configuration changes own only the SDLC command-guard hook and
   preserve private instructions and unrelated configuration.
 - A repeated installation is idempotent and requires no confirmation.
+
+## Spec Kit project initialization
+
+- The project initializer discovers Markdown technology standards
+  alphabetically from `~/.agents/sdlc/technologies/` without a hard-coded
+  technology list.
+- Universal specification, coding, testing, documentation, Git, and entry-point
+  standards are included exactly once.
+- CLI values override project `.env` values, which override user SDLC defaults.
+- External infrastructure ownership is optional and, when selected, records an
+  owner descriptor and integration-contract path without assuming a private
+  infrastructure project.
+- Rendering is deterministic. When the rendered baseline and selections are
+  current, the initializer asks nothing, writes nothing, and launches no agent.
+- A changed baseline is written atomically before the selected Codex, Claude,
+  or Hermes harness receives the constitution-only semantic prompt.
+
+## Independent audit contract
+
+- `audit-spec`, `audit-design`, `audit-tests`, and `audit-code` run in contexts
+  independent of the artefact author and never modify the judged artefact.
+- Every report names the audit, auditor provider, auditor model, and exact PASS
+  or FAIL verdict. Any finding requires FAIL.
+- Missing or malformed headers, PASS with findings, and FAIL without numbered
+  findings are rejected.
+- Specification PASS precedes planning; design PASS precedes tests and tasks;
+  test PASS precedes implementation; code PASS precedes completion or
+  convergence.
+- A change to an audited artefact invalidates its PASS and requires a fresh
+  audit whose receipt supersedes the previous result.

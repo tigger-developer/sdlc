@@ -5,15 +5,33 @@
 Reworked the `spec-kit-prototype` branch as a standards-only companion to
 GitHub Spec Kit. The deployed SDLC now retains universal, specification,
 testing, coding, Git, documentation, language, and domain standards while
-removing SDLC-owned modes, gates, approval keywords, ticket lifecycle, audit
-sequencing, and build or review orchestration.
+removing SDLC-owned modes, approval keywords, ticket lifecycle, and build or
+review orchestration.
+
+Added `sdlc-project-init`, a cross-platform deterministic initializer for Spec
+Kit projects. It discovers technology standards, resolves CLI, project, and
+user configuration, renders a fixed constitution baseline, supports an optional
+external infrastructure contract, no-ops without prompting when current, and
+then invokes Codex, Claude, or Hermes for project-specific constitution text.
+Project configuration includes separate delivery and audit provider/model
+values.
+
+Moved technology standards under `src/technologies/` for automatic discovery.
+The installer now backs up and retires the former root-level copies and obsolete
+constitution addendum while preserving unrelated destination-only material.
+
+Renamed `audit-acs` to `audit-spec`, added a scenario- and trade-off-based
+`audit-design`, and standardized all four audits on fresh-context,
+findings-only, machine-checkable PASS or FAIL verdicts that identify the auditor
+provider and model. Added a fail-closed Go verdict parser. Spec Kit command
+fragments now require a current independent PASS before the next delivery stage.
 
 Added the deployable `sdlc-standards` Spec Kit preset. It composes progressive
 standards loading into Spec Kit's constitution, specification, clarification,
 planning, task, analysis, checklist, implementation, convergence, and
 task-to-issue commands without duplicating the standards or replacing Spec
-Kit's core workflow. The generated constitution records a project-specific
-Engineering Standards Profile.
+Kit's core workflow. The generated constitution references a project-specific
+standards selection.
 
 Reframed `ISSUES.md` as provider-neutral specification standards, simplified
 testing and Git terminology, retained findings-only audit and advisory skills,
@@ -27,7 +45,7 @@ same-message request becomes a temporary specification without restoring SDLC
 modes, approval gates, ticketing, or audit orchestration.
 
 Added bounded, recoverable installer cleanup for the seven retired SDLC command
-files and four retired drafting or design skills. Active legacy paths in the
+files and retired drafting, design, and audit skills. Active legacy paths in the
 canonical tree, common skill directory, and supported provider adapters are
 renamed to adjacent `<path>.<epoch>.bak` backups. All other destination-only
 files remain untouched, and repeated installation returns to the no-prompt

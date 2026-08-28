@@ -4,28 +4,32 @@ This preset composes the public SDLC standards into Spec Kit 1.0 or later. It
 does not replace Spec Kit's specification, planning, task, analysis, or
 implementation workflow.
 
-Install this repository with `make install`, then add the prototype from an
-initialized Spec Kit project:
+Install this repository with `make install` and `make install-cli`, then run
+the project initializer from the adopting project:
 
 ```bash
-specify preset add --dev ~/.agents/sdlc/presets/sdlc-standards
+sdlc-project-init
 ```
 
-Inspect the composed constitution template:
+It installs this preset, discovers applicable technology standards, renders the
+complete constitution baseline, and invokes the selected agent harness. Inspect
+or render without launching an agent with:
 
 ```bash
-specify preset resolve constitution-template
+sdlc-project-init --no-launch
 ```
 
-Then invoke the active agent integration's `speckit.constitution` command once.
-The agent selects the applicable standards and records a concise Engineering
-Standards Profile in `.specify/memory/constitution.md`. Existing constitutions
-are not rewritten merely because the preset was installed.
+The generated baseline is immutable to the semantic constitution pass. The
+agent adds only durable project-specific principles, ownership boundaries, and
+explicit deviations. A current rerun writes nothing, asks nothing, and does not
+invoke an agent.
 
 The command fragments reference the canonical installed root
 `~/.agents/sdlc`. No command may search for an alternative SDLC root.
 
-Remove the development preset with:
+The command fragments require independent `audit-spec`, `audit-design`,
+`audit-tests`, and `audit-code` PASS verdicts between stages. Remove the
+development preset with:
 
 ```bash
 specify preset remove sdlc-standards

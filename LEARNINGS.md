@@ -7,7 +7,8 @@ and how its harder rules were derived. Normative requirements live under
 ## Separate standards from orchestration
 
 The original framework combined engineering standards with delivery modes,
-approval gates, ticket structure, audit sequencing, and closure ceremonies.
+approval gates, ticket structure, bespoke audit sequencing, and closure
+ceremonies.
 That supplied discipline, but it also made every coding session load a large
 instruction set before the task's actual context.
 
@@ -21,7 +22,8 @@ particular, owns a coherent sequence and durable artefacts:
 
 Reimplementing those concerns in this SDLC would create competing authorities.
 The standards-only model keeps the hard-won engineering rules and lets Spec Kit
-own its workflow.
+own its workflow. The four independent audits are evidence preconditions on
+Spec Kit's existing stages, not a second delivery lifecycle.
 
 ## Load less to follow more
 
@@ -69,21 +71,24 @@ A generic global constitution either becomes another large prompt or fails to
 capture the project stack. A fully bespoke constitution per repository creates
 manual work and drift.
 
-The preset therefore has an agent build a concise Engineering Standards Profile
-from verified project evidence. The profile lists:
+The initializer therefore renders the stable constitutional base before an
+agent sees it. The generated template lists:
 
 - the universal standards;
-- the language and domain documents that apply;
+- the selected technology documents;
+- an optional external infrastructure owner and contract;
+- the independent audit transitions;
 - project-specific additions and explicit deviations; and
-- the source revision adopted.
+- bounded placeholders for evidence-derived project principles.
 
-The full standards are referenced, not copied. Rerunning the constitution
-command is a deliberate way to update the selection when the project changes.
+The full standards are referenced, not copied. The agent may add supported
+project facts but cannot remove or weaken the generated base. A current rerun
+asks nothing, writes nothing, and does not relaunch an agent.
 
 ## Audit skills remain independent
 
 Spec Kit analysis checks consistency among its artefacts. That is useful but is
-not the same as an adversarial review of requirements, tests, or code.
+not the same as an adversarial review of specification, design, tests, or code.
 
 The audit skills remain findings-only. They:
 
@@ -91,10 +96,11 @@ The audit skills remain findings-only. They:
 - cite evidence and the applicable requirement or standard;
 - recommend a concrete correction;
 - do not modify the thing they judge; and
-- do not declare approval.
+- emit a machine-checkable PASS or FAIL verdict identifying provider and model.
 
-This avoids self-review while keeping audit invocation independent of any one
-delivery lifecycle.
+Each audit runs in a fresh context. A finding, malformed result, or later change
+invalidates PASS. This avoids self-review while keeping detailed standards in
+one place.
 
 ## Behaviour is not source text
 
@@ -184,6 +190,29 @@ retire a previously deployed path safely. The prototype uses a finite list of
 the commands and drafting skills removed by this migration. Each active legacy
 path is renamed to an adjacent backup; no generalized destination deletion or
 ownership inference is introduced.
+
+## Generate the invariant and ask an agent for the evidence
+
+A generic constitution scaffold asks an agent to invent both universal
+engineering discipline and project-specific principles in one pass. The result
+can be lengthy while still omitting coding standards, ownership boundaries, or
+independent review.
+
+The initializer therefore renders the invariant parts deterministically:
+universal standards, selected technology standards, external infrastructure
+ownership, and the four audit transitions. The agent receives that baseline
+only to add durable facts supported by project evidence. Detailed shared
+standards remain references rather than copied text, so there is one source of
+truth and less prompt dilution.
+
+The design audit uses a lightweight scenario and trade-off review. It challenges
+the design's traceability, boundaries, failure and recovery behaviour, quality
+trade-offs, security, migration, operability, and testability without imposing
+one architecture method or technology stack. Its portable core draws on
+[ISO/IEC/IEEE 42010 architecture-description concepts](https://www.iso.org/standard/74393.html),
+the [SEI Architecture Tradeoff Analysis Method](https://www.sei.cmu.edu/library/the-architecture-tradeoff-analysis-method/),
+and [OWASP threat-modelling guidance](https://cheatsheetseries.owasp.org/cheatsheets/Threat_Modeling_Cheat_Sheet.html),
+then applies the selected SDLC standards as project-specific constraints.
 
 ## Why a prototype branch
 

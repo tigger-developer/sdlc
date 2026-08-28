@@ -18,7 +18,8 @@ The repository owns engineering standards:
 
 It does not own delivery modes, approval gates, ticket states, planning phases,
 or implementation orchestration. Spec Kit or the adopting project owns those
-concerns.
+concerns. It defines evidence preconditions for advancing between Spec Kit's
+existing stages, but does not create a parallel lifecycle.
 
 This separation makes the standards usable with more than one agent provider
 and prevents a large lifecycle prompt from being loaded before the task needs
@@ -35,7 +36,7 @@ sdlc/
 |   |-- CODING.md
 |   |-- GIT.md
 |   |-- DOCUMENTATION.md
-|   |-- language and domain standards
+|   |-- technologies/
 |   `-- presets/sdlc-standards/
 |-- skills/
 |-- hooks/
@@ -61,7 +62,7 @@ runtime:
 |-- CODING.md
 |-- GIT.md
 |-- DOCUMENTATION.md
-|-- language and domain standards
+|-- technologies/
 |-- presets/sdlc-standards/
 |-- skills/
 `-- hooks/
@@ -91,21 +92,39 @@ coding task
     +-- implementation --------> CODING.md
     +-- source control --------> GIT.md
     +-- technical docs --------> DOCUMENTATION.md
-    `-- selected stack --------> GO.md, WEB.md, and so on
+    `-- selected stack --------> technologies/GO.md, technologies/WEB.md, and so on
 ```
 
-The project constitution records a standards profile. An agent loads only the
-profile entries relevant to the current activity. The shared files remain the
+The project constitution references the selected standards. An agent loads only
+the entries relevant to the current activity. The shared files remain the
 single source of truth; their contents are not copied into every feature
 artefact.
+
+## Deterministic project initialization
+
+`sdlc-project-init` discovers technology standards from the installed
+`technologies/` directory, resolves command-line, project, and user defaults,
+and renders `.specify/templates/constitution-template.md`. Adding a technology
+document makes it available without changing the initializer.
+
+The generated template contains the fixed constitutional base, universal
+standard references, selected technology references, an optional external
+infrastructure contract, mandatory independent audits, and bounded placeholders
+for project-specific principles. The selected agent harness receives that
+template only after deterministic rendering and may add project evidence, but
+must not remove or weaken the generated clauses.
+
+Project `.env` values override user defaults; CLI values override both. The
+initializer reads only its named `SDLC_*` keys. It records the project choices
+in the ignored `.env`, so a current rerun requires no questions or writes.
 
 ## Spec Kit composition
 
 The deployed preset lives at
-`~/.agents/sdlc/presets/sdlc-standards`. It uses Spec Kit's composition
-strategies rather than replacing core commands:
+`~/.agents/sdlc/presets/sdlc-standards`. It augments Spec Kit commands rather
+than replacing them:
 
-- a `constitution-template` addendum records the project's selected standards;
+- `sdlc-project-init` supplies the complete constitution baseline;
 - command preambles load the relevant canonical standards; and
 - Spec Kit's lower-priority core command remains responsible for its normal
   operation.
@@ -124,9 +143,8 @@ The composition is intentionally selective:
 | `speckit.taskstoissues` | Universal identifier and source-of-truth rules |
 
 Spec Kit copies preset material into project state and materializes composed
-commands for the active integration. Installing or changing a preset does not
-silently rewrite an existing live constitution; the operator invokes the
-constitution command to adopt the new composed template.
+commands for the active integration. The initializer invokes the chosen harness
+for the constitution operation only when the rendered baseline changes.
 
 The `--integration` selected during `specify init` controls the project-local
 agent adapter. It does not launch an agent and does not change the provider-
@@ -134,10 +152,21 @@ neutral specification artefacts.
 
 ## Skills and retired paths
 
-Audit skills are independent, read-only challenges of requirements, tests, or
-code. They report evidence and remediation without changing the subject or
-declaring approval. Advisory skills load context, diagnose, recommend, or
-summarize.
+Audit skills are independent, read-only challenges of specification, design,
+tests, or code. Every audit runs in a fresh context and emits its name, provider,
+model, and exact PASS or FAIL verdict. Any finding requires FAIL; changed
+artefacts require a fresh audit.
+
+```text
+specification -- audit-spec PASS --> plan and design
+plan/design  -- audit-design PASS -> tests and tasks
+test design  -- audit-tests PASS --> implementation
+implementation -- audit-code PASS -> completion or convergence
+```
+
+Verdicts are retained in the active feature's `audits.md`. The shared parser
+fails closed on missing or malformed verdicts. Advisory skills load context,
+diagnose, recommend, or summarize.
 
 The standards-only model removes the previous SDLC commands and its drafting
 and design workflow skills. The installer has a bounded retirement list for
@@ -155,7 +184,8 @@ The installer:
 3. shows only variances unless `VERBOSE=1` is set;
 4. performs no prompt or write when destinations are current;
 5. backs up drift before synchronizing;
-6. recoverably retires the finite legacy paths removed by this model;
+6. recoverably retires the finite legacy paths removed by this model, including
+   old root-level technology documents and `audit-acs`;
 7. installs provider-native adapters; and
 8. validates provider prerequisites before mutation.
 
@@ -171,7 +201,7 @@ trees.
 | Cross-language implementation standard | `src/CODING.md` |
 | Requirement or acceptance-criteria standard | `src/ISSUES.md` |
 | Testing standard | `src/TESTING.md` |
-| Language or domain standard | A focused file under `src/`, plus a route in `MAIN.md` |
+| Technology standard | A focused file under `src/technologies/`, plus a route in `MAIN.md` |
 | Spec Kit command selection | `src/presets/sdlc-standards/` |
 | Findings-only reusable review | `skills/<name>/SKILL.md` |
 | Provider command safeguard | `hooks/` plus the relevant installer adapter |

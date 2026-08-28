@@ -1,6 +1,9 @@
 ---
-name: audit-acs
+name: audit-spec
 description: Challenge a specification's requirements and acceptance criteria. Advisory only; no file changes.
+metadata:
+  preferred_provider: openai-codex
+  preferred_model: gpt-5.6-luna
 ---
 
 The canonical SDLC root is exactly `~/.agents/sdlc`. Never search the
@@ -26,6 +29,27 @@ Check:
 
 For each finding, state the affected requirement with its descriptor, the gap
 or contradiction, the consequence, and a concrete proposed correction. Do not
-rewrite the specification or declare it approved.
+rewrite the specification.
 
-End with either `NO FINDINGS` or a numbered findings list ordered by severity.
+Run in a fresh context that did not author the specification. End with exactly:
+
+```text
+AUDIT: audit-spec
+AUDITOR_PROVIDER: <provider used for this audit>
+AUDITOR_MODEL: <model used for this audit>
+VERDICT: PASS
+```
+
+or, when any finding exists:
+
+```text
+AUDIT: audit-spec
+AUDITOR_PROVIDER: <provider used for this audit>
+AUDITOR_MODEL: <model used for this audit>
+VERDICT: FAIL
+
+1. <finding ordered by severity>
+```
+
+Any finding requires `FAIL`. Do not modify the artefact or mark your own
+finding resolved. A changed artefact requires a fresh audit.

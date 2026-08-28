@@ -61,12 +61,12 @@ work. Do not preload the entire library.
 | Implementation or code review | `~/.agents/sdlc/CODING.md` |
 | Git, commits, branches, or hooks | `~/.agents/sdlc/GIT.md` |
 | Technical documentation | `~/.agents/sdlc/DOCUMENTATION.md` |
-| Go | `~/.agents/sdlc/GO.md` |
-| Python projects | `~/.agents/sdlc/PYTHON.md` |
-| Shell | `~/.agents/sdlc/SHELL.md` |
-| Perl | `~/.agents/sdlc/PERL.md` |
-| Swift | `~/.agents/sdlc/SWIFT.md` |
-| Web interfaces or sites | `~/.agents/sdlc/WEB.md` |
+| Go | `~/.agents/sdlc/technologies/GO.md` |
+| Python projects | `~/.agents/sdlc/technologies/PYTHON.md` |
+| Shell | `~/.agents/sdlc/technologies/SHELL.md` |
+| Perl | `~/.agents/sdlc/technologies/PERL.md` |
+| Swift | `~/.agents/sdlc/technologies/SWIFT.md` |
+| Web interfaces or sites | `~/.agents/sdlc/technologies/WEB.md` |
 
 Project instructions and the project constitution select which standards
 apply. If a project rule conflicts with this library, make the conflict visible

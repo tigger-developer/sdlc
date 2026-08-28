@@ -4,12 +4,14 @@ The canonical SDLC root is exactly `~/.agents/sdlc`. Never search the
 filesystem to locate it. If `~/.agents/sdlc/MAIN.md` is absent or unreadable,
 report that exact path.
 
-Read `~/.agents/sdlc/MAIN.md` in full. Determine the project's languages,
-interfaces, test strategy, documentation needs, and source-control constraints
-from verified project evidence and the user's stated intent. Read only the
-applicable standards routed by `MAIN.md`.
+Read `~/.agents/sdlc/MAIN.md` in full. Use the constitution template generated
+by `sdlc-project-init` as an immutable baseline. Read the named standards and
+verified project documentation. Add only durable project-specific principles,
+ownership boundaries, and explicit deviations.
 
-Populate the Engineering Standards Profile in the constitution. Include the
-universal document, applicable documents, the current SDLC release or Git
-revision, project-specific additions, and explicit deviations. Do not import
-SDLC delivery process: Spec Kit owns orchestration.
+Do not copy feature requirements or detailed architecture into the
+constitution. Do not remove or weaken generated clauses, select an additional
+standard without recording it, or resolve an unsupported fact by guessing.
+Leave unresolved matters explicit. Produce only the constitution during this
+operation. Spec Kit owns orchestration; the SDLC supplies engineering standards
+and independent audit requirements.

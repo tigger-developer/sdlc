@@ -2,7 +2,7 @@
 
 Go-specific standards. The general coding standards in `~/.agents/sdlc/CODING.md` apply on top of these.
 
-For Go applications that serve HTML/CSS/JavaScript (lean web apps, Hugo-adjacent services), the patterns here cover the server side; the response payload itself follows `~/.agents/sdlc/WEB.md`.
+For Go applications that serve HTML/CSS/JavaScript (lean web apps, Hugo-adjacent services), the patterns here cover the server side; the response payload itself follows `~/.agents/sdlc/technologies/WEB.md`.
 
 ## Project Layout
 

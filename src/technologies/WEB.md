@@ -2,7 +2,7 @@
 
 Standards for HTML, CSS, JavaScript, and the testing/tooling concerns that span them. The general coding standards in `~/.agents/sdlc/CODING.md` apply on top of these.
 
-When a Go application serves HTML, CSS, or JavaScript, the server-side patterns in `~/.agents/sdlc/GO.md` (HTTP server, error handling, timeouts) apply for the server; the standards in this document apply for the response payload.
+When a Go application serves HTML, CSS, or JavaScript, the server-side patterns in `~/.agents/sdlc/technologies/GO.md` (HTTP server, error handling, timeouts) apply for the server; the standards in this document apply for the response payload.
 
 ## Source vs Rendered Tier Model
 

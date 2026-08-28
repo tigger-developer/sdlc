@@ -8,3 +8,7 @@ Read `~/.agents/sdlc/MAIN.md`, `~/.agents/sdlc/CODING.md`, and
 `~/.agents/sdlc/TESTING.md` in full, plus the constitution's selected standards
 that apply to the assessment. Distinguish verified implementation evidence from
 remaining tasks and give every cited identifier an adjacent descriptor.
+
+Do not declare convergence while the implementation lacks a current
+`audit-code` PASS in the feature's `audits.md`. Changes made during convergence
+invalidate that PASS and require a fresh independent audit.

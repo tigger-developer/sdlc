@@ -1,6 +1,6 @@
 # Python Standards
 
-These standards apply only when the project specification and standards profile
+These technology-specific standards apply only when the project specification and standards profile
 select Python. The universal prohibition on agent-submitted `python` and
 `python3` commands still applies: use project-owned targets and environment
 tools instead of direct interpreter execution.

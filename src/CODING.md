@@ -39,9 +39,8 @@ acceptable only when the underlying condition is understood, the specific rule
 is named, and an adjacent comment explains why the code is safe. Broad or
 file-wide suppression is prohibited.
 
-Language-specific standards live in `~/.agents/sdlc/GO.md`, `PYTHON.md`,
-`SHELL.md`, `PERL.md`, `SWIFT.md`, and `WEB.md`. Load only those selected by the
-project's standards profile.
+Technology-specific standards live under `~/.agents/sdlc/technologies/`. Load
+only those selected by the project's standards profile.
 
 ## Comments and documentation
 

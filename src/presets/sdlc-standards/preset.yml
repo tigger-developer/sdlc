@@ -3,7 +3,7 @@ schema_version: "1.0"
 preset:
   id: "sdlc-standards"
   name: "SDLC Engineering Standards"
-  version: "0.1.0"
+  version: "0.2.0"
   description: "Adds progressive engineering standards to Spec Kit without replacing its orchestration."
   author: "tigger-developer"
   repository: "https://github.com/tigger-developer/sdlc"
@@ -14,16 +14,10 @@ requires:
 
 provides:
   templates:
-    - type: "template"
-      name: "constitution-template"
-      file: "templates/constitution-addendum.md"
-      description: "Records the project's selected SDLC standards profile"
-      strategy: "append"
-
     - type: "command"
       name: "speckit.constitution"
       file: "commands/speckit.constitution.md"
-      description: "Select the project's applicable engineering standards"
+      description: "Complete the generated project constitution"
       strategy: "prepend"
 
     - type: "command"

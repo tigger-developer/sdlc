@@ -20,6 +20,7 @@ func newFixture(t *testing.T, providers ...string) fixture {
 	root := t.TempDir()
 	f := fixture{root: root, source: filepath.Join(root, "staging", "sdlc")}
 	writeFile(t, filepath.Join(f.source, "src", "MAIN.md"), []byte("# Main\n"))
+	writeFile(t, filepath.Join(f.source, "src", "technologies", "GO.md"), []byte("# Go\n"))
 	writeFile(t, filepath.Join(f.source, "src", "guides", "nested.md"), []byte("# Nested\n"))
 	writeFile(t, filepath.Join(f.source, "README.md"), []byte("# Readme\n"))
 	writeFile(t, filepath.Join(f.source, "CHANGELOG.md"), []byte("# Changelog\n"))
@@ -377,6 +378,7 @@ func seedLegacyRuntimeArtifacts(t *testing.T, root string) []string {
 		filepath.Join(root, ".copilot", "prompts-commands"),
 	}
 	skillNames := []string{
+		"audit-acs",
 		"design-solution",
 		"draft-bug-fix",
 		"draft-design-issue",
@@ -391,6 +393,11 @@ func seedLegacyRuntimeArtifacts(t *testing.T, root string) []string {
 	}
 
 	var paths []string
+	for _, relative := range retiredSharedFiles {
+		path := filepath.Join(root, ".agents", "sdlc", relative)
+		writeFile(t, path, []byte("legacy\n"))
+		paths = append(paths, path)
+	}
 	for _, root := range commandRoots {
 		for _, name := range commandNames {
 			path := filepath.Join(root, name)

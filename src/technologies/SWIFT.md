@@ -1,6 +1,6 @@
 # Swift Standards
 
-Swift-specific standards. The general coding standards in `~/.agents/sdlc/CODING.md` apply on top of these.
+These technology-specific standards supplement the general coding standards in `~/.agents/sdlc/CODING.md`.
 
 Primary references:
 

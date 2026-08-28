@@ -48,10 +48,21 @@ var retiredCommandFiles = []string{
 }
 
 var retiredSkillFiles = []string{
+	filepath.Join("audit-acs", "SKILL.md"),
 	filepath.Join("design-solution", "SKILL.md"),
 	filepath.Join("draft-bug-fix", "SKILL.md"),
 	filepath.Join("draft-design-issue", "SKILL.md"),
 	filepath.Join("draft-issue", "SKILL.md"),
+}
+
+var retiredSharedFiles = []string{
+	"GO.md",
+	"PERL.md",
+	"PYTHON.md",
+	"SHELL.md",
+	"SWIFT.md",
+	"WEB.md",
+	filepath.Join("presets", "sdlc-standards", "templates", "constitution-addendum.md"),
 }
 
 var claudeDeniedCommands = []string{
@@ -483,6 +494,7 @@ func planSharedInstallation(source, commonHome string) (installationPlan, error)
 		sourceRoot, destinationRoot string
 		files                       []string
 	}{
+		{filepath.Join(source, "src"), liveSDLC, retiredSharedFiles},
 		{filepath.Join(source, "commands"), filepath.Join(liveSDLC, "commands"), retiredCommandFiles},
 		{filepath.Join(source, "skills"), filepath.Join(liveSDLC, "skills"), retiredSkillFiles},
 		{filepath.Join(source, "skills"), filepath.Join(commonHome, "skills"), retiredSkillFiles},

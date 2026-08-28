@@ -1,6 +1,9 @@
 ---
 name: audit-code
 description: Review implementation against the selected engineering standards and language best practice. Advisory only; no file changes.
+metadata:
+  preferred_provider: openai-codex
+  preferred_model: gpt-5.6-luna
 ---
 
 The canonical SDLC root is exactly `~/.agents/sdlc`. Never search the
@@ -26,6 +29,27 @@ Review the requested scope and current diff without modifying files. Check:
 
 For each finding, give severity, a file and line reference, the violated
 requirement or standard with a descriptor, evidence, consequence, and concrete
-remediation. Do not repair the code or declare it approved.
+remediation. Do not repair the code.
 
-End with either `NO FINDINGS` or a numbered findings list ordered by severity.
+Run in a fresh context that did not author the implementation. End with exactly:
+
+```text
+AUDIT: audit-code
+AUDITOR_PROVIDER: <provider used for this audit>
+AUDITOR_MODEL: <model used for this audit>
+VERDICT: PASS
+```
+
+or, when any finding exists:
+
+```text
+AUDIT: audit-code
+AUDITOR_PROVIDER: <provider used for this audit>
+AUDITOR_MODEL: <model used for this audit>
+VERDICT: FAIL
+
+1. <finding ordered by severity>
+```
+
+Any finding requires `FAIL`. Do not modify the artefact or mark your own
+finding resolved. A changed artefact requires a fresh audit.

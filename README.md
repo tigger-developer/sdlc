@@ -19,11 +19,11 @@ root is exactly `~/.agents/sdlc` for every supported provider.
 | `src/CODING.md` | Cross-language implementation standards |
 | `src/GIT.md` | Source-control and recoverability standards |
 | `src/DOCUMENTATION.md` | Public technical-documentation standards |
-| `src/{GO,PYTHON,SHELL,PERL,SWIFT,WEB}.md` | Stack-specific standards |
+| `src/technologies/*.md` | Automatically discoverable technology standards |
 | `src/presets/sdlc-standards/` | Spec Kit preset that selects standards progressively |
 | `skills/` | Findings-only audits and advisory tools |
 | `hooks/` | Optional provider-integrated command safeguard |
-| `cmd/` and `internal/` | Installer implementation |
+| `cmd/` and `internal/` | Installer, project initializer, and audit-verdict implementation |
 
 Only runtime material from `src/`, `skills/`, and `hooks/` is
 deployed. Repository documentation, installer source, tests, and build metadata
@@ -80,53 +80,73 @@ Provider-specific homes are adapters, not alternate SDLC roots. Agents must
 load standards from `~/.agents/sdlc` and must never search the filesystem for a
 different copy.
 
-## Use with Spec Kit
+## Initialize a Spec Kit project
 
-Install Spec Kit according to its upstream documentation. In the project that
-will use it, initialize the desired agent integration. For example:
-
-```bash
-specify init --here --integration codex --script sh --non-interactive
-```
-
-`--integration codex` selects the project-local Codex command adapter. It does
-not launch Codex or make the standards Codex-specific. Choose the integration
-for the agent interface through which the Spec Kit commands will be invoked;
-the resulting `spec.md`, `plan.md`, `tasks.md`, and constitution remain project
-artefacts.
-
-Add the deployed standards preset:
+Install Spec Kit according to its upstream documentation. In the SDLC staging
+clone, install the SDLC CLI:
 
 ```bash
-specify preset add --dev ~/.agents/sdlc/presets/sdlc-standards
+make install-cli
 ```
 
-Inspect the composed template if desired:
+Then run the initializer from the adopting project:
 
 ```bash
-specify preset resolve constitution-template
+sdlc-project-init
 ```
 
-Invoke the active integration's rendering of `speckit.constitution` once. In the
-current Codex skills integration this is `$speckit-constitution`; other
-integrations render the same logical command in their native syntax. The command
-reads `~/.agents/sdlc/MAIN.md`, selects only the standards applicable to the
-project, and records them in the constitution's Engineering Standards Profile.
-This is agent-assisted project setup; the operator does not hand-write a fresh
-constitution.
+The initializer separates deterministic selection from semantic drafting. It:
 
-Installing a preset does not rewrite an existing
-`.specify/memory/constitution.md`. Invoke `speckit.constitution` to adopt or
-update the composed template deliberately.
+- initializes Spec Kit when authorized and absent;
+- installs the deployed SDLC preset;
+- discovers available standards from `~/.agents/sdlc/technologies/`;
+- asks once which technologies and infrastructure ownership apply;
+- renders the fixed constitution baseline;
+- reports only a changed template, with additional variance detail under
+  `VERBOSE=1`; and
+- invokes the selected agent harness to complete only the project-specific
+  parts of the constitution.
+
+The initializer writes only its named SDLC selections into the project `.env`
+and adds that file to `.gitignore`; unrelated existing values are preserved.
+User defaults come from the platform user configuration directory under
+`sdlc/.env`. Command-line values override project values, which override user
+defaults. Supported keys are:
+
+```text
+SDLC_AGENT_HARNESS
+SDLC_DELIVERY_PROVIDER
+SDLC_DELIVERY_MODEL
+SDLC_AUDIT_PROVIDER
+SDLC_AUDIT_MODEL
+SDLC_TECHNOLOGIES
+SDLC_INFRA_ENABLED
+SDLC_INFRA_OWNER
+SDLC_INFRA_CONTRACT
+```
+
+The external owner and contract are optional project inputs. The public SDLC
+does not assume any particular infrastructure project. Run
+`sdlc-project-init --help` for non-interactive overrides and `--no-launch`.
+
+When the rendered baseline and selections are already current, the initializer
+writes nothing, asks nothing, and does not relaunch an agent.
 
 Thereafter:
 
-- `speckit.specify` and `speckit.clarify` load specification standards;
-- `speckit.plan` loads cross-language and selected stack standards;
-- `speckit.tasks` loads testing and documentation standards;
+- `speckit.specify` and `speckit.clarify` load specification standards, after
+  which `audit-spec` must pass in a fresh context;
+- `speckit.plan` loads cross-language and selected technology standards, after
+  which `audit-design` must pass in a fresh context;
+- `speckit.tasks` loads testing and documentation standards, after which
+  `audit-tests` must pass in a fresh context;
 - `speckit.analyze` checks consistency and coverage; and
-- `speckit.implement` and `speckit.converge` load the standards named by the
-  project profile.
+- `speckit.implement` loads the selected standards, after which `audit-code`
+  must pass in a fresh context before completion or convergence.
+
+Each verdict is recorded in the active feature's `audits.md`. A finding,
+missing or malformed verdict, or subsequent artefact change invalidates PASS.
+`speckit.analyze` does not replace an independent audit.
 
 `speckit.taskstoissues` retains Spec Kit's task artefacts as the source of truth
 and applies the rule that human-facing identifiers always include descriptors.
@@ -154,15 +174,19 @@ locations to current provider documentation.
 
 ## Skills and safeguards
 
-The retained audit skills are findings-only:
+The audit skills are findings-only and have a common machine-checkable verdict:
 
-- `audit-acs` challenges requirements and acceptance criteria;
+- `audit-spec` challenges requirements and acceptance criteria;
+- `audit-design` challenges boundaries, trade-offs, failure handling, migration,
+  operability, security, and testability;
 - `audit-tests` challenges evidence and coverage; and
 - `audit-code` reviews implementation against the selected standards.
 
 Advisory skills diagnose problems, recommend technical decisions, summarize
-open work, or load minimal project context. Skills do not approve their own
-findings and do not define a delivery lifecycle.
+open work, or load minimal project context. Audits run in a fresh context, never
+modify the judged artefact, and identify both provider and model in their
+verdict. A skill's frontmatter may recommend an inexpensive audit provider and
+model; runtime configuration has precedence.
 
 The optional Hermes hook and provider rules reinforce the common prohibitions
 on `rm`, `sed`, `awk`, and direct `python` or `python3` interpreter commands.
@@ -187,9 +211,10 @@ make install
 The `spec-kit-prototype` branch contains the standards-only model. Switching the
 staging clone to another branch and rerunning `make install` redeploys that
 branch's runtime files. Arbitrary destination-only files are preserved. The
-prototype installer recognizes only the known commands and drafting skills
-retired by this migration, renames them to adjacent `<path>.<epoch>.bak`
-backups, and leaves all other destination-only material untouched.
+prototype installer recognizes only the known commands, skills, root-level
+technology files, and obsolete constitution addendum retired by this migration.
+It renames them to adjacent `<path>.<epoch>.bak` backups and leaves all other
+destination-only material untouched.
 
 ## Further reading
 
