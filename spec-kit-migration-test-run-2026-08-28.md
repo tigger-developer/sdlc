@@ -67,6 +67,11 @@ An implemented but unapproved ticket may enter either class only through an
 explicit operator decision: CLOSE after the operator validates it, or MIGRATE
 when remaining requirements or validation work should continue under Spec Kit.
 
+The current candidate is one operator-invoked `$migrate-legacy-sdlc` skill. It
+asks the operator to divide the relevant tickets into disjoint CLOSE and MIGRATE
+lists. Unlisted tickets remain untouched, and a ticket appearing in both lists
+is reported for operator classification rather than inferred by the agent.
+
 ### Requirement states
 
 | State | Meaning |
@@ -111,9 +116,8 @@ before the new feature begins.
 
 ### Candidate operator prompt: close approved legacy tickets
 
-The following prompt is a candidate for reuse. It may later form the basis of
-an operator-invoked `$close-legacy-tickets` skill. It does not govern MIGRATE
-tickets.
+The following prompt is a candidate for reuse as the CLOSE phase of
+`$migrate-legacy-sdlc`. It does not govern MIGRATE tickets.
 
 ```text
 BYPASS-GATE-7
@@ -337,15 +341,33 @@ Report only:
 Do not apply Spec Kit feature-generation commands to this maintenance operation.
 ```
 
-### Candidate CLOSE skill boundary
+### Candidate unified migration skill
 
-The working name is `$close-legacy-tickets`. The skill would remain strictly
-operator-invoked because it performs high-impact, transitional work and contains
-substantial procedural detail that should not burden ordinary feature sessions.
+The working name is `$migrate-legacy-sdlc`. The skill would remain strictly
+operator-invoked because it performs high-impact, transitional work and
+contains substantial procedural detail that should not burden ordinary feature
+sessions.
+
+Its first operation should present open tickets using identifiers and
+descriptors, then ask the operator for two lists:
+
+```text
+CLOSE
+- #<ticket number> - <descriptor>
+
+MIGRATE
+- #<ticket number> - <descriptor>
+```
+
+It should then execute two distinct phases:
+
+1. Reconcile, commit, and close every authorized CLOSE ticket.
+2. Translate each authorized MIGRATE ticket into Spec Kit artefacts, obtaining
+   operator direction when several tickets may form one coherent feature.
 
 The skill should:
 
-- require an explicit operator-supplied ticket list and approval;
+- require explicit, disjoint operator-supplied CLOSE and MIGRATE lists;
 - never discover or close additional tickets autonomously;
 - process tickets oldest to newest;
 - reconcile documentation, ACs, and test traceability;
@@ -380,10 +402,11 @@ and test identifiers, approval state, outstanding human validation, and links
 between old and new artefacts. It must not silently convert implementation or
 test evidence into approval.
 
-A separate operator-invoked skill is likely appropriate. Its provisional name
-is `$migrate-legacy-ticket-to-spec`. Its exact scope, whether it processes one
-ticket or a coherent list, and the ticket state after successful migration
-remain decisions for the live trial. No MIGRATE prompt has yet been validated.
+This is the second phase of `$migrate-legacy-sdlc`, not a separate standing
+skill. Its exact scope, whether each listed ticket becomes one specification or
+several tickets form a coherent feature, and the ticket state after successful
+migration remain decisions for the live trial. No MIGRATE prompt has yet been
+validated.
 
 ## Spec Kit initialization
 
@@ -549,17 +572,50 @@ Make these specific corrections:
 Create a follow-up commit rather than rewriting the existing commit. Report the new commit identifier with its descriptor.
 ```
 
+### Corrected constitution result
+
+The delivery agent applied the candidate correction prompt in follow-up commit
+`0817c0a - docs: correct unratified constitution traceability`.
+
+Direct review of the committed diff verified that it:
+
+- retained version 1.0.0 as an unratified draft;
+- retained the unresolved ratification-date TODO;
+- defined project documentation and `docs/ACs.md` as the brownfield baseline;
+- defined new Spec Kit specifications as deltas against that baseline;
+- required existing ACs to retain identifiers, descriptors, regression-test
+  traceability, and unchanged, extended, replaced, or potentially affected
+  classification;
+- preserved superseded requirements, provenance, and test lineage;
+- added `~/.agents/sdlc/ISSUES.md` to the standards profile;
+- recorded SDLC source revision `0689a399986f`; and
+- replaced `make test` gate wording with `supported regression command`.
+
+The delivery agent also supplied the requested evidence mapping. Examples
+verified during coaching included:
+
+- privacy and private infrastructure in `docs/VISION.md` and data minimization
+  in `docs/architecture.md`;
+- the Go, SQLite, and minimal-infrastructure model in `docs/VISION.md`;
+- feedback isolation, moderation, consolidated feedback, and keyboard access in
+  `docs/VISION.md` and `docs/architecture.md`;
+- the supported `make test` entry point in `Makefile`; and
+- preserved superseded AC lineage in `docs/ACs.md`, including
+  `AC68.1 - former purge_at column requirement`.
+
+The constitution remains a draft until the operator explicitly ratifies it.
+
 ## Trial observations to carry forward
 
 | Stage | Observation | Candidate improvement |
 |---|---|---|
-| CLOSE | Historical requirements may remain in old tickets, including closed tickets. | Provide an operator-invoked closure skill. |
+| CLOSE | Historical requirements may remain in old tickets, including closed tickets. | Provide a distinct CLOSE phase in the operator-invoked migration skill. |
 | CLOSE | Ticket state does not establish implementation or approval state. | Require an explicit operator list and preserve human-test status. |
-| MIGRATE | Still-live old-SDLC tickets require translation into Spec Kit artefacts. | Develop a separate operator-invoked migration skill from live evidence. |
+| MIGRATE | Still-live old-SDLC tickets require translation into Spec Kit artefacts. | Develop a distinct MIGRATE phase in the same operator-invoked skill. |
 | Initialization | Codex uses skills by default; the explicit skills option is redundant. | Keep documented initialization concise. |
 | Initialization | The `sh` selector installs Bash scripts. | Explain the selector accurately. |
 | Preset resolution | Agent-time composition requires ambient Python and PyYAML. | Remove or provision the undeclared dependency. |
-| Constitution | Brownfield traceability instructions were omitted from the first draft. | Strengthen the preset or constitution prompt using trial evidence. |
+| Constitution | Brownfield traceability instructions were omitted from the first draft and added after an explicit correction. | Strengthen the preset or constitution prompt using trial evidence. |
 | Standards profile | Installed copies do not expose their source revision. | Deploy a release or revision marker. |
 
 ## Remaining pilot work
