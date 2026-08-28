@@ -17,9 +17,21 @@ Engineering Standards Profile.
 
 Reframed `ISSUES.md` as provider-neutral specification standards, simplified
 testing and Git terminology, retained findings-only audit and advisory skills,
-and replaced legacy command and drafting paths with reversible compatibility
-notices. Rewrote the README, architecture guide, learnings, and provider example
-so the public project stands alone without private agent configuration.
+and removed the legacy command and drafting paths. Rewrote the README,
+architecture guide, learnings, and provider example so the public project stands
+alone without private agent configuration.
+
+Retained `BYPASS-GATE-7` as an operator-only emergency exception for small,
+clearly scoped work before Spec Kit or equivalent project artefacts exist. The
+same-message request becomes a temporary specification without restoring SDLC
+modes, approval gates, ticketing, or audit orchestration.
+
+Added bounded, recoverable installer cleanup for the seven retired SDLC command
+files and four retired drafting or design skills. Active legacy paths in the
+canonical tree, common skill directory, and supported provider adapters are
+renamed to adjacent `<path>.<epoch>.bak` backups. All other destination-only
+files remain untouched, and repeated installation returns to the no-prompt
+current state.
 
 Added a self-contained public architecture guide covering the framework
 boundary, repository and installed layouts, progressive loading, delivery

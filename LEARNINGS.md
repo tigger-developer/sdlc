@@ -52,6 +52,13 @@ implementation details. It must, however, settle choices that change product
 behaviour, architecture, security, persisted data, access, compatibility, or
 irreversible outcomes.
 
+An emergency exception is still necessary while a project is adopting Spec
+Kit, and for rare small changes where constructing the normal artefact chain
+would obscure rather than clarify the request. `BYPASS-GATE-7` therefore makes
+the human's same-message request a temporary specification. It is deliberately
+narrow: it removes missing workflow artefacts as a blocker but does not remove
+safety, evidence, scope, or engineering constraints.
+
 Spec Kit makes this boundary durable. A plan cannot silently change a
 requirement, and an implementation cannot use ambiguity as authority to invent
 one.
@@ -171,11 +178,12 @@ prompts only for actual variance, shows only variance by default, and writes
 nothing when all detected destinations match. A verbose mode may expose the
 full comparison without changing the decision.
 
-Destination-only files are deliberately preserved. This protects provider and
-user material but means a branch cannot remove a previously deployed path by
-omission. The prototype therefore replaces retired workflow paths with concise
-compatibility notices. Switching branches and redeploying restores the other
-branch's content without destructive cleanup.
+Destination-only files are deliberately preserved because provider and user
+material shares some adapter directories. Omission alone therefore cannot
+retire a previously deployed path safely. The prototype uses a finite list of
+the commands and drafting skills removed by this migration. Each active legacy
+path is renamed to an adjacent backup; no generalized destination deletion or
+ownership inference is introduced.
 
 ## Why a prototype branch
 

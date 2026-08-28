@@ -22,11 +22,10 @@ root is exactly `~/.agents/sdlc` for every supported provider.
 | `src/{GO,PYTHON,SHELL,PERL,SWIFT,WEB}.md` | Stack-specific standards |
 | `src/presets/sdlc-standards/` | Spec Kit preset that selects standards progressively |
 | `skills/` | Findings-only audits and advisory tools |
-| `commands/` | Compatibility notices for retired SDLC workflows |
 | `hooks/` | Optional provider-integrated command safeguard |
 | `cmd/` and `internal/` | Installer implementation |
 
-Only runtime material from `src/`, `commands/`, `skills/`, and `hooks/` is
+Only runtime material from `src/`, `skills/`, and `hooks/` is
 deployed. Repository documentation, installer source, tests, and build metadata
 do not enter the live instruction tree.
 
@@ -51,11 +50,13 @@ The installer:
 
 - synchronizes `src/` into `~/.agents/sdlc` and retains the other runtime
   directory names;
-- installs provider-native skill and command adapters for detected Claude,
-  Codex, Copilot CLI, and Hermes homes;
+- installs common and provider-native skill copies for detected agents where
+  required for discovery;
 - compares source and destination before prompting;
 - lists only missing or differing destinations by default;
-- backs up owned drift before replacement; and
+- backs up owned drift before replacement;
+- backs up and retires the known command and drafting-skill paths removed by
+  the standards-only model; and
 - performs no deployment prompt or write when every detected destination is
   current.
 
@@ -140,6 +141,12 @@ Provider or project instructions may direct an agent to read
 documents relevant to that work. An equivalent durable project specification is
 required before code is written.
 
+For a small emergency change before project Spec Kit artefacts exist, the human
+may include `BYPASS-GATE-7` in the request. The request then serves as a
+temporary specification for its stated outcome and scope. The exception does
+not restore the retired SDLC modes, gates, or ticket lifecycle and does not
+override safety or engineering standards.
+
 The public template at
 [`templates/AGENTS-or-CLAUDE.example.md`](templates/AGENTS-or-CLAUDE.example.md)
 shows the minimum standalone integration. Adapt provider discovery filenames and
@@ -179,9 +186,10 @@ make install
 
 The `spec-kit-prototype` branch contains the standards-only model. Switching the
 staging clone to another branch and rerunning `make install` redeploys that
-branch's runtime files. Destination-only files are preserved, so legacy paths
-on the prototype contain concise compatibility notices rather than relying on
-deletion for rollback.
+branch's runtime files. Arbitrary destination-only files are preserved. The
+prototype installer recognizes only the known commands and drafting skills
+retired by this migration, renames them to adjacent `<path>.<epoch>.bak`
+backups, and leaves all other destination-only material untouched.
 
 ## Further reading
 

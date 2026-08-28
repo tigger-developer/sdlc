@@ -37,6 +37,23 @@ var providerDefinitions = []providerDefinition{
 	{name: agentHermes, skills: true},
 }
 
+var retiredCommandFiles = []string{
+	"build.md",
+	"end-discovery.md",
+	"implement.md",
+	"migrate-acs.md",
+	"review.md",
+	"start-discovery.md",
+	"write-tests.md",
+}
+
+var retiredSkillFiles = []string{
+	filepath.Join("design-solution", "SKILL.md"),
+	filepath.Join("draft-bug-fix", "SKILL.md"),
+	filepath.Join("draft-design-issue", "SKILL.md"),
+	filepath.Join("draft-issue", "SKILL.md"),
+}
+
 var claudeDeniedCommands = []string{
 	"Bash(rm:*)",
 	"Bash(sed:*)",
@@ -77,8 +94,13 @@ type managedSync struct {
 	destinationExists bool
 }
 
+type managedRetirement struct {
+	path string
+}
+
 type installationPlan struct {
 	syncs          []managedSync
+	retirements    []managedRetirement
 	configurations []*configurationChange
 }
 
@@ -159,14 +181,14 @@ func RunInteractive(sourcePath, userHome string, input io.Reader, output io.Writ
 	if planErr != nil {
 		return planErr
 	}
-	plan.syncs = append(plan.syncs, shared.syncs...)
+	mergeInstallationPlan(&plan, shared)
 	for _, agent := range agents {
 		agentHome := filepath.Join(userHome, "."+agent)
 		provider, planErr := planProviderInstallation(agent, source, agentHome)
 		if planErr != nil {
 			return planErr
 		}
-		plan.syncs = append(plan.syncs, provider.syncs...)
+		mergeInstallationPlan(&plan, provider)
 	}
 	configurations, err := planDetectedConfigurations(source, userHome, agents)
 	if err != nil {
@@ -225,13 +247,13 @@ func planDetectedInstallation(source, userHome string, agents []string) (install
 	if err != nil {
 		return installationPlan{}, err
 	}
-	plan.syncs = append(plan.syncs, shared.syncs...)
+	mergeInstallationPlan(&plan, shared)
 	for _, agent := range agents {
 		provider, err := planProviderInstallation(agent, source, filepath.Join(userHome, "."+agent))
 		if err != nil {
 			return installationPlan{}, err
 		}
-		plan.syncs = append(plan.syncs, provider.syncs...)
+		mergeInstallationPlan(&plan, provider)
 	}
 	configurations, err := planDetectedConfigurations(source, userHome, agents)
 	if err != nil {
@@ -282,7 +304,7 @@ func detectedAgents(userHome string) ([]string, error) {
 }
 
 func installationHasChanges(plan installationPlan) bool {
-	if len(plan.configurations) != 0 {
+	if len(plan.configurations) != 0 || len(plan.retirements) != 0 {
 		return true
 	}
 	for _, sync := range plan.syncs {
@@ -291,6 +313,11 @@ func installationHasChanges(plan installationPlan) bool {
 		}
 	}
 	return false
+}
+
+func mergeInstallationPlan(plan *installationPlan, addition installationPlan) {
+	plan.syncs = append(plan.syncs, addition.syncs...)
+	plan.retirements = append(plan.retirements, addition.retirements...)
 }
 
 func withDefaultIO(options Options) Options {
@@ -421,12 +448,12 @@ func planInstallation(agent, source, agentHome string) (installationPlan, error)
 	if err != nil {
 		return installationPlan{}, err
 	}
-	plan.syncs = append(plan.syncs, shared.syncs...)
+	mergeInstallationPlan(&plan, shared)
 	provider, err := planProviderInstallation(agent, source, agentHome)
 	if err != nil {
 		return installationPlan{}, err
 	}
-	plan.syncs = append(plan.syncs, provider.syncs...)
+	mergeInstallationPlan(&plan, provider)
 	return plan, nil
 }
 
@@ -438,18 +465,33 @@ func planSharedInstallation(source, commonHome string) (installationPlan, error)
 	plan := installationPlan{}
 	for _, mapping := range []struct {
 		source, destination string
+		optional            bool
 	}{
-		{filepath.Join(source, "src"), liveSDLC},
-		{filepath.Join(source, "commands"), filepath.Join(liveSDLC, "commands")},
-		{filepath.Join(source, "skills"), filepath.Join(liveSDLC, "skills")},
-		{filepath.Join(source, "hooks"), filepath.Join(liveSDLC, "hooks")},
-		{filepath.Join(source, "skills"), filepath.Join(commonHome, "skills")},
+		{source: filepath.Join(source, "src"), destination: liveSDLC},
+		{source: filepath.Join(source, "commands"), destination: filepath.Join(liveSDLC, "commands"), optional: true},
+		{source: filepath.Join(source, "skills"), destination: filepath.Join(liveSDLC, "skills")},
+		{source: filepath.Join(source, "hooks"), destination: filepath.Join(liveSDLC, "hooks")},
+		{source: filepath.Join(source, "skills"), destination: filepath.Join(commonHome, "skills")},
 	} {
-		files, err := planDirectoryFiles(mapping.source, mapping.destination)
+		files, err := planDirectoryMapping(mapping.source, mapping.destination, mapping.optional)
 		if err != nil {
 			return installationPlan{}, err
 		}
 		plan.syncs = append(plan.syncs, files...)
+	}
+	for _, retirement := range []struct {
+		sourceRoot, destinationRoot string
+		files                       []string
+	}{
+		{filepath.Join(source, "commands"), filepath.Join(liveSDLC, "commands"), retiredCommandFiles},
+		{filepath.Join(source, "skills"), filepath.Join(liveSDLC, "skills"), retiredSkillFiles},
+		{filepath.Join(source, "skills"), filepath.Join(commonHome, "skills"), retiredSkillFiles},
+	} {
+		retirements, err := planRetiredFiles(retirement.sourceRoot, retirement.destinationRoot, retirement.files)
+		if err != nil {
+			return installationPlan{}, err
+		}
+		plan.retirements = append(plan.retirements, retirements...)
 	}
 	return plan, nil
 }
@@ -476,18 +518,32 @@ func planProviderInstallation(agent, source, agentHome string) (installationPlan
 		return installationPlan{}, fmt.Errorf("planning unsupported agent %q", agent)
 	}
 	if provider.commandPath != "" {
-		commands, planErr := planDirectoryFiles(filepath.Join(source, "commands"), filepath.Join(agentHome, provider.commandPath))
+		sourceRoot := filepath.Join(source, "commands")
+		destinationRoot := filepath.Join(agentHome, provider.commandPath)
+		commands, planErr := planDirectoryMapping(sourceRoot, destinationRoot, true)
 		if planErr != nil {
 			return installationPlan{}, planErr
 		}
 		plan.syncs = append(plan.syncs, commands...)
+		retirements, planErr := planRetiredFiles(sourceRoot, destinationRoot, retiredCommandFiles)
+		if planErr != nil {
+			return installationPlan{}, planErr
+		}
+		plan.retirements = append(plan.retirements, retirements...)
 	}
 	if provider.skills {
-		skills, planErr := planDirectoryFiles(filepath.Join(source, "skills"), filepath.Join(agentHome, "skills"))
+		sourceRoot := filepath.Join(source, "skills")
+		destinationRoot := filepath.Join(agentHome, "skills")
+		skills, planErr := planDirectoryFiles(sourceRoot, destinationRoot)
 		if planErr != nil {
 			return installationPlan{}, planErr
 		}
 		plan.syncs = append(plan.syncs, skills...)
+		retirements, planErr := planRetiredFiles(sourceRoot, destinationRoot, retiredSkillFiles)
+		if planErr != nil {
+			return installationPlan{}, planErr
+		}
+		plan.retirements = append(plan.retirements, retirements...)
 	}
 	return plan, nil
 }
@@ -533,6 +589,13 @@ func printInstallationPlan(output io.Writer, plan installationPlan, apply bool) 
 		}
 		fmt.Fprintf(output, "Installation: %s %s <- %s\n", verb, sync.destination, sync.source)
 	}
+	for _, retirement := range plan.retirements {
+		verb := "would back up and retire legacy SDLC artefact"
+		if apply {
+			verb = "will back up and retire legacy SDLC artefact"
+		}
+		fmt.Fprintf(output, "Installation: %s %s\n", verb, retirement.path)
+	}
 }
 
 func applyInstallation(plan installationPlan, output io.Writer) error {
@@ -545,7 +608,54 @@ func applyInstallation(plan installationPlan, output io.Writer) error {
 			return err
 		}
 	}
+	for _, retirement := range plan.retirements {
+		if _, err := backupArtifact(output, retirement.path, epoch); err != nil {
+			return err
+		}
+		fmt.Fprintf(output, "Installation retired: %s\n", retirement.path)
+	}
 	return nil
+}
+
+func planDirectoryMapping(sourceRoot, destinationRoot string, optional bool) ([]managedSync, error) {
+	if optional {
+		_, err := os.Stat(sourceRoot)
+		if errors.Is(err, os.ErrNotExist) {
+			return nil, nil
+		}
+		if err != nil {
+			return nil, fmt.Errorf("inspecting optional install source %q: %w", sourceRoot, err)
+		}
+	}
+	return planDirectoryFiles(sourceRoot, destinationRoot)
+}
+
+func planRetiredFiles(sourceRoot, destinationRoot string, relativePaths []string) ([]managedRetirement, error) {
+	var retirements []managedRetirement
+	for _, relativePath := range relativePaths {
+		sourcePath := filepath.Join(sourceRoot, relativePath)
+		if _, err := os.Lstat(sourcePath); err == nil {
+			continue
+		} else if !errors.Is(err, os.ErrNotExist) {
+			return nil, fmt.Errorf("inspecting retired install source %q: %w", sourcePath, err)
+		}
+
+		destinationPath := filepath.Join(destinationRoot, relativePath)
+		obstructed, err := destinationParentObstructed(destinationPath, destinationRoot)
+		if err != nil {
+			return nil, err
+		}
+		if obstructed {
+			continue
+		}
+		if _, err := os.Lstat(destinationPath); errors.Is(err, os.ErrNotExist) {
+			continue
+		} else if err != nil {
+			return nil, fmt.Errorf("inspecting legacy SDLC artefact %q: %w", destinationPath, err)
+		}
+		retirements = append(retirements, managedRetirement{path: destinationPath})
+	}
+	return retirements, nil
 }
 
 func planDirectoryFiles(sourceRoot, destinationRoot string) ([]managedSync, error) {

@@ -38,14 +38,13 @@ sdlc/
 |   |-- language and domain standards
 |   `-- presets/sdlc-standards/
 |-- skills/
-|-- commands/
 |-- hooks/
 |-- templates/
 |-- cmd/ and internal/
 `-- public documentation and build metadata
 ```
 
-Runtime discovery is bounded to `src/`, `skills/`, `commands/`, and `hooks/`.
+Runtime discovery is bounded to `src/`, `skills/`, and `hooks/`.
 This prevents the README, changelog, installer tests, and repository internals
 from becoming agent instructions.
 
@@ -65,15 +64,14 @@ runtime:
 |-- language and domain standards
 |-- presets/sdlc-standards/
 |-- skills/
-|-- commands/
 `-- hooks/
 ```
 
 Repository `src/` maps directly to the root of `~/.agents/sdlc`. Other runtime
 directories retain their names.
 
-Provider-native skill and command locations contain adapters or copies required
-for discovery. They are not authoritative standards roots. Every independently
+Provider-native skill locations contain adapters or copies required for
+discovery. They are not authoritative standards roots. Every independently
 invoked entry point uses the literal `~/.agents/sdlc` path and prohibits
 filesystem discovery if it is unavailable.
 
@@ -134,17 +132,19 @@ The `--integration` selected during `specify init` controls the project-local
 agent adapter. It does not launch an agent and does not change the provider-
 neutral specification artefacts.
 
-## Skills and compatibility paths
+## Skills and retired paths
 
 Audit skills are independent, read-only challenges of requirements, tests, or
 code. They report evidence and remediation without changing the subject or
 declaring approval. Advisory skills load context, diagnose, recommend, or
 summarize.
 
-The previous SDLC commands and drafting skill paths are retained as concise
-compatibility notices. This is required because installation preserves
-destination-only files. Keeping the paths with inert guidance makes branch
-switching and redeployment reversible without destructive cleanup.
+The standards-only model removes the previous SDLC commands and its drafting
+and design workflow skills. The installer has a bounded retirement list for
+those known paths. When one exists without a current source, it is renamed to an
+adjacent `<path>.<epoch>.bak` backup in the canonical tree, the common skill
+directory, and every supported provider adapter. Arbitrary destination-only
+files are not inferred to be SDLC owned and remain untouched.
 
 ## Installer responsibilities
 
@@ -155,8 +155,9 @@ The installer:
 3. shows only variances unless `VERBOSE=1` is set;
 4. performs no prompt or write when destinations are current;
 5. backs up drift before synchronizing;
-6. installs provider-native adapters; and
-7. validates provider prerequisites before mutation.
+6. recoverably retires the finite legacy paths removed by this model;
+7. installs provider-native adapters; and
+8. validates provider prerequisites before mutation.
 
 It never treats repository documentation or arbitrary files as deployable merely
 because they exist. It does not create provider-specific authoritative SDLC

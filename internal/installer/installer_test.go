@@ -231,6 +231,75 @@ func TestStaleLinksBecomeCopiesAndDestinationOnlyFilesSurvive(t *testing.T) {
 	assertFile(t, unowned, "personal\n")
 }
 
+func TestInteractiveRetiresKnownLegacyArtifactsAndPreservesUnownedFiles(t *testing.T) {
+	f := newFixture(t, "claude", "codex", "copilot", "hermes")
+	removePath(t, filepath.Join(f.source, "commands"))
+	removePath(t, filepath.Join(f.source, "skills", "draft-design-issue"))
+	writeFile(t, filepath.Join(f.root, ".claude", "settings.json"), []byte("{\"personal\":true}\n"))
+	writeFile(t, filepath.Join(f.root, ".codex", "config.toml"), []byte("personal = true\n"))
+	writeFile(t, filepath.Join(f.root, ".hermes", "config.yaml"), []byte("personal: true\n"))
+
+	legacyPaths := seedLegacyRuntimeArtifacts(t, f.root)
+	unownedPaths := []string{
+		filepath.Join(f.root, ".agents", "sdlc", "commands", "personal.md"),
+		filepath.Join(f.root, ".agents", "skills", "personal", "SKILL.md"),
+		filepath.Join(f.root, ".claude", "commands", "personal.md"),
+	}
+	for _, path := range unownedPaths {
+		writeFile(t, path, []byte("personal\n"))
+	}
+
+	var output bytes.Buffer
+	if err := RunInteractive(f.source, f.root, strings.NewReader("no\n"), &output); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(output.String(), "would back up and retire legacy SDLC artefact") {
+		t.Fatalf("retirement variances were not listed:\n%s", output.String())
+	}
+	for _, path := range legacyPaths {
+		assertFile(t, path, "legacy\n")
+		assertNoBackup(t, path)
+	}
+
+	output.Reset()
+	if err := RunInteractive(f.source, f.root, strings.NewReader("yes\n"), &output); err != nil {
+		t.Fatalf("%v\n%s", err, output.String())
+	}
+	for _, path := range legacyPaths {
+		assertAbsent(t, path)
+		backup := assertOneBackup(t, path)
+		assertFile(t, backup, "legacy\n")
+	}
+	for _, path := range unownedPaths {
+		assertFile(t, path, "personal\n")
+	}
+
+	output.Reset()
+	if err := RunInteractive(f.source, f.root, strings.NewReader(""), &output); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(output.String(), "All detected SDLC copies are current") || strings.Contains(output.String(), "[yes/no]") {
+		t.Fatalf("repeated retirement was not idempotent:\n%s", output.String())
+	}
+}
+
+func TestInstallAllowsRetiredOptionalCommandsDirectoryToBeAbsent(t *testing.T) {
+	f := newFixture(t)
+	removePath(t, filepath.Join(f.source, "commands"))
+
+	var output bytes.Buffer
+	if err := Run(Options{
+		Agent:     "custom",
+		AgentHome: filepath.Join(f.root, ".custom"),
+		Source:    f.source,
+		Apply:     true,
+		Output:    &output,
+	}); err != nil {
+		t.Fatalf("install with no commands directory failed: %v\n%s", err, output.String())
+	}
+	assertFile(t, filepath.Join(f.root, ".agents", "sdlc", "MAIN.md"), "# Main\n")
+}
+
 // RT-6.2
 func TestExplicitAgentInstallsCanonicalTreeAndSelectedProviderAdapters(t *testing.T) {
 	f := newFixture(t, "claude", "hermes")
@@ -288,6 +357,73 @@ func sourceDirectories(t *testing.T, path string) []string {
 		}
 	}
 	return names
+}
+
+func seedLegacyRuntimeArtifacts(t *testing.T, root string) []string {
+	t.Helper()
+	commandNames := []string{
+		"build.md",
+		"end-discovery.md",
+		"implement.md",
+		"migrate-acs.md",
+		"review.md",
+		"start-discovery.md",
+		"write-tests.md",
+	}
+	commandRoots := []string{
+		filepath.Join(root, ".agents", "sdlc", "commands"),
+		filepath.Join(root, ".claude", "commands"),
+		filepath.Join(root, ".codex", "prompts-commands"),
+		filepath.Join(root, ".copilot", "prompts-commands"),
+	}
+	skillNames := []string{
+		"design-solution",
+		"draft-bug-fix",
+		"draft-design-issue",
+		"draft-issue",
+	}
+	skillRoots := []string{
+		filepath.Join(root, ".agents", "sdlc", "skills"),
+		filepath.Join(root, ".agents", "skills"),
+		filepath.Join(root, ".claude", "skills"),
+		filepath.Join(root, ".copilot", "skills"),
+		filepath.Join(root, ".hermes", "skills"),
+	}
+
+	var paths []string
+	for _, root := range commandRoots {
+		for _, name := range commandNames {
+			path := filepath.Join(root, name)
+			writeFile(t, path, []byte("legacy\n"))
+			paths = append(paths, path)
+		}
+	}
+	for _, root := range skillRoots {
+		for _, name := range skillNames {
+			path := filepath.Join(root, name, "SKILL.md")
+			writeFile(t, path, []byte("legacy\n"))
+			paths = append(paths, path)
+		}
+	}
+	return paths
+}
+
+func removePath(t *testing.T, path string) {
+	t.Helper()
+	if err := os.RemoveAll(path); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func assertNoBackup(t *testing.T, path string) {
+	t.Helper()
+	matches, err := filepath.Glob(path + ".*.bak")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(matches) != 0 {
+		t.Fatalf("unexpected backups for %s: %v", path, matches)
+	}
 }
 
 func assertRegularTree(t *testing.T, path string) {
