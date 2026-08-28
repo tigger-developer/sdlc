@@ -114,7 +114,7 @@ func TestRunIsIdempotentAndDoesNotRelaunch(t *testing.T) {
 	if err := Run(options); err != nil {
 		t.Fatal(err)
 	}
-	target := filepath.Join(project, ".specify", "templates", "constitution-template.md")
+	target := filepath.Join(project, ".specify", "templates", "overrides", "constitution-template.md")
 	first, err := os.ReadFile(target)
 	if err != nil {
 		t.Fatal(err)
@@ -133,6 +133,9 @@ func TestRunIsIdempotentAndDoesNotRelaunch(t *testing.T) {
 	}
 	if !bytes.Equal(first, second) || output.Len() != 0 {
 		t.Fatalf("idempotent rerun changed output: output=%q", output.String())
+	}
+	if _, err := os.Stat(filepath.Join(project, ".specify", "templates", "constitution-template.md")); !os.IsNotExist(err) {
+		t.Fatalf("initializer wrote the Spec Kit core template: %v", err)
 	}
 }
 

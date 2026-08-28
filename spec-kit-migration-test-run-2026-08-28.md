@@ -689,6 +689,21 @@ dependency and complexity trade-offs; operability; observability; and
 testability. Selected technology standards customize that review without
 duplicating their content in the skill.
 
+### Generated-template path correction
+
+The first live rerun reached the updated constitution skill but failed at the
+same PyYAML check as the earlier pilot. Inspection established that the
+initializer had written the generated baseline over Spec Kit's core fallback at
+`.specify/templates/constitution-template.md`. The resolver parses installed
+preset manifests before reaching that fallback, even when no preset contributes
+a constitution template.
+
+Spec Kit checks
+`.specify/templates/overrides/constitution-template.md` first and returns it
+without preset composition. The initializer was corrected to use that supported
+override path. This removes PyYAML from the constitution route and preserves
+Spec Kit's core template as an upstream-owned fallback.
+
 ## Remaining pilot work
 
 - Review the corrected constitution and its source mapping.

@@ -241,7 +241,7 @@ func Run(options Options) error {
 		referenceRoot = "~/.agents/sdlc"
 	}
 	rendered := renderConstitution(referenceRoot, selected, config)
-	target := filepath.Join(projectRoot, ".specify", "templates", "constitution-template.md")
+	target := filepath.Join(projectRoot, ".specify", "templates", "overrides", "constitution-template.md")
 	current, readErr := os.ReadFile(target)
 	if readErr != nil && !errors.Is(readErr, os.ErrNotExist) {
 		return fmt.Errorf("reading constitution template %q: %w", target, readErr)

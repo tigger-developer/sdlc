@@ -104,8 +104,11 @@ artefact.
 
 `sdlc-project-init` discovers technology standards from the installed
 `technologies/` directory, resolves command-line, project, and user defaults,
-and renders `.specify/templates/constitution-template.md`. Adding a technology
-document makes it available without changing the initializer.
+and renders
+`.specify/templates/overrides/constitution-template.md`. This documented Spec
+Kit override is resolved before preset composition, so constitution generation
+does not require a preset manifest parser. Adding a technology document makes
+it available without changing the initializer.
 
 The generated template contains the fixed constitutional base, universal
 standard references, selected technology references, an optional external

@@ -62,6 +62,9 @@ adapter model.
   infrastructure project.
 - Rendering is deterministic. When the rendered baseline and selections are
   current, the initializer asks nothing, writes nothing, and launches no agent.
+- The baseline is written as the project `constitution-template` override, not
+  over Spec Kit's core fallback template, and resolves without parsing preset
+  manifests.
 - A changed baseline is written atomically before the selected Codex, Claude,
   or Hermes harness receives the constitution-only semantic prompt.
 

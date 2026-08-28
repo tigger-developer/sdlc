@@ -16,6 +16,11 @@ then invokes Codex, Claude, or Hermes for project-specific constitution text.
 Project configuration includes separate delivery and audit provider/model
 values.
 
+Corrected the generated constitution location to Spec Kit's project override
+path. The resolver now returns the generated baseline before parsing preset
+manifests, avoiding an otherwise unnecessary ambient PyYAML dependency during
+constitution creation.
+
 Moved technology standards under `src/technologies/` for automatic discovery.
 The installer now backs up and retires the former root-level copies and obsolete
 constitution addendum while preserving unrelated destination-only material.

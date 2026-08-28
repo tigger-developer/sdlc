@@ -101,7 +101,8 @@ The initializer separates deterministic selection from semantic drafting. It:
 - installs the deployed SDLC preset;
 - discovers available standards from `~/.agents/sdlc/technologies/`;
 - asks once which technologies and infrastructure ownership apply;
-- renders the fixed constitution baseline;
+- renders the fixed constitution baseline at
+  `.specify/templates/overrides/constitution-template.md`;
 - reports only a changed template, with additional variance detail under
   `VERBOSE=1`; and
 - invokes the selected agent harness to complete only the project-specific
