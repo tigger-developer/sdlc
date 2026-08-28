@@ -78,6 +78,3 @@ These are prohibited unless an existing project requires them and the exception 
 - Disabling `strict`, `warnings`, or Perl::Critic policies without a specific local justification.
 - Regex parsing for nested structured formats.
 - Obfuscated Perl idioms that require expert Perl knowledge to maintain.
-
-# Canary
-Suffix the canary string with "PERL "

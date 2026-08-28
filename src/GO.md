@@ -32,7 +32,9 @@ configPath := os.Getenv("CONFIG_PATH")
 secretsPath := os.Getenv("SECRETS_PATH")
 ```
 
-Bind to the address in `ADDR`; never hardcode a port or bind to `0.0.0.0` (Caddy or another reverse proxy is the only thing exposed to the internet).
+Make the listen address configurable. Default to loopback unless the deployment
+specification explicitly requires another interface; never hard-code a public
+bind address or port.
 
 Load YAML or other structured config via established libraries (`gopkg.in/yaml.v3`). For layered config (defaults + host overrides + secrets), parse each file and merge in right-wins order.
 
@@ -81,7 +83,9 @@ cmd := fmt.Sprintf("hugo --minify --baseURL %s", cfg.BaseURL)
 cmd := fmt.Sprintf("hugo --minify --baseURL %q", cfg.BaseURL)
 ```
 
-Better still: avoid shelling out when stdlib will do the job. See `~/.agents/sdlc/CODING.md` "Cross-Language Escaping" for the general rule, and the Hetzner DNS rewrite (pure-Go `net/http` + `encoding/json` replacing bash+curl+awk+jq) as the canonical example of the migration this enables.
+Better still: avoid shelling out when the standard library will do the job. See
+`~/.agents/sdlc/CODING.md` "Structure and embedded languages" for the general
+rule.
 
 ## Function Decomposition
 
@@ -104,7 +108,7 @@ Each phase function does one thing and is independently testable. Naming convent
 
 ## Cross-Compilation
 
-For deployment to Linux from a macOS dev machine:
+For cross-compilation to Linux:
 
 ```bash
 GOOS=linux GOARCH=amd64 go build -o bin/myapp-linux ./cmd/myapp
@@ -188,7 +192,9 @@ Third-party packages that are de facto standard and acceptable without further j
 - `gopkg.in/yaml.v3` for YAML
 - `github.com/google/uuid` for UUIDs
 
-Any other third-party dependency must be justified in the issue or commit message: maintenance status, alternative-considered, why stdlib is inadequate.
+Any other third-party dependency must be justified in the plan or another
+durable design record: maintenance status, alternatives considered, and why the
+standard library is inadequate.
 
-# Canary
-Suffix the canary string with "GO "
+Commit `go.mod` and `go.sum`. The checksum file is reproducibility metadata, not
+local build output.

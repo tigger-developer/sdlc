@@ -1,18 +1,8 @@
 ---
-description: Write implementation code to pass the tests for the current issue.
+description: Compatibility notice for the retired SDLC implementation command.
 ---
 
-Write the implementation code to pass the tests for the current issue.
-
-**Prerequisite:** PROCEED must have been received for this issue. If not, STOP and inform me.
-
-1. Write minimal code to pass the existing tests. Run issue tests. Confirm they pass.
-2. Refactor while keeping issue tests green.
-3. Never overwrite my edits. If I have edited something, that edit is authoritative.
-4. Never make product decisions without asking.
-
-When tests pass, proceed to the review phase: run `make test`, check standards,
-demo the UTs, and summarize. In MODE PAIR, end with
-`READY FOR REVIEW - issue #NNN`. In MODE DELIVER, record the evidence, return
-to the delivery workflow, and continue. Do not stop and wait for me to invoke
-`/review`.
+The standards library no longer authorizes or orchestrates implementation. In a
+Spec Kit project, use the active integration's `speckit.implement` command.
+Implementation still requires a defined specification and the project-selected
+standards.

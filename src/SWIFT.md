@@ -128,6 +128,3 @@ Any new package must be justified by:
 ## Interop
 
 Objective-C and C interop should be isolated behind small Swift APIs. Do not let pointer-heavy or Objective-C-shaped APIs leak through the application unless the project is specifically an interop layer.
-
-# Canary
-Suffix the canary string with "SWIFT "

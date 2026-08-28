@@ -1,58 +1,58 @@
-# SDLC Architecture
+# SDLC Standards Architecture
 
-This document explains how the public SDLC repository is organized, how its
-parts relate, and what installation produces. It is descriptive guidance for
-users and maintainers. The documents under [`src/`](../src/) are the normative
-agent instructions.
+This document explains how the public standards library is composed, installed,
+and integrated with Spec Kit. Documents under [`src/`](../src/) are normative;
+this document is explanatory.
 
-## Framework Boundary
+## Boundary
 
-The SDLC is a standalone, provider-neutral framework for software delivery
-with AI coding agents. It does not depend on the author's private agent
-configuration or on a parent repository.
+The repository owns engineering standards:
 
-The framework begins when an agent is directed to read
-`~/.agents/sdlc/MAIN.md` for applicable coding work. The user or their provider
-instructions must establish when that happens. Personal preferences, general
-conversation rules, and provider bootstrap instructions remain outside this
-repository.
+- universal coding constraints;
+- specification and acceptance-criteria quality;
+- testing and evidence;
+- cross-language and stack-specific implementation standards;
+- Git and documentation standards;
+- findings-only audit and advisory skills; and
+- optional provider-integrated command safeguards.
 
-This separation has two consequences:
+It does not own delivery modes, approval gates, ticket states, planning phases,
+or implementation orchestration. Spec Kit or the adopting project owns those
+concerns.
 
-- Installing the SDLC does not replace a user's general agent instructions.
-- MODE PAIR, MODE DELIVER, gates, and the coding lifecycle apply only after
-  `MAIN.md` has been loaded.
+This separation makes the standards usable with more than one agent provider
+and prevents a large lifecycle prompt from being loaded before the task needs
+it.
 
-The example in [`templates/AGENTS-or-CLAUDE.example.md`](../templates/AGENTS-or-CLAUDE.example.md)
-shows one way to connect provider-level instructions to the public framework.
-It is an example, not a required personal configuration.
-
-## Repository Map
+## Repository map
 
 ```text
 sdlc/
-|-- src/                 Normative framework entry point and routed standards
-|-- commands/            Human-invoked workflow prompts
-|-- skills/              Reusable drafting, audit, and advisory workflows
-|-- hooks/               Optional provider-integrated command safeguards
-|-- templates/           Provider configuration examples and installer inputs
-|-- cmd/sdlc-install/    Installer command
-|-- internal/installer/  Deployment planning and provider integration
-|-- docs/                Explanations for users and maintainers
-|-- README.md            Installation and first-use guide
-|-- LEARNINGS.md         Design history and observed failure patterns
-`-- CHANGELOG.md         Public release history
+|-- src/
+|   |-- MAIN.md
+|   |-- ISSUES.md
+|   |-- TESTING.md
+|   |-- CODING.md
+|   |-- GIT.md
+|   |-- DOCUMENTATION.md
+|   |-- language and domain standards
+|   `-- presets/sdlc-standards/
+|-- skills/
+|-- commands/
+|-- hooks/
+|-- templates/
+|-- cmd/ and internal/
+`-- public documentation and build metadata
 ```
 
-The directory boundary is deliberate. Only `src/`, `commands/`, `skills/`,
-and `hooks/` contain agent-runtime material. Repository documentation,
-installer source, tests, templates, and build metadata are not copied into the
-canonical runtime merely because they exist in the repository.
+Runtime discovery is bounded to `src/`, `skills/`, `commands/`, and `hooks/`.
+This prevents the README, changelog, installer tests, and repository internals
+from becoming agent instructions.
 
-## Source and Installed Layout
+## Source and installed layout
 
-The repository is the staging source. The installed runtime has exactly one
-canonical root:
+The repository is a staging source. Installation produces one authoritative
+runtime:
 
 ```text
 ~/.agents/sdlc/
@@ -63,177 +63,119 @@ canonical root:
 |-- GIT.md
 |-- DOCUMENTATION.md
 |-- language and domain standards
-|-- commands/
+|-- presets/sdlc-standards/
 |-- skills/
+|-- commands/
 `-- hooks/
 ```
 
-Files inside repository `src/` are copied directly to the root of
-`~/.agents/sdlc`. The other runtime directories retain their names. Agents
-must use this literal root and must never search the filesystem to discover an
-alternative SDLC location.
+Repository `src/` maps directly to the root of `~/.agents/sdlc`. Other runtime
+directories retain their names.
 
-Provider-native adapters are separate from the canonical runtime. For
-example, a provider may require skills or commands in its own discovery
-directory. The installer copies those adapters from the canonical public
-sources, but it does not create a second authoritative SDLC tree in the
-provider home.
+Provider-native skill and command locations contain adapters or copies required
+for discovery. They are not authoritative standards roots. Every independently
+invoked entry point uses the literal `~/.agents/sdlc` path and prohibits
+filesystem discovery if it is unavailable.
 
-## Loading Model
+## Progressive loading
 
-The framework uses progressive loading so irrelevant rules do not consume the
-agent's context or dilute applicable instructions:
+`MAIN.md` is the compact universal entry point. It contains rules that must be
+present for any coding task and a routing table for additional documents.
 
 ```text
-Provider or user instruction
-          |
-          | applicable coding work
-          v
+coding task
+    |
+    v
 ~/.agents/sdlc/MAIN.md
-          |
-          | routing by task
-          v
-Selected process, craft, language, and domain standards
-          |
-          v
-Project-specific documentation and instructions
+    |
+    +-- requirements ----------> ISSUES.md
+    +-- verification ----------> TESTING.md
+    +-- implementation --------> CODING.md
+    +-- source control --------> GIT.md
+    +-- technical docs --------> DOCUMENTATION.md
+    `-- selected stack --------> GO.md, WEB.md, and so on
 ```
 
-`MAIN.md` is both the lifecycle entry point and the reference router. It
-defines the code-specific process, then selects only the standards needed for
-the current work. A Go implementation might load `CODING.md`, `TESTING.md`,
-`GIT.md`, and `GO.md`; unrelated language standards stay out of context.
+The project constitution records a standards profile. An agent loads only the
+profile entries relevant to the current activity. The shared files remain the
+single source of truth; their contents are not copied into every feature
+artefact.
 
-Project-specific instructions come after the public framework in this model.
-They describe the repository being changed and must not redefine the public
-SDLC or act as another installed copy of it.
+## Spec Kit composition
 
-## Normative and Explanatory Documents
+The deployed preset lives at
+`~/.agents/sdlc/presets/sdlc-standards`. It uses Spec Kit's composition
+strategies rather than replacing core commands:
 
-| Material | Role |
+- a `constitution-template` addendum records the project's selected standards;
+- command preambles load the relevant canonical standards; and
+- Spec Kit's lower-priority core command remains responsible for its normal
+  operation.
+
+The composition is intentionally selective:
+
+| Spec Kit command | Standards loaded |
 |---|---|
-| `src/MAIN.md` | Normative lifecycle, routing, modes, gates, and authority |
-| Other files under `src/` | Normative standards when selected by `MAIN.md` |
-| `commands/` | Explicit human entry points into named workflow stages |
-| `skills/` | Reusable workflows whose invocation authority is defined elsewhere |
-| `hooks/` | Optional runtime enforcement integrated by supported providers |
-| `README.md` | Installation, connection, and first-use guidance |
-| `docs/` | Explanations for users and maintainers |
-| `LEARNINGS.md` | Historical rationale and lessons from observed failures |
-| `CHANGELOG.md` | Summary of public changes over time |
+| `speckit.constitution` | Universal rules, then documents selected from verified project evidence |
+| `speckit.specify`, `speckit.clarify` | Universal and specification standards |
+| `speckit.plan` | Universal, coding, Git, documentation, and selected stack standards |
+| `speckit.tasks` | Universal, testing, documentation, and profile-specific standards |
+| `speckit.analyze` | Universal, specification, and testing standards |
+| `speckit.implement` | Universal and only the profile entries needed by current tasks |
+| `speckit.converge` | Universal, coding, testing, and selected profile entries |
+| `speckit.taskstoissues` | Universal identifier and source-of-truth rules |
 
-Explanatory documentation does not override normative instructions. Conversely,
-normative documents should not carry repository-maintainer guidance that an
-agent does not need while delivering software.
+Spec Kit copies preset material into project state and materializes composed
+commands for the active integration. Installing or changing a preset does not
+silently rewrite an existing live constitution; the operator invokes the
+constitution command to adopt the new composed template.
 
-## Delivery Lifecycle
+The `--integration` selected during `specify init` controls the project-local
+agent adapter. It does not launch an agent and does not change the provider-
+neutral specification artefacts.
 
-The SDLC is issue-driven. Requirements, acceptance criteria, test evidence,
-decisions, reviews, and closure remain attributable to the work they govern.
-The detailed rules live in `MAIN.md`, `ISSUES.md`, and `TESTING.md`; the
-high-level lifecycle is:
+## Skills and compatibility paths
 
-```text
-Problem and scope
-      |
-      v
-Issue, acceptance criteria, tests, and design
-      |
-      v
-Authorized implementation and verification
-      |
-      v
-Review evidence and human-only judgements
-      |
-      v
-Approval and closure
-```
+Audit skills are independent, read-only challenges of requirements, tests, or
+code. They report evidence and remediation without changing the subject or
+declaring approval. Advisory skills load context, diagnose, recommend, or
+summarize.
 
-### MODE PAIR
+The previous SDLC commands and drafting skill paths are retained as concise
+compatibility notices. This is required because installation preserves
+destination-only files. Keeping the paths with inert guidance makes branch
+switching and redeployment reversible without destructive cleanup.
 
-MODE PAIR is the interactive coding mode. The human and agent work through the
-lifecycle with two explicit human gates:
+## Installer responsibilities
 
-| Gate | Purpose |
+The installer:
+
+1. discovers runtime files from the bounded source roots;
+2. compares each owned source and destination file;
+3. shows only variances unless `VERBOSE=1` is set;
+4. performs no prompt or write when destinations are current;
+5. backs up drift before synchronizing;
+6. installs provider-native adapters; and
+7. validates provider prerequisites before mutation.
+
+It never treats repository documentation or arbitrary files as deployable merely
+because they exist. It does not create provider-specific authoritative SDLC
+trees.
+
+## Extending the standards
+
+| Change | Location |
 |---|---|
-| `PROCEED n [n ...]` | Accept the issue definition and authorize implementation |
-| `APPROVED n [n ...]` | Accept reviewed results and authorize closure |
+| Universal engineering rule | `src/MAIN.md` |
+| Cross-language implementation standard | `src/CODING.md` |
+| Requirement or acceptance-criteria standard | `src/ISSUES.md` |
+| Testing standard | `src/TESTING.md` |
+| Language or domain standard | A focused file under `src/`, plus a route in `MAIN.md` |
+| Spec Kit command selection | `src/presets/sdlc-standards/` |
+| Findings-only reusable review | `skills/<name>/SKILL.md` |
+| Provider command safeguard | `hooks/` plus the relevant installer adapter |
 
-The gates are checkpoints, not a request for the agent to stop between every
-workflow step.
-
-### MODE DELIVER
-
-MODE DELIVER is the autonomous coding mode. It starts only after the agent has
-stated a bounded delivery contract and the human has confirmed it. Work is
-tracked through a durable master issue, completion matrix, child issues,
-decisions, audits, and verification evidence.
-
-The agent continues while safe, authorized work remains. Before returning
-control, it must account for completed and incomplete scope, justify anything
-left undone, record either `DELIVERY READY` or `DELIVERY BLOCKED`, and return
-atomically to MODE PAIR. The normative exit conditions remain in `MAIN.md`.
-
-## Commands, Skills, and Authority
-
-Commands and skills package workflows; they do not grant themselves authority.
-
-- Commands represent deliberate human actions, including gate-adjacent
-  workflow stages.
-- Drafting and design skills prepare auditable issue material.
-- Audit skills challenge acceptance criteria, tests, code, or recommendations.
-- Context skills load and summarize existing project state.
-
-Installation makes these tools discoverable where a provider supports them.
-Invocation remains governed by `MAIN.md`, the user's provider instructions,
-and the current operating mode.
-
-## Installer Responsibilities
-
-The installer has three ownership layers:
-
-1. **Canonical runtime:** compare and deploy files discovered beneath `src/`,
-   `commands/`, `skills/`, and `hooks/`.
-2. **Provider adapters:** place supported commands and skills in each
-   provider's native discovery locations.
-3. **Managed configuration fragments:** analyse and change only the narrow
-   settings that integrate the SDLC with a supported provider.
-
-Planning is per file. An absent or differing managed destination is a
-variance; a matching destination is not. The default output lists variances
-only, while `VERBOSE=1` also shows matching files.
-
-Before replacing a managed artefact, the installer preserves the existing
-version according to the backup behaviour documented in the README. It does
-not delete destination-only material or claim unrelated provider
-configuration. Repeating installation against compliant destinations produces
-no deployment prompt.
-
-## Extending the Framework
-
-Choose the extension point by responsibility:
-
-| Need | Location | Additional work |
-|---|---|---|
-| Universal coding-process rule | `src/MAIN.md` | Keep the entry point concise and route detail when possible |
-| Cross-language craft standard | Existing routed file under `src/` | Update `MAIN.md` routing if its load conditions change |
-| Language or domain standard | New file under `src/` | Add an explicit route and canary component in `MAIN.md` |
-| Human-invoked workflow | `commands/` | Document its authority and supported provider adapters |
-| Reusable agent workflow | `skills/<name>/` | Define its scope and invocation authority |
-| Runtime safeguard | `hooks/` | Add provider integration and behavioural verification |
-| Provider integration | `internal/installer/` and `templates/` | Own only the smallest necessary configuration fragment |
-| User or maintainer explanation | `docs/` | Link it from the README when it is a primary guide |
-
-New runtime files should fit one of the convention-based runtime directories.
-That keeps deployment deterministic without maintaining a hard-coded manifest
-and prevents repository-only material from entering agent context.
-
-## Further Reading
-
-- [`README.md`](../README.md) covers installation and connection to supported
-  providers.
-- [`LEARNINGS.md`](../LEARNINGS.md) records why the framework evolved this way.
-- [`src/MAIN.md`](../src/MAIN.md) is the normative lifecycle and routing entry
-  point.
-- [`docs/ACs.md`](ACs.md) records the installer acceptance criteria retained
-  with the project.
+Keep `MAIN.md` concise. A rule belongs there only when every coding task needs
+it before progressive routing. Put detailed craft guidance in a selected
+standards document and reference that document from the preset rather than
+duplicating the rule.

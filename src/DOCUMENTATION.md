@@ -1,62 +1,70 @@
-# DOCUMENTATION STANDARDS
+# Documentation Standards
 
-## Voice and tone
+Technical documentation is part of the product contract. Keep it accurate,
+direct, and usable without private context.
 
-Documentation must be written impersonally, in the third person. Describe the system, the behaviour, and the rationale -- not who did what or who will decide. Documentation outlives conversations and must stand on its own.
+## Audience and voice
 
-**Wrong:**
-- "I added a new flag to handle this case."
-- "We should run the linter before committing."
-- "The project owner decides which output mode to use."
-
-**Right:**
-- "The `--verbose` flag enables debug output."
-- "The linter must pass before a commit is accepted."
-- "Output mode is configured via the `--mode` flag."
-
-## Versioning
-
-Project documentation files (under `./docs/` in a project) should include a version header:
-
-```markdown
-<!-- Version: 1.2 | Last updated: 2026-01-20 -->
-```
-
-When making significant changes, increment the version and note what changed in a brief changelog at the end of the document.
-
-Global framework documents under `~/.agents/sdlc` are version-controlled via git and do not require version headers. Provider-specific live configuration under `~/.claude`, `~/.codex`, `~/.copilot`, or another agent home is not a documentation source.
-
-## Process
-
-- Before devising any solution, make sure that you have read and digested the documentation for this project which may have changed since the last time you looked.
-- When changing any code, update the relevant documentation after (and not before).
-- All scratch files must live in a unique directory allocated by the operating system's temporary-directory mechanism. Never create project-local agent scratch directories. Cleanup logic must remove the exact allocated directory when the documentation operation ends.
+- Write technical documentation impersonally and in the third person. Describe
+  the system, behaviour, and rationale rather than who performed an action.
+- Write for the reader who must understand, operate, maintain, or contribute to
+  the project.
+- Lead with what the reader can do or needs to know.
+- Prefer precise plain language over slogans, filler, or unexplained jargon.
+- Define acronyms and project-specific terms on first use.
+- Never give an identifier without an adjacent short descriptor.
+- Distinguish verified behaviour, design intent, examples, and hypotheses.
 
 ## Structure
-- Each project should have README.md or README.org (but not both)
-- Documentation should be in .md or .org format. Markdown (`.md`) is the default; use `.org` only where a project already standardizes on it
-- All other documentation should reside in ./docs/
-- README should contain:
-  - A high-level overview of the project
-  - A Quickstart section
-  - Document any project dependencies
-  - A list of the important files in the project and their purpose
-  - A brief overview of each doc file and a jumping off point to it
-- ./docs/ should contain
-  - VISION: A document outlining the overall vision and goals of the project.
-  - architecture: A document describing the high-level architecture of the project.
-  - testing: A document detailing the testing strategy and procedures.
-  - implementation_plan (if relevant)
-  - a separate doc for each significant feature or area
-  - help text for each executable (e.g. `<command>-help.md`), which the executable reads at runtime or has packaged in at build time. Help text is documentation and belongs alongside the rest of the docs, not embedded in the executable as an inline heredoc.
 
-## Problems
-- Stop and alert me if there are any major inconsistencies in the documentation that impact the task at hand
-- Warn me if there are any other inconsistencies in the documentation that do not impact the task at hand
+- Keep one primary `README.md` or `README.org`, following project convention.
+- Put durable topic documentation under the project's established documentation
+  directory.
+- The README should provide an overview, quickstart, prerequisites, important
+  files, and links into the detailed documentation.
+- Mature projects should document vision, architecture, testing strategy,
+  implementation planning where relevant, and significant feature areas.
+- Executable help text is documentation. Keep it reviewable beside the other
+  project documentation and package it at build time where runtime access is
+  required; do not maintain a large duplicate inline heredoc.
+- Use descriptive headings and short sections that can be linked directly.
+- Put commands in executable order and explain destructive or environment-
+  specific effects before the command.
+- Keep examples minimal, valid, and free of secrets or private machine paths.
 
-## License
+## Accuracy and maintenance
 
-License is Apache 2.0 with Copyright Tadhg O'Brien unless otherwise specified
+- Update affected documentation with behaviour, interface, configuration, and
+  operational changes.
+- Verify command flags and tool behaviour from the current interface or a probe.
+- Mark version-specific instructions and remove stale alternatives.
+- Preserve useful history when changing a decision; identify superseded advice
+  rather than silently erasing why it existed.
+- Report major contradictions that affect the work instead of choosing one
+  silently.
 
-# Canary
-Suffix the canary string with "DOC "
+Project documents under `docs/` should carry a version and last-updated header
+when the project uses document-level versioning. Significant revisions increment
+that version and retain a concise document changelog. Git-versioned global
+framework documents do not require duplicate version headers.
+
+## Public documentation
+
+Public documents must stand on their own. Do not assume access to private agent
+instructions, local shell functions, personal tools, private infrastructure, or
+an author's filesystem. Where a private convenience exists, describe the public
+portable mechanism only.
+
+## Temporary notes
+
+Keep scratch notes outside tracked documentation unless the project explicitly
+uses a tracked decision log. Convert durable findings into the appropriate
+specification, plan, architecture record, or reference document.
+
+## Review
+
+Review documentation for technical correctness, missing prerequisites,
+ambiguous pronouns, broken references, unsafe copy-and-paste commands, and
+unexplained identifiers. A prose grep is not a behavioural regression test;
+use a one-time technical review and format-aware link or schema checks where
+appropriate.

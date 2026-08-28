@@ -1,77 +1,83 @@
 # Python Standards
 
-Python-specific standards. The general coding standards in `~/.agents/sdlc/CODING.md` apply on top of these.
+These standards apply only when the project specification and standards profile
+select Python. The universal prohibition on agent-submitted `python` and
+`python3` commands still applies: use project-owned targets and environment
+tools instead of direct interpreter execution.
 
-**Python is not the default.** Before reaching for Python, confirm it is the genuinely best fit -- see CODING.md "Language and Tool Selection". The Python-bias in LLM training data is strong; resist it. Python earns its keep in ML and scientific computing; for general-purpose code, Go or Rust is typically the better starting point.
+Python is not the default for general-purpose tooling. Select it when the
+existing project or its ecosystem is the strongest fit, especially for machine
+learning, scientific computing, or data work. Evaluate a compiled language for
+portable CLIs, services, systems work, and self-contained distribution.
 
-**Never use system Python on macOS.**
-**Never invoke python outside of a venv.**
+## Runtime and environment
 
-## Version Management
+- Pin a supported Python version in project configuration. Do not describe a
+  release as "current" or "LTS" without verifying the project's actual support
+  policy.
+- Prefer `uv` for interpreter, virtual-environment, dependency, tool, and lockfile
+  management in a new project. Follow the established manager in an existing
+  project.
+- Keep the environment project-local and reproducible. Never install packages
+  into the system interpreter or a global environment.
+- Commit `.python-version`, `pyproject.toml`, and the selected lockfile when the
+  project uses them. Ignore `.venv/`, caches, coverage output, and local secrets.
 
-Target Python 3.12.x (current LTS) or 3.13.x (current stable). Pin per-project with a `.python-version` file containing just the version string (e.g. `3.12`).
+Agents run Python work through repository-owned commands such as `make test`,
+`uv run <configured-tool>`, or the project's task runner. The command must be
+part of the project's documented interface, not an ad hoc interpreter snippet.
 
-**Preferred:** `uv` -- manages Python versions, venvs, and packages in one tool. Replaces `pyenv` + `pip` + `venv`.
+## Project layout
 
-**Acceptable:** `pyenv` + `python3 -m venv` -- use this if the project already uses it or `uv` is not available.
+- Use `pyproject.toml` as the primary project and tool configuration file.
+- A pinned `requirements.txt` remains acceptable for a small established script
+  or tool that does not need package metadata.
+- Prefer a `src/` layout for distributable packages; small application projects
+  may follow an established simpler layout.
+- Keep import-time work minimal. Put executable behaviour behind explicit
+  functions and entry points.
+- Use absolute imports across packages and avoid modifying `sys.path` at runtime.
 
-Never use `pyenv local` to set a version mid-script; use `.python-version` instead.
+## Dependencies
 
-## Virtual Environments
+- Declare runtime, development, and optional dependencies separately.
+- Lock applications and services. Libraries should declare compatible ranges
+  and test their supported range.
+- Review transitive dependencies and licences before adding a package.
+- Do not invoke package installers outside the managed project environment.
 
-**Never `pip install` or `uv pip install` outside a venv.** No exceptions.
+## Code quality
 
-**With uv:**
+- Use Ruff for formatting and linting unless the project already has an
+  equivalent established baseline.
+- Use type annotations for public interfaces and non-obvious data structures.
+- Use the project's type checker consistently; do not scatter broad `ignore`
+  directives.
+- Catch specific exceptions. Preserve causes with `raise ... from ...` when
+  translating errors.
+- Use `pathlib` for filesystem paths and context managers for resources.
+- Prefer dataclasses or typed models over unstructured nested dictionaries when
+  the schema is stable.
 
-```bash
-uv venv          # creates .venv using version from .python-version
-uv pip install -r requirements.txt
-```
+For a new baseline, configure Ruff for the project's pinned target version, use
+an 88-character formatting width, and enable `E`, `W`, `F`, `I`, `B`, and `UP`.
+Ignore `E501` when the formatter owns line length. Record the first-party package
+names for import sorting and document any deviation.
 
-**With pip:**
+## Testing
 
-```bash
-python3 -m venv .venv
-.venv/bin/pip install --upgrade pip -q
-.venv/bin/pip install -r requirements.txt -q
-```
+- Use the project's existing framework; use pytest when establishing a new
+  baseline.
+- Keep tests independent of global interpreters, home-directory state, network
+  access, locale, and execution order.
+- Follow `~/.agents/sdlc/TESTING.md`; do not use source or prompt text searches
+  as behavioural regression tests.
 
-## Project Structure
+## Security
 
-Use a `src/` layout for new projects -- package lives at `src/<packagename>/`. This prevents accidental imports of source rather than the installed package. Do not restructure existing projects to `src/` layout simply because you are touching them.
-
-## Dependency Files
-
-Prefer `pyproject.toml` for packages with a proper structure. `requirements.txt` is acceptable for simple scripts and tools.
-
-```toml
-[project]
-name = "mypackage"
-requires-python = ">=3.12"
-dependencies = ["pyyaml>=6.0"]
-
-[project.optional-dependencies]
-dev = ["pytest>=8.0", "ruff>=0.4"]
-```
-
-## Ruff Configuration
-
-Standard config for all Python projects:
-
-```toml
-[tool.ruff]
-target-version = "py312"
-line-length = 88
-
-[tool.ruff.lint]
-select = ["E", "W", "F", "I", "B", "UP"]
-ignore = ["E501"]  # line too long -- enforced by formatter, not linter
-
-[tool.ruff.lint.isort]
-known-first-party = ["<package-name>"]
-```
-
-`E501` is always ignored -- `ruff format` enforces line length; having both causes conflicts. 88 is the community standard (Black's default). Deviate only with documented reason.
-
-# Canary
-Suffix the canary string with "PY "
+- Never deserialize untrusted pickle data.
+- Avoid `eval`, `exec`, dynamic imports from untrusted input, and shell-enabled
+  subprocesses.
+- Pass subprocess arguments as an array and validate any executable path.
+- Treat dependency installation and build backends as code execution; use
+  trusted sources and locked inputs.

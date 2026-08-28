@@ -10,7 +10,7 @@ Web content moves through three tiers between authoring and the user:
 
 1. **Source** -- templates, partials, source CSS/JS files. Source code. Tests must never grep, parse, or introspect this tier (see `~/.agents/sdlc/TESTING.md`).
 2. **Rendered/built** -- post-build HTML, fingerprinted CSS bundle, transpiled JS, RSS/feed XML, static assets. The artefact that travels over the wire. **Tests may query this tier** with format-aware tools -- the user's browser or feed reader receives this exact content.
-3. **Presented** -- post-JS-execution DOM, computed styles, visual layout. What the user actually sees. Requires a browser (Playwright/Cypress) or a human (UT) to verify.
+3. **Presented** -- post-JS-execution DOM, computed styles, visual layout. What the user actually sees. Requires a browser (Playwright/Cypress) or human validation.
 
 The source-introspection prohibition in `~/.agents/sdlc/TESTING.md` applies to tier 1. Tiers 2 and 3 are legitimate test targets. For mostly-static sites (Hugo), tier 2 is usually sufficient. For JS-heavy SPAs where meaningful content materializes only after browser execution, tier 2 is insufficient -- defer to tier 3.
 
@@ -82,12 +82,12 @@ Decision tree by tier:
 
 | Tier | Test type | How |
 |---|---|---|
-| Rendered HTML, no JS execution needed | **RT** | `hugo build` (or equivalent) -> `htmlq` query -> assert on text/attributes. Compliant with the source-introspection prohibition because rendered HTML is the user-facing artefact. |
-| Broad generated-site validity | **RT** | `hugo build` (or equivalent) -> `htmltest`. Use this for broad link, asset, and generated HTML validation. |
-| RSS/feed output | **RT** | Build the site -> `xmlstarlet` XPath query -> assert on feed structure/content. |
-| Served static file, route, header, or asset | **RT** | Use the existing project harness only if serving behaviour itself is under test. Do not install Node or a browser stack for this. |
-| Computed style, hover, JS-rendered content | **UT** (default) or **RT with headless browser** | UT until tooling cost is justified; then Playwright/Cypress. |
-| Visual judgement (typography, "looks right", layout aesthetics) | **UT** only | Machine cannot replace human visual judgement here. |
+| Rendered HTML, no JS execution needed | **Automated regression** | `hugo build` (or equivalent) -> `htmlq` query -> assert on text/attributes. Compliant with the source-introspection prohibition because rendered HTML is the user-facing artefact. |
+| Broad generated-site validity | **Automated regression** | `hugo build` (or equivalent) -> `htmltest`. Use this for broad link, asset, and generated HTML validation. |
+| RSS/feed output | **Automated regression** | Build the site -> `xmlstarlet` XPath query -> assert on feed structure/content. |
+| Served static file, route, header, or asset | **Automated regression** | Use the existing project harness only if serving behaviour itself is under test. Do not install Node or a browser stack for this. |
+| Computed style, hover, JS-rendered content | **Human validation by default; automated browser regression when justified** | Prefer human validation until the project adopts Playwright, Cypress, or an equivalent harness. |
+| Visual judgement (typography, "looks right", layout aesthetics) | **Human validation** | Machine checks cannot replace human visual judgement here. |
 
 Per `~/.agents/sdlc/TESTING.md`, the real-user test question still applies: *what user action does this test simulate, and what would the user observe?* For rendered HTML, generated feeds, or served static files the answer is "the user loads this URL and the browser/feed reader receives this response" -- legitimate. For source-template grep the answer is "nothing the user does" -- forbidden.
 
@@ -98,6 +98,3 @@ Per `~/.agents/sdlc/TESTING.md`, the real-user test question still applies: *wha
 - Accessibility: [WCAG 2.1 AA](https://www.w3.org/WAI/WCAG21/quickref/)
 - JavaScript: [MDN JS reference](https://developer.mozilla.org/en-US/docs/Web/JavaScript), [Airbnb JS Style Guide](https://github.com/airbnb/javascript)
 - Open Graph: [ogp.me](https://ogp.me/)
-
-# Canary
-Suffix the canary string with "WEB "

@@ -1,272 +1,196 @@
-# SDLC for AI Coding Agents
+# Engineering Standards for AI Coding Agents
 
-An opinionated, issue-driven software development lifecycle for a human working with AI coding agents. The repository is the staging source for process rules, craft standards, workflow commands, and skills. The deployed `~/.agents/sdlc` tree is the canonical live version. Provider configuration remains in the provider's own home directory.
+This public repository provides a provider-neutral engineering standards
+library for coding agents. It is designed to complement
+[GitHub Spec Kit](https://github.com/github/spec-kit): Spec Kit owns
+specification and delivery orchestration; this repository supplies the coding,
+testing, Git, documentation, language, and domain standards applied within it.
 
-The framework began with Claude Code and now separates the durable public SDLC from every user's personal and provider-specific instructions. It has no dependency on the author's private agent configuration. [The architecture guide](docs/ARCHITECTURE.md) explains how the framework is assembled and loaded. [LEARNINGS.md](LEARNINGS.md) preserves the failures, design reasoning, and accumulated guidance that produced the current rules.
+The library does not require private agent instructions. Its canonical installed
+root is exactly `~/.agents/sdlc` for every supported provider.
 
-## Repository Layout
+## What is included
 
 | Path | Purpose |
 |---|---|
-| `src/` | Deployable SDLC entry point, process rules, and routed standards |
-| `CHANGELOG.md` | High-level repository history from the public extraction onward |
-| `LEARNINGS.md` | Design rationale, observed failures, and framework evolution |
-| `docs/ARCHITECTURE.md` | Public framework boundaries, components, loading model, and extension points |
-| `commands/` | Human-invoked workflow prompts, including gate-adjacent commands |
-| `skills/` | Advisory and drafting skills |
-| `hooks/` | Optional command guard used by supported provider configuration |
-| `templates/` | Installer inputs and provider-configuration examples; not deployed into agent instruction trees |
-| `cmd/sdlc-install/` | Installer and configuration analyser |
+| `src/MAIN.md` | Compact universal rules and progressive-loading routes |
+| `src/ISSUES.md` | Specification and acceptance-criteria standards |
+| `src/TESTING.md` | Behavioural testing and evidence standards |
+| `src/CODING.md` | Cross-language implementation standards |
+| `src/GIT.md` | Source-control and recoverability standards |
+| `src/DOCUMENTATION.md` | Public technical-documentation standards |
+| `src/{GO,PYTHON,SHELL,PERL,SWIFT,WEB}.md` | Stack-specific standards |
+| `src/presets/sdlc-standards/` | Spec Kit preset that selects standards progressively |
+| `skills/` | Findings-only audits and advisory tools |
+| `commands/` | Compatibility notices for retired SDLC workflows |
+| `hooks/` | Optional provider-integrated command safeguard |
+| `cmd/` and `internal/` | Installer implementation |
 
-The canonical live SDLC root is exactly `~/.agents/sdlc`.
+Only runtime material from `src/`, `commands/`, `skills/`, and `hooks/` is
+deployed. Repository documentation, installer source, tests, and build metadata
+do not enter the live instruction tree.
 
-## Quickstart
+## Install the standards
 
-Clone the staging repository at a stable development path outside every
-provider home:
+Prerequisites are Go, `rsync`, and the tools required by the repository's build
+targets.
 
 ```bash
 git clone https://github.com/tigger-developer/sdlc.git ~/code/sdlc
 ```
 
-Enter the clone and start the interactive installer:
+```bash
+cd ~/code/sdlc
+```
 
 ```bash
 make install
 ```
 
-The installer detects the supported provider homes that exist and recursively
-discovers runtime files beneath `src/`, `commands/`, `skills/`, and `hooks/`.
-The contents of `src/` map directly to `~/.agents/sdlc`; the other runtime
-directories retain their names. Files outside those roots are never agent
-deployment candidates.
+The installer:
 
-Each discovered file is compared with its destination by content and
-permissions. The installer asks once before applying a batch only when a file
-is absent or differs, or a managed provider-configuration fragment varies.
-Matching destinations do not prompt.
+- synchronizes `src/` into `~/.agents/sdlc` and retains the other runtime
+  directory names;
+- installs provider-native skill and command adapters for detected Claude,
+  Codex, Copilot CLI, and Hermes homes;
+- compares source and destination before prompting;
+- lists only missing or differing destinations by default;
+- backs up owned drift before replacement; and
+- performs no deployment prompt or write when every detected destination is
+  current.
 
-The default plan lists only destinations that differ. Set `VERBOSE=1` to
-include every matching destination:
+Set `VERBOSE=1` to include matching destinations in the plan:
 
 ```bash
 VERBOSE=1 make install
 ```
 
-Explicit provider mode remains available for inspecting or changing one
-provider independently:
+To inspect installer options:
 
 ```bash
 make build
 ```
 
 ```bash
-bin/sdlc-install --agent codex
+bin/sdlc-install --help
 ```
+
+Provider-specific homes are adapters, not alternate SDLC roots. Agents must
+load standards from `~/.agents/sdlc` and must never search the filesystem for a
+different copy.
+
+## Use with Spec Kit
+
+Install Spec Kit according to its upstream documentation. In the project that
+will use it, initialize the desired agent integration. For example:
 
 ```bash
-bin/sdlc-install --agent codex --configure
+specify init --here --integration codex --script sh --non-interactive
 ```
 
-Replace `codex` with `claude`, `copilot`, or `hermes` as appropriate. For an
-unrecognized provider, supply both `--agent custom` and `--agent-home`. Run
-`make install-cli` only when a reusable `~/.local/bin/sdlc-install` link is
-wanted.
+`--integration codex` selects the project-local Codex command adapter. It does
+not launch Codex or make the standards Codex-specific. Choose the integration
+for the agent interface through which the Spec Kit commands will be invoked;
+the resulting `spec.md`, `plan.md`, `tasks.md`, and constitution remain project
+artefacts.
 
-## One Staging Clone, Multiple Agents
-
-Keep one physical staging clone at a stable path. The installer copies it to
-the canonical `~/.agents/sdlc` root and installs provider-native adapters; no
-provider is linked to staging:
+Add the deployed standards preset:
 
 ```bash
-git clone https://github.com/tigger-developer/sdlc.git ~/code/sdlc
+specify preset add --dev ~/.agents/sdlc/presets/sdlc-standards
 ```
 
-From `~/code/sdlc`, run one command:
+Inspect the composed template if desired:
+
+```bash
+specify preset resolve constitution-template
+```
+
+Invoke the active integration's rendering of `speckit.constitution` once. In the
+current Codex skills integration this is `$speckit-constitution`; other
+integrations render the same logical command in their native syntax. The command
+reads `~/.agents/sdlc/MAIN.md`, selects only the standards applicable to the
+project, and records them in the constitution's Engineering Standards Profile.
+This is agent-assisted project setup; the operator does not hand-write a fresh
+constitution.
+
+Installing a preset does not rewrite an existing
+`.specify/memory/constitution.md`. Invoke `speckit.constitution` to adopt or
+update the composed template deliberately.
+
+Thereafter:
+
+- `speckit.specify` and `speckit.clarify` load specification standards;
+- `speckit.plan` loads cross-language and selected stack standards;
+- `speckit.tasks` loads testing and documentation standards;
+- `speckit.analyze` checks consistency and coverage; and
+- `speckit.implement` and `speckit.converge` load the standards named by the
+  project profile.
+
+`speckit.taskstoissues` retains Spec Kit's task artefacts as the source of truth
+and applies the rule that human-facing identifiers always include descriptors.
+
+The preset adds standards to these commands without replacing Spec Kit's
+orchestration. The shared documents remain the single source of truth.
+
+## Use without Spec Kit
+
+Provider or project instructions may direct an agent to read
+`~/.agents/sdlc/MAIN.md` when coding work begins. `MAIN.md` then routes only the
+documents relevant to that work. An equivalent durable project specification is
+required before code is written.
+
+The public template at
+[`templates/AGENTS-or-CLAUDE.example.md`](templates/AGENTS-or-CLAUDE.example.md)
+shows the minimum standalone integration. Adapt provider discovery filenames and
+locations to current provider documentation.
+
+## Skills and safeguards
+
+The retained audit skills are findings-only:
+
+- `audit-acs` challenges requirements and acceptance criteria;
+- `audit-tests` challenges evidence and coverage; and
+- `audit-code` reviews implementation against the selected standards.
+
+Advisory skills diagnose problems, recommend technical decisions, summarize
+open work, or load minimal project context. Skills do not approve their own
+findings and do not define a delivery lifecycle.
+
+The optional Hermes hook and provider rules reinforce the common prohibitions
+on `rm`, `sed`, `awk`, and direct `python` or `python3` interpreter commands.
+They do not prevent a documented project target from invoking its own runtime.
+
+Hermes must create `~/.hermes/config.yaml` through its startup configuration
+before the installer can safely amend it. If the Hermes home exists without that
+file, installation stops with a prerequisite diagnostic.
+
+## Updating and rollback
+
+Update the staging clone, inspect the branch, and redeploy:
+
+```bash
+git pull --ff-only
+```
 
 ```bash
 make install
 ```
 
-Accept the single deployment batch. A `git pull` updates staging only; an
-accepted installer run is required to deploy that change.
+The `spec-kit-prototype` branch contains the standards-only model. Switching the
+staging clone to another branch and rerunning `make install` redeploys that
+branch's runtime files. Destination-only files are preserved, so legacy paths
+on the prototype contain concise compatibility notices rather than relying on
+deletion for rollback.
 
-### Manual alternative
+## Further reading
 
-The installer is optional. To reproduce its main deployment boundary manually,
-first synchronize the staging tree while excluding Git metadata:
-
-```bash
-mkdir -p ~/.agents/sdlc
-```
-
-```bash
-rsync -a ~/code/sdlc/src/ ~/.agents/sdlc/
-```
-
-Synchronize the remaining runtime sources independently so repository
-documentation, installer source, templates, tests, and build metadata do not
-enter the live agent context:
-
-```bash
-rsync -a ~/code/sdlc/commands/ ~/.agents/sdlc/commands/
-```
-
-```bash
-rsync -a ~/code/sdlc/skills/ ~/.agents/sdlc/skills/
-```
-
-```bash
-rsync -a ~/code/sdlc/hooks/ ~/.agents/sdlc/hooks/
-```
-
-Do not create provider-local SDLC copies. The automated installer also copies
-skills and supported commands into provider-native locations. It never passes
-`--delete` to rsync, so destination-only items are preserved.
-
-## Connect the Agent to the SDLC
-
-The repository deliberately does not supply a personal `AGENTS.md` or `CLAUDE.md`. Use [templates/AGENTS-or-CLAUDE.example.md](templates/AGENTS-or-CLAUDE.example.md) as the provider-level baseline and add the human-specific working preferences it calls out.
-
-Common destinations are:
-
-| Agent | Provider-level instructions | SDLC location |
-|---|---|---|
-| Claude Code | `~/.claude/CLAUDE.md` | `~/.agents/sdlc` |
-| Codex | `~/.codex/AGENTS.md` | `~/.agents/sdlc` |
-| Hermes | Private configuration outside this project | `~/.agents/sdlc` |
-| Copilot or another agent | Provider-specific instruction file | `~/.agents/sdlc` |
-
-Project-level `AGENTS.md` or `CLAUDE.md` files should describe only project-specific conventions and should rely on the provider-level file to load this framework.
-
-## Loading Contract
-
-For applicable coding work, the agent reads `MAIN.md` in full, selects the relevant root-level reference documents, and reads every selected document in full before acting.
-
-The first response after loading must state:
-
-- the complete list of selected documents read in full; and
-- why each was selected.
-
-The canary chain remains present on later responses. It proves which documents remain active, but it is not a substitute for the first-load report.
-
-## Installer Behaviour
-
-The installer has three deliberately separate responsibilities:
-
-1. `make install` always compares the canonical `~/.agents/sdlc` tree and
-   detects existing supported provider homes for native skills and commands.
-2. It asks once before synchronizing the complete batch with `rsync --archive`,
-   excluding `.git` and never using `--delete`.
-3. It includes supported provider-configuration changes in the same preflight
-   and confirmation batch. Explicit `--agent` mode retains `--apply` and
-   `--configure` for automation or one-provider work.
-
-The default installation plan contains only differing destinations. Set
-`VERBOSE=1` to include matching destinations in the plan.
-
-Before any existing SDLC-owned artefact is replaced, it is renamed beside the
-live path as `<path>.<epoch>.bak`. This includes drifted files, stale links,
-wrong destination types, and configuration files. The canonical copy is
-written only after the backup succeeds. Provider adapters add only the
-integrations their current public interfaces support:
-
-| Agent | Commands | Skills |
-|---|---|---|
-| Claude Code | Ordinary files under `~/.claude/commands/` | Ordinary skill directories under `~/.claude/skills/` |
-| Codex | Ordinary files under `~/.codex/prompts-commands/` | Ordinary skill directories under `~/.agents/skills/` |
-| Copilot CLI | Ordinary files under `~/.copilot/prompts-commands/` | Ordinary skill directories under `~/.copilot/skills/` |
-| Hermes | No command adapter | Ordinary skill directories under `~/.hermes/skills/` |
-| Custom | No command adapter | No provider-specific assumptions |
-
-Every top-level directory under staging `skills/` is recursively copied to its
-supported destinations. Installation makes a skill discoverable; it does not
-authorize invocation or alter the human-only gate rules.
-
-Claude configuration analysis is based on `settings.json`; the confirmed change adds missing SDLC command restrictions to `permissions.deny`, removes the same restrictions from `permissions.allow`, and preserves unknown fields. JSON spacing and key order may be normalized. The installer refuses to replace a symlinked settings file and recommends editing its target manually. Codex analysis checks `config.toml`; the confirmed change creates `rules/sdlc.rules` when absent and can upgrade a recognized prior SDLC rules file while preserving unrelated rules. Ambiguous or non-regular destinations remain untouched. After migration, repeating the installer reports the current policy unchanged.
-
-Hermes analysis structurally parses `config.yaml` and registers only the SDLC
-command guard at the provider-neutral `~/.agents/sdlc` root for the `terminal`
-tool. A recognized older registration under the Hermes home is replaced rather
-than retained as a second hook. Private instructions and custom prompt text
-belong to the user's private agent configuration, not this public project. The
-merge compares only the managed hook semantics. A compliant file is retained
-byte-for-byte regardless of comments, key order, quoting, or formatting. A
-required migration preserves YAML comments, prompt text, unrelated values,
-existing hooks, and first-use hook consent. Before rewriting an existing file,
-it stores a recovery copy in an operating system temporary directory and prints
-the path. Invalid YAML and non-regular configuration paths remain untouched.
-
-Hermes must complete its startup TUI and model selection before installation.
-If a Hermes home exists without `config.yaml`, the installer stops the complete
-preflight with a visible diagnostic instead of manufacturing an incomplete
-provider configuration.
-
-The shared command guard at `hooks/agent-command-guard.sh` speaks Hermes's
-`pre_tool_call` hook protocol. It prohibits `rm`, `sed`, `awk`, and direct
-`python` and `python3` interpreter commands without blocking project entry
-points such as `make test`.
-
-Claude's current personal skill and legacy command locations are documented in its official [skills guide](https://code.claude.com/docs/en/slash-commands). Current Codex configuration, command-rule, and personal-skill semantics are documented in the official [configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference.md), [rules guide](https://learn.chatgpt.com/docs/agent-configuration/rules.md), and [skills guide](https://learn.chatgpt.com/docs/build-skills). Copilot personal skill and instruction locations are documented in GitHub's official [skill guide](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-skills) and [custom-instruction guide](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-custom-instructions). Copilot and custom targets receive generic configuration recommendations until provider-specific permission changes are explicitly implemented and tested.
-
-## Workflow Safety
-
-Gate-equivalent workflows remain human-invoked commands. They must not be repackaged as implicitly selectable skills. Advisory skills may be installed where the provider supports them, but a skill cannot authorize its own use or advance an SDLC gate.
-
-Configuration recommendations are advisory. Review every proposed permission change against the provider's current documentation and your own threat model before accepting it.
-
-## Long-running delivery
-
-MODE PAIR and MODE DELIVER are code-only concepts defined entirely by the SDLC
-after `MAIN.md` is loaded for a coding-agent session. Provider instructions
-decide when to load the SDLC but do not define its modes. Conversational
-sessions do not load the SDLC and do not inherit either mode.
-
-MODE DELIVER records its goal, scope, completion matrix, decisions, quality
-checks, child status, and user tests on one master issue. The agent owns the
-next action while delivery remains active. Progress reports are non-terminal,
-and a final handback in MODE DELIVER is prohibited.
-
-When no safe, authorized, executable agent action remains, the agent records a
-delivery exit on the master. `DELIVERY READY` confirms that every autonomous
-delivery action is evidenced and accounts for work awaiting a human-only
-checkpoint; `DELIVERY BLOCKED` accounts for work stopped by a genuine blocker.
-Either verdict atomically returns the session to MODE PAIR before control is
-handed to the human. Routine reversible implementation ambiguity is recorded
-and resolved without exiting delivery.
-
-After context loss or in a new session, the human can resume an open delivery
-master with:
-
-```text
-RESUME DELIVER n
-```
-
-The agent reloads the durable master state and continues the next unchecked
-action without repeating delivery readiness. The directive cannot resume a
-closed master or expand its recorded scope.
-
-## Updating
-
-Update the staging clone normally:
-
-```bash
-git pull
-```
-
-Provider homes continue to see the previous live deployment after `git pull`.
-Re-run `make install` to review and accept the shared, provider-adapter, and
-managed provider-configuration changes in one batch.
-
-## Further Reading
-
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) explains the public framework boundary, repository and installed layouts, loading model, lifecycle, installer ownership, and extension points.
-- [CHANGELOG.md](CHANGELOG.md) records the public repository's high-level history.
-- [LEARNINGS.md](LEARNINGS.md) explains why the framework is structured this way and records the failures behind the rules.
-- [src/MAIN.md](src/MAIN.md) is normative for the SDLC process and deploys as `~/.agents/sdlc/MAIN.md`.
-- The other standards under `src/` are normative only when `MAIN.md` selects them for the current task.
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) describes source, deployment,
+  loading, and Spec Kit composition.
+- [`LEARNINGS.md`](LEARNINGS.md) records the design lessons behind the current
+  standards model.
+- [`CHANGELOG.md`](CHANGELOG.md) records repository changes.
 
 ## Licence
 
-Apache License 2.0. See [LICENSE](LICENSE).
+Apache License 2.0. See [`LICENSE`](LICENSE).

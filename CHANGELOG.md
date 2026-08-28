@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+Reworked the `spec-kit-prototype` branch as a standards-only companion to
+GitHub Spec Kit. The deployed SDLC now retains universal, specification,
+testing, coding, Git, documentation, language, and domain standards while
+removing SDLC-owned modes, gates, approval keywords, ticket lifecycle, audit
+sequencing, and build or review orchestration.
+
+Added the deployable `sdlc-standards` Spec Kit preset. It composes progressive
+standards loading into Spec Kit's constitution, specification, clarification,
+planning, task, analysis, checklist, implementation, convergence, and
+task-to-issue commands without duplicating the standards or replacing Spec
+Kit's core workflow. The generated constitution records a project-specific
+Engineering Standards Profile.
+
+Reframed `ISSUES.md` as provider-neutral specification standards, simplified
+testing and Git terminology, retained findings-only audit and advisory skills,
+and replaced legacy command and drafting paths with reversible compatibility
+notices. Rewrote the README, architecture guide, learnings, and provider example
+so the public project stands alone without private agent configuration.
+
 Added a self-contained public architecture guide covering the framework
 boundary, repository and installed layouts, progressive loading, delivery
 lifecycle, commands and skills, installer ownership, and extension points.
