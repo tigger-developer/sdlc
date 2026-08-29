@@ -7,6 +7,9 @@
 
 ## Install SDLC v2
 
+Building or installing from source requires a Go toolchain and `rsync`. The
+installed Go executables do not require a separate Go runtime.
+
 The SDLC installer also installs the `sdlc-install` and `sdlc-project-init`
 helpers under `~/.local/bin`.
 

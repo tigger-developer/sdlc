@@ -210,7 +210,7 @@ func Run(options Options) error {
 		return err
 	}
 	for key, value := range projectSnapshot(config) {
-		if projectValues[key] == "" && value != "" {
+		if _, exists := projectValues[key]; !exists {
 			projectValues[key] = value
 			configChanged = true
 		}
@@ -824,7 +824,7 @@ func writeManagedEnv(path string, values map[string]string) error {
 	}
 	kept = append(kept, "# SDLC project configuration")
 	for _, key := range managedKeys {
-		if value, ok := values[key]; ok && value != "" {
+		if value, ok := values[key]; ok {
 			kept = append(kept, key+"="+strconv.Quote(value))
 		}
 	}

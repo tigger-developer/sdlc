@@ -266,6 +266,22 @@ func TestRunSnapshotsEveryResolvedGlobalDefaultIntoProject(t *testing.T) {
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("project snapshot = %#v, want global defaults %#v", got, want)
 	}
+
+	writeTestFile(t, userConfig, strings.ReplaceAll(string(mustReadFile(t, userConfig)), "gpt-5.6-sol", "new-global-spec"))
+	var rerunOutput bytes.Buffer
+	if err := Run(Options{
+		ProjectRoot: project, SDLCRoot: root, UserConfigPath: userConfig, NoLaunch: true,
+		Input: strings.NewReader(""), Output: &rerunOutput, ErrorOutput: &bytes.Buffer{},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	afterGlobalChange, err := readManagedEnv(filepath.Join(project, ".env"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(afterGlobalChange, got) || rerunOutput.Len() != 0 {
+		t.Fatalf("global default change altered existing snapshot: values=%#v output=%q", afterGlobalChange, rerunOutput.String())
+	}
 }
 
 func TestLaunchConstitutionRequiresProjectWideFiltering(t *testing.T) {
@@ -407,4 +423,13 @@ func writeTestFile(t *testing.T, path, contents string) {
 	if err := os.WriteFile(path, []byte(contents), 0o600); err != nil {
 		t.Fatal(err)
 	}
+}
+
+func mustReadFile(t *testing.T, path string) []byte {
+	t.Helper()
+	contents, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return contents
 }

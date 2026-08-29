@@ -35,9 +35,11 @@ do not enter the live instruction tree.
 
 ## Install the standards
 
-Prerequisites are Spec Kit 1.0 or later, Go, `rsync`, and the tools required by
-the repository's build targets. The complete greenfield and brownfield setup is
-documented in [`QUICKSTART.md`](QUICKSTART.md).
+Building or installing from source requires Spec Kit 1.0 or later, a Go
+toolchain, `rsync`, and the tools required by the repository's build targets.
+The installed Go executables do not require a separate Go runtime. The complete
+greenfield and brownfield setup is documented in
+[`QUICKSTART.md`](QUICKSTART.md).
 
 ```bash
 git clone https://github.com/tigger-developer/sdlc.git ~/code/sdlc
