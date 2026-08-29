@@ -1,12 +1,12 @@
 # Changelog
 
-## Unreleased
+## v2.0.0 - 2026-08-29
 
-Reworked the `spec-kit-prototype` branch as a standards-only companion to
-GitHub Spec Kit. The deployed SDLC now retains universal, specification,
-testing, coding, Git, documentation, language, and domain standards while
-removing SDLC-owned modes, approval keywords, ticket lifecycle, and build or
-review orchestration.
+Released the Spec Kit integrated edition of the SDLC. GitHub Spec Kit 1.0 or
+later is now a prerequisite and owns specification and delivery orchestration.
+The deployed SDLC retains universal, specification, testing, coding, Git,
+documentation, language, and domain standards while removing SDLC-owned modes,
+approval keywords, ticket lifecycle, and build or review orchestration.
 
 Added `sdlc-project-init`, a cross-platform deterministic initializer for Spec
 Kit projects. It discovers technology standards, resolves CLI, project, and
@@ -15,6 +15,19 @@ external infrastructure contract, no-ops without prompting when current, and
 then invokes Codex, Claude, or Hermes for project-specific constitution text.
 Project configuration includes separate delivery and audit provider/model
 values.
+
+The generated constitution baseline now records the exact SDLC source commit or
+release embedded in a clean initializer build. Modified or unversioned builds
+leave an explicit ratification TODO rather than inventing traceability. Initial
+drafts use `Last Revised` rather than amendment terminology.
+
+`make install` now also installs both SDLC CLI helpers previously available only
+through `make install-cli`.
+
+Added a standalone quickstart for greenfield and brownfield adoption. The
+document covers Spec Kit initialization, constitution review and ratification,
+tracked project artefacts, brownfield evidence and delta specifications,
+non-interactive selection, and idempotent reruns.
 
 Corrected the generated constitution location to Spec Kit's project override
 path. The resolver now returns the generated baseline before parsing preset

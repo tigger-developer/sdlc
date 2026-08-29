@@ -113,9 +113,11 @@ it available without changing the initializer.
 The generated template contains the fixed constitutional base, universal
 standard references, selected technology references, an optional external
 infrastructure contract, mandatory independent audits, and bounded placeholders
-for project-specific principles. The selected agent harness receives that
-template only after deterministic rendering and may add project evidence, but
-must not remove or weaken the generated clauses.
+for project-specific principles. A clean versioned build also records its exact
+SDLC source commit or release; modified or unversioned builds leave an explicit
+ratification TODO. The selected agent harness receives that template only after
+deterministic rendering and may add project evidence, but must not remove or
+weaken the generated clauses.
 
 Project `.env` values override user defaults; CLI values override both. The
 initializer reads only its named `SDLC_*` keys. It records the project choices

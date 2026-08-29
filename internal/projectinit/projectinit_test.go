@@ -2,6 +2,7 @@ package projectinit
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -76,6 +77,9 @@ func TestRenderConstitutionIncludesUniversalAndSelectedStandardsOnce(t *testing.
 	if strings.Contains(text, "External Infrastructure Ownership") {
 		t.Error("external integration was rendered while disabled")
 	}
+	if !strings.Contains(text, "**Last Revised**: [LAST_AMENDED_DATE]") || strings.Contains(text, "**Last Amended**") {
+		t.Error("unratified constitution template used amendment terminology")
+	}
 }
 
 func TestRenderConstitutionIncludesExternalIntegration(t *testing.T) {
@@ -90,6 +94,18 @@ func TestRenderConstitutionIncludesExternalIntegration(t *testing.T) {
 	}
 }
 
+func TestRenderConstitutionPinsSDLCRevision(t *testing.T) {
+	text := string(renderConstitution("/standards", nil, resolvedConfig{SDLCRevision: "0123456789abcdef"}))
+	if !strings.Contains(text, "The adopted SDLC revision is `0123456789abcdef`.") || strings.Contains(text, "TODO(SDLC_REVISION)") {
+		t.Fatalf("rendered constitution did not pin the SDLC revision:\n%s", text)
+	}
+
+	unresolved := string(renderConstitution("/standards", nil, resolvedConfig{}))
+	if !strings.Contains(unresolved, "TODO(SDLC_REVISION)") {
+		t.Fatalf("unversioned constitution omitted the revision TODO:\n%s", unresolved)
+	}
+}
+
 func TestRenderConstitutionNamesAuditProviderWithModel(t *testing.T) {
 	text := string(renderConstitution("/standards", nil, resolvedConfig{AuditProvider: "openai-codex", AuditModel: "gpt-5.6-luna"}))
 	if !strings.Contains(text, "provider `openai-codex`, model `gpt-5.6-luna`") {
@@ -97,9 +113,48 @@ func TestRenderConstitutionNamesAuditProviderWithModel(t *testing.T) {
 	}
 }
 
-func TestRunIsIdempotentAndDoesNotRelaunch(t *testing.T) {
+func TestRunInitializesGreenfieldSpecKitProject(t *testing.T) {
 	project := t.TempDir()
 	root := t.TempDir()
+	writeTestFile(t, filepath.Join(root, "technologies", "GO.md"), "# Go\n")
+	writeTestFile(t, filepath.Join(root, "presets", "sdlc-standards", "preset.yml"), "present\n")
+	disabled := false
+	var commands []string
+	runner := func(name string, arguments []string, directory string, _ io.Reader, _, _ io.Writer) error {
+		commands = append(commands, name+" "+strings.Join(arguments, " "))
+		switch {
+		case name == "specify" && len(arguments) != 0 && arguments[0] == "init":
+			return os.MkdirAll(filepath.Join(directory, ".specify"), 0o700)
+		case name == "specify" && len(arguments) >= 2 && arguments[0] == "preset" && arguments[1] == "add":
+			return copyDirectory(filepath.Join(root, "presets", "sdlc-standards"), filepath.Join(directory, ".specify", "presets", "sdlc-standards"))
+		default:
+			return fmt.Errorf("unexpected command: %s %v", name, arguments)
+		}
+	}
+	options := Options{
+		ProjectRoot: project, SDLCRoot: root, UserConfigPath: filepath.Join(t.TempDir(), ".env"), NoLaunch: true,
+		Harness: "codex", Technologies: []string{"GO"}, InfraEnabled: &disabled, SDLCRevision: "0123456789abcdef",
+		Input: strings.NewReader("yes\n"), Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{}, RunCommand: runner,
+	}
+	if err := Run(options); err != nil {
+		t.Fatal(err)
+	}
+	if len(commands) != 2 || !strings.Contains(commands[0], "specify init") || !strings.Contains(commands[1], "specify preset add") {
+		t.Fatalf("greenfield commands = %#v", commands)
+	}
+	constitution, err := os.ReadFile(filepath.Join(project, ".specify", "templates", "overrides", "constitution-template.md"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(constitution), "The adopted SDLC revision is `0123456789abcdef`.") {
+		t.Fatalf("greenfield constitution omitted source revision:\n%s", constitution)
+	}
+}
+
+func TestRunPreservesBrownfieldProjectAndIsIdempotent(t *testing.T) {
+	project := t.TempDir()
+	root := t.TempDir()
+	writeTestFile(t, filepath.Join(project, "README.md"), "# Existing project\n")
 	writeTestFile(t, filepath.Join(project, ".specify", "marker"), "present\n")
 	writeTestFile(t, filepath.Join(project, ".specify", "presets", "sdlc-standards", "preset.yml"), "present\n")
 	writeTestFile(t, filepath.Join(root, "technologies", "GO.md"), "# Go\n")
@@ -136,6 +191,10 @@ func TestRunIsIdempotentAndDoesNotRelaunch(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(project, ".specify", "templates", "constitution-template.md")); !os.IsNotExist(err) {
 		t.Fatalf("initializer wrote the Spec Kit core template: %v", err)
+	}
+	readme, err := os.ReadFile(filepath.Join(project, "README.md"))
+	if err != nil || string(readme) != "# Existing project\n" {
+		t.Fatalf("brownfield README changed: %q, %v", readme, err)
 	}
 }
 

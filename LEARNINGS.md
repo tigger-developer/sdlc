@@ -186,7 +186,7 @@ full comparison without changing the decision.
 
 Destination-only files are deliberately preserved because provider and user
 material shares some adapter directories. Omission alone therefore cannot
-retire a previously deployed path safely. The prototype uses a finite list of
+retire a previously deployed path safely. The v2 installer uses a finite list of
 the commands and drafting skills removed by this migration. Each active legacy
 path is renamed to an adjacent backup; no generalized destination deletion or
 ownership inference is introduced.
@@ -214,17 +214,19 @@ the [SEI Architecture Tradeoff Analysis Method](https://www.sei.cmu.edu/library/
 and [OWASP threat-modelling guidance](https://cheatsheetseries.owasp.org/cheatsheets/Threat_Modeling_Cheat_Sheet.html),
 then applies the selected SDLC standards as project-specific constraints.
 
-## Why a prototype branch
+## Why the migration used a prototype branch
 
-Moving from an SDLC-owned lifecycle to Spec Kit is a material change in working
-practice. The `spec-kit-prototype` branch makes the experiment reversible:
+Moving from an SDLC-owned lifecycle to Spec Kit was a material change in working
+practice. The `spec-kit-prototype` branch made the experiment reversible while
+the v2 model was validated:
 
 - deploy it to exercise the standards-only model;
 - observe context load, agent compliance, and artefact quality; and
 - switch branches and redeploy if the model is not useful.
 
-The branch tests the boundary without pretending that documentation design alone
-proves better agent behaviour.
+The pilot tested the boundary without pretending that documentation design alone
+proved better agent behaviour. The validated model was merged for the v2.0.0
+release; release tags now provide the stable rollback points.
 
 ## Licence
 

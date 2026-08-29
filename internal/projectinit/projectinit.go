@@ -75,6 +75,7 @@ type Options struct {
 	InfraEnabled     *bool
 	InfraOwner       string
 	InfraContract    string
+	SDLCRevision     string
 	NoLaunch         bool
 	Input            io.Reader
 	Output           io.Writer
@@ -92,6 +93,7 @@ type resolvedConfig struct {
 	InfraEnabled     *bool
 	InfraOwner       string
 	InfraContract    string
+	SDLCRevision     string
 }
 
 // Run renders the deterministic constitution baseline and, when it changes,
@@ -340,7 +342,7 @@ func resolveConfig(options Options, layers ...map[string]string) resolvedConfig 
 	config := resolvedConfig{
 		Harness: values[keyAgentHarness], DeliveryProvider: values[keyDeliveryProvider], DeliveryModel: values[keyDeliveryModel],
 		AuditProvider: values[keyAuditProvider], AuditModel: values[keyAuditModel], InfraOwner: values[keyInfraOwner], InfraContract: values[keyInfraContract],
-		Technologies: splitList(values[keyTechnologies]),
+		Technologies: splitList(values[keyTechnologies]), SDLCRevision: options.SDLCRevision,
 	}
 	if value, ok := parseBool(values[keyInfraEnabled]); ok {
 		config.InfraEnabled = &value
@@ -431,6 +433,11 @@ func renderConstitution(sdlcRoot string, technologies []Technology, config resol
 		fmt.Fprintf(&output, "- **%s:** `%s`.\n", technology.Title, path.Join(sdlcRoot, "technologies", technology.Name+".md"))
 	}
 	output.WriteString("\nA deviation MUST name the standard, reason, risk, and approving authority. Silence is not a deviation.\n\n")
+	if config.SDLCRevision == "" {
+		output.WriteString("TODO(SDLC_REVISION): Pin the canonical SDLC release or Git revision before ratification.\n\n")
+	} else {
+		fmt.Fprintf(&output, "The adopted SDLC revision is `%s`.\n\n", config.SDLCRevision)
+	}
 	if config.InfraEnabled != nil && *config.InfraEnabled {
 		output.WriteString("## External Infrastructure Ownership\n\n")
 		fmt.Fprintf(&output, "%s owns deployment and runtime infrastructure. This project MUST remain deployable through and comply with `%s`. Application semantics remain project-owned; infrastructure mechanisms and obligations remain contract-owned. Conflicting historical deployment requirements MUST be classified against the current contract rather than silently retained.\n\n", config.InfraOwner, config.InfraContract)
@@ -453,7 +460,7 @@ func renderConstitution(sdlcRoot string, technologies []Technology, config resol
 	output.WriteString("[ADD DURABLE APPLICATION, DATA, INTEGRATION, AND OPERATIONAL OWNERSHIP BOUNDARIES.]\n\n")
 	output.WriteString("## Governance\n\n")
 	output.WriteString("This constitution governs project specifications, plans, tasks, implementation, and review. Amendments MUST preserve the generated baseline, explain compatibility and migration effects, and update the version and dates below.\n\n")
-	output.WriteString("**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]\n")
+	output.WriteString("**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Revised**: [LAST_AMENDED_DATE]\n")
 	return []byte(output.String())
 }
 

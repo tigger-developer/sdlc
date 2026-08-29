@@ -1,8 +1,12 @@
 # Engineering Standards for AI Coding Agents
 
+> **Prerequisite:** SDLC v2 requires
+> [GitHub Spec Kit](https://github.com/github/spec-kit) 1.0 or later. Install
+> the `specify` CLI and ensure it is available on `PATH` before installing or
+> initializing this SDLC.
+
 This public repository provides a provider-neutral engineering standards
-library for coding agents. It is designed to complement
-[GitHub Spec Kit](https://github.com/github/spec-kit): Spec Kit owns
+library for coding agents. Spec Kit owns
 specification and delivery orchestration; this repository supplies the coding,
 testing, Git, documentation, language, and domain standards applied within it.
 
@@ -31,8 +35,9 @@ do not enter the live instruction tree.
 
 ## Install the standards
 
-Prerequisites are Go, `rsync`, and the tools required by the repository's build
-targets.
+Prerequisites are Spec Kit 1.0 or later, Go, `rsync`, and the tools required by
+the repository's build targets. The complete greenfield and brownfield setup is
+documented in [`QUICKSTART.md`](QUICKSTART.md).
 
 ```bash
 git clone https://github.com/tigger-developer/sdlc.git ~/code/sdlc
@@ -48,6 +53,7 @@ make install
 
 The installer:
 
+- installs `sdlc-install` and `sdlc-project-init` under `~/.local/bin`;
 - synchronizes `src/` into `~/.agents/sdlc` and retains the other runtime
   directory names;
 - installs common and provider-native skill copies for detected agents where
@@ -82,14 +88,7 @@ different copy.
 
 ## Initialize a Spec Kit project
 
-Install Spec Kit according to its upstream documentation. In the SDLC staging
-clone, install the SDLC CLI:
-
-```bash
-make install-cli
-```
-
-Then run the initializer from the adopting project:
+Run the initializer from the adopting project:
 
 ```bash
 sdlc-project-init
@@ -103,6 +102,9 @@ The initializer separates deterministic selection from semantic drafting. It:
 - asks once which technologies and infrastructure ownership apply;
 - renders the fixed constitution baseline at
   `.specify/templates/overrides/constitution-template.md`;
+- pins the exact clean SDLC source commit or release used to render that
+  baseline, and leaves an explicit ratification TODO for an unversioned or
+  modified build;
 - reports only a changed template, with additional variance detail under
   `VERBOSE=1`; and
 - invokes the selected agent harness to complete only the project-specific
@@ -133,6 +135,13 @@ does not assume any particular infrastructure project. Run
 When the rendered baseline and selections are already current, the initializer
 writes nothing, asks nothing, and does not relaunch an agent.
 
+For a greenfield repository, the initializer offers to run `specify init`, then
+creates the standards profile and unratified constitution. For a brownfield
+repository, it preserves the existing project, installs Spec Kit into the
+working tree, and uses current documentation as evidence for durable
+project-wide principles without copying feature or design detail. Follow the
+complete procedures in [`QUICKSTART.md`](QUICKSTART.md).
+
 Thereafter:
 
 - `speckit.specify` and `speckit.clarify` load specification standards, after
@@ -155,12 +164,12 @@ and applies the rule that human-facing identifiers always include descriptors.
 The preset adds standards to these commands without replacing Spec Kit's
 orchestration. The shared documents remain the single source of truth.
 
-## Use without Spec Kit
+## Emergency exception
 
-Provider or project instructions may direct an agent to read
-`~/.agents/sdlc/MAIN.md` when coding work begins. `MAIN.md` then routes only the
-documents relevant to that work. An equivalent durable project specification is
-required before code is written.
+Spec Kit is the supported v2 project workflow. Provider or project instructions
+may still direct an agent to read `~/.agents/sdlc/MAIN.md` for an isolated coding
+task, but an equivalent durable project specification is required before code
+is written.
 
 For a small emergency change before project Spec Kit artefacts exist, the human
 may include `BYPASS-GATE-7` in the request. The request then serves as a
@@ -209,16 +218,18 @@ git pull --ff-only
 make install
 ```
 
-The `spec-kit-prototype` branch contains the standards-only model. Switching the
-staging clone to another branch and rerunning `make install` redeploys that
-branch's runtime files. Arbitrary destination-only files are preserved. The
-prototype installer recognizes only the known commands, skills, root-level
-technology files, and obsolete constitution addendum retired by this migration.
-It renames them to adjacent `<path>.<epoch>.bak` backups and leaves all other
-destination-only material untouched.
+Release tags provide stable rollback points. Check out the required release and
+rerun `make install` to redeploy its managed runtime files. Arbitrary
+destination-only files are preserved. The installer recognizes only the known
+commands, skills, root-level technology files, and obsolete constitution
+addendum retired by the v2 migration. It renames them to adjacent
+`<path>.<epoch>.bak` backups and leaves all other destination-only material
+untouched.
 
 ## Further reading
 
+- [`QUICKSTART.md`](QUICKSTART.md) covers installation and greenfield and
+  brownfield initialization.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) describes source, deployment,
   loading, and Spec Kit composition.
 - [`LEARNINGS.md`](LEARNINGS.md) records the design lessons behind the current

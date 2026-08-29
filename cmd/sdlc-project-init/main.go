@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"runtime/debug"
 	"strings"
 
 	"github.com/tigger-developer/sdlc/internal/projectinit"
@@ -54,8 +55,40 @@ func run(arguments []string) error {
 		Harness: *harness, DeliveryProvider: *deliveryProvider, DeliveryModel: *deliveryModel,
 		AuditProvider: *auditProvider, AuditModel: *auditModel, Technologies: splitList(*technologies),
 		InfraEnabled: infraEnabled, InfraOwner: *infraOwner, InfraContract: *infraContract,
-		NoLaunch: *noLaunch, Input: os.Stdin, Output: os.Stdout, ErrorOutput: os.Stderr,
+		SDLCRevision: sourceRevision(),
+		NoLaunch:     *noLaunch, Input: os.Stdin, Output: os.Stdout, ErrorOutput: os.Stderr,
 	})
+}
+
+func sourceRevision() string {
+	buildInfo, ok := debug.ReadBuildInfo()
+	if !ok {
+		return ""
+	}
+	return sourceRevisionFromBuildInfo(buildInfo)
+}
+
+func sourceRevisionFromBuildInfo(buildInfo *debug.BuildInfo) string {
+	var revision string
+	modified := false
+	for _, setting := range buildInfo.Settings {
+		switch setting.Key {
+		case "vcs.revision":
+			revision = setting.Value
+		case "vcs.modified":
+			modified = setting.Value == "true"
+		}
+	}
+	if modified {
+		return ""
+	}
+	if revision != "" {
+		return revision
+	}
+	if buildInfo.Main.Version != "" && buildInfo.Main.Version != "(devel)" {
+		return buildInfo.Main.Version
+	}
+	return ""
 }
 
 func splitList(value string) []string {

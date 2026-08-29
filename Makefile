@@ -17,7 +17,7 @@ lint:
 	shellcheck hooks/agent-command-guard.sh
 	shfmt -i 4 -d hooks/agent-command-guard.sh
 
-install: build
+install: install-cli
 	@$(INSTALLER) $(INSTALL_FLAGS)
 
 install-cli: build

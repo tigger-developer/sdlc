@@ -4,16 +4,17 @@ This preset composes the public SDLC standards into Spec Kit 1.0 or later. It
 does not replace Spec Kit's specification, planning, task, analysis, or
 implementation workflow.
 
-Install this repository with `make install` and `make install-cli`, then run
-the project initializer from the adopting project:
+Install this repository with `make install`, which deploys the standards and
+installs the CLI helpers. Then run the project initializer from the adopting
+project:
 
 ```bash
 sdlc-project-init
 ```
 
 It installs this preset, discovers applicable technology standards, renders the
-complete constitution baseline, and invokes the selected agent harness. Inspect
-or render without launching an agent with:
+complete constitution baseline with its adopted SDLC revision, and invokes the
+selected agent harness. Inspect or render without launching an agent with:
 
 ```bash
 sdlc-project-init --no-launch
