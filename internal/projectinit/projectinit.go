@@ -226,9 +226,7 @@ func Run(options Options) error {
 	if readErr != nil && !errors.Is(readErr, os.ErrNotExist) {
 		return fmt.Errorf("reading constitution template %q: %w", target, readErr)
 	}
-	if readErr == nil && bytes.Equal(current, rendered) && !configChanged {
-		return nil
-	}
+	templateChanged := readErr != nil || !bytes.Equal(current, rendered)
 
 	if configChanged {
 		if err := writeManagedEnv(projectConfigPath, projectValues); err != nil {
@@ -244,7 +242,7 @@ func Run(options Options) error {
 			fmt.Fprintf(options.Output, "Added .env ignore rule: %s\n", ignorePath)
 		}
 	}
-	if !bytes.Equal(current, rendered) {
+	if templateChanged {
 		if err := writeAtomic(target, rendered, 0o644); err != nil {
 			return err
 		}
@@ -253,10 +251,45 @@ func Run(options Options) error {
 			printVariance(options.Output, current, rendered)
 		}
 	}
+	if err := commitConstitutionBaseline(projectRoot, target, options); err != nil {
+		return err
+	}
+	if !templateChanged && !configChanged {
+		return nil
+	}
 	if options.NoLaunch {
 		return nil
 	}
 	return launchConstitution(config, projectRoot, target, options)
+}
+
+func commitConstitutionBaseline(projectRoot, target string, options Options) error {
+	relative, err := filepath.Rel(projectRoot, target)
+	if err != nil {
+		return fmt.Errorf("resolving constitution baseline path: %w", err)
+	}
+	if relative == ".." || strings.HasPrefix(relative, ".."+string(filepath.Separator)) {
+		return fmt.Errorf("constitution baseline %q is outside project root %q", target, projectRoot)
+	}
+	relative = filepath.ToSlash(relative)
+
+	var status bytes.Buffer
+	statusArguments := []string{"status", "--porcelain=v1", "--untracked-files=all", "--", relative}
+	if err := options.RunCommand("git", statusArguments, projectRoot, strings.NewReader(""), &status, options.ErrorOutput); err != nil {
+		return fmt.Errorf("checking constitution baseline Git status: %w", err)
+	}
+	if strings.TrimSpace(status.String()) == "" {
+		return nil
+	}
+	if err := options.RunCommand("git", []string{"add", "--", relative}, projectRoot, strings.NewReader(""), options.Output, options.ErrorOutput); err != nil {
+		return fmt.Errorf("staging constitution baseline: %w", err)
+	}
+	commitArguments := []string{"commit", "--only", "--quiet", "--message", "docs: update SDLC constitution baseline", "--", relative}
+	if err := options.RunCommand("git", commitArguments, projectRoot, strings.NewReader(""), options.Output, options.ErrorOutput); err != nil {
+		return fmt.Errorf("committing constitution baseline: %w", err)
+	}
+	fmt.Fprintf(options.Output, "Committed constitution baseline: %s\n", relative)
+	return nil
 }
 
 func defaultOptions(options Options) Options {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -148,13 +149,18 @@ func TestRunInitializesGreenfieldSpecKitProject(t *testing.T) {
 	writeTestFile(t, filepath.Join(root, "presets", "sdlc-standards", "preset.yml"), "present\n")
 	disabled := false
 	var commands []string
-	runner := func(name string, arguments []string, directory string, _ io.Reader, _, _ io.Writer) error {
+	runner := func(name string, arguments []string, directory string, _ io.Reader, output, _ io.Writer) error {
 		commands = append(commands, name+" "+strings.Join(arguments, " "))
 		switch {
 		case name == "specify" && len(arguments) != 0 && arguments[0] == "init":
 			return os.MkdirAll(filepath.Join(directory, ".specify"), 0o700)
 		case name == "specify" && len(arguments) >= 2 && arguments[0] == "preset" && arguments[1] == "add":
 			return copyDirectory(filepath.Join(root, "presets", "sdlc-standards"), filepath.Join(directory, ".specify", "presets", "sdlc-standards"))
+		case name == "git" && len(arguments) != 0 && arguments[0] == "status":
+			fmt.Fprintln(output, "?? .specify/templates/overrides/constitution-template.md")
+			return nil
+		case name == "git" && len(arguments) != 0 && (arguments[0] == "add" || arguments[0] == "commit"):
+			return nil
 		default:
 			return fmt.Errorf("unexpected command: %s %v", name, arguments)
 		}
@@ -167,7 +173,8 @@ func TestRunInitializesGreenfieldSpecKitProject(t *testing.T) {
 	if err := Run(options); err != nil {
 		t.Fatal(err)
 	}
-	if len(commands) != 2 || !strings.Contains(commands[0], "specify init") || !strings.Contains(commands[1], "specify preset add") {
+	if len(commands) != 5 || !strings.Contains(commands[0], "specify init") || !strings.Contains(commands[1], "specify preset add") ||
+		!strings.Contains(commands[2], "git status") || !strings.Contains(commands[3], "git add") || !strings.Contains(commands[4], "git commit --only --quiet") {
 		t.Fatalf("greenfield commands = %#v", commands)
 	}
 	constitution, err := os.ReadFile(filepath.Join(project, ".specify", "templates", "overrides", "constitution-template.md"))
@@ -192,7 +199,7 @@ func TestRunPreservesBrownfieldProjectAndIsIdempotent(t *testing.T) {
 	options := Options{
 		ProjectRoot: project, SDLCRoot: root, UserConfigPath: filepath.Join(t.TempDir(), ".env"), NoLaunch: true,
 		Harness: "codex", Technologies: []string{"GO"}, InfraEnabled: &disabled,
-		Input: strings.NewReader(""), Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{},
+		Input: strings.NewReader(""), Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{}, RunCommand: cleanGitRunner,
 	}
 	if err := Run(options); err != nil {
 		t.Fatal(err)
@@ -226,6 +233,88 @@ func TestRunPreservesBrownfieldProjectAndIsIdempotent(t *testing.T) {
 	}
 }
 
+func TestRunCommitsCurrentUntrackedBaselineWithoutLaunching(t *testing.T) {
+	project := t.TempDir()
+	root := t.TempDir()
+	writeTestFile(t, filepath.Join(project, ".specify", "marker"), "present\n")
+	writeTestFile(t, filepath.Join(project, ".specify", "presets", "sdlc-standards", "preset.yml"), "present\n")
+	writeTestFile(t, filepath.Join(root, "technologies", "GO.md"), "# Go\n")
+	writeTestFile(t, filepath.Join(root, "presets", "sdlc-standards", "preset.yml"), "present\n")
+	disabled := false
+	config := resolvedConfig{Harness: "codex", Technologies: []string{"GO"}, InfraEnabled: &disabled}
+	writeTestFile(t, filepath.Join(project, ".env"), strings.Join([]string{
+		`SDLC_AGENT_HARNESS="codex"`,
+		`SDLC_SPEC_PROVIDER=""`,
+		`SDLC_SPEC_MODEL=""`,
+		`SDLC_BUILD_PROVIDER=""`,
+		`SDLC_BUILD_MODEL=""`,
+		`SDLC_AUDIT_PROVIDER=""`,
+		`SDLC_AUDIT_MODEL=""`,
+		`SDLC_TECHNOLOGIES="GO"`,
+		`SDLC_INFRA_ENABLED="false"`,
+		`SDLC_INFRA_OWNER=""`,
+		`SDLC_INFRA_CONTRACT=""`,
+		"",
+	}, "\n"))
+	target := filepath.Join(project, ".specify", "templates", "overrides", "constitution-template.md")
+	writeTestFile(t, target, string(renderConstitution(root, []Technology{{Name: "GO", Title: "Go", Path: filepath.Join(root, "technologies", "GO.md")}}, config)))
+
+	var commands []string
+	runner := func(name string, arguments []string, _ string, _ io.Reader, output, _ io.Writer) error {
+		commands = append(commands, name+" "+strings.Join(arguments, " "))
+		switch {
+		case name == "git" && len(arguments) != 0 && arguments[0] == "status":
+			fmt.Fprintln(output, "?? .specify/templates/overrides/constitution-template.md")
+			return nil
+		case name == "git" && len(arguments) != 0 && (arguments[0] == "add" || arguments[0] == "commit"):
+			return nil
+		default:
+			return fmt.Errorf("unexpected command: %s %v", name, arguments)
+		}
+	}
+	var output bytes.Buffer
+	if err := Run(Options{
+		ProjectRoot: project, SDLCRoot: root, UserConfigPath: filepath.Join(t.TempDir(), ".env"),
+		Input: strings.NewReader(""), Output: &output, ErrorOutput: &bytes.Buffer{}, RunCommand: runner,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if len(commands) != 3 || !strings.Contains(commands[0], "git status") || !strings.Contains(commands[1], "git add") || !strings.Contains(commands[2], "git commit --only --quiet") {
+		t.Fatalf("baseline checkpoint commands = %#v", commands)
+	}
+	if !strings.Contains(output.String(), "Committed constitution baseline: .specify/templates/overrides/constitution-template.md") {
+		t.Fatalf("checkpoint output = %q", output.String())
+	}
+}
+
+func TestCommitConstitutionBaselineCommitsOnlyGeneratedOverride(t *testing.T) {
+	project := t.TempDir()
+	runGitForTest(t, project, "init", "--quiet")
+	runGitForTest(t, project, "config", "user.name", "SDLC test")
+	runGitForTest(t, project, "config", "user.email", "sdlc-test@example.invalid")
+	writeTestFile(t, filepath.Join(project, "README.md"), "# Project\n")
+	runGitForTest(t, project, "add", "README.md")
+	runGitForTest(t, project, "commit", "--quiet", "--message", "Initial commit")
+
+	target := filepath.Join(project, ".specify", "templates", "overrides", "constitution-template.md")
+	writeTestFile(t, target, "# Constitution baseline\n")
+	writeTestFile(t, filepath.Join(project, "notes.md"), "operator change\n")
+	runGitForTest(t, project, "add", "notes.md")
+
+	options := defaultOptions(Options{Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{}})
+	if err := commitConstitutionBaseline(project, target, options); err != nil {
+		t.Fatal(err)
+	}
+	committed := runGitForTest(t, project, "show", "--pretty=format:", "--name-only", "HEAD")
+	if strings.TrimSpace(committed) != ".specify/templates/overrides/constitution-template.md" {
+		t.Fatalf("checkpoint commit files = %q", committed)
+	}
+	staged := runGitForTest(t, project, "diff", "--cached", "--name-only")
+	if strings.TrimSpace(staged) != "notes.md" {
+		t.Fatalf("unrelated staged files after checkpoint = %q", staged)
+	}
+}
+
 func TestRunSnapshotsEveryResolvedGlobalDefaultIntoProject(t *testing.T) {
 	project := t.TempDir()
 	root := t.TempDir()
@@ -251,7 +340,7 @@ func TestRunSnapshotsEveryResolvedGlobalDefaultIntoProject(t *testing.T) {
 
 	if err := Run(Options{
 		ProjectRoot: project, SDLCRoot: root, UserConfigPath: userConfig, NoLaunch: true,
-		Input: strings.NewReader(""), Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{},
+		Input: strings.NewReader(""), Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{}, RunCommand: cleanGitRunner,
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -271,7 +360,7 @@ func TestRunSnapshotsEveryResolvedGlobalDefaultIntoProject(t *testing.T) {
 	var rerunOutput bytes.Buffer
 	if err := Run(Options{
 		ProjectRoot: project, SDLCRoot: root, UserConfigPath: userConfig, NoLaunch: true,
-		Input: strings.NewReader(""), Output: &rerunOutput, ErrorOutput: &bytes.Buffer{},
+		Input: strings.NewReader(""), Output: &rerunOutput, ErrorOutput: &bytes.Buffer{}, RunCommand: cleanGitRunner,
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -432,4 +521,22 @@ func mustReadFile(t *testing.T, path string) []byte {
 		t.Fatal(err)
 	}
 	return contents
+}
+
+func cleanGitRunner(name string, arguments []string, _ string, _ io.Reader, _, _ io.Writer) error {
+	if name == "git" && len(arguments) != 0 && arguments[0] == "status" {
+		return nil
+	}
+	return fmt.Errorf("unexpected command: %s %v", name, arguments)
+}
+
+func runGitForTest(t *testing.T, directory string, arguments ...string) string {
+	t.Helper()
+	command := exec.Command("git", arguments...)
+	command.Dir = directory
+	output, err := command.CombinedOutput()
+	if err != nil {
+		t.Fatalf("git %v: %v\n%s", arguments, err, output)
+	}
+	return string(output)
 }

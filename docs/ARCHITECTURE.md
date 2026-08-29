@@ -115,9 +115,11 @@ standard references, selected technology references, an optional external
 infrastructure contract, mandatory independent audits, and bounded placeholders
 for project-specific principles. A clean versioned build also records its exact
 SDLC source commit or release; modified or unversioned builds leave an explicit
-ratification TODO. The selected agent harness receives that template only after
-deterministic rendering and may add project evidence, but must not remove or
-weaken the generated clauses.
+ratification TODO. The initializer commits only the generated baseline, leaving
+unrelated staged and working-tree changes untouched. The selected agent harness
+receives that template only after deterministic rendering and the isolated Git
+checkpoint, and may add project evidence but must not remove or weaken the
+generated clauses.
 
 User defaults live in the user-owned `~/.agents/.env`, outside the synchronized
 standards tree. Project `.env` values override those defaults; CLI values

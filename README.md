@@ -107,6 +107,8 @@ The initializer separates deterministic selection from semantic drafting. It:
 - pins the exact clean SDLC source commit or release used to render that
   baseline, and leaves an explicit ratification TODO for an unversioned or
   modified build;
+- commits only the generated constitution baseline before invoking an agent,
+  without including unrelated staged or working-tree changes;
 - reports only a changed template, with additional variance detail under
   `VERBOSE=1`; and
 - invokes the selected agent harness to complete only the project-specific
@@ -146,7 +148,9 @@ does not assume any particular infrastructure project. Run
 `sdlc-project-init --help` for non-interactive overrides and `--no-launch`.
 
 When the rendered baseline and selections are already current, the initializer
-writes nothing, asks nothing, and does not relaunch an agent.
+writes nothing, asks nothing, and does not relaunch an agent. If the current
+generated baseline is untracked or modified, it checkpoints that file without
+relaunching the agent.
 
 For a greenfield repository, the initializer offers to run `specify init`, then
 creates the standards profile and unratified constitution. For a brownfield

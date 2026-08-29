@@ -57,7 +57,8 @@ When `.specify/` is absent, the initializer:
 5. asks whether another project owns deployment or runtime infrastructure;
 6. records the project selections in an ignored `.env`;
 7. renders `.specify/templates/overrides/constitution-template.md`; and
-8. launches the selected agent to create an unratified project constitution.
+8. commits only that generated baseline; and
+9. launches the selected agent to create an unratified project constitution.
 
 The generated baseline records the exact SDLC commit or release when the
 initializer was built from clean versioned source. A modified or unversioned
@@ -69,7 +70,9 @@ fixed standards and audit baseline, up to four durable project-wide principles,
 one concern-specific authority hierarchy, explicit governance, and no copied
 feature requirements or detailed design.
 
-Track the project configuration needed to reproduce it, including:
+The initializer checkpoints the generated baseline without including unrelated
+staged or working-tree changes. Track the remaining project configuration needed
+to reproduce the constitution, including:
 
 - `.specify/templates/overrides/constitution-template.md`;
 - `.specify/memory/constitution.md`;
@@ -156,8 +159,8 @@ sdlc-project-init
 
 To change a recorded selection, update the applicable `SDLC_*` value in the
 project `.env` or supply a command-line override. A changed standards selection
-regenerates the baseline and relaunches the constitution workflow. Review and
-checkpoint both the generated baseline and constitution change.
+regenerates and checkpoints the baseline before relaunching the constitution
+workflow. Review and checkpoint the resulting constitution change.
 
 After updating the SDLC staging clone, redeploy and rerun initialization so the
 project records the new adopted revision:

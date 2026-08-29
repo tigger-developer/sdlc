@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+The project initializer now commits the generated
+`.specify/templates/overrides/constitution-template.md` in an isolated Git
+checkpoint before launching the constitution agent. An already-current but
+untracked or modified baseline is checkpointed without relaunching the agent,
+and unrelated staged or working-tree changes are excluded.
+
 Moved initializer user defaults to the deterministic, user-owned
 `~/.agents/.env` path. New projects now snapshot every resolved global default
 into their ignored project `.env`, while CLI and existing project values retain
