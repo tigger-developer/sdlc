@@ -105,6 +105,9 @@ documentation as evidence.
 
 For brownfield projects:
 
+- the constitution records a concise `Brownfield Specification Baseline` naming
+  the exact requirement, design, historical-authority, and regression-lineage
+  sources that later delta specifications must consult;
 - project documentation is evidence for durable constitutional invariants, not
   text to copy into the constitution;
 - existing requirements, acceptance criteria, code, and tests describe the

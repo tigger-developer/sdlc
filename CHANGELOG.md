@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+The constitution-generation prompt now requires existing projects to record a
+concise `Brownfield Specification Baseline`. The section names exact requirement,
+design, historical-authority, and regression-lineage sources; defines precedence
+and supersession; and distinguishes requirement authority from implementation
+evidence without copying the underlying documents. Greenfield projects do not
+invent baseline sources.
+
 The project initializer now commits the generated
 `.specify/templates/overrides/constitution-template.md` in an isolated Git
 checkpoint before launching the constitution agent. An already-current but
