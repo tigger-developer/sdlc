@@ -119,9 +119,12 @@ ratification TODO. The selected agent harness receives that template only after
 deterministic rendering and may add project evidence, but must not remove or
 weaken the generated clauses.
 
-Project `.env` values override user defaults; CLI values override both. The
-initializer reads only its named `SDLC_*` keys. It records the project choices
-in the ignored `.env`, so a current rerun requires no questions or writes.
+User defaults live in the user-owned `~/.agents/.env`, outside the synchronized
+standards tree. Project `.env` values override those defaults; CLI values
+override both. The initializer reads only its named `SDLC_*` keys and copies
+every resolved value into the ignored project `.env`. The project therefore
+retains its initialization snapshot when the user defaults later change, and a
+current rerun requires no questions or writes.
 
 ## Spec Kit composition
 

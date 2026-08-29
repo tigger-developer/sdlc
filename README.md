@@ -112,14 +112,18 @@ The initializer separates deterministic selection from semantic drafting. It:
 
 The initializer writes only its named SDLC selections into the project `.env`
 and adds that file to `.gitignore`; unrelated existing values are preserved.
-User defaults come from the platform user configuration directory under
-`sdlc/.env`. Command-line values override project values, which override user
-defaults. Supported keys are:
+User defaults come from `~/.agents/.env`. Every resolved default is copied into
+a new project's `.env`, producing a stable project snapshot. Later changes to
+the user defaults affect new projects, not existing snapshots. Command-line
+values override project values, which override user defaults. Supported keys
+are:
 
 ```text
 SDLC_AGENT_HARNESS
-SDLC_DELIVERY_PROVIDER
-SDLC_DELIVERY_MODEL
+SDLC_SPEC_PROVIDER
+SDLC_SPEC_MODEL
+SDLC_BUILD_PROVIDER
+SDLC_BUILD_MODEL
 SDLC_AUDIT_PROVIDER
 SDLC_AUDIT_MODEL
 SDLC_TECHNOLOGIES
@@ -127,6 +131,13 @@ SDLC_INFRA_ENABLED
 SDLC_INFRA_OWNER
 SDLC_INFRA_CONTRACT
 ```
+
+Specification settings apply to constitution, specification, clarification,
+design, planning, and task-definition agent invocations. Build settings apply
+to implementation and convergence. Audit settings apply to independent audit
+invocations. The initializer accepts legacy `SDLC_DELIVERY_PROVIDER` and
+`SDLC_DELIVERY_MODEL` values as specification defaults and rewrites project
+snapshots using the new names.
 
 The external owner and contract are optional project inputs. The public SDLC
 does not assume any particular infrastructure project. Run

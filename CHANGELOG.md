@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+Moved initializer user defaults to the deterministic, user-owned
+`~/.agents/.env` path. New projects now snapshot every resolved global default
+into their ignored project `.env`, while CLI and existing project values retain
+precedence.
+
+Replaced the ambiguous delivery provider/model settings with separate
+specification and build settings. Constitution generation uses the specification
+runtime; independent audits retain their own runtime. Legacy delivery values are
+accepted as specification defaults and rewritten under the new names when a
+project is initialized again.
+
 ## v2.0.0 - 2026-08-29
 
 Released the Spec Kit integrated edition of the SDLC. GitHub Spec Kit 1.0 or

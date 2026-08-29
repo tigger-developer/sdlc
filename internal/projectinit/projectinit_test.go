@@ -40,11 +40,19 @@ func TestDiscoverTechnologiesIsAlphabeticalAndAutomatic(t *testing.T) {
 }
 
 func TestResolveConfigUsesCLIProjectUserPrecedence(t *testing.T) {
-	user := map[string]string{keyAgentHarness: "hermes", keyAuditModel: "user-audit"}
-	project := map[string]string{keyAgentHarness: "claude", keyAuditModel: "project-audit"}
-	got := resolveConfig(Options{Harness: "codex"}, user, project)
-	if got.Harness != "codex" || got.AuditModel != "project-audit" {
+	user := map[string]string{keyAgentHarness: "hermes", keySpecModel: "user-spec", keyAuditModel: "user-audit"}
+	project := map[string]string{keyAgentHarness: "claude", keySpecModel: "project-spec", keyAuditModel: "project-audit"}
+	got := resolveConfig(Options{Harness: "codex", SpecModel: "cli-spec"}, user, project)
+	if got.Harness != "codex" || got.SpecModel != "cli-spec" || got.AuditModel != "project-audit" {
 		t.Fatalf("resolved config = %#v", got)
+	}
+}
+
+func TestUserDefaultsLiveUnderCommonAgentsRoot(t *testing.T) {
+	home := filepath.Join(string(filepath.Separator), "home", "operator")
+	want := filepath.Join(home, ".agents", ".env")
+	if got := userDefaultsPath(home); got != want {
+		t.Fatalf("userDefaultsPath() = %q, want %q", got, want)
 	}
 }
 
@@ -52,8 +60,28 @@ func TestProviderAndModelMustBeConfiguredTogether(t *testing.T) {
 	if err := validateProviderModelPairs(resolvedConfig{AuditModel: "fast-model"}); err == nil {
 		t.Fatal("audit model without provider was accepted")
 	}
-	if err := validateProviderModelPairs(resolvedConfig{DeliveryProvider: "provider", DeliveryModel: "model", AuditProvider: "reviewer", AuditModel: "fast-model"}); err != nil {
+	if err := validateProviderModelPairs(resolvedConfig{
+		SpecProvider: "provider", SpecModel: "spec-model",
+		BuildProvider: "provider", BuildModel: "build-model",
+		AuditProvider: "reviewer", AuditModel: "fast-model",
+	}); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestLegacyDeliveryDefaultsBecomeSpecificationDefaults(t *testing.T) {
+	values := map[string]string{
+		legacyDeliveryProvider: "openai-codex",
+		legacyDeliveryModel:    "gpt-5.6-sol",
+	}
+	if !normalizeLegacyDelivery(values) {
+		t.Fatal("legacy delivery configuration was not identified")
+	}
+	if values[keySpecProvider] != "openai-codex" || values[keySpecModel] != "gpt-5.6-sol" {
+		t.Fatalf("normalized legacy configuration = %#v", values)
+	}
+	if values[legacyDeliveryProvider] != "" || values[legacyDeliveryModel] != "" {
+		t.Fatalf("legacy keys remained after normalization: %#v", values)
 	}
 }
 
@@ -198,6 +226,48 @@ func TestRunPreservesBrownfieldProjectAndIsIdempotent(t *testing.T) {
 	}
 }
 
+func TestRunSnapshotsEveryResolvedGlobalDefaultIntoProject(t *testing.T) {
+	project := t.TempDir()
+	root := t.TempDir()
+	userConfig := filepath.Join(t.TempDir(), ".env")
+	writeTestFile(t, filepath.Join(project, ".specify", "marker"), "present\n")
+	writeTestFile(t, filepath.Join(project, ".specify", "presets", "sdlc-standards", "preset.yml"), "present\n")
+	writeTestFile(t, filepath.Join(root, "technologies", "GO.md"), "# Go\n")
+	writeTestFile(t, filepath.Join(root, "presets", "sdlc-standards", "preset.yml"), "present\n")
+	writeTestFile(t, userConfig, strings.Join([]string{
+		`SDLC_AGENT_HARNESS="codex"`,
+		`SDLC_SPEC_PROVIDER="openai-codex"`,
+		`SDLC_SPEC_MODEL="gpt-5.6-sol"`,
+		`SDLC_BUILD_PROVIDER="openai-codex"`,
+		`SDLC_BUILD_MODEL="gpt-5.6-terra"`,
+		`SDLC_AUDIT_PROVIDER="openai-codex"`,
+		`SDLC_AUDIT_MODEL="gpt-5.6-luna"`,
+		`SDLC_TECHNOLOGIES="GO"`,
+		`SDLC_INFRA_ENABLED="true"`,
+		`SDLC_INFRA_OWNER="Exodan"`,
+		`SDLC_INFRA_CONTRACT="~/code/exodan/deploy/docs/PROJECT-INTEGRATION.md"`,
+		"",
+	}, "\n"))
+
+	if err := Run(Options{
+		ProjectRoot: project, SDLCRoot: root, UserConfigPath: userConfig, NoLaunch: true,
+		Input: strings.NewReader(""), Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	got, err := readManagedEnv(filepath.Join(project, ".env"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	want, err := readManagedEnv(userConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("project snapshot = %#v, want global defaults %#v", got, want)
+	}
+}
+
 func TestLaunchConstitutionRequiresProjectWideFiltering(t *testing.T) {
 	var command string
 	var arguments []string
@@ -211,13 +281,13 @@ func TestLaunchConstitutionRequiresProjectWideFiltering(t *testing.T) {
 	templatePath := filepath.Join("project", ".specify", "templates", "overrides", "constitution-template.md")
 	projectRoot := filepath.Join("project")
 	options := Options{RunCommand: runner, Input: strings.NewReader(""), Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{}}
-	if err := launchConstitution(resolvedConfig{Harness: "codex"}, projectRoot, templatePath, options); err != nil {
+	if err := launchConstitution(resolvedConfig{Harness: "codex", SpecProvider: "openai-codex", SpecModel: "gpt-5.6-sol"}, projectRoot, templatePath, options); err != nil {
 		t.Fatal(err)
 	}
-	if command != "codex" || directory != projectRoot || len(arguments) != 1 {
+	if command != "codex" || directory != projectRoot || len(arguments) != 3 || arguments[0] != "--model" || arguments[1] != "gpt-5.6-sol" {
 		t.Fatalf("constitution launch = command %q, arguments %#v, directory %q", command, arguments, directory)
 	}
-	prompt := arguments[0]
+	prompt := arguments[2]
 	for _, required := range []string{
 		"`" + templatePath + "` as an immutable baseline",
 		"This is a filtering exercise, not a summary",
@@ -250,15 +320,15 @@ func TestLaunchConstitutionRequiresProjectWideFiltering(t *testing.T) {
 func TestWriteManagedEnvPreservesUnmanagedValuesAndGitignore(t *testing.T) {
 	directory := t.TempDir()
 	envPath := filepath.Join(directory, ".env")
-	writeTestFile(t, envPath, "PRIVATE_TOKEN=keep\nSDLC_AGENT_HARNESS=claude\n")
-	if err := writeManagedEnv(envPath, map[string]string{keyAgentHarness: "codex"}); err != nil {
+	writeTestFile(t, envPath, "PRIVATE_TOKEN=keep\nSDLC_AGENT_HARNESS=claude\nSDLC_DELIVERY_MODEL=legacy-model\n")
+	if err := writeManagedEnv(envPath, map[string]string{keyAgentHarness: "codex", keySpecModel: "spec-model"}); err != nil {
 		t.Fatal(err)
 	}
 	contents, err := os.ReadFile(envPath)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(contents), "PRIVATE_TOKEN=keep") || !strings.Contains(string(contents), "SDLC_AGENT_HARNESS=\"codex\"") || strings.Contains(string(contents), "SDLC_AGENT_HARNESS=claude") {
+	if !strings.Contains(string(contents), "PRIVATE_TOKEN=keep") || !strings.Contains(string(contents), "SDLC_AGENT_HARNESS=\"codex\"") || !strings.Contains(string(contents), "SDLC_SPEC_MODEL=\"spec-model\"") || strings.Contains(string(contents), "SDLC_AGENT_HARNESS=claude") || strings.Contains(string(contents), "SDLC_DELIVERY_MODEL") {
 		t.Fatalf("managed environment update was incorrect:\n%s", contents)
 	}
 	ignorePath := filepath.Join(directory, ".gitignore")

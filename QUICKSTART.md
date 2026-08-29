@@ -136,10 +136,11 @@ Use `--no-launch` to render and inspect the baseline without starting an agent:
 sdlc-project-init --no-launch
 ```
 
-The initializer reads user defaults from the platform user configuration
-directory under `sdlc/.env` and project overrides from the ignored project
-`.env`. Command-line values take precedence. Run `sdlc-project-init --help` for
-the complete interface.
+The initializer reads user defaults from `~/.agents/.env` and project overrides
+from the ignored project `.env`. Every resolved global default is copied into a
+new project's `.env`; changing the global file later does not silently change
+existing projects. Command-line values take precedence. Run
+`sdlc-project-init --help` for the complete interface.
 
 ## Rerun and update
 

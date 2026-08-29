@@ -1,6 +1,7 @@
 # Build artefacts
 /bin/
 /coverage.out
+/.env
 
 # Editor and operating-system noise
 .DS_Store

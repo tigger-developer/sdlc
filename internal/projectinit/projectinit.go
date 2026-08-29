@@ -17,21 +17,27 @@ import (
 )
 
 const (
-	keyAgentHarness     = "SDLC_AGENT_HARNESS"
-	keyDeliveryProvider = "SDLC_DELIVERY_PROVIDER"
-	keyDeliveryModel    = "SDLC_DELIVERY_MODEL"
-	keyAuditProvider    = "SDLC_AUDIT_PROVIDER"
-	keyAuditModel       = "SDLC_AUDIT_MODEL"
-	keyInfraEnabled     = "SDLC_INFRA_ENABLED"
-	keyInfraOwner       = "SDLC_INFRA_OWNER"
-	keyInfraContract    = "SDLC_INFRA_CONTRACT"
-	keyTechnologies     = "SDLC_TECHNOLOGIES"
+	keyAgentHarness        = "SDLC_AGENT_HARNESS"
+	keySpecProvider        = "SDLC_SPEC_PROVIDER"
+	keySpecModel           = "SDLC_SPEC_MODEL"
+	keyBuildProvider       = "SDLC_BUILD_PROVIDER"
+	keyBuildModel          = "SDLC_BUILD_MODEL"
+	keyAuditProvider       = "SDLC_AUDIT_PROVIDER"
+	keyAuditModel          = "SDLC_AUDIT_MODEL"
+	keyInfraEnabled        = "SDLC_INFRA_ENABLED"
+	keyInfraOwner          = "SDLC_INFRA_OWNER"
+	keyInfraContract       = "SDLC_INFRA_CONTRACT"
+	keyTechnologies        = "SDLC_TECHNOLOGIES"
+	legacyDeliveryProvider = "SDLC_DELIVERY_PROVIDER"
+	legacyDeliveryModel    = "SDLC_DELIVERY_MODEL"
 )
 
 var managedKeys = []string{
 	keyAgentHarness,
-	keyDeliveryProvider,
-	keyDeliveryModel,
+	keySpecProvider,
+	keySpecModel,
+	keyBuildProvider,
+	keyBuildModel,
 	keyAuditProvider,
 	keyAuditModel,
 	keyInfraEnabled,
@@ -63,56 +69,56 @@ type Technology struct {
 
 // Options controls one project initialization run.
 type Options struct {
-	ProjectRoot      string
-	SDLCRoot         string
-	UserConfigPath   string
-	Harness          string
-	DeliveryProvider string
-	DeliveryModel    string
-	AuditProvider    string
-	AuditModel       string
-	Technologies     []string
-	InfraEnabled     *bool
-	InfraOwner       string
-	InfraContract    string
-	SDLCRevision     string
-	NoLaunch         bool
-	Input            io.Reader
-	Output           io.Writer
-	ErrorOutput      io.Writer
-	RunCommand       func(string, []string, string, io.Reader, io.Writer, io.Writer) error
+	ProjectRoot    string
+	SDLCRoot       string
+	UserConfigPath string
+	Harness        string
+	SpecProvider   string
+	SpecModel      string
+	BuildProvider  string
+	BuildModel     string
+	AuditProvider  string
+	AuditModel     string
+	Technologies   []string
+	InfraEnabled   *bool
+	InfraOwner     string
+	InfraContract  string
+	SDLCRevision   string
+	NoLaunch       bool
+	Input          io.Reader
+	Output         io.Writer
+	ErrorOutput    io.Writer
+	RunCommand     func(string, []string, string, io.Reader, io.Writer, io.Writer) error
 }
 
 type resolvedConfig struct {
-	Harness          string
-	DeliveryProvider string
-	DeliveryModel    string
-	AuditProvider    string
-	AuditModel       string
-	Technologies     []string
-	InfraEnabled     *bool
-	InfraOwner       string
-	InfraContract    string
-	SDLCRevision     string
+	Harness       string
+	SpecProvider  string
+	SpecModel     string
+	BuildProvider string
+	BuildModel    string
+	AuditProvider string
+	AuditModel    string
+	Technologies  []string
+	InfraEnabled  *bool
+	InfraOwner    string
+	InfraContract string
+	SDLCRevision  string
 }
 
 // Run renders the deterministic constitution baseline and, when it changes,
 // invokes the selected agent harness for project-specific completion.
 func Run(options Options) error {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return fmt.Errorf("resolving user home: %w", err)
+	}
 	useCanonicalReference := options.SDLCRoot == ""
 	if options.SDLCRoot == "" {
-		home, err := os.UserHomeDir()
-		if err != nil {
-			return fmt.Errorf("resolving canonical SDLC root: %w", err)
-		}
 		options.SDLCRoot = filepath.Join(home, ".agents", "sdlc")
 	}
 	if options.UserConfigPath == "" {
-		directory, err := os.UserConfigDir()
-		if err != nil {
-			return fmt.Errorf("resolving user SDLC configuration: %w", err)
-		}
-		options.UserConfigPath = filepath.Join(directory, "sdlc", ".env")
+		options.UserConfigPath = userDefaultsPath(home)
 	}
 	options = defaultOptions(options)
 	projectRoot, err := filepath.Abs(options.ProjectRoot)
@@ -134,47 +140,13 @@ func Run(options Options) error {
 	if err != nil {
 		return err
 	}
+	normalizeLegacyDelivery(userValues)
+	legacyProjectConfig := normalizeLegacyDelivery(projectValues)
 	config := resolveConfig(options, userValues, projectValues)
-	configChanged := false
-	if projectValues[keyAgentHarness] == "" && config.Harness != "" {
-		projectValues[keyAgentHarness] = config.Harness
-		configChanged = true
-	}
-	if projectValues[keyTechnologies] == "" && len(config.Technologies) != 0 {
-		projectValues[keyTechnologies] = strings.Join(config.Technologies, ",")
-		configChanged = true
-	}
-	if projectValues[keyInfraEnabled] == "" && config.InfraEnabled != nil {
-		projectValues[keyInfraEnabled] = fmt.Sprintf("%t", *config.InfraEnabled)
-		configChanged = true
-	}
-	if projectValues[keyInfraOwner] == "" && config.InfraOwner != "" {
-		projectValues[keyInfraOwner] = config.InfraOwner
-		configChanged = true
-	}
-	if projectValues[keyInfraContract] == "" && config.InfraContract != "" {
-		projectValues[keyInfraContract] = config.InfraContract
-		configChanged = true
-	}
-	for _, value := range []struct{ key, configured string }{
-		{keyDeliveryProvider, options.DeliveryProvider},
-		{keyDeliveryModel, options.DeliveryModel},
-		{keyAuditProvider, options.AuditProvider},
-		{keyAuditModel, options.AuditModel},
-	} {
-		if value.configured != "" && projectValues[value.key] == "" {
-			projectValues[value.key] = value.configured
-			configChanged = true
-		}
-	}
-	hadHarness := config.Harness != ""
+	configChanged := legacyProjectConfig
 
 	if err := ensureSpecKit(projectRoot, &config, reader, options); err != nil {
 		return err
-	}
-	if !hadHarness && config.Harness != "" {
-		projectValues[keyAgentHarness] = config.Harness
-		configChanged = true
 	}
 	if err := ensurePreset(projectRoot, sdlcRoot, options); err != nil {
 		return err
@@ -236,6 +208,12 @@ func Run(options Options) error {
 	}
 	if err := validateProviderModelPairs(config); err != nil {
 		return err
+	}
+	for key, value := range projectSnapshot(config) {
+		if projectValues[key] == "" && value != "" {
+			projectValues[key] = value
+			configChanged = true
+		}
 	}
 
 	referenceRoot := sdlcRoot
@@ -300,6 +278,10 @@ func defaultOptions(options Options) Options {
 	return options
 }
 
+func userDefaultsPath(home string) string {
+	return filepath.Join(home, ".agents", ".env")
+}
+
 // DiscoverTechnologies finds selectable Markdown standards without a hard-coded list.
 func DiscoverTechnologies(directory string) ([]Technology, error) {
 	entries, err := os.ReadDir(directory)
@@ -340,7 +322,8 @@ func resolveConfig(options Options, layers ...map[string]string) resolvedConfig 
 		}
 	}
 	config := resolvedConfig{
-		Harness: values[keyAgentHarness], DeliveryProvider: values[keyDeliveryProvider], DeliveryModel: values[keyDeliveryModel],
+		Harness: values[keyAgentHarness], SpecProvider: values[keySpecProvider], SpecModel: values[keySpecModel],
+		BuildProvider: values[keyBuildProvider], BuildModel: values[keyBuildModel],
 		AuditProvider: values[keyAuditProvider], AuditModel: values[keyAuditModel], InfraOwner: values[keyInfraOwner], InfraContract: values[keyInfraContract],
 		Technologies: splitList(values[keyTechnologies]), SDLCRevision: options.SDLCRevision,
 	}
@@ -350,11 +333,17 @@ func resolveConfig(options Options, layers ...map[string]string) resolvedConfig 
 	if options.Harness != "" {
 		config.Harness = options.Harness
 	}
-	if options.DeliveryProvider != "" {
-		config.DeliveryProvider = options.DeliveryProvider
+	if options.SpecProvider != "" {
+		config.SpecProvider = options.SpecProvider
 	}
-	if options.DeliveryModel != "" {
-		config.DeliveryModel = options.DeliveryModel
+	if options.SpecModel != "" {
+		config.SpecModel = options.SpecModel
+	}
+	if options.BuildProvider != "" {
+		config.BuildProvider = options.BuildProvider
+	}
+	if options.BuildModel != "" {
+		config.BuildModel = options.BuildModel
 	}
 	if options.AuditProvider != "" {
 		config.AuditProvider = options.AuditProvider
@@ -375,6 +364,40 @@ func resolveConfig(options Options, layers ...map[string]string) resolvedConfig 
 		config.InfraContract = options.InfraContract
 	}
 	return config
+}
+
+func projectSnapshot(config resolvedConfig) map[string]string {
+	values := map[string]string{
+		keyAgentHarness:  config.Harness,
+		keySpecProvider:  config.SpecProvider,
+		keySpecModel:     config.SpecModel,
+		keyBuildProvider: config.BuildProvider,
+		keyBuildModel:    config.BuildModel,
+		keyAuditProvider: config.AuditProvider,
+		keyAuditModel:    config.AuditModel,
+		keyInfraOwner:    config.InfraOwner,
+		keyInfraContract: config.InfraContract,
+		keyTechnologies:  strings.Join(config.Technologies, ","),
+	}
+	if config.InfraEnabled != nil {
+		values[keyInfraEnabled] = strconv.FormatBool(*config.InfraEnabled)
+	}
+	return values
+}
+
+func normalizeLegacyDelivery(values map[string]string) bool {
+	changed := false
+	if values[keySpecProvider] == "" && values[legacyDeliveryProvider] != "" {
+		values[keySpecProvider] = values[legacyDeliveryProvider]
+		changed = true
+	}
+	if values[keySpecModel] == "" && values[legacyDeliveryModel] != "" {
+		values[keySpecModel] = values[legacyDeliveryModel]
+		changed = true
+	}
+	delete(values, legacyDeliveryProvider)
+	delete(values, legacyDeliveryModel)
+	return changed
 }
 
 func splitList(value string) []string {
@@ -638,7 +661,8 @@ func validateHarness(harness string) error {
 
 func validateProviderModelPairs(config resolvedConfig) error {
 	for _, pair := range []struct{ label, provider, model string }{
-		{label: "delivery", provider: config.DeliveryProvider, model: config.DeliveryModel},
+		{label: "specification", provider: config.SpecProvider, model: config.SpecModel},
+		{label: "build", provider: config.BuildProvider, model: config.BuildModel},
 		{label: "audit", provider: config.AuditProvider, model: config.AuditModel},
 	} {
 		if (pair.provider == "") != (pair.model == "") {
@@ -654,22 +678,22 @@ func launchConstitution(config resolvedConfig, projectRoot, templatePath string,
 	var arguments []string
 	switch harness {
 	case "codex":
-		if config.DeliveryModel != "" {
-			arguments = append(arguments, "--model", config.DeliveryModel)
+		if config.SpecModel != "" {
+			arguments = append(arguments, "--model", config.SpecModel)
 		}
 		arguments = append(arguments, prompt)
 	case "claude":
-		if config.DeliveryModel != "" {
-			arguments = append(arguments, "--model", config.DeliveryModel)
+		if config.SpecModel != "" {
+			arguments = append(arguments, "--model", config.SpecModel)
 		}
 		arguments = append(arguments, prompt)
 	case "hermes":
 		arguments = []string{"chat", "--query", prompt, "--in", projectRoot}
-		if config.DeliveryProvider != "" {
-			arguments = append(arguments, "--provider", config.DeliveryProvider)
+		if config.SpecProvider != "" {
+			arguments = append(arguments, "--provider", config.SpecProvider)
 		}
-		if config.DeliveryModel != "" {
-			arguments = append(arguments, "--model", config.DeliveryModel)
+		if config.SpecModel != "" {
+			arguments = append(arguments, "--model", config.SpecModel)
 		}
 	}
 	return options.RunCommand(harness, arguments, projectRoot, options.Input, options.Output, options.ErrorOutput)
@@ -737,7 +761,10 @@ func readManagedEnv(path string) (map[string]string, error) {
 		return nil, fmt.Errorf("reading SDLC configuration %q: %w", path, err)
 	}
 	defer file.Close()
-	allowed := map[string]bool{}
+	allowed := map[string]bool{
+		legacyDeliveryProvider: true,
+		legacyDeliveryModel:    true,
+	}
 	for _, key := range managedKeys {
 		allowed[key] = true
 	}
@@ -779,6 +806,8 @@ func writeManagedEnv(path string, values map[string]string) error {
 	for _, key := range managedKeys {
 		managed[key] = true
 	}
+	managed[legacyDeliveryProvider] = true
+	managed[legacyDeliveryModel] = true
 	var kept []string
 	for _, line := range strings.Split(strings.TrimSuffix(string(existing), "\n"), "\n") {
 		trimmed := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(line), "export "))

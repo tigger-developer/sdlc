@@ -24,8 +24,10 @@ func run(arguments []string) error {
 	sdlcRoot := flags.String("sdlc-root", "", "canonical SDLC root (default ~/.agents/sdlc)")
 	userConfig := flags.String("user-config", "", "user SDLC environment file")
 	harness := flags.String("harness", "", "agent harness: codex, claude, or hermes")
-	deliveryProvider := flags.String("delivery-provider", "", "delivery model provider")
-	deliveryModel := flags.String("delivery-model", "", "delivery model")
+	specProvider := flags.String("spec-provider", "", "constitution, specification, and design model provider")
+	specModel := flags.String("spec-model", "", "constitution, specification, and design model")
+	buildProvider := flags.String("build-provider", "", "implementation model provider")
+	buildModel := flags.String("build-model", "", "implementation model")
 	auditProvider := flags.String("audit-provider", "", "independent audit model provider")
 	auditModel := flags.String("audit-model", "", "independent audit model")
 	technologies := flags.String("technologies", "", "comma-separated technology standards")
@@ -52,7 +54,8 @@ func run(arguments []string) error {
 	}
 	return projectinit.Run(projectinit.Options{
 		ProjectRoot: *project, SDLCRoot: *sdlcRoot, UserConfigPath: *userConfig,
-		Harness: *harness, DeliveryProvider: *deliveryProvider, DeliveryModel: *deliveryModel,
+		Harness: *harness, SpecProvider: *specProvider, SpecModel: *specModel,
+		BuildProvider: *buildProvider, BuildModel: *buildModel,
 		AuditProvider: *auditProvider, AuditModel: *auditModel, Technologies: splitList(*technologies),
 		InfraEnabled: infraEnabled, InfraOwner: *infraOwner, InfraContract: *infraContract,
 		SDLCRevision: sourceRevision(),
