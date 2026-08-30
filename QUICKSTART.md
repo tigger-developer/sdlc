@@ -115,9 +115,8 @@ mechanical migration:
    whether to commit.
 
 Vision, architecture, and README documents remain active. The initializer does
-not rewrite them, except to remove its exact obsolete authority notices from
-vision and architecture. Adapting those documents to the adopted process
-requires project-specific semantic review.
+not rewrite them. Adapting those documents to the adopted process requires
+project-specific semantic review.
 
 Declining leaves the reviewed migration staged and stops before constitution
 generation. Rerunning presents the same diff for confirmation. An accepted or

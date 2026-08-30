@@ -111,43 +111,9 @@ type resolvedConfig struct {
 }
 
 type authorityDocument struct {
-	Path          string
-	Marker        string
-	Description   string
-	PriorLanguage string
-}
-
-var retiredAuthorityDocuments = []authorityDocument{
-	{
-		Path:   "docs/VISION.md",
-		Marker: "<!-- SDLC-SPEC-KIT-AUTHORITY: VISION -->",
-		Description: strings.Join([]string{
-			"This legacy document predates the project's adoption of Spec Kit. It remains",
-			"authoritative for durable product purpose and policy. Approved feature specifications",
-			"govern requirements established or changed through Spec Kit.",
-		}, "\n"),
-		PriorLanguage: strings.Join([]string{
-			"> **Spec Kit authority:** This document predates the project's adoption of Spec Kit. It",
-			"> remains authoritative for durable product purpose and policy. Approved feature",
-			"> specifications govern requirements established or changed through Spec Kit.",
-		}, "\n"),
-	},
-	{
-		Path:   "docs/architecture.md",
-		Marker: "<!-- SDLC-SPEC-KIT-AUTHORITY: ARCHITECTURE -->",
-		Description: strings.Join([]string{
-			"This legacy document predates the project's adoption of Spec Kit. It remains",
-			"authoritative for current application architecture and design decisions within approved",
-			"requirements. Approved feature specifications govern requirements; code and tests",
-			"provide implementation evidence.",
-		}, "\n"),
-		PriorLanguage: strings.Join([]string{
-			"> **Spec Kit authority:** This document predates the project's adoption of Spec Kit. It",
-			"> remains authoritative for current application architecture and design decisions within",
-			"> approved requirements. Approved feature specifications govern requirements; code and",
-			"> tests provide implementation evidence.",
-		}, "\n"),
-	},
+	Path        string
+	Marker      string
+	Description string
 }
 
 var legacyRequirementsDocument = authorityDocument{
@@ -159,11 +125,6 @@ var legacyRequirementsDocument = authorityDocument{
 		"traceability. Requirements established or changed through Spec Kit are governed by",
 		"approved `specs/*/spec.md` artefacts.",
 	}, "\n"),
-	PriorLanguage: strings.Join([]string{
-		"Authoritative record of requirements established under the legacy ticket-led process, including",
-		"current and superseded requirements, provenance and test traceability. Requirements established or",
-		"changed through Spec Kit are governed by approved `specs/*/spec.md` artefacts.",
-	}, "\n"),
 }
 
 func (document authorityDocument) block() string {
@@ -174,11 +135,6 @@ var brownfieldBaseMigrationPaths = []string{
 	"docs/ACs.md",
 	"docs/implementation_plan.md",
 	"docs/archive/implementation_plan.md",
-}
-
-var brownfieldManagedPaths = []string{
-	"docs/VISION.md",
-	"docs/architecture.md",
 }
 
 // Run renders the deterministic constitution scaffold and, when it changes,
@@ -374,10 +330,7 @@ func migrateBrownfieldDocuments(projectRoot string, reader *bufio.Reader, option
 	if !active {
 		return true, nil
 	}
-	migrationPaths, err := brownfieldMutationPaths(projectRoot, current)
-	if err != nil {
-		return false, err
-	}
+	migrationPaths := brownfieldBaseMigrationPaths
 	status, err := gitStatusForPaths(projectRoot, migrationPaths, options)
 	if err != nil {
 		return false, err
@@ -391,23 +344,6 @@ func migrateBrownfieldDocuments(projectRoot string, reader *bufio.Reader, option
 		}
 	}
 	return reviewBrownfieldMigration(projectRoot, reader, current, migrationPaths, options)
-}
-
-func brownfieldMutationPaths(projectRoot string, current bool) ([]string, error) {
-	paths := append([]string(nil), brownfieldBaseMigrationPaths...)
-	if current {
-		return append(paths, brownfieldManagedPaths...), nil
-	}
-	for _, document := range retiredAuthorityDocuments {
-		containsNotice, err := containsRetiredAuthorityIntroduction(projectRoot, document)
-		if err != nil {
-			return nil, err
-		}
-		if containsNotice {
-			paths = append(paths, document.Path)
-		}
-	}
-	return paths, nil
 }
 
 func inspectBrownfieldMigration(projectRoot, sourcePlan, archivedPlan string) (bool, bool, bool, error) {
@@ -448,11 +384,6 @@ func applyBrownfieldMigration(projectRoot, sourcePlan, archivedPlan string, sour
 	}
 	if _, err := ensureAuthorityIntroduction(projectRoot, legacyRequirementsDocument); err != nil {
 		return err
-	}
-	for _, document := range retiredAuthorityDocuments {
-		if _, err := removeRetiredAuthorityIntroduction(projectRoot, document); err != nil {
-			return err
-		}
 	}
 	return nil
 }
@@ -539,32 +470,10 @@ func brownfieldMigrationCurrent(projectRoot string) (bool, error) {
 	if err != nil {
 		return false, fmt.Errorf("reading legacy requirements document %q: %w", legacyRequirementsDocument.Path, err)
 	}
-	if !bytes.HasPrefix(requirements, []byte(legacyRequirementsDocument.block())) {
+	if !bytes.Contains(requirements, []byte(legacyRequirementsDocument.block())) {
 		return false, nil
 	}
-	for _, document := range retiredAuthorityDocuments {
-		containsNotice, noticeErr := containsRetiredAuthorityIntroduction(projectRoot, document)
-		if noticeErr != nil {
-			return false, noticeErr
-		}
-		if containsNotice {
-			return false, nil
-		}
-	}
 	return true, nil
-}
-
-func containsRetiredAuthorityIntroduction(projectRoot string, document authorityDocument) (bool, error) {
-	target := filepath.Join(projectRoot, filepath.FromSlash(document.Path))
-	exists, err := regularFileExists(target)
-	if err != nil || !exists {
-		return false, err
-	}
-	contents, err := os.ReadFile(target)
-	if err != nil {
-		return false, fmt.Errorf("reading project authority document %q: %w", target, err)
-	}
-	return bytes.Contains(contents, []byte(document.Marker)), nil
 }
 
 func ensureAuthorityIntroduction(projectRoot string, document authorityDocument) (bool, error) {
@@ -574,39 +483,13 @@ func ensureAuthorityIntroduction(projectRoot string, document authorityDocument)
 		return false, fmt.Errorf("reading authority document %q: %w", target, err)
 	}
 	block := []byte(document.block())
-	if bytes.HasPrefix(contents, block) {
+	if bytes.Contains(contents, block) {
 		return false, nil
 	}
-	cleaned := bytes.Replace(contents, []byte(document.Marker), nil, 1)
-	cleaned = bytes.Replace(cleaned, []byte(document.PriorLanguage), nil, 1)
-	cleaned = bytes.TrimLeft(cleaned, "\r\n")
-	updated := make([]byte, 0, len(block)+len(cleaned)+2)
+	updated := make([]byte, 0, len(block)+len(contents)+2)
 	updated = append(updated, block...)
 	updated = append(updated, '\n', '\n')
-	updated = append(updated, cleaned...)
-	if err := writeAtomic(target, updated, 0o644); err != nil {
-		return false, err
-	}
-	return true, nil
-}
-
-func removeRetiredAuthorityIntroduction(projectRoot string, document authorityDocument) (bool, error) {
-	target := filepath.Join(projectRoot, filepath.FromSlash(document.Path))
-	exists, err := regularFileExists(target)
-	if err != nil || !exists {
-		return false, err
-	}
-	contents, err := os.ReadFile(target)
-	if err != nil {
-		return false, fmt.Errorf("reading project authority document %q: %w", target, err)
-	}
-	updated := bytes.Replace(contents, []byte(document.block()), nil, 1)
-	updated = bytes.Replace(updated, []byte(document.Marker), nil, 1)
-	updated = bytes.Replace(updated, []byte(document.PriorLanguage), nil, 1)
-	if bytes.Equal(contents, updated) {
-		return false, nil
-	}
-	updated = bytes.TrimLeft(updated, "\r\n")
+	updated = append(updated, contents...)
 	if err := writeAtomic(target, updated, 0o644); err != nil {
 		return false, err
 	}

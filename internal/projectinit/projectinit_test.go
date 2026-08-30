@@ -296,30 +296,42 @@ func TestRunPreservesBrownfieldProjectAndIsIdempotent(t *testing.T) {
 	}
 }
 
-func TestEnsureAuthorityIntroductionReplacesEarlierStandardText(t *testing.T) {
+func TestEnsureAuthorityIntroductionPrependsOpaqueDocumentOnce(t *testing.T) {
 	project := t.TempDir()
 	document := legacyRequirementsDocument
 	target := filepath.Join(project, filepath.FromSlash(document.Path))
-	writeTestFile(t, target, "# Central Acceptance Criteria\n\n"+document.Marker+"\n"+document.PriorLanguage+"\n")
+	original := []byte("\n## Arbitrary existing content\n\nDo not interpret this document.\n")
+	writeTestFile(t, target, string(original))
 
 	changed, err := ensureAuthorityIntroduction(project, document)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if !changed {
-		t.Fatal("earlier standard introduction was not replaced")
+		t.Fatal("legacy block was not prepended")
 	}
-	first := string(mustReadFile(t, target))
-	if !strings.HasPrefix(first, document.block()) || strings.Count(first, document.Marker) != 1 || strings.Contains(first, document.PriorLanguage) {
-		t.Fatalf("authority introduction was duplicated:\n%s", first)
+	first := mustReadFile(t, target)
+	want := append([]byte(document.block()+"\n\n"), original...)
+	if !bytes.Equal(first, want) {
+		t.Fatalf("legacy block did not preserve opaque content:\n%s", first)
 	}
 
 	changed, err = ensureAuthorityIntroduction(project, document)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if changed || string(mustReadFile(t, target)) != first {
+	if changed || !bytes.Equal(mustReadFile(t, target), first) {
 		t.Fatal("marked authority introduction was not idempotent")
+	}
+
+	embedded := "Existing text\n\n" + document.block() + "\n"
+	writeTestFile(t, target, embedded)
+	changed, err = ensureAuthorityIntroduction(project, document)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if changed || string(mustReadFile(t, target)) != embedded {
+		t.Fatal("existing managed block was not treated as current")
 	}
 }
 
@@ -449,34 +461,6 @@ func TestMigrateBrownfieldDocumentsDeclineLeavesReviewedChanges(t *testing.T) {
 	}
 	if !proceed || strings.TrimSpace(runGitForTest(t, project, "rev-parse", "HEAD")) == before {
 		t.Fatal("reviewed migration could not be accepted on rerun")
-	}
-}
-
-func TestMigrateBrownfieldDocumentsRemovesRetiredVisionAndArchitectureNotices(t *testing.T) {
-	project := initializeLegacyBrownfieldProject(t)
-	for _, document := range retiredAuthorityDocuments {
-		target := filepath.Join(project, filepath.FromSlash(document.Path))
-		original := mustReadFile(t, target)
-		writeTestFile(t, target, document.Marker+"\n"+document.PriorLanguage+"\n\n"+string(original))
-	}
-	runGitForTest(t, project, "add", "docs/VISION.md", "docs/architecture.md")
-	runGitForTest(t, project, "commit", "--quiet", "--message", "Add earlier generated authority notices")
-
-	options := defaultOptions(Options{
-		Input: strings.NewReader("yes\n"), Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{},
-	})
-	proceed, err := migrateBrownfieldDocuments(project, bufio.NewReader(options.Input), options)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !proceed {
-		t.Fatal("retired notice cleanup stopped migration")
-	}
-	if got := string(mustReadFile(t, filepath.Join(project, "docs", "VISION.md"))); got != "# Vision\n" {
-		t.Fatalf("vision cleanup changed project content: %q", got)
-	}
-	if got := string(mustReadFile(t, filepath.Join(project, "docs", "architecture.md"))); got != "# Architecture\n" {
-		t.Fatalf("architecture cleanup changed project content: %q", got)
 	}
 }
 
@@ -866,7 +850,7 @@ func initializeLegacyBrownfieldProject(t *testing.T) string {
 	}, "\n"))
 	writeTestFile(t, filepath.Join(project, "docs", "VISION.md"), "# Vision\n")
 	writeTestFile(t, filepath.Join(project, "docs", "architecture.md"), "# Architecture\n")
-	writeTestFile(t, filepath.Join(project, "docs", "ACs.md"), "# Central Acceptance Criteria\n\n"+legacyRequirementsDocument.PriorLanguage+"\n")
+	writeTestFile(t, filepath.Join(project, "docs", "ACs.md"), "\n## AC table\n")
 	writeTestFile(t, filepath.Join(project, "docs", "implementation_plan.md"), "# Implementation Plan\n\nHistorical plan.\n")
 	runGitForTest(t, project, "add", "README.md", "docs")
 	runGitForTest(t, project, "commit", "--quiet", "--message", "Initial project documentation")

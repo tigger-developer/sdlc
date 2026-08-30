@@ -123,9 +123,8 @@ migrates the established project documentation shape. It:
   already current.
 
 Vision, architecture, and README documents remain active and outside the
-mechanical legacy migration. The initializer removes only its exact obsolete
-authority notices from vision and architecture. Any further adaptation requires
-project-specific semantic review.
+mechanical legacy migration. The initializer never modifies them; adaptation
+requires project-specific semantic review.
 
 The migration never invokes an agent. Missing expected source documents,
 unexpected overlapping changes, or content that cannot be transformed by the

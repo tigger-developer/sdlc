@@ -3,13 +3,13 @@
 ## Unreleased
 
 The brownfield acceptance-criteria ledger now leads with an explicit
-`# LEGACY DOCUMENT` heading. The initializer replaces its exact earlier
-generated wording rather than duplicating it, and removes its retired authority
-notices from vision and architecture documents without otherwise changing them.
+`# LEGACY DOCUMENT` heading. The initializer treats the existing document as
+opaque: it writes nothing when the complete managed block exists and otherwise
+prepends that block without inspecting or replacing existing content.
 
 Vision, architecture, and README documents remain active and outside the
-mechanical legacy migration. Their Spec Kit adaptation remains project-specific
-semantic work.
+mechanical legacy migration. The initializer never modifies them; their Spec Kit
+adaptation remains project-specific semantic work.
 
 ## v2.0.1 - 2026-08-30
 
