@@ -1,0 +1,84 @@
+# [PROJECT_NAME] Constitution
+
+<!-- SDLC-GENERATED-SCAFFOLD: editable until ratification. -->
+
+## Engineering Standards
+
+This project MUST comply with the following canonical standards. The standards are referenced, not copied; load only those relevant to the current operation.
+
+{{range .Standards -}}
+- **{{.Subject}}:** `{{.Path}}`.
+{{end}}
+A deviation MUST name the standard, reason, risk, and approving authority. Silence is not a deviation.
+
+{{if .SDLCRevision -}}
+The adopted SDLC revision is `{{.SDLCRevision}}`.
+{{else -}}
+TODO(SDLC_REVISION): Pin the canonical SDLC release or Git revision before ratification.
+{{end}}
+{{if .ExternalInfrastructure -}}
+## External Infrastructure Ownership
+
+{{.InfrastructureOwner}} owns deployment and runtime infrastructure. This project MUST remain deployable through and comply with `{{.InfrastructureContract}}`. Application semantics remain project-owned; infrastructure mechanisms and obligations remain contract-owned. Conflicting historical deployment requirements MUST be classified against the current contract rather than silently retained.
+{{end}}
+## Specification and Evidence
+
+No implementation may begin without a defined specification. Brownfield work MUST preserve lineage to previously implemented requirements and regression evidence. Project documentation and the active specification MUST be updated when delivered behaviour or ownership boundaries change.
+
+## Specification Baseline
+
+{{if eq .ProjectType "greenfield" -}}
+**Project classification:** Greenfield
+
+No pre-existing requirement baseline existed at ratification. Approved feature specifications establish requirements prospectively.
+{{else if eq .ProjectType "brownfield" -}}
+**Project classification:** Brownfield
+
+### Requirement Authority
+
+[LIST EXACT REPOSITORY-RELATIVE PATHS OR DURABLE EXTERNAL LOCATIONS FOR APPROVED REQUIREMENT AUTHORITIES. DISTINGUISH LEGACY-PROCESS RECORDS FROM APPROVED SPEC KIT FEATURE SPECIFICATIONS AND STATE THE SCOPE OF EACH.]
+
+### Historical Requirement Authority
+
+[LIST APPROVED HISTORICAL REQUIREMENT SOURCES NOT CENTRALIZED ABOVE, OR STATE NONE.]
+
+### Design Authority
+
+[LIST EXACT REPOSITORY-RELATIVE PATHS OR DURABLE EXTERNAL LOCATIONS FOR CURRENT APPROVED ARCHITECTURE AND DESIGN. EXCLUDE ARCHIVED IMPLEMENTATION PLANS.]
+
+### Regression Evidence and Traceability
+
+[LIST EXACT REPOSITORY-RELATIVE PATHS OR DURABLE EXTERNAL LOCATIONS FOR REGRESSION EVIDENCE AND TRACEABILITY.]
+
+Tests and code provide evidence of implemented behaviour. They do not approve requirements.
+
+### Precedence and Supersession
+
+[DEFINE THE PROJECT RULE FOR CONFLICTING OR SUPERSEDED SOURCES.]
+{{else -}}
+**Project classification:** [GREENFIELD OR BROWNFIELD]
+{{end}}
+## Mandatory Independent Audits
+
+Each audit MUST run in a fresh agent context that did not author the artefact. It MUST emit the exact structured verdict required by its skill. Any finding, missing verdict, malformed verdict, or change to the audited artefact invalidates PASS. On FAIL, the author remediates and a fresh independent audit runs. The next stage MUST NOT begin until the required audit records PASS.
+
+1. Specification and clarification require `audit-spec` PASS before planning.
+2. Plan and design require `audit-design` PASS before test design and tasks.
+3. Test design and traceability require `audit-tests` PASS before implementation.
+4. Implementation requires `audit-code` PASS before completion or convergence.
+
+Record each audit name, auditor provider and model, artefact revision, exact verdict, findings, and superseding rerun in the active feature's `audits.md`. `speckit-analyze` is a consistency check and does not replace an independent audit.
+
+## Project-Specific Principles
+
+[ADD DURABLE PROJECT-SPECIFIC PRINCIPLES DERIVED FROM VERIFIED PROJECT DOCUMENTATION.]
+
+## Project Ownership and Architecture Boundaries
+
+[ADD DURABLE APPLICATION, DATA, INTEGRATION, AND OPERATIONAL OWNERSHIP BOUNDARIES.]
+
+## Governance
+
+This constitution governs project specifications, plans, tasks, implementation, and review after ratification. Before ratification, this scaffold has no authority. Amendments MUST explain compatibility and migration effects and update the version and dates below.
+
+**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Revised**: [LAST_AMENDED_DATE]

@@ -1,0 +1,49 @@
+$speckit-constitution
+
+Create an unratified project constitution using the generated template at `{{.TemplatePath}}` as editable scaffolding. It has no authority before ratification, and any proposed clause may be corrected, removed, or replaced.
+
+This is a filtering exercise, not a summary of the project documentation. Read the project documentation as evidence, but do not restate its important requirements.
+
+Include a project-specific clause only when all of these are true:
+
+1. It applies across unrelated future features.
+2. It is expected to remain stable for years.
+3. Changing it would require a constitutional decision, not merely an approved feature specification or technical design.
+4. It defines project-wide authority, ownership, policy, or an invariant.
+5. It expresses a durable project-wide invariant supported by authoritative project documentation without reproducing that documentation's detailed requirements.
+
+Exclude:
+
+- feature requirements and acceptance criteria;
+- user journeys, actor permissions, approval sequences, and state transitions;
+- migration algorithms, schema procedures, commands, test gates, and validation procedures;
+- detailed architecture, component responsibilities, interfaces, and operational mechanisms; and
+- historical examples and unresolved feature or design questions.
+
+Project documentation remains authoritative for detailed requirements and design. The constitution may elevate a concise project-wide invariant supported by those documents. Do not copy the supporting feature behaviour, mechanisms, examples, or procedures. Importance alone does not make something constitutional.
+
+Use the generated `Specification Baseline` as a proposed structure and retain the verified project classification. Correct the structure if project evidence shows it is inaccurate. For a brownfield project, populate every authority field with concise, exact repository-relative paths or durable external locations verified from the project. Record current approved requirements, approved historical requirements that are not centralized, current approved architecture and design, regression evidence and traceability, and the project's precedence and supersession rule. Archived implementation plans are historical provenance, not design authority. This is an authority map, not a summary of the system. Do not copy the contents of the named sources into the constitution.
+
+Distinguish requirement authority from design authority and implementation evidence: tests and code record evidence and implemented state but do not approve requirements. The `Specification Baseline` will be consumed by later specification and audit commands to define bounded behavioural deltas against the implemented baseline. Do not invent sources or placeholder paths. For a greenfield project, retain the generated prospective-baseline statement and do not add brownfield authorities.
+
+When a brownfield project has requirements established under a legacy process and will use Spec Kit for future work, state the authority boundary explicitly. The legacy record governs only requirements established through that process. Approved Spec Kit feature specifications govern requirements established or changed through Spec Kit. A later approved Spec Kit specification may supersede a legacy requirement only explicitly and must preserve its lineage.
+
+Add up to four concise project-specific principles. Zero is valid only when no evidenced project-wide invariant would require a constitutional amendment to change. The existence of an invariant in another authoritative document is not, by itself, a reason to omit it. Use one concise authority and ownership hierarchy. Record only explicit standards deviations and genuine ratification blockers. Do not repeat or expand the scaffold.
+
+Make the authority hierarchy concern-specific. The human project owner or explicitly named human governance authority controls ratification, amendments, and deviations. The constitution and selected standards govern engineering and governance. Durable product vision and policy govern project purpose. Approved feature specifications govern observable behaviour. Approved architecture and design govern technical choices within those requirements. Operational, testing, migration, and user documentation govern their respective procedures and evidence. Code and tests record implemented state and evidence; they do not approve requirements. An external integration contract is authoritative only within its named ownership boundary. Do not place undifferentiated project documentation above approved specifications.
+
+The Governance section must name the human ratification and amendment authority, state whether any standards deviation is approved, and require compliance review to report applicable principles, deviations, and unresolved constitutional conflicts. Use a pre-1.0 version for an unratified draft and 1.0.0 for first ratification. After ratification, MAJOR removes or incompatibly redefines governance, MINOR adds or materially expands it, and PATCH clarifies it without changing meaning. List every unresolved ratification blocker; do not call one the sole blocker while another TODO remains.
+
+Before writing, test every proposed clause against this question:
+
+Would changing this require amending the constitution?
+
+If not, omit it.
+
+Before finalizing, review the entire assembled constitution, including every scaffold clause retained in the draft, against the same constitutional test.
+
+Remove any agent-authored clause that is runtime configuration, a feature requirement, detailed design, a procedure, transient project state, or duplication of an authoritative source. Every retained agent-authored clause must be durable across unrelated features and require a constitutional amendment to change.
+
+Remove or correct any scaffold clause that fails this review. The final unratified draft, not the initialization template, is the candidate presented to the human for ratification.
+
+Produce `.specify/memory/constitution.md` and append the core workflow's Sync Impact Report to `.specify/memory/constitution-changelog.md`. Do not embed the report in the constitution or modify any other file.

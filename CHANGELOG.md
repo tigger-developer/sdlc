@@ -2,10 +2,17 @@
 
 ## Unreleased
 
+Project-initializer prose now lives in deployed files under `src/prompts/` and
+`src/templates/` rather than embedded Go strings. This includes the
+constitution scaffold, constitution-generation prompt, and brownfield
+acceptance-criteria prefix.
+
 The brownfield acceptance-criteria ledger now leads with an explicit
-`# LEGACY DOCUMENT` heading. The initializer treats the existing document as
-opaque: it writes nothing when the complete managed block exists and otherwise
-prepends that block without inspecting or replacing existing content.
+`# LEGACY DOCUMENT` heading in a managed prefix ending at `***`. The initializer
+treats the ledger body as opaque: it prepends an absent prefix, no-ops when the
+prefix SHA-256 matches the deployed resource, and replaces only a stale prefix
+through the delimiter. A marker outside the expected prefix fails without
+changing the document.
 
 Vision, architecture, and README documents remain active and outside the
 mechanical legacy migration. The initializer never modifies them; their Spec Kit

@@ -105,8 +105,8 @@ func TestLegacyDeliveryDefaultsBecomeSpecificationDefaults(t *testing.T) {
 func TestRenderConstitutionIncludesUniversalAndSelectedStandardsOnce(t *testing.T) {
 	root := filepath.Join(string(filepath.Separator), "standards")
 	technologies := []Technology{{Name: "GO", Title: "Go engineering", Path: filepath.Join(root, "technologies", "GO.md")}}
-	first := renderConstitution(root, technologies, resolvedConfig{})
-	second := renderConstitution(root, technologies, resolvedConfig{})
+	first := renderConstitutionForTest(t, root, technologies, resolvedConfig{})
+	second := renderConstitutionForTest(t, root, technologies, resolvedConfig{})
 	if !bytes.Equal(first, second) {
 		t.Fatal("rendering is not deterministic")
 	}
@@ -129,7 +129,7 @@ func TestRenderConstitutionIncludesUniversalAndSelectedStandardsOnce(t *testing.
 
 func TestRenderConstitutionIncludesExternalIntegration(t *testing.T) {
 	enabled := true
-	text := string(renderConstitution("/standards", nil, resolvedConfig{
+	text := string(renderConstitutionForTest(t, "/standards", nil, resolvedConfig{
 		InfraEnabled: &enabled, InfraOwner: "Fleet project", InfraContract: "/fleet/INTEGRATION.md",
 	}))
 	for _, expected := range []string{"Fleet project", "/fleet/INTEGRATION.md", "Conflicting historical deployment requirements"} {
@@ -140,19 +140,19 @@ func TestRenderConstitutionIncludesExternalIntegration(t *testing.T) {
 }
 
 func TestRenderConstitutionPinsSDLCRevision(t *testing.T) {
-	text := string(renderConstitution("/standards", nil, resolvedConfig{SDLCRevision: "0123456789abcdef"}))
+	text := string(renderConstitutionForTest(t, "/standards", nil, resolvedConfig{SDLCRevision: "0123456789abcdef"}))
 	if !strings.Contains(text, "The adopted SDLC revision is `0123456789abcdef`.") || strings.Contains(text, "TODO(SDLC_REVISION)") {
 		t.Fatalf("rendered constitution did not pin the SDLC revision:\n%s", text)
 	}
 
-	unresolved := string(renderConstitution("/standards", nil, resolvedConfig{}))
+	unresolved := string(renderConstitutionForTest(t, "/standards", nil, resolvedConfig{}))
 	if !strings.Contains(unresolved, "TODO(SDLC_REVISION)") {
 		t.Fatalf("unversioned constitution omitted the revision TODO:\n%s", unresolved)
 	}
 }
 
 func TestRenderConstitutionOmitsAuditRuntime(t *testing.T) {
-	text := string(renderConstitution("/standards", nil, resolvedConfig{AuditProvider: "openai-codex", AuditModel: "gpt-5.6-luna"}))
+	text := string(renderConstitutionForTest(t, "/standards", nil, resolvedConfig{AuditProvider: "openai-codex", AuditModel: "gpt-5.6-luna"}))
 	for _, runtimeValue := range []string{"openai-codex", "gpt-5.6-luna", "configured audit runtime"} {
 		if strings.Contains(text, runtimeValue) {
 			t.Fatalf("rendered constitution contains audit runtime %q:\n%s", runtimeValue, text)
@@ -164,7 +164,7 @@ func TestRenderConstitutionOmitsAuditRuntime(t *testing.T) {
 }
 
 func TestRenderConstitutionUsesFixedSpecificationBaseline(t *testing.T) {
-	greenfield := string(renderConstitution("/standards", nil, resolvedConfig{ProjectType: "greenfield"}))
+	greenfield := string(renderConstitutionForTest(t, "/standards", nil, resolvedConfig{ProjectType: "greenfield"}))
 	for _, expected := range []string{
 		"## Specification Baseline",
 		"**Project classification:** Greenfield",
@@ -179,7 +179,7 @@ func TestRenderConstitutionUsesFixedSpecificationBaseline(t *testing.T) {
 		t.Fatal("greenfield scaffold contains brownfield authority placeholders")
 	}
 
-	brownfield := string(renderConstitution("/standards", nil, resolvedConfig{ProjectType: "brownfield"}))
+	brownfield := string(renderConstitutionForTest(t, "/standards", nil, resolvedConfig{ProjectType: "brownfield"}))
 	for _, expected := range []string{
 		"SDLC-GENERATED-SCAFFOLD: editable until ratification",
 		"**Project classification:** Brownfield",
@@ -205,6 +205,7 @@ func TestRenderConstitutionUsesFixedSpecificationBaseline(t *testing.T) {
 func TestRunInitializesGreenfieldSpecKitProject(t *testing.T) {
 	project := t.TempDir()
 	root := t.TempDir()
+	installProjectInitResourcesForTest(t, root)
 	writeTestFile(t, filepath.Join(root, "technologies", "GO.md"), "# Go\n")
 	writeTestFile(t, filepath.Join(root, "presets", "sdlc-standards", "preset.yml"), "present\n")
 	disabled := false
@@ -252,6 +253,7 @@ func TestRunInitializesGreenfieldSpecKitProject(t *testing.T) {
 func TestRunPreservesBrownfieldProjectAndIsIdempotent(t *testing.T) {
 	project := t.TempDir()
 	root := t.TempDir()
+	installProjectInitResourcesForTest(t, root)
 	writeTestFile(t, filepath.Join(project, "README.md"), "# Existing project\n")
 	writeTestFile(t, filepath.Join(project, ".specify", "marker"), "present\n")
 	writeTestFile(t, filepath.Join(project, ".specify", "presets", "sdlc-standards", "preset.yml"), "present\n")
@@ -296,14 +298,14 @@ func TestRunPreservesBrownfieldProjectAndIsIdempotent(t *testing.T) {
 	}
 }
 
-func TestEnsureAuthorityIntroductionPrependsOpaqueDocumentOnce(t *testing.T) {
+func TestEnsureManagedPrefixPrependsOpaqueDocumentOnce(t *testing.T) {
 	project := t.TempDir()
-	document := legacyRequirementsDocument
-	target := filepath.Join(project, filepath.FromSlash(document.Path))
+	block := managedBlockForTest(t)
+	target := filepath.Join(project, filepath.FromSlash(legacyACDocumentPath))
 	original := []byte("\n## Arbitrary existing content\n\nDo not interpret this document.\n")
 	writeTestFile(t, target, string(original))
 
-	changed, err := ensureAuthorityIntroduction(project, document)
+	changed, err := ensureManagedPrefix(project, legacyACDocumentPath, block)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -311,12 +313,13 @@ func TestEnsureAuthorityIntroductionPrependsOpaqueDocumentOnce(t *testing.T) {
 		t.Fatal("legacy block was not prepended")
 	}
 	first := mustReadFile(t, target)
-	want := append([]byte(document.block()+"\n\n"), original...)
+	want := append(append([]byte(nil), block.content...), '\n')
+	want = append(want, original...)
 	if !bytes.Equal(first, want) {
 		t.Fatalf("legacy block did not preserve opaque content:\n%s", first)
 	}
 
-	changed, err = ensureAuthorityIntroduction(project, document)
+	changed, err = ensureManagedPrefix(project, legacyACDocumentPath, block)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -324,19 +327,42 @@ func TestEnsureAuthorityIntroductionPrependsOpaqueDocumentOnce(t *testing.T) {
 		t.Fatal("marked authority introduction was not idempotent")
 	}
 
-	embedded := "Existing text\n\n" + document.block() + "\n"
+	embedded := "Existing text\n\n" + string(block.content) + "\n"
 	writeTestFile(t, target, embedded)
-	changed, err = ensureAuthorityIntroduction(project, document)
+	if _, err = ensureManagedPrefix(project, legacyACDocumentPath, block); err == nil {
+		t.Fatal("managed marker outside the controlled prefix was accepted")
+	}
+	if string(mustReadFile(t, target)) != embedded {
+		t.Fatal("invalid managed marker placement changed the document")
+	}
+}
+
+func TestEnsureManagedPrefixReplacesOnlyStalePrefix(t *testing.T) {
+	project := t.TempDir()
+	block := managedBlockForTest(t)
+	target := filepath.Join(project, filepath.FromSlash(legacyACDocumentPath))
+	body := []byte("\n# Existing ledger\r\n\r\nOpaque body bytes.\r\n")
+	stale := bytes.Replace(block.content, []byte("authoritative"), []byte("previous"), 1)
+	contents := append(append(stale, '\n'), body...)
+	writeTestFile(t, target, string(contents))
+
+	changed, err := ensureManagedPrefix(project, legacyACDocumentPath, block)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if changed || string(mustReadFile(t, target)) != embedded {
-		t.Fatal("existing managed block was not treated as current")
+	if !changed {
+		t.Fatal("stale managed prefix was not replaced")
+	}
+	want := append(append([]byte(nil), block.content...), '\n')
+	want = append(want, body...)
+	if got := mustReadFile(t, target); !bytes.Equal(got, want) {
+		t.Fatalf("managed-prefix replacement changed the opaque body:\n%s", got)
 	}
 }
 
 func TestMigrateBrownfieldDocumentsIsMechanicalReviewedAndIdempotent(t *testing.T) {
 	project := initializeLegacyBrownfieldProject(t)
+	block := managedBlockForTest(t)
 	writeTestFile(t, filepath.Join(project, "operator-notes.md"), "operator change\n")
 	runGitForTest(t, project, "add", "operator-notes.md")
 	planBefore := mustReadFile(t, filepath.Join(project, "docs", "implementation_plan.md"))
@@ -349,7 +375,7 @@ func TestMigrateBrownfieldDocumentsIsMechanicalReviewedAndIdempotent(t *testing.
 	options := defaultOptions(Options{
 		Input: strings.NewReader("yes\n"), Output: &output, ErrorOutput: &bytes.Buffer{},
 	})
-	proceed, err := migrateBrownfieldDocuments(project, bufio.NewReader(options.Input), options)
+	proceed, err := migrateBrownfieldDocuments(project, block, bufio.NewReader(options.Input), options)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -363,8 +389,8 @@ func TestMigrateBrownfieldDocumentsIsMechanicalReviewedAndIdempotent(t *testing.
 	if !bytes.Equal(planBefore, planAfter) {
 		t.Fatal("archived implementation plan content changed")
 	}
-	requirements := string(mustReadFile(t, filepath.Join(project, filepath.FromSlash(legacyRequirementsDocument.Path))))
-	if !strings.HasPrefix(requirements, legacyRequirementsDocument.block()) || strings.Count(requirements, legacyRequirementsDocument.Marker) != 1 || strings.Count(requirements, legacyRequirementsDocument.Description) != 1 {
+	requirements := string(mustReadFile(t, filepath.Join(project, filepath.FromSlash(legacyACDocumentPath))))
+	if !strings.HasPrefix(requirements, string(block.content)) || strings.Count(requirements, string(block.marker)) != 1 {
 		t.Errorf("legacy requirements block is missing or duplicated:\n%s", requirements)
 	}
 	if !bytes.Equal(visionBefore, mustReadFile(t, filepath.Join(project, "docs", "VISION.md"))) {
@@ -393,7 +419,7 @@ func TestMigrateBrownfieldDocumentsIsMechanicalReviewedAndIdempotent(t *testing.
 	rerunOptions := defaultOptions(Options{
 		Input: strings.NewReader(""), Output: &rerunOutput, ErrorOutput: &bytes.Buffer{},
 	})
-	proceed, err = migrateBrownfieldDocuments(project, bufio.NewReader(rerunOptions.Input), rerunOptions)
+	proceed, err = migrateBrownfieldDocuments(project, block, bufio.NewReader(rerunOptions.Input), rerunOptions)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -405,7 +431,7 @@ func TestMigrateBrownfieldDocumentsIsMechanicalReviewedAndIdempotent(t *testing.
 	architecture := mustReadFile(t, architecturePath)
 	writeTestFile(t, architecturePath, string(architecture)+"\nCurrent design clarification.\n")
 	rerunOutput.Reset()
-	proceed, err = migrateBrownfieldDocuments(project, bufio.NewReader(rerunOptions.Input), rerunOptions)
+	proceed, err = migrateBrownfieldDocuments(project, block, bufio.NewReader(rerunOptions.Input), rerunOptions)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -417,7 +443,7 @@ func TestMigrateBrownfieldDocumentsIsMechanicalReviewedAndIdempotent(t *testing.
 	}
 	runGitForTest(t, project, "add", "docs/architecture.md")
 	rerunOutput.Reset()
-	proceed, err = migrateBrownfieldDocuments(project, bufio.NewReader(rerunOptions.Input), rerunOptions)
+	proceed, err = migrateBrownfieldDocuments(project, block, bufio.NewReader(rerunOptions.Input), rerunOptions)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -431,12 +457,13 @@ func TestMigrateBrownfieldDocumentsIsMechanicalReviewedAndIdempotent(t *testing.
 
 func TestMigrateBrownfieldDocumentsDeclineLeavesReviewedChanges(t *testing.T) {
 	project := initializeLegacyBrownfieldProject(t)
+	block := managedBlockForTest(t)
 	before := strings.TrimSpace(runGitForTest(t, project, "rev-parse", "HEAD"))
 	var output bytes.Buffer
 	options := defaultOptions(Options{
 		Input: strings.NewReader("no\n"), Output: &output, ErrorOutput: &bytes.Buffer{},
 	})
-	proceed, err := migrateBrownfieldDocuments(project, bufio.NewReader(options.Input), options)
+	proceed, err := migrateBrownfieldDocuments(project, block, bufio.NewReader(options.Input), options)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -455,7 +482,7 @@ func TestMigrateBrownfieldDocumentsDeclineLeavesReviewedChanges(t *testing.T) {
 	acceptedOptions := defaultOptions(Options{
 		Input: strings.NewReader("yes\n"), Output: &acceptedOutput, ErrorOutput: &bytes.Buffer{},
 	})
-	proceed, err = migrateBrownfieldDocuments(project, bufio.NewReader(acceptedOptions.Input), acceptedOptions)
+	proceed, err = migrateBrownfieldDocuments(project, block, bufio.NewReader(acceptedOptions.Input), acceptedOptions)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -466,11 +493,12 @@ func TestMigrateBrownfieldDocumentsDeclineLeavesReviewedChanges(t *testing.T) {
 
 func TestMigrateBrownfieldDocumentsIgnoresOtherBrownfieldLayouts(t *testing.T) {
 	project := t.TempDir()
+	block := managedBlockForTest(t)
 	var output bytes.Buffer
 	options := defaultOptions(Options{
 		Input: strings.NewReader(""), Output: &output, ErrorOutput: &bytes.Buffer{},
 	})
-	proceed, err := migrateBrownfieldDocuments(project, bufio.NewReader(options.Input), options)
+	proceed, err := migrateBrownfieldDocuments(project, block, bufio.NewReader(options.Input), options)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -481,13 +509,14 @@ func TestMigrateBrownfieldDocumentsIgnoresOtherBrownfieldLayouts(t *testing.T) {
 
 func TestMigrateBrownfieldDocumentsDoesNotRequireREADME(t *testing.T) {
 	project := initializeLegacyBrownfieldProject(t)
+	block := managedBlockForTest(t)
 	if err := os.Remove(filepath.Join(project, "README.md")); err != nil {
 		t.Fatal(err)
 	}
 	options := defaultOptions(Options{
 		Input: strings.NewReader("yes\n"), Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{},
 	})
-	proceed, err := migrateBrownfieldDocuments(project, bufio.NewReader(options.Input), options)
+	proceed, err := migrateBrownfieldDocuments(project, block, bufio.NewReader(options.Input), options)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -502,6 +531,7 @@ func TestMigrateBrownfieldDocumentsDoesNotRequireREADME(t *testing.T) {
 func TestRunCommitsCurrentUntrackedScaffoldWithoutLaunching(t *testing.T) {
 	project := t.TempDir()
 	root := t.TempDir()
+	installProjectInitResourcesForTest(t, root)
 	writeTestFile(t, filepath.Join(project, ".specify", "marker"), "present\n")
 	writeTestFile(t, filepath.Join(project, ".specify", "presets", "sdlc-standards", "preset.yml"), "present\n")
 	writeTestFile(t, filepath.Join(root, "technologies", "GO.md"), "# Go\n")
@@ -524,7 +554,7 @@ func TestRunCommitsCurrentUntrackedScaffoldWithoutLaunching(t *testing.T) {
 		"",
 	}, "\n"))
 	target := filepath.Join(project, ".specify", "templates", "overrides", "constitution-template.md")
-	writeTestFile(t, target, string(renderConstitution(root, []Technology{{Name: "GO", Title: "Go", Path: filepath.Join(root, "technologies", "GO.md")}}, config)))
+	writeTestFile(t, target, string(renderConstitutionForTest(t, root, []Technology{{Name: "GO", Title: "Go", Path: filepath.Join(root, "technologies", "GO.md")}}, config)))
 
 	var commands []string
 	runner := func(name string, arguments []string, _ string, _ io.Reader, output, _ io.Writer) error {
@@ -585,6 +615,7 @@ func TestCommitConstitutionScaffoldCommitsOnlyGeneratedOverride(t *testing.T) {
 func TestRunSnapshotsEveryResolvedGlobalDefaultIntoProject(t *testing.T) {
 	project := t.TempDir()
 	root := t.TempDir()
+	installProjectInitResourcesForTest(t, root)
 	userConfig := filepath.Join(t.TempDir(), ".env")
 	writeTestFile(t, filepath.Join(project, ".specify", "marker"), "present\n")
 	writeTestFile(t, filepath.Join(project, ".specify", "presets", "sdlc-standards", "preset.yml"), "present\n")
@@ -647,6 +678,8 @@ func TestRunSnapshotsEveryResolvedGlobalDefaultIntoProject(t *testing.T) {
 }
 
 func TestLaunchConstitutionRequiresProjectWideFiltering(t *testing.T) {
+	sdlcRoot := t.TempDir()
+	installProjectInitResourcesForTest(t, sdlcRoot)
 	var command string
 	var arguments []string
 	var directory string
@@ -659,7 +692,7 @@ func TestLaunchConstitutionRequiresProjectWideFiltering(t *testing.T) {
 	templatePath := filepath.Join("project", ".specify", "templates", "overrides", "constitution-template.md")
 	projectRoot := filepath.Join("project")
 	options := Options{RunCommand: runner, Input: strings.NewReader(""), Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{}}
-	if err := launchConstitution(resolvedConfig{Harness: "codex", SpecProvider: "openai-codex", SpecModel: "gpt-5.6-sol"}, projectRoot, templatePath, options); err != nil {
+	if err := launchConstitution(resolvedConfig{Harness: "codex", SpecProvider: "openai-codex", SpecModel: "gpt-5.6-sol"}, projectRoot, sdlcRoot, templatePath, options); err != nil {
 		t.Fatal(err)
 	}
 	if command != "codex" || directory != projectRoot || len(arguments) != 3 || arguments[0] != "--model" || arguments[1] != "gpt-5.6-sol" {
@@ -796,6 +829,38 @@ func TestDirectoriesEqualIgnoresSpecKitComposedOutput(t *testing.T) {
 	}
 	if !equal {
 		t.Fatal("Spec Kit generated .composed output created a preset variance")
+	}
+}
+
+func renderConstitutionForTest(t *testing.T, sdlcRoot string, technologies []Technology, config resolvedConfig) []byte {
+	t.Helper()
+	layout := mustReadFile(t, filepath.Join("..", "..", "src", filepath.FromSlash(constitutionLayoutPath)))
+	rendered, err := renderConstitution(layout, sdlcRoot, technologies, config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return rendered
+}
+
+func managedBlockForTest(t *testing.T) managedBlock {
+	t.Helper()
+	block, err := loadManagedBlock(filepath.Join("..", "..", "src"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	return block
+}
+
+func installProjectInitResourcesForTest(t *testing.T, destination string) {
+	t.Helper()
+	for _, relative := range []string{
+		legacyACBlockPath,
+		legacyACContractPath,
+		constitutionLayoutPath,
+		constitutionPromptPath,
+	} {
+		contents := mustReadFile(t, filepath.Join("..", "..", "src", filepath.FromSlash(relative)))
+		writeTestFile(t, filepath.Join(destination, filepath.FromSlash(relative)), string(contents))
 	}
 }
 

@@ -110,7 +110,7 @@ mechanical migration:
 
 1. `docs/implementation_plan.md` moves unchanged to
    `docs/archive/implementation_plan.md`.
-2. A fixed, marked legacy introduction is added to `docs/ACs.md`.
+2. The file-backed, marked legacy prefix is applied to `docs/ACs.md`.
 3. The initializer stages only those paths, shows their Git diff, and asks
    whether to commit.
 
@@ -122,6 +122,12 @@ Declining leaves the reviewed migration staged and stops before constitution
 generation. Rerunning presents the same diff for confirmation. An accepted or
 already-current migration is silent on later runs. Brownfield repositories
 without this document shape are not altered.
+
+The managed prefix ends at a line containing only `***`. The initializer hashes
+that prefix independently of the existing ledger: an absent marker causes a
+prepend, a matching prefix is a no-op, and an older managed prefix is replaced
+through the delimiter. The remainder of `docs/ACs.md` is preserved byte for
+byte. A marker outside the expected prefix is an error.
 
 For brownfield projects:
 

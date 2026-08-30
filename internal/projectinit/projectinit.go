@@ -3,6 +3,8 @@ package projectinit
 import (
 	"bufio"
 	"bytes"
+	"crypto/sha256"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -13,6 +15,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"text/template"
 	"time"
 )
 
@@ -31,6 +34,11 @@ const (
 	keyTechnologies        = "SDLC_TECHNOLOGIES"
 	legacyDeliveryProvider = "SDLC_DELIVERY_PROVIDER"
 	legacyDeliveryModel    = "SDLC_DELIVERY_MODEL"
+	legacyACBlockPath      = "templates/project-init/legacy-acs-header.md"
+	legacyACContractPath   = "templates/project-init/legacy-acs-header.json"
+	constitutionLayoutPath = "templates/project-init/constitution-scaffold.md.tmpl"
+	constitutionPromptPath = "prompts/project-init/constitution.md.tmpl"
+	legacyACDocumentPath   = "docs/ACs.md"
 )
 
 var managedKeys = []string{
@@ -110,29 +118,31 @@ type resolvedConfig struct {
 	SDLCRevision  string
 }
 
-type authorityDocument struct {
-	Path        string
-	Marker      string
-	Description string
+type managedBlockContract struct {
+	Marker     string `json:"marker"`
+	Delimiter  string `json:"delimiter"`
+	MarkerLine int    `json:"marker_line"`
 }
 
-var legacyRequirementsDocument = authorityDocument{
-	Path:   "docs/ACs.md",
-	Marker: "<!-- SDLC-SPEC-KIT-AUTHORITY: LEGACY-REQUIREMENTS -->",
-	Description: strings.Join([]string{
-		"This legacy document is the authoritative record of requirements established under the",
-		"ticket-led process, including current and superseded requirements, provenance, and test",
-		"traceability. Requirements established or changed through Spec Kit are governed by",
-		"approved `specs/*/spec.md` artefacts.",
-	}, "\n"),
+type managedBlock struct {
+	content    []byte
+	marker     []byte
+	delimiter  []byte
+	markerLine int
+	hash       [sha256.Size]byte
 }
 
-func (document authorityDocument) block() string {
-	return "# LEGACY DOCUMENT\n\n" + document.Marker + "\n\n" + document.Description
+type constitutionTemplateData struct {
+	Standards              []standard
+	SDLCRevision           string
+	ExternalInfrastructure bool
+	InfrastructureOwner    string
+	InfrastructureContract string
+	ProjectType            string
 }
 
 var brownfieldBaseMigrationPaths = []string{
-	"docs/ACs.md",
+	legacyACDocumentPath,
 	"docs/implementation_plan.md",
 	"docs/archive/implementation_plan.md",
 }
@@ -268,7 +278,14 @@ func Run(options Options) error {
 	if useCanonicalReference {
 		referenceRoot = "~/.agents/sdlc"
 	}
-	rendered := renderConstitution(referenceRoot, selected, config)
+	constitutionLayout, err := readProjectInitResource(sdlcRoot, constitutionLayoutPath)
+	if err != nil {
+		return err
+	}
+	rendered, err := renderConstitution(constitutionLayout, referenceRoot, selected, config)
+	if err != nil {
+		return err
+	}
 	target := filepath.Join(projectRoot, ".specify", "templates", "overrides", "constitution-template.md")
 	current, readErr := os.ReadFile(target)
 	if readErr != nil && !errors.Is(readErr, os.ErrNotExist) {
@@ -291,7 +308,11 @@ func Run(options Options) error {
 		}
 	}
 	if config.ProjectType == "brownfield" {
-		proceed, migrationErr := migrateBrownfieldDocuments(projectRoot, reader, options)
+		legacyBlock, blockErr := loadManagedBlock(sdlcRoot)
+		if blockErr != nil {
+			return blockErr
+		}
+		proceed, migrationErr := migrateBrownfieldDocuments(projectRoot, legacyBlock, reader, options)
 		if migrationErr != nil {
 			return migrationErr
 		}
@@ -317,13 +338,13 @@ func Run(options Options) error {
 	if options.NoLaunch {
 		return nil
 	}
-	return launchConstitution(config, projectRoot, target, options)
+	return launchConstitution(config, projectRoot, sdlcRoot, target, options)
 }
 
-func migrateBrownfieldDocuments(projectRoot string, reader *bufio.Reader, options Options) (bool, error) {
+func migrateBrownfieldDocuments(projectRoot string, block managedBlock, reader *bufio.Reader, options Options) (bool, error) {
 	sourcePlan := filepath.Join(projectRoot, "docs", "implementation_plan.md")
 	archivedPlan := filepath.Join(projectRoot, "docs", "archive", "implementation_plan.md")
-	active, sourceExists, current, err := inspectBrownfieldMigration(projectRoot, sourcePlan, archivedPlan)
+	active, sourceExists, current, err := inspectBrownfieldMigration(projectRoot, sourcePlan, archivedPlan, block)
 	if err != nil {
 		return false, err
 	}
@@ -339,14 +360,14 @@ func migrateBrownfieldDocuments(projectRoot string, reader *bufio.Reader, option
 		return false, fmt.Errorf("brownfield documentation migration overlaps existing changes:\n%s", strings.TrimSpace(status))
 	}
 	if !current {
-		if err := applyBrownfieldMigration(projectRoot, sourcePlan, archivedPlan, sourceExists); err != nil {
+		if err := applyBrownfieldMigration(projectRoot, sourcePlan, archivedPlan, sourceExists, block); err != nil {
 			return false, err
 		}
 	}
 	return reviewBrownfieldMigration(projectRoot, reader, current, migrationPaths, options)
 }
 
-func inspectBrownfieldMigration(projectRoot, sourcePlan, archivedPlan string) (bool, bool, bool, error) {
+func inspectBrownfieldMigration(projectRoot, sourcePlan, archivedPlan string, block managedBlock) (bool, bool, bool, error) {
 	sourceExists, err := regularFileExists(sourcePlan)
 	if err != nil {
 		return false, false, false, err
@@ -361,7 +382,7 @@ func inspectBrownfieldMigration(projectRoot, sourcePlan, archivedPlan string) (b
 	if !sourceExists && !archiveExists {
 		return false, false, false, nil
 	}
-	requirementsPath := filepath.Join(projectRoot, filepath.FromSlash(legacyRequirementsDocument.Path))
+	requirementsPath := filepath.Join(projectRoot, filepath.FromSlash(legacyACDocumentPath))
 	requirementsExist, existsErr := regularFileExists(requirementsPath)
 	if existsErr != nil {
 		return false, false, false, existsErr
@@ -369,11 +390,11 @@ func inspectBrownfieldMigration(projectRoot, sourcePlan, archivedPlan string) (b
 	if !requirementsExist {
 		return false, false, false, fmt.Errorf("brownfield documentation migration requires %q", requirementsPath)
 	}
-	current, err := brownfieldMigrationCurrent(projectRoot)
+	current, err := brownfieldMigrationCurrent(projectRoot, block)
 	return true, sourceExists, current, err
 }
 
-func applyBrownfieldMigration(projectRoot, sourcePlan, archivedPlan string, sourceExists bool) error {
+func applyBrownfieldMigration(projectRoot, sourcePlan, archivedPlan string, sourceExists bool, block managedBlock) error {
 	if sourceExists {
 		if err := os.MkdirAll(filepath.Dir(archivedPlan), 0o755); err != nil {
 			return fmt.Errorf("creating brownfield archive directory: %w", err)
@@ -382,7 +403,7 @@ func applyBrownfieldMigration(projectRoot, sourcePlan, archivedPlan string, sour
 			return fmt.Errorf("archiving implementation plan: %w", err)
 		}
 	}
-	if _, err := ensureAuthorityIntroduction(projectRoot, legacyRequirementsDocument); err != nil {
+	if _, err := ensureManagedPrefix(projectRoot, legacyACDocumentPath, block); err != nil {
 		return err
 	}
 	return nil
@@ -454,7 +475,7 @@ func gitDiffNames(projectRoot string, cached bool, paths []string, options Optio
 	return names.String(), nil
 }
 
-func brownfieldMigrationCurrent(projectRoot string) (bool, error) {
+func brownfieldMigrationCurrent(projectRoot string, block managedBlock) (bool, error) {
 	sourceExists, err := regularFileExists(filepath.Join(projectRoot, "docs", "implementation_plan.md"))
 	if err != nil {
 		return false, err
@@ -466,34 +487,157 @@ func brownfieldMigrationCurrent(projectRoot string) (bool, error) {
 	if sourceExists || !archiveExists {
 		return false, nil
 	}
-	requirements, err := os.ReadFile(filepath.Join(projectRoot, filepath.FromSlash(legacyRequirementsDocument.Path)))
+	requirements, err := os.ReadFile(filepath.Join(projectRoot, filepath.FromSlash(legacyACDocumentPath)))
 	if err != nil {
-		return false, fmt.Errorf("reading legacy requirements document %q: %w", legacyRequirementsDocument.Path, err)
+		return false, fmt.Errorf("reading legacy requirements document %q: %w", legacyACDocumentPath, err)
 	}
-	if !bytes.Contains(requirements, []byte(legacyRequirementsDocument.block())) {
-		return false, nil
+	_, changed, err := updateManagedPrefix(requirements, block)
+	if err != nil {
+		return false, fmt.Errorf("checking managed prefix in %q: %w", legacyACDocumentPath, err)
 	}
-	return true, nil
+	return !changed, nil
 }
 
-func ensureAuthorityIntroduction(projectRoot string, document authorityDocument) (bool, error) {
-	target := filepath.Join(projectRoot, filepath.FromSlash(document.Path))
+func ensureManagedPrefix(projectRoot, documentPath string, block managedBlock) (bool, error) {
+	target := filepath.Join(projectRoot, filepath.FromSlash(documentPath))
 	contents, err := os.ReadFile(target)
 	if err != nil {
 		return false, fmt.Errorf("reading authority document %q: %w", target, err)
 	}
-	block := []byte(document.block())
-	if bytes.Contains(contents, block) {
+	updated, changed, err := updateManagedPrefix(contents, block)
+	if err != nil {
+		return false, fmt.Errorf("updating managed prefix in %q: %w", target, err)
+	}
+	if !changed {
 		return false, nil
 	}
-	updated := make([]byte, 0, len(block)+len(contents)+2)
-	updated = append(updated, block...)
-	updated = append(updated, '\n', '\n')
-	updated = append(updated, contents...)
 	if err := writeAtomic(target, updated, 0o644); err != nil {
 		return false, err
 	}
 	return true, nil
+}
+
+func readProjectInitResource(sdlcRoot, relativePath string) ([]byte, error) {
+	clean := filepath.Clean(filepath.FromSlash(relativePath))
+	if clean == "." || filepath.IsAbs(clean) || clean == ".." || strings.HasPrefix(clean, ".."+string(filepath.Separator)) {
+		return nil, fmt.Errorf("invalid project initializer resource path %q", relativePath)
+	}
+	target := filepath.Join(sdlcRoot, clean)
+	contents, err := os.ReadFile(target)
+	if err != nil {
+		return nil, fmt.Errorf("reading project initializer resource %q: %w", target, err)
+	}
+	return contents, nil
+}
+
+func loadManagedBlock(sdlcRoot string) (managedBlock, error) {
+	content, err := readProjectInitResource(sdlcRoot, legacyACBlockPath)
+	if err != nil {
+		return managedBlock{}, err
+	}
+	contractContent, err := readProjectInitResource(sdlcRoot, legacyACContractPath)
+	if err != nil {
+		return managedBlock{}, err
+	}
+	var contract managedBlockContract
+	if err := json.Unmarshal(contractContent, &contract); err != nil {
+		return managedBlock{}, fmt.Errorf("parsing project initializer resource %q: %w", filepath.Join(sdlcRoot, filepath.FromSlash(legacyACContractPath)), err)
+	}
+	if contract.Marker == "" || contract.Delimiter == "" || contract.MarkerLine < 1 {
+		return managedBlock{}, fmt.Errorf("invalid managed-block contract in %q", filepath.Join(sdlcRoot, filepath.FromSlash(legacyACContractPath)))
+	}
+	block := managedBlock{
+		content:    content,
+		marker:     []byte(contract.Marker),
+		delimiter:  []byte(contract.Delimiter),
+		markerLine: contract.MarkerLine,
+		hash:       sha256.Sum256(content),
+	}
+	if !bytes.HasSuffix(content, []byte{'\n'}) {
+		return managedBlock{}, fmt.Errorf("managed block %q must end with a newline", filepath.Join(sdlcRoot, filepath.FromSlash(legacyACBlockPath)))
+	}
+	if markerCount := bytes.Count(content, block.marker); markerCount != 1 {
+		return managedBlock{}, fmt.Errorf("managed block %q contains %d markers; expected one", filepath.Join(sdlcRoot, filepath.FromSlash(legacyACBlockPath)), markerCount)
+	}
+	prefixEnd, err := managedPrefixEnd(content, block)
+	if err != nil {
+		return managedBlock{}, fmt.Errorf("validating managed block %q: %w", filepath.Join(sdlcRoot, filepath.FromSlash(legacyACBlockPath)), err)
+	}
+	if prefixEnd != len(content) {
+		return managedBlock{}, fmt.Errorf("managed block %q contains content after its delimiter", filepath.Join(sdlcRoot, filepath.FromSlash(legacyACBlockPath)))
+	}
+	return block, nil
+}
+
+func updateManagedPrefix(contents []byte, block managedBlock) ([]byte, bool, error) {
+	markerCount := bytes.Count(contents, block.marker)
+	if markerCount == 0 {
+		updated := make([]byte, 0, len(block.content)+1+len(contents))
+		updated = append(updated, block.content...)
+		updated = append(updated, '\n')
+		updated = append(updated, contents...)
+		return updated, true, nil
+	}
+	if markerCount != 1 {
+		return nil, false, fmt.Errorf("managed marker occurs %d times", markerCount)
+	}
+	prefixEnd, err := managedPrefixEnd(contents, block)
+	if err != nil {
+		return nil, false, err
+	}
+	prefix := contents[:prefixEnd]
+	if sha256.Sum256(prefix) == block.hash {
+		return contents, false, nil
+	}
+	updated := make([]byte, 0, len(block.content)+len(contents)-prefixEnd)
+	updated = append(updated, block.content...)
+	updated = append(updated, contents[prefixEnd:]...)
+	return updated, true, nil
+}
+
+func managedPrefixEnd(contents []byte, block managedBlock) (int, error) {
+	markerIndex := bytes.Index(contents, block.marker)
+	if markerIndex < 0 {
+		return 0, errors.New("managed marker is absent")
+	}
+	markerLineStart := bytes.LastIndex(contents[:markerIndex], []byte{'\n'}) + 1
+	markerLineEnd := bytes.IndexByte(contents[markerIndex:], '\n')
+	if markerLineEnd < 0 {
+		markerLineEnd = len(contents)
+	} else {
+		markerLineEnd += markerIndex
+	}
+	if !bytes.Equal(contents[markerLineStart:markerLineEnd], block.marker) {
+		return 0, errors.New("managed marker must occupy its own line")
+	}
+	lineNumber := bytes.Count(contents[:markerLineStart], []byte{'\n'}) + 1
+	if lineNumber != block.markerLine {
+		return 0, fmt.Errorf("managed marker is on line %d, expected line %d", lineNumber, block.markerLine)
+	}
+
+	offset := 0
+	for offset < len(contents) {
+		lineEnd := bytes.IndexByte(contents[offset:], '\n')
+		if lineEnd < 0 {
+			lineEnd = len(contents)
+			if bytes.Equal(contents[offset:lineEnd], block.delimiter) {
+				if markerIndex >= lineEnd {
+					return 0, errors.New("managed delimiter appears before the marker")
+				}
+				return lineEnd, nil
+			}
+			break
+		}
+		lineEnd += offset
+		if bytes.Equal(contents[offset:lineEnd], block.delimiter) {
+			if markerIndex >= lineEnd {
+				return 0, errors.New("managed delimiter appears before the marker")
+			}
+			return lineEnd + 1, nil
+		}
+		offset = lineEnd + 1
+	}
+	return 0, errors.New("managed delimiter is absent")
 }
 
 func regularFileExists(target string) (bool, error) {
@@ -739,70 +883,37 @@ func selectTechnologies(available []Technology, requested []string) ([]Technolog
 	return selected, nil
 }
 
-func renderConstitution(sdlcRoot string, technologies []Technology, config resolvedConfig) []byte {
-	var output strings.Builder
-	output.WriteString("# [PROJECT_NAME] Constitution\n\n")
-	output.WriteString("<!-- SDLC-GENERATED-SCAFFOLD: editable until ratification. -->\n\n")
-	output.WriteString("## Engineering Standards\n\n")
-	output.WriteString("This project MUST comply with the following canonical standards. The standards are referenced, not copied; load only those relevant to the current operation.\n\n")
+func renderConstitution(layout []byte, sdlcRoot string, technologies []Technology, config resolvedConfig) ([]byte, error) {
+	standards := make([]standard, 0, len(universalStandards)+len(technologies))
 	for _, item := range universalStandards {
-		fmt.Fprintf(&output, "- **%s:** `%s`.\n", item.Subject, path.Join(sdlcRoot, item.Path))
+		standards = append(standards, standard{
+			Path:    path.Join(sdlcRoot, item.Path),
+			Subject: item.Subject,
+		})
 	}
 	for _, technology := range technologies {
-		fmt.Fprintf(&output, "- **%s:** `%s`.\n", technology.Title, path.Join(sdlcRoot, "technologies", technology.Name+".md"))
+		standards = append(standards, standard{
+			Path:    path.Join(sdlcRoot, "technologies", technology.Name+".md"),
+			Subject: technology.Title,
+		})
 	}
-	output.WriteString("\nA deviation MUST name the standard, reason, risk, and approving authority. Silence is not a deviation.\n\n")
-	if config.SDLCRevision == "" {
-		output.WriteString("TODO(SDLC_REVISION): Pin the canonical SDLC release or Git revision before ratification.\n\n")
-	} else {
-		fmt.Fprintf(&output, "The adopted SDLC revision is `%s`.\n\n", config.SDLCRevision)
+	parsed, err := template.New("constitution-scaffold").Option("missingkey=error").Parse(string(layout))
+	if err != nil {
+		return nil, fmt.Errorf("parsing constitution scaffold template: %w", err)
 	}
-	if config.InfraEnabled != nil && *config.InfraEnabled {
-		output.WriteString("## External Infrastructure Ownership\n\n")
-		fmt.Fprintf(&output, "%s owns deployment and runtime infrastructure. This project MUST remain deployable through and comply with `%s`. Application semantics remain project-owned; infrastructure mechanisms and obligations remain contract-owned. Conflicting historical deployment requirements MUST be classified against the current contract rather than silently retained.\n\n", config.InfraOwner, config.InfraContract)
+	data := constitutionTemplateData{
+		Standards:              standards,
+		SDLCRevision:           config.SDLCRevision,
+		ExternalInfrastructure: config.InfraEnabled != nil && *config.InfraEnabled,
+		InfrastructureOwner:    config.InfraOwner,
+		InfrastructureContract: config.InfraContract,
+		ProjectType:            config.ProjectType,
 	}
-	output.WriteString("## Specification and Evidence\n\n")
-	output.WriteString("No implementation may begin without a defined specification. Brownfield work MUST preserve lineage to previously implemented requirements and regression evidence. Project documentation and the active specification MUST be updated when delivered behaviour or ownership boundaries change.\n\n")
-	renderSpecificationBaseline(&output, config.ProjectType)
-	output.WriteString("## Mandatory Independent Audits\n\n")
-	output.WriteString("Each audit MUST run in a fresh agent context that did not author the artefact. It MUST emit the exact structured verdict required by its skill. Any finding, missing verdict, malformed verdict, or change to the audited artefact invalidates PASS. On FAIL, the author remediates and a fresh independent audit runs. The next stage MUST NOT begin until the required audit records PASS.\n\n")
-	output.WriteString("1. Specification and clarification require `audit-spec` PASS before planning.\n")
-	output.WriteString("2. Plan and design require `audit-design` PASS before test design and tasks.\n")
-	output.WriteString("3. Test design and traceability require `audit-tests` PASS before implementation.\n")
-	output.WriteString("4. Implementation requires `audit-code` PASS before completion or convergence.\n\n")
-	output.WriteString("Record each audit name, auditor provider and model, artefact revision, exact verdict, findings, and superseding rerun in the active feature's `audits.md`. `speckit-analyze` is a consistency check and does not replace an independent audit.\n\n")
-	output.WriteString("## Project-Specific Principles\n\n")
-	output.WriteString("[ADD DURABLE PROJECT-SPECIFIC PRINCIPLES DERIVED FROM VERIFIED PROJECT DOCUMENTATION.]\n\n")
-	output.WriteString("## Project Ownership and Architecture Boundaries\n\n")
-	output.WriteString("[ADD DURABLE APPLICATION, DATA, INTEGRATION, AND OPERATIONAL OWNERSHIP BOUNDARIES.]\n\n")
-	output.WriteString("## Governance\n\n")
-	output.WriteString("This constitution governs project specifications, plans, tasks, implementation, and review after ratification. Before ratification, this scaffold has no authority. Amendments MUST explain compatibility and migration effects and update the version and dates below.\n\n")
-	output.WriteString("**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Revised**: [LAST_AMENDED_DATE]\n")
-	return []byte(output.String())
-}
-
-func renderSpecificationBaseline(output *strings.Builder, projectType string) {
-	output.WriteString("## Specification Baseline\n\n")
-	switch projectType {
-	case "greenfield":
-		output.WriteString("**Project classification:** Greenfield\n\n")
-		output.WriteString("No pre-existing requirement baseline existed at ratification. Approved feature specifications establish requirements prospectively.\n\n")
-	case "brownfield":
-		output.WriteString("**Project classification:** Brownfield\n\n")
-		output.WriteString("### Requirement Authority\n\n")
-		output.WriteString("[LIST EXACT REPOSITORY-RELATIVE PATHS OR DURABLE EXTERNAL LOCATIONS FOR APPROVED REQUIREMENT AUTHORITIES. DISTINGUISH LEGACY-PROCESS RECORDS FROM APPROVED SPEC KIT FEATURE SPECIFICATIONS AND STATE THE SCOPE OF EACH.]\n\n")
-		output.WriteString("### Historical Requirement Authority\n\n")
-		output.WriteString("[LIST APPROVED HISTORICAL REQUIREMENT SOURCES NOT CENTRALIZED ABOVE, OR STATE NONE.]\n\n")
-		output.WriteString("### Design Authority\n\n")
-		output.WriteString("[LIST EXACT REPOSITORY-RELATIVE PATHS OR DURABLE EXTERNAL LOCATIONS FOR CURRENT APPROVED ARCHITECTURE AND DESIGN. EXCLUDE ARCHIVED IMPLEMENTATION PLANS.]\n\n")
-		output.WriteString("### Regression Evidence and Traceability\n\n")
-		output.WriteString("[LIST EXACT REPOSITORY-RELATIVE PATHS OR DURABLE EXTERNAL LOCATIONS FOR REGRESSION EVIDENCE AND TRACEABILITY.]\n\n")
-		output.WriteString("Tests and code provide evidence of implemented behaviour. They do not approve requirements.\n\n")
-		output.WriteString("### Precedence and Supersession\n\n")
-		output.WriteString("[DEFINE THE PROJECT RULE FOR CONFLICTING OR SUPERSEDED SOURCES.]\n\n")
-	default:
-		output.WriteString("**Project classification:** [GREENFIELD OR BROWNFIELD]\n\n")
+	var output bytes.Buffer
+	if err := parsed.Execute(&output, data); err != nil {
+		return nil, fmt.Errorf("rendering constitution scaffold template: %w", err)
 	}
+	return output.Bytes(), nil
 }
 
 func ensureSpecKit(projectRoot string, config *resolvedConfig, reader *bufio.Reader, options Options) error {
@@ -999,8 +1110,15 @@ func validateProviderModelPairs(config resolvedConfig) error {
 	return nil
 }
 
-func launchConstitution(config resolvedConfig, projectRoot, templatePath string, options Options) error {
-	prompt := constitutionPrompt(templatePath)
+func launchConstitution(config resolvedConfig, projectRoot, sdlcRoot, templatePath string, options Options) error {
+	promptTemplate, err := readProjectInitResource(sdlcRoot, constitutionPromptPath)
+	if err != nil {
+		return err
+	}
+	prompt, err := renderConstitutionPrompt(promptTemplate, templatePath)
+	if err != nil {
+		return err
+	}
 	harness := strings.ToLower(config.Harness)
 	var arguments []string
 	switch harness {
@@ -1026,58 +1144,16 @@ func launchConstitution(config resolvedConfig, projectRoot, templatePath string,
 	return options.RunCommand(harness, arguments, projectRoot, options.Input, options.Output, options.ErrorOutput)
 }
 
-func constitutionPrompt(templatePath string) string {
-	return strings.Join([]string{
-		"$speckit-constitution",
-		"",
-		"Create an unratified project constitution using the generated template at `" + templatePath + "` as editable scaffolding. It has no authority before ratification, and any proposed clause may be corrected, removed, or replaced.",
-		"",
-		"This is a filtering exercise, not a summary of the project documentation. Read the project documentation as evidence, but do not restate its important requirements.",
-		"",
-		"Include a project-specific clause only when all of these are true:",
-		"",
-		"1. It applies across unrelated future features.",
-		"2. It is expected to remain stable for years.",
-		"3. Changing it would require a constitutional decision, not merely an approved feature specification or technical design.",
-		"4. It defines project-wide authority, ownership, policy, or an invariant.",
-		"5. It expresses a durable project-wide invariant supported by authoritative project documentation without reproducing that documentation's detailed requirements.",
-		"",
-		"Exclude:",
-		"",
-		"- feature requirements and acceptance criteria;",
-		"- user journeys, actor permissions, approval sequences, and state transitions;",
-		"- migration algorithms, schema procedures, commands, test gates, and validation procedures;",
-		"- detailed architecture, component responsibilities, interfaces, and operational mechanisms; and",
-		"- historical examples and unresolved feature or design questions.",
-		"",
-		"Project documentation remains authoritative for detailed requirements and design. The constitution may elevate a concise project-wide invariant supported by those documents. Do not copy the supporting feature behaviour, mechanisms, examples, or procedures. Importance alone does not make something constitutional.",
-		"",
-		"Use the generated `Specification Baseline` as a proposed structure and retain the verified project classification. Correct the structure if project evidence shows it is inaccurate. For a brownfield project, populate every authority field with concise, exact repository-relative paths or durable external locations verified from the project. Record current approved requirements, approved historical requirements that are not centralized, current approved architecture and design, regression evidence and traceability, and the project's precedence and supersession rule. Archived implementation plans are historical provenance, not design authority. This is an authority map, not a summary of the system. Do not copy the contents of the named sources into the constitution.",
-		"",
-		"Distinguish requirement authority from design authority and implementation evidence: tests and code record evidence and implemented state but do not approve requirements. The `Specification Baseline` will be consumed by later specification and audit commands to define bounded behavioural deltas against the implemented baseline. Do not invent sources or placeholder paths. For a greenfield project, retain the generated prospective-baseline statement and do not add brownfield authorities.",
-		"",
-		"When a brownfield project has requirements established under a legacy process and will use Spec Kit for future work, state the authority boundary explicitly. The legacy record governs only requirements established through that process. Approved Spec Kit feature specifications govern requirements established or changed through Spec Kit. A later approved Spec Kit specification may supersede a legacy requirement only explicitly and must preserve its lineage.",
-		"",
-		"Add up to four concise project-specific principles. Zero is valid only when no evidenced project-wide invariant would require a constitutional amendment to change. The existence of an invariant in another authoritative document is not, by itself, a reason to omit it. Use one concise authority and ownership hierarchy. Record only explicit standards deviations and genuine ratification blockers. Do not repeat or expand the scaffold.",
-		"",
-		"Make the authority hierarchy concern-specific. The human project owner or explicitly named human governance authority controls ratification, amendments, and deviations. The constitution and selected standards govern engineering and governance. Durable product vision and policy govern project purpose. Approved feature specifications govern observable behaviour. Approved architecture and design govern technical choices within those requirements. Operational, testing, migration, and user documentation govern their respective procedures and evidence. Code and tests record implemented state and evidence; they do not approve requirements. An external integration contract is authoritative only within its named ownership boundary. Do not place undifferentiated project documentation above approved specifications.",
-		"",
-		"The Governance section must name the human ratification and amendment authority, state whether any standards deviation is approved, and require compliance review to report applicable principles, deviations, and unresolved constitutional conflicts. Use a pre-1.0 version for an unratified draft and 1.0.0 for first ratification. After ratification, MAJOR removes or incompatibly redefines governance, MINOR adds or materially expands it, and PATCH clarifies it without changing meaning. List every unresolved ratification blocker; do not call one the sole blocker while another TODO remains.",
-		"",
-		"Before writing, test every proposed clause against this question:",
-		"",
-		"Would changing this require amending the constitution?",
-		"",
-		"If not, omit it.",
-		"",
-		"Before finalizing, review the entire assembled constitution, including every scaffold clause retained in the draft, against the same constitutional test.",
-		"",
-		"Remove any agent-authored clause that is runtime configuration, a feature requirement, detailed design, a procedure, transient project state, or duplication of an authoritative source. Every retained agent-authored clause must be durable across unrelated features and require a constitutional amendment to change.",
-		"",
-		"Remove or correct any scaffold clause that fails this review. The final unratified draft, not the initialization template, is the candidate presented to the human for ratification.",
-		"",
-		"Produce `.specify/memory/constitution.md` and append the core workflow's Sync Impact Report to `.specify/memory/constitution-changelog.md`. Do not embed the report in the constitution or modify any other file.",
-	}, "\n")
+func renderConstitutionPrompt(layout []byte, templatePath string) (string, error) {
+	parsed, err := template.New("constitution-prompt").Option("missingkey=error").Parse(string(layout))
+	if err != nil {
+		return "", fmt.Errorf("parsing constitution prompt template: %w", err)
+	}
+	var output bytes.Buffer
+	if err := parsed.Execute(&output, struct{ TemplatePath string }{TemplatePath: templatePath}); err != nil {
+		return "", fmt.Errorf("rendering constitution prompt template: %w", err)
+	}
+	return output.String(), nil
 }
 
 func runCommand(name string, arguments []string, directory string, input io.Reader, output, errorOutput io.Writer) error {

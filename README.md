@@ -25,6 +25,8 @@ root is exactly `~/.agents/sdlc` for every supported provider.
 | `src/DOCUMENTATION.md` | Public technical-documentation standards |
 | `src/technologies/*.md` | Automatically discoverable technology standards |
 | `src/presets/sdlc-standards/` | Spec Kit preset that selects standards progressively |
+| `src/prompts/project-init/` | Constitution-generation prompt resource |
+| `src/templates/project-init/` | Constitution scaffold and managed brownfield document block |
 | `skills/` | Findings-only audits and advisory tools |
 | `hooks/` | Optional provider-integrated command safeguard |
 | `cmd/` and `internal/` | Installer, project initializer, and audit-verdict implementation |
@@ -161,13 +163,20 @@ relaunching the agent.
 For a greenfield repository, the initializer offers to run `specify init`, then
 creates the standards profile and unratified constitution. For a brownfield
 repository, it preserves the existing project, installs Spec Kit into the
-working tree, marks the acceptance-criteria ledger as legacy, archives
+working tree, applies the current managed legacy prefix to the
+acceptance-criteria ledger, archives
 `docs/implementation_plan.md`, and shows the bounded Git diff before asking
 whether to commit the migration. Vision, architecture, and README documents
 remain active and require project-specific semantic review. The initializer then
 generates a proposed `Specification Baseline` authority map for the constitution
 agent to populate without copying feature or design detail. Projects without
 that legacy document shape are left unchanged.
+
+The managed `docs/ACs.md` prefix comes from the deployed SDLC resource rather
+than Go source. A rerun compares the prefix through its `***` delimiter by
+SHA-256. It prepends the block when absent, writes nothing when current, and
+replaces only a stale managed prefix while preserving the ledger body byte for
+byte. A marker outside the managed prefix is reported as an error.
 
 The generated template has no authority before ratification. The candidate
 constitution may correct, remove, or replace any scaffold clause. Ratification

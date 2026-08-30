@@ -22,6 +22,8 @@ func newFixture(t *testing.T, providers ...string) fixture {
 	writeFile(t, filepath.Join(f.source, "src", "MAIN.md"), []byte("# Main\n"))
 	writeFile(t, filepath.Join(f.source, "src", "technologies", "GO.md"), []byte("# Go\n"))
 	writeFile(t, filepath.Join(f.source, "src", "guides", "nested.md"), []byte("# Nested\n"))
+	writeFile(t, filepath.Join(f.source, "src", "templates", "project-init", "legacy-acs-header.md"), []byte("# Legacy\n***\n"))
+	writeFile(t, filepath.Join(f.source, "src", "prompts", "project-init", "constitution.md.tmpl"), []byte("Create {{.TemplatePath}}\n"))
 	writeFile(t, filepath.Join(f.source, "README.md"), []byte("# Readme\n"))
 	writeFile(t, filepath.Join(f.source, "CHANGELOG.md"), []byte("# Changelog\n"))
 	writeFile(t, filepath.Join(f.source, "LEARNINGS.md"), []byte("# Learnings\n"))
@@ -63,8 +65,11 @@ func TestInteractiveInstallsOneCanonicalTreeAndProviderAdapters(t *testing.T) {
 	assertRegularTree(t, filepath.Join(f.root, ".agents", "sdlc"))
 	assertFile(t, filepath.Join(f.root, ".agents", "sdlc", "MAIN.md"), "# Main\n")
 	assertFile(t, filepath.Join(f.root, ".agents", "sdlc", "guides", "nested.md"), "# Nested\n")
+	assertFile(t, filepath.Join(f.root, ".agents", "sdlc", "templates", "project-init", "legacy-acs-header.md"), "# Legacy\n***\n")
+	assertFile(t, filepath.Join(f.root, ".agents", "sdlc", "prompts", "project-init", "constitution.md.tmpl"), "Create {{.TemplatePath}}\n")
+	assertAbsent(t, filepath.Join(f.root, ".agents", "sdlc", "templates", "codex-sdlc.rules.example"))
 	assertAbsent(t, filepath.Join(f.root, ".agents", "sdlc", ".git"))
-	for _, relative := range []string{"src", "README.md", "CHANGELOG.md", "LEARNINGS.md", "cmd", "docs", "internal", "go.mod", "templates"} {
+	for _, relative := range []string{"src", "README.md", "CHANGELOG.md", "LEARNINGS.md", "cmd", "docs", "internal", "go.mod"} {
 		assertAbsent(t, filepath.Join(f.root, ".agents", "sdlc", relative))
 	}
 	for _, home := range []string{".claude", ".codex", ".copilot", ".hermes"} {

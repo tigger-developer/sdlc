@@ -37,7 +37,9 @@ sdlc/
 |   |-- GIT.md
 |   |-- DOCUMENTATION.md
 |   |-- technologies/
-|   `-- presets/sdlc-standards/
+|   |-- presets/sdlc-standards/
+|   |-- prompts/project-init/
+|   `-- templates/project-init/
 |-- skills/
 |-- hooks/
 |-- templates/
@@ -64,6 +66,8 @@ runtime:
 |-- DOCUMENTATION.md
 |-- technologies/
 |-- presets/sdlc-standards/
+|-- prompts/project-init/
+|-- templates/project-init/
 |-- skills/
 `-- hooks/
 ```
@@ -113,8 +117,8 @@ it available without changing the initializer.
 Before rendering a brownfield constitution, the initializer mechanically
 migrates the established project documentation shape. It:
 
-- adds a fixed, marked legacy introduction to `docs/ACs.md` without duplicating
-  an introduction already present;
+- applies the file-backed, marked legacy prefix to `docs/ACs.md`, replacing
+  only an older managed prefix when the resource changes;
 - moves `docs/implementation_plan.md` unchanged to
   `docs/archive/implementation_plan.md`;
 - shows the managed-path Git diff and obtains operator confirmation before an
@@ -269,6 +273,8 @@ trees.
 | Testing standard | `src/TESTING.md` |
 | Technology standard | A focused file under `src/technologies/`, plus a route in `MAIN.md` |
 | Spec Kit command selection | `src/presets/sdlc-standards/` |
+| Project-initializer prompt | `src/prompts/project-init/` |
+| Project-initializer template or managed block | `src/templates/project-init/` |
 | Findings-only reusable review | `skills/<name>/SKILL.md` |
 | Provider command safeguard | `hooks/` plus the relevant installer adapter |
 
