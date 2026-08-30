@@ -131,6 +131,26 @@ unexpected overlapping changes, or content that cannot be transformed by the
 fixed rules are reported rather than guessed. Declining the commit leaves the
 reviewed working-tree changes in place and stops constitution generation.
 
+### Project-initializer resources
+
+User-facing blocks, templates, and prompts are source files under `src/`; they
+are not assembled from prose embedded in Go. The installer deploys these files
+under the canonical SDLC root, and `sdlc-project-init` performs only explicit
+template-field substitution.
+
+The legacy acceptance-criteria notice is a managed prefix ending at a line that
+contains only `***`. Its stable marker identifies the prefix independently of
+the document's own headings or content. The initializer treats the remainder of
+`docs/ACs.md` as opaque bytes:
+
+- if no managed prefix exists, prepend the current block;
+- if the prefix hash matches the current template, write nothing; and
+- if the marker exists at the start but the hash differs, replace only the
+  prefix through its delimiter.
+
+A managed marker outside the prefix is an error rather than permission to
+duplicate or reorganize document content.
+
 The generated template is editable pre-ratification scaffolding. It contains
 the fixed standards proposal, universal standard references, selected
 technology references, an optional external
