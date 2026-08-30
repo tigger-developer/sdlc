@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+The README now documents the complete Spec Kit feature lifecycle for new users
+and projects migrating from the earlier SDLC. It distinguishes the reusable
+main authoring context from mandatory fresh audit contexts and identifies when
+context reset is otherwise appropriate.
+
 Constitution scaffolds now include Spec Kit's Sync Impact Report as one compact
 HTML-comment line at the top of the constitution. Ratification and amendments
 replace that line instead of accumulating a separate constitution changelog.

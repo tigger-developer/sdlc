@@ -185,27 +185,170 @@ line is the current compact Sync Impact Report; amendments replace that line
 rather than accumulating a separate changelog.
 Follow the complete procedures in [`QUICKSTART.md`](QUICKSTART.md).
 
-Thereafter:
+## Deliver a feature with Spec Kit
 
-- `speckit.specify` and `speckit.clarify` load specification standards, after
-  which `audit-spec` must pass in a fresh context;
-- `speckit.plan` loads cross-language and selected technology standards, after
-  which `audit-design` must pass in a fresh context;
-- `speckit.tasks` loads testing and documentation standards, after which
-  `audit-tests` must pass in a fresh context;
-- `speckit.analyze` checks consistency and coverage; and
-- `speckit.implement` loads the selected standards, after which `audit-code`
-  must pass in a fresh context before completion or convergence.
+Spec Kit owns the feature workflow. Its
+[Agentic SDD guide](https://github.com/github/spec-kit/blob/main/docs/reference/agentic-sdd.md)
+defines the upstream command sequence and artefacts. The SDLC preset keeps that
+orchestration and adds progressively loaded engineering standards plus four
+independent audit gates.
 
-Each verdict is recorded in the active feature's `audits.md`. A finding,
-missing or malformed verdict, or subsequent artefact change invalidates PASS.
-`speckit.analyze` does not replace an independent audit.
+Spec Kit documentation writes commands as `/speckit.*`. Codex skills mode uses
+the equivalent `$speckit-*` form. The examples below use Codex syntax; use the
+form exposed by the selected agent integration.
 
-`speckit.taskstoissues` retains Spec Kit's task artefacts as the source of truth
-and applies the rule that human-facing identifiers always include descriptors.
+### Context model
 
-The preset adds standards to these commands without replacing Spec Kit's
-orchestration. The shared documents remain the single source of truth.
+Use one main authoring context for the feature. It may run specification,
+clarification, planning, task generation, analysis, implementation, and
+convergence. A context hand-off is not an approval gate; the files under the
+active `specs/` feature directory carry the durable state.
+
+An independent audit is the only stage transition that mandates a different
+context. The auditor must not be the context that authored the artefact. The
+main context may dispatch a fresh subagent and resume after its verdict, or the
+operator may run the audit in a separate agent session.
+
+Apply these rules to the main context:
+
+- **Start fresh for each feature** so unrelated feature history is not carried
+  in.
+- **Reset after unsafe compaction** when the context can no longer account for
+  the current specification, plan, tasks, and audit record.
+- **Consider resetting before a large implementation** when a build-focused
+  context loaded from the approved artefacts would be clearer.
+
+Do not reset the main context merely because the workflow advances from
+`specify` to `clarify`, `plan`, or `tasks`. If a new or compacted context does
+continue the feature, it must read the constitution and the active feature's
+current artefacts and audit record before acting.
+
+### Step-by-step feature workflow
+
+1. **Specify the required behaviour.**
+
+   Invoke `$speckit-specify` with the requested change. Describe observable
+   behaviour, purpose, boundaries, and important failure cases, not the
+   implementation. It creates the feature directory and `spec.md`. In a
+   brownfield project, the SDLC overlay requires a bounded delta against the
+   authorities named in the constitution rather than a restatement of the
+   existing system.
+
+2. **Clarify material ambiguity.**
+
+   Invoke `$speckit-clarify` before planning. It asks up to five targeted
+   questions and writes the answers into `spec.md`. It may report that no
+   critical ambiguity remains. Repeat it with a focus area when necessary.
+   Clarification is for decisions that affect observable behaviour, scope,
+   security, access, persisted data, or validation. Technical choices belong
+   in planning.
+
+3. **Audit the specification in a fresh context.**
+
+   Run `audit-spec`. It must return `PASS` before planning. Record the provider,
+   model, artefact revision, verdict, and findings in the feature's `audits.md`.
+   Any later specification or clarification change invalidates that PASS and
+   requires another fresh audit.
+
+4. **Plan the implementation.**
+
+   Resume the main context and invoke `$speckit-plan`. This is where
+   architecture, technology, interfaces, data structures, migration,
+   compatibility, security, operability, and test architecture are decided.
+   Depending on the feature, Spec Kit may create `plan.md`, `research.md`,
+   `data-model.md`, `contracts/`, and `quickstart.md`.
+
+5. **Audit the design in a fresh context.**
+
+   Run `audit-design`. It must return `PASS` before test design or task
+   generation. A later plan or design change invalidates that PASS.
+
+6. **Optionally generate focused checklists.**
+
+   `$speckit-checklist` creates domain-specific quality checks for the written
+   requirements. It is useful for security, accessibility, privacy, or other
+   areas needing an explicit completeness review. It does not replace an SDLC
+   audit.
+
+7. **Generate tasks and test traceability.**
+
+   Invoke `$speckit-tasks`. It converts the approved specification and design
+   into an ordered `tasks.md`, including the required verification,
+   documentation, migration, and human-validation work.
+
+8. **Audit the tests and tasks in a fresh context.**
+
+   Run `audit-tests`. It must return `PASS` before implementation. A later
+   change to the test design, traceability, or affected tasks invalidates that
+   PASS.
+
+9. **Analyse cross-artefact consistency.**
+
+   Invoke `$speckit-analyze` after tasks and before implementation. It checks
+   consistency and coverage across the specification, plan, and tasks. Resolve
+   material findings in the authoritative artefact, then rerun any audit that
+   the change invalidated. Analyse does not replace an independent audit.
+
+10. **Implement the approved tasks.**
+
+    Invoke `$speckit-implement`. A small feature may remain in the main context.
+    A large feature may start a fresh build-focused context or be implemented in
+    bounded phases; each context must load the approved artefacts before
+    changing code. Implementation must not change required behaviour silently.
+
+11. **Audit the implementation in a fresh context.**
+
+    Run `audit-code` after implementation and verification. It must return
+    `PASS` before completion or convergence. Any subsequent implementation
+    change invalidates that PASS.
+
+12. **Converge and repeat when necessary.**
+
+    Invoke `$speckit-converge` to assess the implementation against the
+    specification, plan, and tasks. If it appends missing work to `tasks.md`,
+    implement that work, rerun affected verification and `audit-code` in a
+    fresh context, then converge again. Stop only when no work remains and all
+    required audit records are current.
+
+The resulting control flow is:
+
+```text
+main:  specify -> clarify
+fresh: audit-spec PASS
+main:  plan
+fresh: audit-design PASS
+main:  checklist (optional) -> tasks
+fresh: audit-tests PASS
+main:  analyze -> implement
+fresh: audit-code PASS
+main:  converge -> repeat affected stages when work is appended
+```
+
+`$speckit-taskstoissues` is optional. It projects tasks into GitHub issues while
+retaining Spec Kit's task artefacts as the source of truth and applying the
+rule that human-facing identifiers always include descriptors.
+
+For very large features, follow Spec Kit's
+[spec-of-specs guidance](https://github.com/github/spec-kit/blob/main/docs/concepts/spec-of-specs.md)
+instead of forcing an agent to retain an oversized feature in one context.
+
+### Moving from the earlier SDLC
+
+SDLC v2 does not use the former modes, gate ceremonies, approval keywords, or
+ticket lifecycle. Their useful guarantees now live in durable artefacts and
+explicit transitions:
+
+- the constitution replaces preloaded process instructions;
+- `spec.md`, `plan.md`, and `tasks.md` replace conversational scope hand-offs;
+- independent audit PASS records replace approval gates; and
+- Spec Kit commands own progression between stages.
+
+The operator may review, correct, or pause at any stage. No legacy keyword is
+required to continue. `BYPASS-GATE-7` remains only the narrowly defined
+emergency exception described below, not an alternative feature workflow.
+
+The preset adds standards to Spec Kit without replacing its orchestration. The
+shared SDLC documents remain the single source of truth for those standards.
 
 ## Emergency exception
 
