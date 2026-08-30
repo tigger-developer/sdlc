@@ -118,11 +118,14 @@ migrates the established project documentation shape. It:
   already present;
 - moves `docs/implementation_plan.md` unchanged to
   `docs/archive/implementation_plan.md`;
-- rewrites the implementation-plan link in `README.md` to the archived path;
 - shows the managed-path Git diff and obtains operator confirmation before an
   isolated commit; and
 - performs no write, prompt, agent launch, or commit when the migration is
   already current.
+
+`README.md` is outside the mechanical migration. Obsolete links and process
+descriptions require project-specific semantic review rather than path
+substitution.
 
 The migration never invokes an agent. Missing expected source documents,
 unexpected overlapping changes, or content that cannot be transformed by the

@@ -112,10 +112,12 @@ mechanical migration:
    `docs/archive/implementation_plan.md`.
 2. Fixed, marked authority introductions are added to `docs/VISION.md`,
    `docs/architecture.md`, and `docs/ACs.md`.
-3. References to `docs/implementation_plan.md` in `README.md` change to the
-   archived path.
-4. The initializer stages only those paths, shows their Git diff, and asks
+3. The initializer stages only those paths, shows their Git diff, and asks
    whether to commit.
+
+The initializer does not rewrite `README.md`. Removing obsolete links and
+reframing the README for the adopted process requires project-specific semantic
+review.
 
 Declining leaves the reviewed migration staged and stops before constitution
 generation. Rerunning presents the same diff for confirmation. An accepted or

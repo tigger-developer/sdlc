@@ -354,8 +354,8 @@ func TestMigrateBrownfieldDocumentsIsMechanicalReviewedAndIdempotent(t *testing.
 		}
 	}
 	readme := string(mustReadFile(t, filepath.Join(project, "README.md")))
-	if strings.Contains(readme, "docs/implementation_plan.md") || !strings.Contains(readme, "docs/archive/implementation_plan.md") {
-		t.Fatalf("README implementation-plan link was not archived:\n%s", readme)
+	if !strings.Contains(readme, "docs/implementation_plan.md") || strings.Contains(readme, "docs/archive/implementation_plan.md") {
+		t.Fatalf("README was changed by the mechanical migration:\n%s", readme)
 	}
 	if !strings.Contains(output.String(), "Brownfield documentation migration variances:") || !strings.Contains(output.String(), "Committed brownfield documentation migration.") {
 		t.Fatalf("migration review output = %q", output.String())
@@ -444,6 +444,26 @@ func TestMigrateBrownfieldDocumentsIgnoresOtherBrownfieldLayouts(t *testing.T) {
 	}
 	if !proceed || output.Len() != 0 {
 		t.Fatalf("unrecognized brownfield layout was not ignored: proceed=%t output=%q", proceed, output.String())
+	}
+}
+
+func TestMigrateBrownfieldDocumentsDoesNotRequireREADME(t *testing.T) {
+	project := initializeLegacyBrownfieldProject(t)
+	if err := os.Remove(filepath.Join(project, "README.md")); err != nil {
+		t.Fatal(err)
+	}
+	options := defaultOptions(Options{
+		Input: strings.NewReader("yes\n"), Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{},
+	})
+	proceed, err := migrateBrownfieldDocuments(project, bufio.NewReader(options.Input), options)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !proceed {
+		t.Fatal("README absence stopped the bounded document migration")
+	}
+	if _, err := os.Stat(filepath.Join(project, "README.md")); !os.IsNotExist(err) {
+		t.Fatalf("migration created or changed README: %v", err)
 	}
 }
 

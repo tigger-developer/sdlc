@@ -162,8 +162,9 @@ For a greenfield repository, the initializer offers to run `specify init`, then
 creates the standards profile and unratified constitution. For a brownfield
 repository, it preserves the existing project, installs Spec Kit into the
 working tree, mechanically marks the established documentation authorities,
-archives `docs/implementation_plan.md`, updates its README link, and shows the
-bounded Git diff before asking whether to commit the migration. It then
+archives `docs/implementation_plan.md`, and shows the bounded Git diff before
+asking whether to commit the migration. It does not rewrite `README.md`; that
+document requires project-specific semantic review. The initializer then
 generates a proposed `Specification Baseline` authority map for the constitution
 agent to populate without copying feature or design detail. Projects without
 that legacy document shape are left unchanged.

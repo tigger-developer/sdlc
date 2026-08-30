@@ -170,7 +170,6 @@ func (document authorityDocument) block() string {
 }
 
 var brownfieldMigrationPaths = []string{
-	"README.md",
 	"docs/VISION.md",
 	"docs/architecture.md",
 	"docs/ACs.md",
@@ -401,7 +400,7 @@ func inspectBrownfieldMigration(projectRoot, sourcePlan, archivedPlan string) (b
 	if !sourceExists && !archiveExists {
 		return false, false, false, nil
 	}
-	for _, relative := range append([]string{"README.md"}, authorityDocumentPaths()...) {
+	for _, relative := range authorityDocumentPaths() {
 		target := filepath.Join(projectRoot, filepath.FromSlash(relative))
 		exists, existsErr := regularFileExists(target)
 		if existsErr != nil {
@@ -429,8 +428,7 @@ func applyBrownfieldMigration(projectRoot, sourcePlan, archivedPlan string, sour
 			return err
 		}
 	}
-	_, err := rewriteImplementationPlanLink(filepath.Join(projectRoot, "README.md"))
-	return err
+	return nil
 }
 
 func reviewBrownfieldMigration(projectRoot string, reader *bufio.Reader, current bool, options Options) (bool, error) {
@@ -516,11 +514,7 @@ func brownfieldMigrationCurrent(projectRoot string) (bool, error) {
 			return false, nil
 		}
 	}
-	readme, err := os.ReadFile(filepath.Join(projectRoot, "README.md"))
-	if err != nil {
-		return false, fmt.Errorf("reading brownfield README: %w", err)
-	}
-	return !bytes.Contains(readme, []byte("docs/implementation_plan.md")), nil
+	return true, nil
 }
 
 func ensureAuthorityIntroduction(projectRoot string, document authorityDocument) (bool, error) {
@@ -541,21 +535,6 @@ func ensureAuthorityIntroduction(projectRoot string, document authorityDocument)
 	updated = append(updated, '\n', '\n')
 	updated = append(updated, cleaned...)
 	if err := writeAtomic(target, updated, 0o644); err != nil {
-		return false, err
-	}
-	return true, nil
-}
-
-func rewriteImplementationPlanLink(readmePath string) (bool, error) {
-	contents, err := os.ReadFile(readmePath)
-	if err != nil {
-		return false, fmt.Errorf("reading README %q: %w", readmePath, err)
-	}
-	updated := bytes.ReplaceAll(contents, []byte("docs/implementation_plan.md"), []byte("docs/archive/implementation_plan.md"))
-	if bytes.Equal(contents, updated) {
-		return false, nil
-	}
-	if err := writeAtomic(readmePath, updated, 0o644); err != nil {
 		return false, err
 	}
 	return true, nil
