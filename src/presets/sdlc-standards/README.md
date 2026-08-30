@@ -13,19 +13,21 @@ sdlc-project-init
 ```
 
 It installs this preset, records the project as greenfield or brownfield,
-discovers applicable technology standards, renders the complete constitution
-baseline with its adopted SDLC revision, and invokes the selected agent harness.
+discovers applicable technology standards, renders an editable constitution
+scaffold with its adopted SDLC revision, and invokes the selected agent harness.
 Inspect or render without launching an agent with:
 
 ```bash
 sdlc-project-init --no-launch
 ```
 
-The generated baseline is immutable to the semantic constitution pass. The
-agent populates the fixed brownfield authority map when applicable and adds only
-durable project-specific principles, ownership boundaries, and explicit
-deviations. A current rerun writes nothing, asks nothing, and does not invoke an
-agent.
+The generated scaffold has no authority before ratification. The agent
+populates the brownfield authority map when applicable and adds only durable
+project-specific principles, ownership boundaries, and explicit deviations.
+Ratification makes the constitution authoritative; later amendments use it
+directly rather than reapplying the scaffold. Impact reports are appended to
+`.specify/memory/constitution-changelog.md`. A current rerun writes nothing,
+asks nothing, and does not invoke an agent.
 
 The command fragments reference the canonical installed root
 `~/.agents/sdlc`. No command may search for an alternative SDLC root.

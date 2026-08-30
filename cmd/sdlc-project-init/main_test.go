@@ -29,3 +29,20 @@ func TestSourceRevisionFromBuildInfo(t *testing.T) {
 		t.Fatalf("release source revision = %q", got)
 	}
 }
+
+func TestSourceRevisionPrefersInjectedRelease(t *testing.T) {
+	clean := &debug.BuildInfo{
+		Settings: []debug.BuildSetting{
+			{Key: "vcs.revision", Value: "0123456789abcdef"},
+			{Key: "vcs.modified", Value: "false"},
+		},
+	}
+	if got := sourceRevisionForBuildInfo(clean, "v2.0.1"); got != "v2.0.1" {
+		t.Fatalf("source revision = %q, want injected release", got)
+	}
+
+	clean.Settings[1].Value = "true"
+	if got := sourceRevisionForBuildInfo(clean, "v2.0.1"); got != "" {
+		t.Fatalf("dirty source revision = %q, want unresolved", got)
+	}
+}

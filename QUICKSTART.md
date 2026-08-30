@@ -58,20 +58,20 @@ When `.specify/` is absent, the initializer:
 6. asks whether another project owns deployment or runtime infrastructure;
 7. records the project selections in an ignored `.env`;
 8. renders `.specify/templates/overrides/constitution-template.md`;
-9. commits only that generated baseline; and
+9. commits only that generated scaffold; and
 10. launches the selected agent to create an unratified project constitution.
 
-The generated baseline records the exact SDLC commit or release when the
-initializer was built from clean versioned source. A modified or unversioned
-build leaves an explicit `TODO(SDLC_REVISION)` and cannot be ratified until that
-traceability is resolved.
+The generated scaffold records an exact SDLC release tag when the initializer
+was built at that tag; other clean versioned builds record their source commit.
+A modified or unversioned build leaves an explicit `TODO(SDLC_REVISION)` and
+cannot be ratified until that traceability is resolved.
 
 Review the generated constitution before ratification. It should contain the
 fixed standards and audit baseline, up to four durable project-wide principles,
 one concern-specific authority hierarchy, explicit governance, and no copied
 feature requirements or detailed design.
 
-The initializer checkpoints the generated baseline without including unrelated
+The initializer checkpoints the generated scaffold without including unrelated
 staged or working-tree changes. Track the remaining project configuration needed
 to reproduce the constitution, including:
 
@@ -80,6 +80,11 @@ to reproduce the constitution, including:
 - the installed preset and shared Spec Kit infrastructure under `.specify/`;
   and
 - any project documentation created for the constitution.
+
+The scaffold has no authority before ratification. Review the complete
+constitution on its own merits and correct or remove any unsuitable scaffold
+clause. Ratification and later amendment reports belong in the append-only
+`.specify/memory/constitution-changelog.md`, not inside the constitution.
 
 Keep `.env` and project-local agent runtime directories such as `.agents/`,
 `.claude/`, and `.codex/` untracked. Resolve every ratification TODO, explicitly
@@ -99,10 +104,23 @@ sdlc-project-init
 ```
 
 After authorization, Spec Kit merges its project infrastructure into the
-existing working tree with its `--here --force` initialization path. The SDLC
-initializer does not replace application source or project documentation. It
-selects standards and asks the constitution agent to read the existing
-documentation as evidence.
+existing working tree with its `--here --force` initialization path. For the
+established SDLC v1 document shape, the initializer then performs a bounded,
+mechanical migration:
+
+1. `docs/implementation_plan.md` moves unchanged to
+   `docs/archive/implementation_plan.md`.
+2. Fixed, marked authority introductions are added to `docs/VISION.md`,
+   `docs/architecture.md`, and `docs/ACs.md`.
+3. References to `docs/implementation_plan.md` in `README.md` change to the
+   archived path.
+4. The initializer stages only those paths, shows their Git diff, and asks
+   whether to commit.
+
+Declining leaves the reviewed migration staged and stops before constitution
+generation. Rerunning presents the same diff for confirmation. An accepted or
+already-current migration is silent on later runs. Brownfield repositories
+without this document shape are not altered.
 
 For brownfield projects:
 
@@ -123,7 +141,7 @@ Initialization does not bulk-migrate legacy tickets or acceptance criteria.
 Reconcile that material separately and bring forward only the baseline relevant
 to each new or migrated feature.
 
-Review and track the same `.specify/` constitution and baseline files listed in
+Review and track the same `.specify/` constitution and scaffold files listed in
 the greenfield procedure. Confirm that the generated authority hierarchy gives
 approved specifications authority over observable behaviour, approved design
 authority over technical choices within those requirements, and code and tests
@@ -141,7 +159,9 @@ sdlc-project-init \
     --infra no
 ```
 
-Use `--no-launch` to render and inspect the baseline without starting an agent:
+Use `--no-launch` to render and inspect the scaffold without starting an agent.
+Any required mechanical brownfield migration still displays its diff and asks
+for commit confirmation:
 
 ```bash
 sdlc-project-init --no-launch
@@ -166,7 +186,7 @@ sdlc-project-init
 
 To change a recorded selection, update the applicable `SDLC_*` value in the
 project `.env` or supply a command-line override. A changed standards selection
-regenerates and checkpoints the baseline before relaunching the constitution
+regenerates and checkpoints the scaffold before relaunching the constitution
 workflow. Review and checkpoint the resulting constitution change.
 
 After updating the SDLC staging clone, redeploy and rerun initialization so the

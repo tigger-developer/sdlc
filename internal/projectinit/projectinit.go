@@ -110,7 +110,53 @@ type resolvedConfig struct {
 	SDLCRevision  string
 }
 
-// Run renders the deterministic constitution baseline and, when it changes,
+type authorityDocument struct {
+	Path   string
+	Marker string
+	Intro  string
+}
+
+var brownfieldAuthorityDocuments = []authorityDocument{
+	{
+		Path:   "docs/VISION.md",
+		Marker: "<!-- SDLC-SPEC-KIT-AUTHORITY: VISION -->",
+		Intro: strings.Join([]string{
+			"> **Spec Kit authority:** This document predates the project's adoption of Spec Kit. It",
+			"> remains authoritative for durable product purpose and policy. Approved feature",
+			"> specifications govern requirements established or changed through Spec Kit.",
+		}, "\n"),
+	},
+	{
+		Path:   "docs/architecture.md",
+		Marker: "<!-- SDLC-SPEC-KIT-AUTHORITY: ARCHITECTURE -->",
+		Intro: strings.Join([]string{
+			"> **Spec Kit authority:** This document predates the project's adoption of Spec Kit. It",
+			"> remains authoritative for current application architecture and design decisions within",
+			"> approved requirements. Approved feature specifications govern requirements; code and",
+			"> tests provide implementation evidence.",
+		}, "\n"),
+	},
+	{
+		Path:   "docs/ACs.md",
+		Marker: "<!-- SDLC-SPEC-KIT-AUTHORITY: LEGACY-REQUIREMENTS -->",
+		Intro: strings.Join([]string{
+			"Authoritative record of requirements established under the legacy ticket-led process, including",
+			"current and superseded requirements, provenance and test traceability. Requirements established or",
+			"changed through Spec Kit are governed by approved `specs/*/spec.md` artefacts.",
+		}, "\n"),
+	},
+}
+
+var brownfieldMigrationPaths = []string{
+	"README.md",
+	"docs/VISION.md",
+	"docs/architecture.md",
+	"docs/ACs.md",
+	"docs/implementation_plan.md",
+	"docs/archive/implementation_plan.md",
+}
+
+// Run renders the deterministic constitution scaffold and, when it changes,
 // invokes the selected agent harness for project-specific completion.
 func Run(options Options) error {
 	home, err := os.UserHomeDir()
@@ -263,16 +309,25 @@ func Run(options Options) error {
 			fmt.Fprintf(options.Output, "Added .env ignore rule: %s\n", ignorePath)
 		}
 	}
+	if config.ProjectType == "brownfield" {
+		proceed, migrationErr := migrateBrownfieldDocuments(projectRoot, reader, options)
+		if migrationErr != nil {
+			return migrationErr
+		}
+		if !proceed {
+			return nil
+		}
+	}
 	if templateChanged {
 		if err := writeAtomic(target, rendered, 0o644); err != nil {
 			return err
 		}
-		fmt.Fprintf(options.Output, "Updated constitution baseline: %s\n", target)
+		fmt.Fprintf(options.Output, "Updated constitution scaffold: %s\n", target)
 		if os.Getenv("VERBOSE") == "1" {
 			printVariance(options.Output, current, rendered)
 		}
 	}
-	if err := commitConstitutionBaseline(projectRoot, target, options); err != nil {
+	if err := commitConstitutionScaffold(projectRoot, target, options); err != nil {
 		return err
 	}
 	if !templateChanged && !configChanged {
@@ -284,32 +339,262 @@ func Run(options Options) error {
 	return launchConstitution(config, projectRoot, target, options)
 }
 
-func commitConstitutionBaseline(projectRoot, target string, options Options) error {
+func migrateBrownfieldDocuments(projectRoot string, reader *bufio.Reader, options Options) (bool, error) {
+	sourcePlan := filepath.Join(projectRoot, "docs", "implementation_plan.md")
+	archivedPlan := filepath.Join(projectRoot, "docs", "archive", "implementation_plan.md")
+	active, sourceExists, current, err := inspectBrownfieldMigration(projectRoot, sourcePlan, archivedPlan)
+	if err != nil {
+		return false, err
+	}
+	if !active {
+		return true, nil
+	}
+	status, err := gitStatusForPaths(projectRoot, brownfieldMigrationPaths, options)
+	if err != nil {
+		return false, err
+	}
+	if strings.TrimSpace(status) != "" && !current {
+		return false, fmt.Errorf("brownfield documentation migration overlaps existing changes:\n%s", strings.TrimSpace(status))
+	}
+	if !current {
+		if err := applyBrownfieldMigration(projectRoot, sourcePlan, archivedPlan, sourceExists); err != nil {
+			return false, err
+		}
+	}
+	return reviewBrownfieldMigration(projectRoot, reader, current, options)
+}
+
+func inspectBrownfieldMigration(projectRoot, sourcePlan, archivedPlan string) (bool, bool, bool, error) {
+	sourceExists, err := regularFileExists(sourcePlan)
+	if err != nil {
+		return false, false, false, err
+	}
+	archiveExists, err := regularFileExists(archivedPlan)
+	if err != nil {
+		return false, false, false, err
+	}
+	if sourceExists && archiveExists {
+		return false, false, false, fmt.Errorf("brownfield migration found both %q and %q", sourcePlan, archivedPlan)
+	}
+	if !sourceExists && !archiveExists {
+		return false, false, false, nil
+	}
+	for _, relative := range append([]string{"README.md"}, authorityDocumentPaths()...) {
+		target := filepath.Join(projectRoot, filepath.FromSlash(relative))
+		exists, existsErr := regularFileExists(target)
+		if existsErr != nil {
+			return false, false, false, existsErr
+		}
+		if !exists {
+			return false, false, false, fmt.Errorf("brownfield documentation migration requires %q", target)
+		}
+	}
+	current, err := brownfieldMigrationCurrent(projectRoot)
+	return true, sourceExists, current, err
+}
+
+func applyBrownfieldMigration(projectRoot, sourcePlan, archivedPlan string, sourceExists bool) error {
+	if sourceExists {
+		if err := os.MkdirAll(filepath.Dir(archivedPlan), 0o755); err != nil {
+			return fmt.Errorf("creating brownfield archive directory: %w", err)
+		}
+		if err := os.Rename(sourcePlan, archivedPlan); err != nil {
+			return fmt.Errorf("archiving implementation plan: %w", err)
+		}
+	}
+	for _, document := range brownfieldAuthorityDocuments {
+		if _, err := ensureAuthorityIntroduction(projectRoot, document); err != nil {
+			return err
+		}
+	}
+	_, err := rewriteImplementationPlanLink(filepath.Join(projectRoot, "README.md"))
+	return err
+}
+
+func reviewBrownfieldMigration(projectRoot string, reader *bufio.Reader, current bool, options Options) (bool, error) {
+	if current {
+		staged, err := gitDiffNames(projectRoot, true, brownfieldMigrationPaths, options)
+		if err != nil {
+			return false, err
+		}
+		if strings.TrimSpace(staged) == "" {
+			return true, nil
+		}
+		unstaged, err := gitDiffNames(projectRoot, false, brownfieldMigrationPaths, options)
+		if err != nil {
+			return false, err
+		}
+		if strings.TrimSpace(unstaged) != "" {
+			return false, fmt.Errorf("reviewed brownfield migration overlaps later unstaged changes:\n%s", strings.TrimSpace(unstaged))
+		}
+	} else if err := options.RunCommand("git", append([]string{"add", "--"}, brownfieldMigrationPaths...), projectRoot, strings.NewReader(""), options.Output, options.ErrorOutput); err != nil {
+		return false, fmt.Errorf("staging brownfield documentation migration: %w", err)
+	}
+	fmt.Fprintln(options.Output, "Brownfield documentation migration variances:")
+	diffArguments := append([]string{"diff", "--cached", "--no-ext-diff", "--find-renames", "--"}, brownfieldMigrationPaths...)
+	if err := options.RunCommand("git", diffArguments, projectRoot, strings.NewReader(""), options.Output, options.ErrorOutput); err != nil {
+		return false, fmt.Errorf("showing brownfield documentation migration: %w", err)
+	}
+	accepted, err := promptYesNo(reader, options.Output, "Commit these brownfield documentation migration changes? [yes/no]: ")
+	if err != nil {
+		return false, err
+	}
+	if !accepted {
+		fmt.Fprintln(options.Output, "Brownfield documentation migration remains staged and constitution generation has stopped.")
+		return false, nil
+	}
+	commitArguments := append([]string{"commit", "--only", "--quiet", "--message", "docs: migrate legacy project authorities", "--"}, brownfieldMigrationPaths...)
+	if err := options.RunCommand("git", commitArguments, projectRoot, strings.NewReader(""), options.Output, options.ErrorOutput); err != nil {
+		return false, fmt.Errorf("committing brownfield documentation migration: %w", err)
+	}
+	fmt.Fprintln(options.Output, "Committed brownfield documentation migration.")
+	return true, nil
+}
+
+func gitDiffNames(projectRoot string, cached bool, paths []string, options Options) (string, error) {
+	arguments := []string{"diff", "--name-only"}
+	if cached {
+		arguments = append(arguments, "--cached")
+	}
+	arguments = append(arguments, "--")
+	arguments = append(arguments, paths...)
+	var names bytes.Buffer
+	if err := options.RunCommand("git", arguments, projectRoot, strings.NewReader(""), &names, options.ErrorOutput); err != nil {
+		return "", fmt.Errorf("checking brownfield documentation differences: %w", err)
+	}
+	return names.String(), nil
+}
+
+func authorityDocumentPaths() []string {
+	paths := make([]string, 0, len(brownfieldAuthorityDocuments))
+	for _, document := range brownfieldAuthorityDocuments {
+		paths = append(paths, document.Path)
+	}
+	return paths
+}
+
+func brownfieldMigrationCurrent(projectRoot string) (bool, error) {
+	sourceExists, err := regularFileExists(filepath.Join(projectRoot, "docs", "implementation_plan.md"))
+	if err != nil {
+		return false, err
+	}
+	archiveExists, err := regularFileExists(filepath.Join(projectRoot, "docs", "archive", "implementation_plan.md"))
+	if err != nil {
+		return false, err
+	}
+	if sourceExists || !archiveExists {
+		return false, nil
+	}
+	for _, document := range brownfieldAuthorityDocuments {
+		contents, readErr := os.ReadFile(filepath.Join(projectRoot, filepath.FromSlash(document.Path)))
+		if readErr != nil {
+			return false, fmt.Errorf("reading brownfield authority document %q: %w", document.Path, readErr)
+		}
+		if !bytes.Contains(contents, []byte(document.Marker)) {
+			return false, nil
+		}
+	}
+	readme, err := os.ReadFile(filepath.Join(projectRoot, "README.md"))
+	if err != nil {
+		return false, fmt.Errorf("reading brownfield README: %w", err)
+	}
+	return !bytes.Contains(readme, []byte("docs/implementation_plan.md")), nil
+}
+
+func ensureAuthorityIntroduction(projectRoot string, document authorityDocument) (bool, error) {
+	target := filepath.Join(projectRoot, filepath.FromSlash(document.Path))
+	contents, err := os.ReadFile(target)
+	if err != nil {
+		return false, fmt.Errorf("reading authority document %q: %w", target, err)
+	}
+	if bytes.Contains(contents, []byte(document.Marker)) {
+		return false, nil
+	}
+	marker := []byte(document.Marker + "\n")
+	intro := []byte(document.Intro)
+	var updated []byte
+	if position := bytes.Index(contents, intro); position >= 0 {
+		updated = make([]byte, 0, len(contents)+len(marker))
+		updated = append(updated, contents[:position]...)
+		updated = append(updated, marker...)
+		updated = append(updated, contents[position:]...)
+	} else {
+		updated = make([]byte, 0, len(contents)+len(marker)+len(intro)+2)
+		updated = append(updated, marker...)
+		updated = append(updated, intro...)
+		updated = append(updated, '\n', '\n')
+		updated = append(updated, contents...)
+	}
+	if err := writeAtomic(target, updated, 0o644); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func rewriteImplementationPlanLink(readmePath string) (bool, error) {
+	contents, err := os.ReadFile(readmePath)
+	if err != nil {
+		return false, fmt.Errorf("reading README %q: %w", readmePath, err)
+	}
+	updated := bytes.ReplaceAll(contents, []byte("docs/implementation_plan.md"), []byte("docs/archive/implementation_plan.md"))
+	if bytes.Equal(contents, updated) {
+		return false, nil
+	}
+	if err := writeAtomic(readmePath, updated, 0o644); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func regularFileExists(target string) (bool, error) {
+	info, err := os.Stat(target)
+	if errors.Is(err, os.ErrNotExist) {
+		return false, nil
+	}
+	if err != nil {
+		return false, fmt.Errorf("checking %q: %w", target, err)
+	}
+	if !info.Mode().IsRegular() {
+		return false, fmt.Errorf("expected regular file at %q", target)
+	}
+	return true, nil
+}
+
+func gitStatusForPaths(projectRoot string, paths []string, options Options) (string, error) {
+	var status bytes.Buffer
+	arguments := append([]string{"status", "--porcelain=v1", "--untracked-files=all", "--"}, paths...)
+	if err := options.RunCommand("git", arguments, projectRoot, strings.NewReader(""), &status, options.ErrorOutput); err != nil {
+		return "", fmt.Errorf("checking brownfield documentation Git status: %w", err)
+	}
+	return status.String(), nil
+}
+
+func commitConstitutionScaffold(projectRoot, target string, options Options) error {
 	relative, err := filepath.Rel(projectRoot, target)
 	if err != nil {
-		return fmt.Errorf("resolving constitution baseline path: %w", err)
+		return fmt.Errorf("resolving constitution scaffold path: %w", err)
 	}
 	if relative == ".." || strings.HasPrefix(relative, ".."+string(filepath.Separator)) {
-		return fmt.Errorf("constitution baseline %q is outside project root %q", target, projectRoot)
+		return fmt.Errorf("constitution scaffold %q is outside project root %q", target, projectRoot)
 	}
 	relative = filepath.ToSlash(relative)
 
 	var status bytes.Buffer
 	statusArguments := []string{"status", "--porcelain=v1", "--untracked-files=all", "--", relative}
 	if err := options.RunCommand("git", statusArguments, projectRoot, strings.NewReader(""), &status, options.ErrorOutput); err != nil {
-		return fmt.Errorf("checking constitution baseline Git status: %w", err)
+		return fmt.Errorf("checking constitution scaffold Git status: %w", err)
 	}
 	if strings.TrimSpace(status.String()) == "" {
 		return nil
 	}
 	if err := options.RunCommand("git", []string{"add", "--", relative}, projectRoot, strings.NewReader(""), options.Output, options.ErrorOutput); err != nil {
-		return fmt.Errorf("staging constitution baseline: %w", err)
+		return fmt.Errorf("staging constitution scaffold: %w", err)
 	}
-	commitArguments := []string{"commit", "--only", "--quiet", "--message", "docs: update SDLC constitution baseline", "--", relative}
+	commitArguments := []string{"commit", "--only", "--quiet", "--message", "docs: update SDLC constitution scaffold", "--", relative}
 	if err := options.RunCommand("git", commitArguments, projectRoot, strings.NewReader(""), options.Output, options.ErrorOutput); err != nil {
-		return fmt.Errorf("committing constitution baseline: %w", err)
+		return fmt.Errorf("committing constitution scaffold: %w", err)
 	}
-	fmt.Fprintf(options.Output, "Committed constitution baseline: %s\n", relative)
+	fmt.Fprintf(options.Output, "Committed constitution scaffold: %s\n", relative)
 	return nil
 }
 
@@ -507,7 +792,7 @@ func selectTechnologies(available []Technology, requested []string) ([]Technolog
 func renderConstitution(sdlcRoot string, technologies []Technology, config resolvedConfig) []byte {
 	var output strings.Builder
 	output.WriteString("# [PROJECT_NAME] Constitution\n\n")
-	output.WriteString("<!-- SDLC-GENERATED-BASELINE: do not remove or weaken generated clauses. -->\n\n")
+	output.WriteString("<!-- SDLC-GENERATED-SCAFFOLD: editable until ratification. -->\n\n")
 	output.WriteString("## Engineering Standards\n\n")
 	output.WriteString("This project MUST comply with the following canonical standards. The standards are referenced, not copied; load only those relevant to the current operation.\n\n")
 	for _, item := range universalStandards {
@@ -541,7 +826,7 @@ func renderConstitution(sdlcRoot string, technologies []Technology, config resol
 	output.WriteString("## Project Ownership and Architecture Boundaries\n\n")
 	output.WriteString("[ADD DURABLE APPLICATION, DATA, INTEGRATION, AND OPERATIONAL OWNERSHIP BOUNDARIES.]\n\n")
 	output.WriteString("## Governance\n\n")
-	output.WriteString("This constitution governs project specifications, plans, tasks, implementation, and review. Amendments MUST preserve the generated baseline, explain compatibility and migration effects, and update the version and dates below.\n\n")
+	output.WriteString("This constitution governs project specifications, plans, tasks, implementation, and review after ratification. Before ratification, this scaffold has no authority. Amendments MUST explain compatibility and migration effects and update the version and dates below.\n\n")
 	output.WriteString("**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Revised**: [LAST_AMENDED_DATE]\n")
 	return []byte(output.String())
 }
@@ -559,7 +844,7 @@ func renderSpecificationBaseline(output *strings.Builder, projectType string) {
 		output.WriteString("### Historical Requirement Authority\n\n")
 		output.WriteString("[LIST APPROVED HISTORICAL REQUIREMENT SOURCES NOT CENTRALIZED ABOVE, OR STATE NONE.]\n\n")
 		output.WriteString("### Design Authority\n\n")
-		output.WriteString("[LIST EXACT REPOSITORY-RELATIVE PATHS OR DURABLE EXTERNAL LOCATIONS FOR APPROVED ARCHITECTURE AND DESIGN.]\n\n")
+		output.WriteString("[LIST EXACT REPOSITORY-RELATIVE PATHS OR DURABLE EXTERNAL LOCATIONS FOR CURRENT APPROVED ARCHITECTURE AND DESIGN. EXCLUDE ARCHIVED IMPLEMENTATION PLANS.]\n\n")
 		output.WriteString("### Regression Evidence and Traceability\n\n")
 		output.WriteString("[LIST EXACT REPOSITORY-RELATIVE PATHS OR DURABLE EXTERNAL LOCATIONS FOR REGRESSION EVIDENCE AND TRACEABILITY.]\n\n")
 		output.WriteString("Tests and code provide evidence of implemented behaviour. They do not approve requirements.\n\n")
@@ -795,7 +1080,7 @@ func constitutionPrompt(templatePath string) string {
 	return strings.Join([]string{
 		"$speckit-constitution",
 		"",
-		"Create an unratified project constitution using the generated template at `" + templatePath + "` as an immutable baseline.",
+		"Create an unratified project constitution using the generated template at `" + templatePath + "` as editable scaffolding. It has no authority before ratification, and any proposed clause may be corrected, removed, or replaced.",
 		"",
 		"This is a filtering exercise, not a summary of the project documentation. Read the project documentation as evidence, but do not restate its important requirements.",
 		"",
@@ -817,13 +1102,13 @@ func constitutionPrompt(templatePath string) string {
 		"",
 		"Project documentation remains authoritative for detailed requirements and design. The constitution may elevate a concise project-wide invariant supported by those documents. Do not copy the supporting feature behaviour, mechanisms, examples, or procedures. Importance alone does not make something constitutional.",
 		"",
-		"Preserve the generated `Specification Baseline` structure and project classification. For a brownfield project, populate every authority field with concise, exact repository-relative paths or durable external locations verified from the project. Record current approved requirements, approved historical requirements that are not centralized, approved architecture and design, regression evidence and traceability, and the project's precedence and supersession rule. This is an authority map, not a summary of the system. Do not copy the contents of the named sources into the constitution.",
+		"Use the generated `Specification Baseline` as a proposed structure and retain the verified project classification. Correct the structure if project evidence shows it is inaccurate. For a brownfield project, populate every authority field with concise, exact repository-relative paths or durable external locations verified from the project. Record current approved requirements, approved historical requirements that are not centralized, current approved architecture and design, regression evidence and traceability, and the project's precedence and supersession rule. Archived implementation plans are historical provenance, not design authority. This is an authority map, not a summary of the system. Do not copy the contents of the named sources into the constitution.",
 		"",
 		"Distinguish requirement authority from design authority and implementation evidence: tests and code record evidence and implemented state but do not approve requirements. The `Specification Baseline` will be consumed by later specification and audit commands to define bounded behavioural deltas against the implemented baseline. Do not invent sources or placeholder paths. For a greenfield project, retain the generated prospective-baseline statement and do not add brownfield authorities.",
 		"",
 		"When a brownfield project has requirements established under a legacy process and will use Spec Kit for future work, state the authority boundary explicitly. The legacy record governs only requirements established through that process. Approved Spec Kit feature specifications govern requirements established or changed through Spec Kit. A later approved Spec Kit specification may supersede a legacy requirement only explicitly and must preserve its lineage.",
 		"",
-		"Add up to four concise project-specific principles. Zero is valid only when no evidenced project-wide invariant would require a constitutional amendment to change. The existence of an invariant in another authoritative document is not, by itself, a reason to omit it. Use one concise authority and ownership hierarchy. Record only explicit standards deviations and genuine ratification blockers. Do not repeat or expand the generated baseline.",
+		"Add up to four concise project-specific principles. Zero is valid only when no evidenced project-wide invariant would require a constitutional amendment to change. The existence of an invariant in another authoritative document is not, by itself, a reason to omit it. Use one concise authority and ownership hierarchy. Record only explicit standards deviations and genuine ratification blockers. Do not repeat or expand the scaffold.",
 		"",
 		"Make the authority hierarchy concern-specific. The human project owner or explicitly named human governance authority controls ratification, amendments, and deviations. The constitution and selected standards govern engineering and governance. Durable product vision and policy govern project purpose. Approved feature specifications govern observable behaviour. Approved architecture and design govern technical choices within those requirements. Operational, testing, migration, and user documentation govern their respective procedures and evidence. Code and tests record implemented state and evidence; they do not approve requirements. An external integration contract is authoritative only within its named ownership boundary. Do not place undifferentiated project documentation above approved specifications.",
 		"",
@@ -835,13 +1120,13 @@ func constitutionPrompt(templatePath string) string {
 		"",
 		"If not, omit it.",
 		"",
-		"Before finalizing, review the entire assembled constitution, including the generated baseline, against the same constitutional test.",
+		"Before finalizing, review the entire assembled constitution, including every scaffold clause retained in the draft, against the same constitutional test.",
 		"",
 		"Remove any agent-authored clause that is runtime configuration, a feature requirement, detailed design, a procedure, transient project state, or duplication of an authoritative source. Every retained agent-authored clause must be durable across unrelated features and require a constitutional amendment to change.",
 		"",
-		"If a generated immutable clause fails this review, do not remove or weaken it. Record the defective clause as a ratification blocker so the generator can be corrected before ratification.",
+		"Remove or correct any scaffold clause that fails this review. The final unratified draft, not the initialization template, is the candidate presented to the human for ratification.",
 		"",
-		"Produce only `.specify/memory/constitution.md`.",
+		"Produce `.specify/memory/constitution.md` and append the core workflow's Sync Impact Report to `.specify/memory/constitution-changelog.md`. Do not embed the report in the constitution or modify any other file.",
 	}, "\n")
 }
 

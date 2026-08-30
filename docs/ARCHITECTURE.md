@@ -113,11 +113,11 @@ it available without changing the initializer.
 Before rendering a brownfield constitution, the initializer mechanically
 migrates the established project documentation shape. It:
 
-- adds fixed, marked authority introductions to `README.md`, `docs/VISION.md`,
+- adds fixed, marked authority introductions to `docs/VISION.md`,
   `docs/architecture.md`, and `docs/ACs.md` without duplicating an introduction
   already present;
 - moves `docs/implementation_plan.md` unchanged to
-  `docs/archive/implementation_plan.md` and adds a fixed legacy-document notice;
+  `docs/archive/implementation_plan.md`;
 - rewrites the implementation-plan link in `README.md` to the archived path;
 - shows the managed-path Git diff and obtains operator confirmation before an
   isolated commit; and
@@ -136,9 +136,10 @@ infrastructure contract, mandatory independent audits, a fixed specification
 baseline selected as greenfield or brownfield, and bounded placeholders for
 project-specific principles. The brownfield structure separates current and
 historical requirement authority, design authority, regression evidence, and
-source precedence. A clean versioned build also records its exact SDLC source
-commit or release; modified or unversioned builds leave an explicit ratification
-TODO. The initializer commits only the generated scaffold, leaving unrelated
+source precedence. A build made at an exact SDLC release tag records that tag;
+other clean versioned builds record their source commit. Modified or unversioned
+builds leave an explicit ratification TODO. The initializer commits only the
+generated scaffold, leaving unrelated
 staged and working-tree changes untouched. The selected agent harness receives
 that template only after deterministic rendering and the isolated Git
 checkpoint. Before ratification, any proposed clause may be corrected, removed,
@@ -166,7 +167,7 @@ The deployed preset lives at
 `~/.agents/sdlc/presets/sdlc-standards`. It augments Spec Kit commands rather
 than replacing them:
 
-- `sdlc-project-init` supplies the complete constitution baseline;
+- `sdlc-project-init` supplies the editable constitution scaffold;
 - command preambles load the relevant canonical standards; and
 - Spec Kit's lower-priority core command remains responsible for its normal
   operation.
@@ -186,7 +187,8 @@ The composition is intentionally selective:
 
 Spec Kit copies preset material into project state and materializes composed
 commands for the active integration. The initializer invokes the chosen harness
-for the constitution operation only when the rendered baseline changes.
+for the constitution operation only when the rendered scaffold or project
+selection changes after any required brownfield documentation migration.
 
 The `--integration` selected during `specify init` controls the project-local
 agent adapter. It does not launch an agent and does not change the provider-

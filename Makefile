@@ -3,10 +3,15 @@
 INSTALLER ?= bin/sdlc-install
 PROJECT_INITIALIZER ?= bin/sdlc-project-init
 INSTALL_FLAGS ?=
+SDLC_RELEASE ?= $(shell git for-each-ref --count=1 --sort=-version:refname --format='%(refname:short)' --points-at=HEAD 'refs/tags/v*')
+PROJECT_INITIALIZER_BUILD_FLAGS :=
+ifneq ($(strip $(SDLC_RELEASE)),)
+PROJECT_INITIALIZER_BUILD_FLAGS += -ldflags "-X main.buildRelease=$(SDLC_RELEASE)"
+endif
 
 build:
 	go build -o $(INSTALLER) ./cmd/sdlc-install
-	go build -o $(PROJECT_INITIALIZER) ./cmd/sdlc-project-init
+	go build $(PROJECT_INITIALIZER_BUILD_FLAGS) -o $(PROJECT_INITIALIZER) ./cmd/sdlc-project-init
 
 test: lint
 	go test ./...

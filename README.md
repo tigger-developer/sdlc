@@ -103,12 +103,12 @@ The initializer separates deterministic selection from semantic drafting. It:
 - asks whether the adopting project is greenfield or brownfield;
 - discovers available standards from `~/.agents/sdlc/technologies/`;
 - asks once which technologies and infrastructure ownership apply;
-- renders the fixed constitution baseline at
+- renders the editable constitution scaffold at
   `.specify/templates/overrides/constitution-template.md`;
-- pins the exact clean SDLC source commit or release used to render that
-  baseline, and leaves an explicit ratification TODO for an unversioned or
-  modified build;
-- commits only the generated constitution baseline before invoking an agent,
+- pins the exact SDLC release tag used to build the initializer, or the source
+  commit for another clean versioned build, and leaves an explicit ratification
+  TODO for an unversioned or modified build;
+- commits only the generated constitution scaffold before invoking an agent,
   without including unrelated staged or working-tree changes;
 - reports only a changed template, with additional variance detail under
   `VERBOSE=1`; and
@@ -153,16 +153,26 @@ The external owner and contract are optional project inputs. The public SDLC
 does not assume any particular infrastructure project. Run
 `sdlc-project-init --help` for non-interactive overrides and `--no-launch`.
 
-When the rendered baseline and selections are already current, the initializer
+When the rendered scaffold, brownfield migration, and selections are already current, the initializer
 writes nothing, asks nothing, and does not relaunch an agent. If the current
-generated baseline is untracked or modified, it checkpoints that file without
+generated scaffold is untracked or modified, it checkpoints that file without
 relaunching the agent.
 
 For a greenfield repository, the initializer offers to run `specify init`, then
 creates the standards profile and unratified constitution. For a brownfield
 repository, it preserves the existing project, installs Spec Kit into the
-working tree, and generates a fixed `Specification Baseline` authority map for
-the constitution agent to populate without copying feature or design detail.
+working tree, mechanically marks the established documentation authorities,
+archives `docs/implementation_plan.md`, updates its README link, and shows the
+bounded Git diff before asking whether to commit the migration. It then
+generates a proposed `Specification Baseline` authority map for the constitution
+agent to populate without copying feature or design detail. Projects without
+that legacy document shape are left unchanged.
+
+The generated template has no authority before ratification. The candidate
+constitution may correct, remove, or replace any scaffold clause. Ratification
+makes `.specify/memory/constitution.md` the sole governance authority; impact
+reports are append-only history in
+`.specify/memory/constitution-changelog.md`, not embedded constitution content.
 Follow the complete procedures in [`QUICKSTART.md`](QUICKSTART.md).
 
 Thereafter:

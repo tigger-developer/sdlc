@@ -1,6 +1,7 @@
 package projectinit
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"io"
@@ -171,27 +172,33 @@ func TestRenderConstitutionUsesFixedSpecificationBaseline(t *testing.T) {
 		"Approved feature specifications establish requirements prospectively",
 	} {
 		if !strings.Contains(greenfield, expected) {
-			t.Errorf("greenfield baseline omitted %q:\n%s", expected, greenfield)
+			t.Errorf("greenfield scaffold omitted %q:\n%s", expected, greenfield)
 		}
 	}
 	if strings.Contains(greenfield, "### Historical Requirement Authority") {
-		t.Fatal("greenfield baseline contains brownfield authority placeholders")
+		t.Fatal("greenfield scaffold contains brownfield authority placeholders")
 	}
 
 	brownfield := string(renderConstitution("/standards", nil, resolvedConfig{ProjectType: "brownfield"}))
 	for _, expected := range []string{
+		"SDLC-GENERATED-SCAFFOLD: editable until ratification",
 		"**Project classification:** Brownfield",
 		"### Requirement Authority",
 		"DISTINGUISH LEGACY-PROCESS RECORDS FROM APPROVED SPEC KIT FEATURE SPECIFICATIONS",
 		"### Historical Requirement Authority",
 		"### Design Authority",
+		"EXCLUDE ARCHIVED IMPLEMENTATION PLANS",
 		"### Regression Evidence and Traceability",
 		"Tests and code provide evidence of implemented behaviour. They do not approve requirements.",
 		"### Precedence and Supersession",
+		"Before ratification, this scaffold has no authority",
 	} {
 		if !strings.Contains(brownfield, expected) {
-			t.Errorf("brownfield baseline omitted %q:\n%s", expected, brownfield)
+			t.Errorf("brownfield scaffold omitted %q:\n%s", expected, brownfield)
 		}
+	}
+	if strings.Contains(brownfield, "immutable") || strings.Contains(brownfield, "preserve the generated baseline") {
+		t.Fatalf("brownfield scaffold claimed pre-ratification authority:\n%s", brownfield)
 	}
 }
 
@@ -289,7 +296,158 @@ func TestRunPreservesBrownfieldProjectAndIsIdempotent(t *testing.T) {
 	}
 }
 
-func TestRunCommitsCurrentUntrackedBaselineWithoutLaunching(t *testing.T) {
+func TestEnsureAuthorityIntroductionReusesExistingStandardText(t *testing.T) {
+	project := t.TempDir()
+	document := brownfieldAuthorityDocuments[2]
+	target := filepath.Join(project, filepath.FromSlash(document.Path))
+	writeTestFile(t, target, "# Central Acceptance Criteria\n\n"+document.Intro+"\n")
+
+	changed, err := ensureAuthorityIntroduction(project, document)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !changed {
+		t.Fatal("existing standard introduction did not receive its stable marker")
+	}
+	first := string(mustReadFile(t, target))
+	if strings.Count(first, document.Marker) != 1 || strings.Count(first, document.Intro) != 1 {
+		t.Fatalf("authority introduction was duplicated:\n%s", first)
+	}
+
+	changed, err = ensureAuthorityIntroduction(project, document)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if changed || string(mustReadFile(t, target)) != first {
+		t.Fatal("marked authority introduction was not idempotent")
+	}
+}
+
+func TestMigrateBrownfieldDocumentsIsMechanicalReviewedAndIdempotent(t *testing.T) {
+	project := initializeLegacyBrownfieldProject(t)
+	writeTestFile(t, filepath.Join(project, "operator-notes.md"), "operator change\n")
+	runGitForTest(t, project, "add", "operator-notes.md")
+	planBefore := mustReadFile(t, filepath.Join(project, "docs", "implementation_plan.md"))
+
+	var output bytes.Buffer
+	options := defaultOptions(Options{
+		Input: strings.NewReader("yes\n"), Output: &output, ErrorOutput: &bytes.Buffer{},
+	})
+	proceed, err := migrateBrownfieldDocuments(project, bufio.NewReader(options.Input), options)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !proceed {
+		t.Fatal("accepted migration stopped initialization")
+	}
+	if _, err := os.Stat(filepath.Join(project, "docs", "implementation_plan.md")); !os.IsNotExist(err) {
+		t.Fatalf("legacy implementation plan remains at its active path: %v", err)
+	}
+	planAfter := mustReadFile(t, filepath.Join(project, "docs", "archive", "implementation_plan.md"))
+	if !bytes.Equal(planBefore, planAfter) {
+		t.Fatal("archived implementation plan content changed")
+	}
+	for _, document := range brownfieldAuthorityDocuments {
+		contents := string(mustReadFile(t, filepath.Join(project, filepath.FromSlash(document.Path))))
+		if strings.Count(contents, document.Marker) != 1 || strings.Count(contents, document.Intro) != 1 {
+			t.Errorf("authority block for %s is missing or duplicated:\n%s", document.Path, contents)
+		}
+	}
+	readme := string(mustReadFile(t, filepath.Join(project, "README.md")))
+	if strings.Contains(readme, "docs/implementation_plan.md") || !strings.Contains(readme, "docs/archive/implementation_plan.md") {
+		t.Fatalf("README implementation-plan link was not archived:\n%s", readme)
+	}
+	if !strings.Contains(output.String(), "Brownfield documentation migration variances:") || !strings.Contains(output.String(), "Committed brownfield documentation migration.") {
+		t.Fatalf("migration review output = %q", output.String())
+	}
+	staged := strings.TrimSpace(runGitForTest(t, project, "diff", "--cached", "--name-only"))
+	if staged != "operator-notes.md" {
+		t.Fatalf("unrelated staged change was disturbed: %q", staged)
+	}
+	committed := runGitForTest(t, project, "show", "--pretty=format:", "--name-only", "HEAD")
+	if strings.Contains(committed, "operator-notes.md") {
+		t.Fatalf("migration committed unrelated path:\n%s", committed)
+	}
+
+	var rerunOutput bytes.Buffer
+	rerunOptions := defaultOptions(Options{
+		Input: strings.NewReader(""), Output: &rerunOutput, ErrorOutput: &bytes.Buffer{},
+	})
+	proceed, err = migrateBrownfieldDocuments(project, bufio.NewReader(rerunOptions.Input), rerunOptions)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !proceed || rerunOutput.Len() != 0 {
+		t.Fatalf("current migration was not a silent no-op: proceed=%t output=%q", proceed, rerunOutput.String())
+	}
+
+	architecturePath := filepath.Join(project, "docs", "architecture.md")
+	architecture := mustReadFile(t, architecturePath)
+	writeTestFile(t, architecturePath, string(architecture)+"\nCurrent design clarification.\n")
+	rerunOutput.Reset()
+	proceed, err = migrateBrownfieldDocuments(project, bufio.NewReader(rerunOptions.Input), rerunOptions)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !proceed || rerunOutput.Len() != 0 {
+		t.Fatalf("current migration reacted to later documentation work: proceed=%t output=%q", proceed, rerunOutput.String())
+	}
+	if diff := runGitForTest(t, project, "diff", "--name-only", "--", "docs/architecture.md"); strings.TrimSpace(diff) != "docs/architecture.md" {
+		t.Fatalf("later documentation work was disturbed: %q", diff)
+	}
+}
+
+func TestMigrateBrownfieldDocumentsDeclineLeavesReviewedChanges(t *testing.T) {
+	project := initializeLegacyBrownfieldProject(t)
+	before := strings.TrimSpace(runGitForTest(t, project, "rev-parse", "HEAD"))
+	var output bytes.Buffer
+	options := defaultOptions(Options{
+		Input: strings.NewReader("no\n"), Output: &output, ErrorOutput: &bytes.Buffer{},
+	})
+	proceed, err := migrateBrownfieldDocuments(project, bufio.NewReader(options.Input), options)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if proceed {
+		t.Fatal("declined migration continued initialization")
+	}
+	after := strings.TrimSpace(runGitForTest(t, project, "rev-parse", "HEAD"))
+	if after != before {
+		t.Fatalf("declined migration created a commit: before=%s after=%s", before, after)
+	}
+	if !strings.Contains(output.String(), "remains staged and constitution generation has stopped") {
+		t.Fatalf("declined migration output = %q", output.String())
+	}
+
+	var acceptedOutput bytes.Buffer
+	acceptedOptions := defaultOptions(Options{
+		Input: strings.NewReader("yes\n"), Output: &acceptedOutput, ErrorOutput: &bytes.Buffer{},
+	})
+	proceed, err = migrateBrownfieldDocuments(project, bufio.NewReader(acceptedOptions.Input), acceptedOptions)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !proceed || strings.TrimSpace(runGitForTest(t, project, "rev-parse", "HEAD")) == before {
+		t.Fatal("reviewed migration could not be accepted on rerun")
+	}
+}
+
+func TestMigrateBrownfieldDocumentsIgnoresOtherBrownfieldLayouts(t *testing.T) {
+	project := t.TempDir()
+	var output bytes.Buffer
+	options := defaultOptions(Options{
+		Input: strings.NewReader(""), Output: &output, ErrorOutput: &bytes.Buffer{},
+	})
+	proceed, err := migrateBrownfieldDocuments(project, bufio.NewReader(options.Input), options)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !proceed || output.Len() != 0 {
+		t.Fatalf("unrecognized brownfield layout was not ignored: proceed=%t output=%q", proceed, output.String())
+	}
+}
+
+func TestRunCommitsCurrentUntrackedScaffoldWithoutLaunching(t *testing.T) {
 	project := t.TempDir()
 	root := t.TempDir()
 	writeTestFile(t, filepath.Join(project, ".specify", "marker"), "present\n")
@@ -339,12 +497,12 @@ func TestRunCommitsCurrentUntrackedBaselineWithoutLaunching(t *testing.T) {
 	if len(commands) != 3 || !strings.Contains(commands[0], "git status") || !strings.Contains(commands[1], "git add") || !strings.Contains(commands[2], "git commit --only --quiet") {
 		t.Fatalf("baseline checkpoint commands = %#v", commands)
 	}
-	if !strings.Contains(output.String(), "Committed constitution baseline: .specify/templates/overrides/constitution-template.md") {
+	if !strings.Contains(output.String(), "Committed constitution scaffold: .specify/templates/overrides/constitution-template.md") {
 		t.Fatalf("checkpoint output = %q", output.String())
 	}
 }
 
-func TestCommitConstitutionBaselineCommitsOnlyGeneratedOverride(t *testing.T) {
+func TestCommitConstitutionScaffoldCommitsOnlyGeneratedOverride(t *testing.T) {
 	project := t.TempDir()
 	runGitForTest(t, project, "init", "--quiet")
 	runGitForTest(t, project, "config", "user.name", "SDLC test")
@@ -354,12 +512,12 @@ func TestCommitConstitutionBaselineCommitsOnlyGeneratedOverride(t *testing.T) {
 	runGitForTest(t, project, "commit", "--quiet", "--message", "Initial commit")
 
 	target := filepath.Join(project, ".specify", "templates", "overrides", "constitution-template.md")
-	writeTestFile(t, target, "# Constitution baseline\n")
+	writeTestFile(t, target, "# Constitution scaffold\n")
 	writeTestFile(t, filepath.Join(project, "notes.md"), "operator change\n")
 	runGitForTest(t, project, "add", "notes.md")
 
 	options := defaultOptions(Options{Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{}})
-	if err := commitConstitutionBaseline(project, target, options); err != nil {
+	if err := commitConstitutionScaffold(project, target, options); err != nil {
 		t.Fatal(err)
 	}
 	committed := runGitForTest(t, project, "show", "--pretty=format:", "--name-only", "HEAD")
@@ -457,7 +615,8 @@ func TestLaunchConstitutionRequiresProjectWideFiltering(t *testing.T) {
 	}
 	prompt := arguments[2]
 	for _, required := range []string{
-		"`" + templatePath + "` as an immutable baseline",
+		"`" + templatePath + "` as editable scaffolding",
+		"It has no authority before ratification",
 		"This is a filtering exercise, not a summary",
 		"It applies across unrelated future features",
 		"Changing it would require a constitutional decision",
@@ -466,7 +625,8 @@ func TestLaunchConstitutionRequiresProjectWideFiltering(t *testing.T) {
 		"migration algorithms, schema procedures, commands, test gates",
 		"The constitution may elevate a concise project-wide invariant",
 		"Importance alone does not make something constitutional",
-		"Preserve the generated `Specification Baseline` structure and project classification",
+		"Use the generated `Specification Baseline` as a proposed structure",
+		"Archived implementation plans are historical provenance, not design authority",
 		"an authority map, not a summary of the system",
 		"current approved requirements",
 		"approved historical requirements that are not centralized",
@@ -494,9 +654,10 @@ func TestLaunchConstitutionRequiresProjectWideFiltering(t *testing.T) {
 		"review the entire assembled constitution",
 		"runtime configuration, a feature requirement, detailed design",
 		"durable across unrelated features and require a constitutional amendment",
-		"generated immutable clause fails this review",
-		"Record the defective clause as a ratification blocker",
-		"Produce only `.specify/memory/constitution.md`",
+		"Remove or correct any scaffold clause that fails this review",
+		"the initialization template, is the candidate presented to the human for ratification",
+		"append the core workflow's Sync Impact Report to `.specify/memory/constitution-changelog.md`",
+		"Do not embed the report in the constitution",
 	} {
 		if !strings.Contains(prompt, required) {
 			t.Errorf("constitution launch prompt omitted %q:\n%s", required, prompt)
@@ -621,4 +782,25 @@ func runGitForTest(t *testing.T, directory string, arguments ...string) string {
 		t.Fatalf("git %v: %v\n%s", arguments, err, output)
 	}
 	return string(output)
+}
+
+func initializeLegacyBrownfieldProject(t *testing.T) string {
+	t.Helper()
+	project := t.TempDir()
+	runGitForTest(t, project, "init", "--quiet")
+	runGitForTest(t, project, "config", "user.name", "SDLC test")
+	runGitForTest(t, project, "config", "user.email", "sdlc-test@example.invalid")
+	writeTestFile(t, filepath.Join(project, "README.md"), strings.Join([]string{
+		"# Existing project",
+		"",
+		"[Implementation plan](docs/implementation_plan.md)",
+		"",
+	}, "\n"))
+	writeTestFile(t, filepath.Join(project, "docs", "VISION.md"), "# Vision\n")
+	writeTestFile(t, filepath.Join(project, "docs", "architecture.md"), "# Architecture\n")
+	writeTestFile(t, filepath.Join(project, "docs", "ACs.md"), "# Central Acceptance Criteria\n\n"+brownfieldAuthorityDocuments[2].Intro+"\n")
+	writeTestFile(t, filepath.Join(project, "docs", "implementation_plan.md"), "# Implementation Plan\n\nHistorical plan.\n")
+	runGitForTest(t, project, "add", "README.md", "docs")
+	runGitForTest(t, project, "commit", "--quiet", "--message", "Initial project documentation")
+	return project
 }

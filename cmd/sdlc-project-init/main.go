@@ -11,6 +11,8 @@ import (
 	"github.com/tigger-developer/sdlc/internal/projectinit"
 )
 
+var buildRelease string
+
 func main() {
 	if err := run(os.Args[1:]); err != nil {
 		fmt.Fprintf(os.Stderr, "sdlc-project-init: %v\n", err)
@@ -35,7 +37,7 @@ func run(arguments []string) error {
 	infra := flags.String("infra", "", "external infrastructure ownership: yes or no")
 	infraOwner := flags.String("infra-owner", "", "external infrastructure owner descriptor")
 	infraContract := flags.String("infra-contract", "", "external infrastructure integration-contract path")
-	noLaunch := flags.Bool("no-launch", false, "render the baseline without invoking an agent harness")
+	noLaunch := flags.Bool("no-launch", false, "render the scaffold without invoking an agent harness")
 	if err := flags.Parse(arguments); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
 			return nil
@@ -69,10 +71,14 @@ func sourceRevision() string {
 	if !ok {
 		return ""
 	}
-	return sourceRevisionFromBuildInfo(buildInfo)
+	return sourceRevisionForBuildInfo(buildInfo, buildRelease)
 }
 
 func sourceRevisionFromBuildInfo(buildInfo *debug.BuildInfo) string {
+	return sourceRevisionForBuildInfo(buildInfo, "")
+}
+
+func sourceRevisionForBuildInfo(buildInfo *debug.BuildInfo, release string) string {
 	var revision string
 	modified := false
 	for _, setting := range buildInfo.Settings {
@@ -85,6 +91,9 @@ func sourceRevisionFromBuildInfo(buildInfo *debug.BuildInfo) string {
 	}
 	if modified {
 		return ""
+	}
+	if release != "" {
+		return release
 	}
 	if revision != "" {
 		return revision

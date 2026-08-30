@@ -1,15 +1,25 @@
 # Changelog
 
-## Unreleased
+## v2.0.1 - 2026-08-30
 
 Constitution templates no longer embed the configured audit provider or model;
-runtime selection remains in project configuration. Constitution generation
-now performs a final fitness review over the assembled document, removes
-non-constitutional agent-authored material, and records any defective immutable
-baseline clause as a ratification blocker. Brownfield templates now require an
-explicit authority boundary between legacy-process requirement records and
-approved Spec Kit feature specifications, including explicit supersession and
-lineage preservation.
+runtime selection remains in project configuration. The generated template is
+now explicitly editable pre-ratification scaffolding rather than an immutable
+authority. Constitution generation performs a final fitness review over the
+assembled document and removes unsuitable scaffold or agent-authored material.
+Ratified constitutions are amended directly without reapplying the initialization
+template. Sync Impact Reports are append-only history in
+`.specify/memory/constitution-changelog.md`, not embedded constitution content.
+
+Brownfield templates now require an explicit authority boundary between
+legacy-process requirement records and approved Spec Kit feature
+specifications, including explicit supersession and lineage preservation. Before
+constitution generation, `sdlc-project-init` recognizes the established SDLC v1
+documentation shape, mechanically adds fixed authority introductions, moves
+`docs/implementation_plan.md` unchanged under `docs/archive/`, updates its
+README link, displays only the managed Git diff, and obtains operator approval
+before an isolated commit. Declined migrations remain staged for review; current
+or unrelated brownfield layouts are silent no-ops.
 
 Added the explicit-only `migrate-legacy-acs-to-sdlc-v1` skill for brownfield
 projects. It caches complete GitHub issue bodies, comments, and implementation
@@ -38,7 +48,7 @@ authority.
 The project initializer now commits the generated
 `.specify/templates/overrides/constitution-template.md` in an isolated Git
 checkpoint before launching the constitution agent. An already-current but
-untracked or modified baseline is checkpointed without relaunching the agent,
+untracked or modified scaffold is checkpointed without relaunching the agent,
 and unrelated staged or working-tree changes are excluded.
 
 Moved initializer user defaults to the deterministic, user-owned
@@ -68,9 +78,10 @@ then invokes Codex, Claude, or Hermes for project-specific constitution text.
 Project configuration includes separate delivery and audit provider/model
 values.
 
-The generated constitution baseline now records the exact SDLC source commit or
-release embedded in a clean initializer build. Modified or unversioned builds
-leave an explicit ratification TODO rather than inventing traceability. Initial
+The generated constitution scaffold now records an exact SDLC release tag when
+the initializer is built at that tag, or the source commit for another clean
+versioned build. Modified or unversioned builds leave an explicit ratification
+TODO rather than inventing traceability. Initial
 drafts use `Last Revised` rather than amendment terminology.
 
 `make install` now also installs both SDLC CLI helpers previously available only
