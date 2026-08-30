@@ -110,19 +110,46 @@ Kit override is resolved before preset composition, so constitution generation
 does not require a preset manifest parser. Adding a technology document makes
 it available without changing the initializer.
 
-The generated template contains the fixed constitutional base, universal
-standard references, selected technology references, an optional external
+Before rendering a brownfield constitution, the initializer mechanically
+migrates the established project documentation shape. It:
+
+- adds fixed, marked authority introductions to `README.md`, `docs/VISION.md`,
+  `docs/architecture.md`, and `docs/ACs.md` without duplicating an introduction
+  already present;
+- moves `docs/implementation_plan.md` unchanged to
+  `docs/archive/implementation_plan.md` and adds a fixed legacy-document notice;
+- rewrites the implementation-plan link in `README.md` to the archived path;
+- shows the managed-path Git diff and obtains operator confirmation before an
+  isolated commit; and
+- performs no write, prompt, agent launch, or commit when the migration is
+  already current.
+
+The migration never invokes an agent. Missing expected source documents,
+unexpected overlapping changes, or content that cannot be transformed by the
+fixed rules are reported rather than guessed. Declining the commit leaves the
+reviewed working-tree changes in place and stops constitution generation.
+
+The generated template is editable pre-ratification scaffolding. It contains
+the fixed standards proposal, universal standard references, selected
+technology references, an optional external
 infrastructure contract, mandatory independent audits, a fixed specification
 baseline selected as greenfield or brownfield, and bounded placeholders for
 project-specific principles. The brownfield structure separates current and
 historical requirement authority, design authority, regression evidence, and
 source precedence. A clean versioned build also records its exact SDLC source
 commit or release; modified or unversioned builds leave an explicit ratification
-TODO. The initializer commits only the generated baseline, leaving unrelated
+TODO. The initializer commits only the generated scaffold, leaving unrelated
 staged and working-tree changes untouched. The selected agent harness receives
 that template only after deterministic rendering and the isolated Git
-checkpoint, and may add project evidence but must not remove or weaken the
-generated clauses.
+checkpoint. Before ratification, any proposed clause may be corrected, removed,
+or replaced. Ratification makes `.specify/memory/constitution.md` the sole
+governance authority; later amendments use that document directly rather than
+reapplying the initialization template.
+
+Ratification and amendment impact reports are append-only history in
+`.specify/memory/constitution-changelog.md`. They are not embedded normative
+constitution content. The project constitution template is an initialization
+artefact and may be removed after first ratification; Git retains its provenance.
 
 User defaults live in the user-owned `~/.agents/.env`, outside the synchronized
 standards tree. Project `.env` values override those defaults; CLI values
