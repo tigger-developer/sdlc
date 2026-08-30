@@ -18,11 +18,14 @@ reapply, or restore the initialization template.
 
 Do not copy feature requirements or detailed architecture into the
 constitution, select an additional standard without recording it, or resolve an
-unsupported fact by guessing. Leave unresolved matters explicit. Write the
-constitution only to `.specify/memory/constitution.md`.
+unsupported fact by guessing. Leave unresolved matters explicit.
 
-Write the core workflow's Sync Impact Report to the append-only
-`.specify/memory/constitution-changelog.md`, not inside the constitution. The
-report is change history, not constitutional authority. These are the only two
-files this operation may modify. Spec Kit owns orchestration; the SDLC supplies
-engineering standards and independent audit requirements.
+Keep the core workflow's Sync Impact Report as the first line of
+`.specify/memory/constitution.md` in this exact compact form:
+
+`<!-- SYNC IMPACT: [OLD_VERSION] -> [CONSTITUTION_VERSION] | Principles: [CHANGES OR NONE] | Added: [SECTIONS OR NONE] | Removed: [SECTIONS OR NONE] | TODOs: [ITEMS OR NONE] -->`
+
+Replace the report line when the constitution changes. Do not accumulate reports
+or create a separate changelog. Write only `.specify/memory/constitution.md`.
+Spec Kit owns orchestration; the SDLC supplies engineering standards and
+independent audit requirements.

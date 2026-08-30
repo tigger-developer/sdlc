@@ -173,10 +173,11 @@ or replaced. Ratification makes `.specify/memory/constitution.md` the sole
 governance authority; later amendments use that document directly rather than
 reapplying the initialization template.
 
-Ratification and amendment impact reports are append-only history in
-`.specify/memory/constitution-changelog.md`. They are not embedded normative
-constitution content. The project constitution template is an initialization
-artefact and may be removed after first ratification; Git retains its provenance.
+The current Sync Impact Report is one compact HTML-comment line at the top of
+the constitution. Ratification and amendments replace that line rather than
+accumulating report history in a separate file. The project constitution
+template is an initialization artefact and may be removed after first
+ratification; Git retains its provenance.
 
 User defaults live in the user-owned `~/.agents/.env`, outside the synchronized
 standards tree. Project `.env` values override those defaults; CLI values

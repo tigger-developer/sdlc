@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+Constitution scaffolds now include Spec Kit's Sync Impact Report as one compact
+HTML-comment line at the top of the constitution. Ratification and amendments
+replace that line instead of accumulating a separate constitution changelog.
+
 Project-initializer prose now lives in deployed files under `src/prompts/` and
 `src/templates/` rather than embedded Go strings. This includes the
 constitution scaffold, constitution-generation prompt, and brownfield

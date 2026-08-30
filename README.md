@@ -180,9 +180,9 @@ byte. A marker outside the managed prefix is reported as an error.
 
 The generated template has no authority before ratification. The candidate
 constitution may correct, remove, or replace any scaffold clause. Ratification
-makes `.specify/memory/constitution.md` the sole governance authority; impact
-reports are append-only history in
-`.specify/memory/constitution-changelog.md`, not embedded constitution content.
+makes `.specify/memory/constitution.md` the sole governance authority. Its first
+line is the current compact Sync Impact Report; amendments replace that line
+rather than accumulating a separate changelog.
 Follow the complete procedures in [`QUICKSTART.md`](QUICKSTART.md).
 
 Thereafter:

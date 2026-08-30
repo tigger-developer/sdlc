@@ -181,6 +181,7 @@ func TestRenderConstitutionUsesFixedSpecificationBaseline(t *testing.T) {
 
 	brownfield := string(renderConstitutionForTest(t, "/standards", nil, resolvedConfig{ProjectType: "brownfield"}))
 	for _, expected := range []string{
+		"<!-- SYNC IMPACT: [OLD_VERSION] -> [CONSTITUTION_VERSION] | Principles: [CHANGES OR NONE] | Added: [SECTIONS OR NONE] | Removed: [SECTIONS OR NONE] | TODOs: [ITEMS OR NONE] -->",
 		"SDLC-GENERATED-SCAFFOLD: editable until ratification",
 		"**Project classification:** Brownfield",
 		"### Requirement Authority",
@@ -741,8 +742,8 @@ func TestLaunchConstitutionRequiresProjectWideFiltering(t *testing.T) {
 		"durable across unrelated features and require a constitutional amendment",
 		"Remove or correct any scaffold clause that fails this review",
 		"the initialization template, is the candidate presented to the human for ratification",
-		"append the core workflow's Sync Impact Report to `.specify/memory/constitution-changelog.md`",
-		"Do not embed the report in the constitution",
+		"Keep the core workflow's Sync Impact Report as the first line",
+		"do not accumulate reports or create a separate changelog",
 	} {
 		if !strings.Contains(prompt, required) {
 			t.Errorf("constitution launch prompt omitted %q:\n%s", required, prompt)

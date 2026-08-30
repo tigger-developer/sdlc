@@ -25,9 +25,10 @@ The generated scaffold has no authority before ratification. The agent
 populates the brownfield authority map when applicable and adds only durable
 project-specific principles, ownership boundaries, and explicit deviations.
 Ratification makes the constitution authoritative; later amendments use it
-directly rather than reapplying the scaffold. Impact reports are appended to
-`.specify/memory/constitution-changelog.md`. A current rerun writes nothing,
-asks nothing, and does not invoke an agent.
+directly rather than reapplying the scaffold. The current Sync Impact Report is
+one compact HTML-comment line at the top of the constitution and is replaced on
+amendment. A current rerun writes nothing, asks nothing, and does not invoke an
+agent.
 
 The command fragments reference the canonical installed root
 `~/.agents/sdlc`. No command may search for an alternative SDLC root.
