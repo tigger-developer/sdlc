@@ -182,6 +182,7 @@ func TestRenderConstitutionUsesFixedSpecificationBaseline(t *testing.T) {
 	for _, expected := range []string{
 		"**Project classification:** Brownfield",
 		"### Requirement Authority",
+		"DISTINGUISH LEGACY-PROCESS RECORDS FROM APPROVED SPEC KIT FEATURE SPECIFICATIONS",
 		"### Historical Requirement Authority",
 		"### Design Authority",
 		"### Regression Evidence and Traceability",
@@ -475,6 +476,10 @@ func TestLaunchConstitutionRequiresProjectWideFiltering(t *testing.T) {
 		"consumed by later specification and audit commands",
 		"Do not invent sources or placeholder paths",
 		"retain the generated prospective-baseline statement",
+		"requirements established under a legacy process",
+		"The legacy record governs only requirements established through that process",
+		"Approved Spec Kit feature specifications govern requirements established or changed through Spec Kit",
+		"may supersede a legacy requirement only explicitly and must preserve its lineage",
 		"Add up to four concise project-specific principles",
 		"Zero is valid only when no evidenced project-wide invariant",
 		"not, by itself, a reason to omit it",

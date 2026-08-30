@@ -6,7 +6,10 @@ Constitution templates no longer embed the configured audit provider or model;
 runtime selection remains in project configuration. Constitution generation
 now performs a final fitness review over the assembled document, removes
 non-constitutional agent-authored material, and records any defective immutable
-baseline clause as a ratification blocker.
+baseline clause as a ratification blocker. Brownfield templates now require an
+explicit authority boundary between legacy-process requirement records and
+approved Spec Kit feature specifications, including explicit supersession and
+lineage preservation.
 
 Added the explicit-only `migrate-legacy-acs-to-sdlc-v1` skill for brownfield
 projects. It caches complete GitHub issue bodies, comments, and implementation

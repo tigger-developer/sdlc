@@ -555,7 +555,7 @@ func renderSpecificationBaseline(output *strings.Builder, projectType string) {
 	case "brownfield":
 		output.WriteString("**Project classification:** Brownfield\n\n")
 		output.WriteString("### Requirement Authority\n\n")
-		output.WriteString("[LIST EXACT REPOSITORY-RELATIVE PATHS OR DURABLE EXTERNAL LOCATIONS FOR CURRENT APPROVED REQUIREMENTS.]\n\n")
+		output.WriteString("[LIST EXACT REPOSITORY-RELATIVE PATHS OR DURABLE EXTERNAL LOCATIONS FOR APPROVED REQUIREMENT AUTHORITIES. DISTINGUISH LEGACY-PROCESS RECORDS FROM APPROVED SPEC KIT FEATURE SPECIFICATIONS AND STATE THE SCOPE OF EACH.]\n\n")
 		output.WriteString("### Historical Requirement Authority\n\n")
 		output.WriteString("[LIST APPROVED HISTORICAL REQUIREMENT SOURCES NOT CENTRALIZED ABOVE, OR STATE NONE.]\n\n")
 		output.WriteString("### Design Authority\n\n")
@@ -820,6 +820,8 @@ func constitutionPrompt(templatePath string) string {
 		"Preserve the generated `Specification Baseline` structure and project classification. For a brownfield project, populate every authority field with concise, exact repository-relative paths or durable external locations verified from the project. Record current approved requirements, approved historical requirements that are not centralized, approved architecture and design, regression evidence and traceability, and the project's precedence and supersession rule. This is an authority map, not a summary of the system. Do not copy the contents of the named sources into the constitution.",
 		"",
 		"Distinguish requirement authority from design authority and implementation evidence: tests and code record evidence and implemented state but do not approve requirements. The `Specification Baseline` will be consumed by later specification and audit commands to define bounded behavioural deltas against the implemented baseline. Do not invent sources or placeholder paths. For a greenfield project, retain the generated prospective-baseline statement and do not add brownfield authorities.",
+		"",
+		"When a brownfield project has requirements established under a legacy process and will use Spec Kit for future work, state the authority boundary explicitly. The legacy record governs only requirements established through that process. Approved Spec Kit feature specifications govern requirements established or changed through Spec Kit. A later approved Spec Kit specification may supersede a legacy requirement only explicitly and must preserve its lineage.",
 		"",
 		"Add up to four concise project-specific principles. Zero is valid only when no evidenced project-wide invariant would require a constitutional amendment to change. The existence of an invariant in another authoritative document is not, by itself, a reason to omit it. Use one concise authority and ownership hierarchy. Record only explicit standards deviations and genuine ratification blockers. Do not repeat or expand the generated baseline.",
 		"",

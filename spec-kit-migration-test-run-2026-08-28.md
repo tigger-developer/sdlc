@@ -812,6 +812,14 @@ transient state, and duplicated authority text are removed. A generated
 immutable clause that fails the same test is preserved but recorded as a
 ratification blocker so a generator defect cannot pass silently.
 
+The Writeback authority review also showed that a generic "current approved
+requirements" placeholder could give a centralized legacy AC record indefinite
+authority over requirements created later through Spec Kit. The brownfield
+template and prompt must distinguish the processes instead: a legacy record
+governs requirements established through that process, while approved Spec Kit
+feature specifications govern requirements established or changed through Spec
+Kit. Supersession must be explicit and preserve legacy lineage.
+
 - Review the corrected constitution and its source mapping.
 - Obtain explicit operator ratification and record its date.
 - Trial migration of a still-live old-SDLC ticket into Spec Kit without
