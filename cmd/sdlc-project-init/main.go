@@ -30,6 +30,7 @@ func run(arguments []string) error {
 	buildModel := flags.String("build-model", "", "implementation model")
 	auditProvider := flags.String("audit-provider", "", "independent audit model provider")
 	auditModel := flags.String("audit-model", "", "independent audit model")
+	projectType := flags.String("project-type", "", "project classification: greenfield or brownfield")
 	technologies := flags.String("technologies", "", "comma-separated technology standards")
 	infra := flags.String("infra", "", "external infrastructure ownership: yes or no")
 	infraOwner := flags.String("infra-owner", "", "external infrastructure owner descriptor")
@@ -56,7 +57,7 @@ func run(arguments []string) error {
 		ProjectRoot: *project, SDLCRoot: *sdlcRoot, UserConfigPath: *userConfig,
 		Harness: *harness, SpecProvider: *specProvider, SpecModel: *specModel,
 		BuildProvider: *buildProvider, BuildModel: *buildModel,
-		AuditProvider: *auditProvider, AuditModel: *auditModel, Technologies: splitList(*technologies),
+		AuditProvider: *auditProvider, AuditModel: *auditModel, ProjectType: *projectType, Technologies: splitList(*technologies),
 		InfraEnabled: infraEnabled, InfraOwner: *infraOwner, InfraContract: *infraContract,
 		SDLCRevision: sourceRevision(),
 		NoLaunch:     *noLaunch, Input: os.Stdin, Output: os.Stdout, ErrorOutput: os.Stderr,

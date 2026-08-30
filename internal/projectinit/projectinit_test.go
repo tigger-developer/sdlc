@@ -41,11 +41,15 @@ func TestDiscoverTechnologiesIsAlphabeticalAndAutomatic(t *testing.T) {
 }
 
 func TestResolveConfigUsesCLIProjectUserPrecedence(t *testing.T) {
-	user := map[string]string{keyAgentHarness: "hermes", keySpecModel: "user-spec", keyAuditModel: "user-audit"}
-	project := map[string]string{keyAgentHarness: "claude", keySpecModel: "project-spec", keyAuditModel: "project-audit"}
-	got := resolveConfig(Options{Harness: "codex", SpecModel: "cli-spec"}, user, project)
-	if got.Harness != "codex" || got.SpecModel != "cli-spec" || got.AuditModel != "project-audit" {
+	user := map[string]string{keyAgentHarness: "hermes", keySpecModel: "user-spec", keyAuditModel: "user-audit", keyProjectType: "brownfield"}
+	project := map[string]string{keyAgentHarness: "claude", keySpecModel: "project-spec", keyAuditModel: "project-audit", keyProjectType: "greenfield"}
+	got := resolveConfig(Options{Harness: "codex", SpecModel: "cli-spec", ProjectType: "brownfield"}, user, project)
+	if got.Harness != "codex" || got.SpecModel != "cli-spec" || got.AuditModel != "project-audit" || got.ProjectType != "brownfield" {
 		t.Fatalf("resolved config = %#v", got)
+	}
+	withoutProjectValue := resolveConfig(Options{}, user, map[string]string{})
+	if withoutProjectValue.ProjectType != "" {
+		t.Fatalf("user project type became a global default: %#v", withoutProjectValue)
 	}
 }
 
@@ -67,6 +71,17 @@ func TestProviderAndModelMustBeConfiguredTogether(t *testing.T) {
 		AuditProvider: "reviewer", AuditModel: "fast-model",
 	}); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestProjectTypeMustBeGreenfieldOrBrownfield(t *testing.T) {
+	for _, accepted := range []string{"greenfield", "BROWNFIELD"} {
+		if err := validateProjectType(accepted); err != nil {
+			t.Errorf("validateProjectType(%q): %v", accepted, err)
+		}
+	}
+	if err := validateProjectType("existing"); err == nil {
+		t.Fatal("unsupported project type was accepted")
 	}
 }
 
@@ -142,6 +157,38 @@ func TestRenderConstitutionNamesAuditProviderWithModel(t *testing.T) {
 	}
 }
 
+func TestRenderConstitutionUsesFixedSpecificationBaseline(t *testing.T) {
+	greenfield := string(renderConstitution("/standards", nil, resolvedConfig{ProjectType: "greenfield"}))
+	for _, expected := range []string{
+		"## Specification Baseline",
+		"**Project classification:** Greenfield",
+		"No pre-existing requirement baseline existed at ratification",
+		"Approved feature specifications establish requirements prospectively",
+	} {
+		if !strings.Contains(greenfield, expected) {
+			t.Errorf("greenfield baseline omitted %q:\n%s", expected, greenfield)
+		}
+	}
+	if strings.Contains(greenfield, "### Historical Requirement Authority") {
+		t.Fatal("greenfield baseline contains brownfield authority placeholders")
+	}
+
+	brownfield := string(renderConstitution("/standards", nil, resolvedConfig{ProjectType: "brownfield"}))
+	for _, expected := range []string{
+		"**Project classification:** Brownfield",
+		"### Requirement Authority",
+		"### Historical Requirement Authority",
+		"### Design Authority",
+		"### Regression Evidence and Traceability",
+		"Tests and code provide evidence of implemented behaviour. They do not approve requirements.",
+		"### Precedence and Supersession",
+	} {
+		if !strings.Contains(brownfield, expected) {
+			t.Errorf("brownfield baseline omitted %q:\n%s", expected, brownfield)
+		}
+	}
+}
+
 func TestRunInitializesGreenfieldSpecKitProject(t *testing.T) {
 	project := t.TempDir()
 	root := t.TempDir()
@@ -167,7 +214,7 @@ func TestRunInitializesGreenfieldSpecKitProject(t *testing.T) {
 	}
 	options := Options{
 		ProjectRoot: project, SDLCRoot: root, UserConfigPath: filepath.Join(t.TempDir(), ".env"), NoLaunch: true,
-		Harness: "codex", Technologies: []string{"GO"}, InfraEnabled: &disabled, SDLCRevision: "0123456789abcdef",
+		Harness: "codex", ProjectType: "greenfield", Technologies: []string{"GO"}, InfraEnabled: &disabled, SDLCRevision: "0123456789abcdef",
 		Input: strings.NewReader("yes\n"), Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{}, RunCommand: runner,
 	}
 	if err := Run(options); err != nil {
@@ -184,6 +231,9 @@ func TestRunInitializesGreenfieldSpecKitProject(t *testing.T) {
 	if !strings.Contains(string(constitution), "The adopted SDLC revision is `0123456789abcdef`.") {
 		t.Fatalf("greenfield constitution omitted source revision:\n%s", constitution)
 	}
+	if !strings.Contains(string(constitution), "**Project classification:** Greenfield") {
+		t.Fatalf("greenfield constitution omitted project classification:\n%s", constitution)
+	}
 }
 
 func TestRunPreservesBrownfieldProjectAndIsIdempotent(t *testing.T) {
@@ -198,7 +248,7 @@ func TestRunPreservesBrownfieldProjectAndIsIdempotent(t *testing.T) {
 
 	options := Options{
 		ProjectRoot: project, SDLCRoot: root, UserConfigPath: filepath.Join(t.TempDir(), ".env"), NoLaunch: true,
-		Harness: "codex", Technologies: []string{"GO"}, InfraEnabled: &disabled,
+		Harness: "codex", ProjectType: "brownfield", Technologies: []string{"GO"}, InfraEnabled: &disabled,
 		Input: strings.NewReader(""), Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{}, RunCommand: cleanGitRunner,
 	}
 	if err := Run(options); err != nil {
@@ -241,7 +291,7 @@ func TestRunCommitsCurrentUntrackedBaselineWithoutLaunching(t *testing.T) {
 	writeTestFile(t, filepath.Join(root, "technologies", "GO.md"), "# Go\n")
 	writeTestFile(t, filepath.Join(root, "presets", "sdlc-standards", "preset.yml"), "present\n")
 	disabled := false
-	config := resolvedConfig{Harness: "codex", Technologies: []string{"GO"}, InfraEnabled: &disabled}
+	config := resolvedConfig{Harness: "codex", ProjectType: "brownfield", Technologies: []string{"GO"}, InfraEnabled: &disabled}
 	writeTestFile(t, filepath.Join(project, ".env"), strings.Join([]string{
 		`SDLC_AGENT_HARNESS="codex"`,
 		`SDLC_SPEC_PROVIDER=""`,
@@ -250,6 +300,7 @@ func TestRunCommitsCurrentUntrackedBaselineWithoutLaunching(t *testing.T) {
 		`SDLC_BUILD_MODEL=""`,
 		`SDLC_AUDIT_PROVIDER=""`,
 		`SDLC_AUDIT_MODEL=""`,
+		`SDLC_PROJECT_TYPE="brownfield"`,
 		`SDLC_TECHNOLOGIES="GO"`,
 		`SDLC_INFRA_ENABLED="false"`,
 		`SDLC_INFRA_OWNER=""`,
@@ -331,6 +382,7 @@ func TestRunSnapshotsEveryResolvedGlobalDefaultIntoProject(t *testing.T) {
 		`SDLC_BUILD_MODEL="gpt-5.6-terra"`,
 		`SDLC_AUDIT_PROVIDER="openai-codex"`,
 		`SDLC_AUDIT_MODEL="gpt-5.6-luna"`,
+		`SDLC_PROJECT_TYPE="brownfield"`,
 		`SDLC_TECHNOLOGIES="GO"`,
 		`SDLC_INFRA_ENABLED="true"`,
 		`SDLC_INFRA_OWNER="Exodan"`,
@@ -338,11 +390,15 @@ func TestRunSnapshotsEveryResolvedGlobalDefaultIntoProject(t *testing.T) {
 		"",
 	}, "\n"))
 
+	var initialOutput bytes.Buffer
 	if err := Run(Options{
 		ProjectRoot: project, SDLCRoot: root, UserConfigPath: userConfig, NoLaunch: true,
-		Input: strings.NewReader(""), Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{}, RunCommand: cleanGitRunner,
+		Input: strings.NewReader("greenfield\n"), Output: &initialOutput, ErrorOutput: &bytes.Buffer{}, RunCommand: cleanGitRunner,
 	}); err != nil {
 		t.Fatal(err)
+	}
+	if !strings.Contains(initialOutput.String(), "Project type (greenfield or brownfield):") {
+		t.Fatalf("user-level project type suppressed the project prompt: %q", initialOutput.String())
 	}
 	got, err := readManagedEnv(filepath.Join(project, ".env"))
 	if err != nil {
@@ -352,6 +408,7 @@ func TestRunSnapshotsEveryResolvedGlobalDefaultIntoProject(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	want[keyProjectType] = "greenfield"
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("project snapshot = %#v, want global defaults %#v", got, want)
 	}
@@ -403,15 +460,16 @@ func TestLaunchConstitutionRequiresProjectWideFiltering(t *testing.T) {
 		"migration algorithms, schema procedures, commands, test gates",
 		"The constitution may elevate a concise project-wide invariant",
 		"Importance alone does not make something constitutional",
-		"add a concise `Brownfield Specification Baseline` section",
+		"Preserve the generated `Specification Baseline` structure and project classification",
 		"an authority map, not a summary of the system",
 		"current approved requirements",
-		"historical approved requirements that are not centralized",
-		"regression evidence or traceability",
-		"Define the project's precedence and supersession rules",
+		"approved historical requirements that are not centralized",
+		"regression evidence and traceability",
+		"the project's precedence and supersession rule",
 		"tests and code record evidence and implemented state but do not approve requirements",
 		"consumed by later specification and audit commands",
-		"do not invent sources or placeholder paths",
+		"Do not invent sources or placeholder paths",
+		"retain the generated prospective-baseline statement",
 		"Add up to four concise project-specific principles",
 		"Zero is valid only when no evidenced project-wide invariant",
 		"not, by itself, a reason to omit it",

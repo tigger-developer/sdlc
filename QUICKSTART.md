@@ -53,12 +53,13 @@ When `.specify/` is absent, the initializer:
 1. asks whether it may run `specify init`;
 2. asks for the agent integration when no default is configured;
 3. installs the `sdlc-standards` preset;
-4. discovers the available technology standards and asks which apply;
-5. asks whether another project owns deployment or runtime infrastructure;
-6. records the project selections in an ignored `.env`;
-7. renders `.specify/templates/overrides/constitution-template.md`; and
-8. commits only that generated baseline; and
-9. launches the selected agent to create an unratified project constitution.
+4. asks whether the project is greenfield or brownfield;
+5. discovers the available technology standards and asks which apply;
+6. asks whether another project owns deployment or runtime infrastructure;
+7. records the project selections in an ignored `.env`;
+8. renders `.specify/templates/overrides/constitution-template.md`;
+9. commits only that generated baseline; and
+10. launches the selected agent to create an unratified project constitution.
 
 The generated baseline records the exact SDLC commit or release when the
 initializer was built from clean versioned source. A modified or unversioned
@@ -105,9 +106,9 @@ documentation as evidence.
 
 For brownfield projects:
 
-- the constitution records a concise `Brownfield Specification Baseline` naming
-  the exact requirement, design, historical-authority, and regression-lineage
-  sources that later delta specifications must consult;
+- the constitution populates the fixed `Specification Baseline` with the exact
+  requirement, design, historical-authority, and regression-lineage sources
+  that later delta specifications must consult;
 - project documentation is evidence for durable constitutional invariants, not
   text to copy into the constitution;
 - existing requirements, acceptance criteria, code, and tests describe the
@@ -135,6 +136,7 @@ Project or automation inputs may be supplied explicitly:
 ```bash
 sdlc-project-init \
     --harness codex \
+    --project-type brownfield \
     --technologies GO,WEB \
     --infra no
 ```
@@ -148,8 +150,10 @@ sdlc-project-init --no-launch
 The initializer reads user defaults from `~/.agents/.env` and project overrides
 from the ignored project `.env`. Every resolved global default is copied into a
 new project's `.env`; changing the global file later does not silently change
-existing projects. Command-line values take precedence. Run
-`sdlc-project-init --help` for the complete interface.
+existing projects. Project classification is project-only: supply
+`--project-type`, record `SDLC_PROJECT_TYPE` in the project `.env`, or answer the
+initializer prompt. A value in `~/.agents/.env` is ignored. Command-line values
+take precedence. Run `sdlc-project-init --help` for the complete interface.
 
 ## Rerun and update
 

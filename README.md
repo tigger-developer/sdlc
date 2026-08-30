@@ -100,6 +100,7 @@ The initializer separates deterministic selection from semantic drafting. It:
 
 - initializes Spec Kit when authorized and absent;
 - installs the deployed SDLC preset;
+- asks whether the adopting project is greenfield or brownfield;
 - discovers available standards from `~/.agents/sdlc/technologies/`;
 - asks once which technologies and infrastructure ownership apply;
 - renders the fixed constitution baseline at
@@ -119,8 +120,9 @@ and adds that file to `.gitignore`; unrelated existing values are preserved.
 User defaults come from `~/.agents/.env`. Every resolved default is copied into
 a new project's `.env`, producing a stable project snapshot. Later changes to
 the user defaults affect new projects, not existing snapshots. Command-line
-values override project values, which override user defaults. Supported keys
-are:
+values override project values, which override user defaults. Project
+classification is deliberately project-only and is never read as a user
+default. Supported keys are:
 
 ```text
 SDLC_AGENT_HARNESS
@@ -130,11 +132,15 @@ SDLC_BUILD_PROVIDER
 SDLC_BUILD_MODEL
 SDLC_AUDIT_PROVIDER
 SDLC_AUDIT_MODEL
+SDLC_PROJECT_TYPE
 SDLC_TECHNOLOGIES
 SDLC_INFRA_ENABLED
 SDLC_INFRA_OWNER
 SDLC_INFRA_CONTRACT
 ```
+
+`SDLC_PROJECT_TYPE` accepts `greenfield` or `brownfield`. Set it in the project
+`.env` or with `--project-type`; a value in `~/.agents/.env` is ignored.
 
 Specification settings apply to constitution, specification, clarification,
 design, planning, and task-definition agent invocations. Build settings apply
@@ -155,9 +161,9 @@ relaunching the agent.
 For a greenfield repository, the initializer offers to run `specify init`, then
 creates the standards profile and unratified constitution. For a brownfield
 repository, it preserves the existing project, installs Spec Kit into the
-working tree, and uses current documentation as evidence for durable
-project-wide principles without copying feature or design detail. Follow the
-complete procedures in [`QUICKSTART.md`](QUICKSTART.md).
+working tree, and generates a fixed `Specification Baseline` authority map for
+the constitution agent to populate without copying feature or design detail.
+Follow the complete procedures in [`QUICKSTART.md`](QUICKSTART.md).
 
 Thereafter:
 

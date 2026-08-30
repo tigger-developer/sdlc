@@ -24,6 +24,7 @@ const (
 	keyBuildModel          = "SDLC_BUILD_MODEL"
 	keyAuditProvider       = "SDLC_AUDIT_PROVIDER"
 	keyAuditModel          = "SDLC_AUDIT_MODEL"
+	keyProjectType         = "SDLC_PROJECT_TYPE"
 	keyInfraEnabled        = "SDLC_INFRA_ENABLED"
 	keyInfraOwner          = "SDLC_INFRA_OWNER"
 	keyInfraContract       = "SDLC_INFRA_CONTRACT"
@@ -40,6 +41,7 @@ var managedKeys = []string{
 	keyBuildModel,
 	keyAuditProvider,
 	keyAuditModel,
+	keyProjectType,
 	keyInfraEnabled,
 	keyInfraOwner,
 	keyInfraContract,
@@ -79,6 +81,7 @@ type Options struct {
 	BuildModel     string
 	AuditProvider  string
 	AuditModel     string
+	ProjectType    string
 	Technologies   []string
 	InfraEnabled   *bool
 	InfraOwner     string
@@ -99,6 +102,7 @@ type resolvedConfig struct {
 	BuildModel    string
 	AuditProvider string
 	AuditModel    string
+	ProjectType   string
 	Technologies  []string
 	InfraEnabled  *bool
 	InfraOwner    string
@@ -144,11 +148,28 @@ func Run(options Options) error {
 	legacyProjectConfig := normalizeLegacyDelivery(projectValues)
 	config := resolveConfig(options, userValues, projectValues)
 	configChanged := legacyProjectConfig
+	if config.ProjectType != "" {
+		if err := validateProjectType(config.ProjectType); err != nil {
+			return err
+		}
+	}
 
 	if err := ensureSpecKit(projectRoot, &config, reader, options); err != nil {
 		return err
 	}
 	if err := ensurePreset(projectRoot, sdlcRoot, options); err != nil {
+		return err
+	}
+	if config.ProjectType == "" {
+		config.ProjectType, err = promptRequired(reader, options.Output, "Project type (greenfield or brownfield): ")
+		if err != nil {
+			return err
+		}
+		config.ProjectType = strings.ToLower(config.ProjectType)
+		projectValues[keyProjectType] = config.ProjectType
+		configChanged = true
+	}
+	if err := validateProjectType(config.ProjectType); err != nil {
 		return err
 	}
 	technologies, err := DiscoverTechnologies(filepath.Join(sdlcRoot, "technologies"))
@@ -210,7 +231,7 @@ func Run(options Options) error {
 		return err
 	}
 	for key, value := range projectSnapshot(config) {
-		if _, exists := projectValues[key]; !exists {
+		if current, exists := projectValues[key]; !exists || current != value {
 			projectValues[key] = value
 			configChanged = true
 		}
@@ -347,18 +368,21 @@ func firstHeading(contents []byte, fallback string) string {
 	return fallback
 }
 
-func resolveConfig(options Options, layers ...map[string]string) resolvedConfig {
+func resolveConfig(options Options, userValues, projectValues map[string]string) resolvedConfig {
 	values := map[string]string{}
-	for _, layer := range layers {
-		for key, value := range layer {
+	for key, value := range userValues {
+		if key != keyProjectType {
 			values[key] = value
 		}
+	}
+	for key, value := range projectValues {
+		values[key] = value
 	}
 	config := resolvedConfig{
 		Harness: values[keyAgentHarness], SpecProvider: values[keySpecProvider], SpecModel: values[keySpecModel],
 		BuildProvider: values[keyBuildProvider], BuildModel: values[keyBuildModel],
 		AuditProvider: values[keyAuditProvider], AuditModel: values[keyAuditModel], InfraOwner: values[keyInfraOwner], InfraContract: values[keyInfraContract],
-		Technologies: splitList(values[keyTechnologies]), SDLCRevision: options.SDLCRevision,
+		ProjectType: strings.ToLower(values[keyProjectType]), Technologies: splitList(values[keyTechnologies]), SDLCRevision: options.SDLCRevision,
 	}
 	if value, ok := parseBool(values[keyInfraEnabled]); ok {
 		config.InfraEnabled = &value
@@ -384,6 +408,9 @@ func resolveConfig(options Options, layers ...map[string]string) resolvedConfig 
 	if options.AuditModel != "" {
 		config.AuditModel = options.AuditModel
 	}
+	if options.ProjectType != "" {
+		config.ProjectType = strings.ToLower(strings.TrimSpace(options.ProjectType))
+	}
 	if len(options.Technologies) != 0 {
 		config.Technologies = options.Technologies
 	}
@@ -408,6 +435,7 @@ func projectSnapshot(config resolvedConfig) map[string]string {
 		keyBuildModel:    config.BuildModel,
 		keyAuditProvider: config.AuditProvider,
 		keyAuditModel:    config.AuditModel,
+		keyProjectType:   config.ProjectType,
 		keyInfraOwner:    config.InfraOwner,
 		keyInfraContract: config.InfraContract,
 		keyTechnologies:  strings.Join(config.Technologies, ","),
@@ -500,6 +528,7 @@ func renderConstitution(sdlcRoot string, technologies []Technology, config resol
 	}
 	output.WriteString("## Specification and Evidence\n\n")
 	output.WriteString("No implementation may begin without a defined specification. Brownfield work MUST preserve lineage to previously implemented requirements and regression evidence. Project documentation and the active specification MUST be updated when delivered behaviour or ownership boundaries change.\n\n")
+	renderSpecificationBaseline(&output, config.ProjectType)
 	output.WriteString("## Mandatory Independent Audits\n\n")
 	output.WriteString("Each audit MUST run in a fresh agent context that did not author the artefact. It MUST emit the exact structured verdict required by its skill. Any finding, missing verdict, malformed verdict, or change to the audited artefact invalidates PASS. On FAIL, the author remediates and a fresh independent audit runs. The next stage MUST NOT begin until the required audit records PASS.\n\n")
 	if config.AuditProvider != "" {
@@ -518,6 +547,30 @@ func renderConstitution(sdlcRoot string, technologies []Technology, config resol
 	output.WriteString("This constitution governs project specifications, plans, tasks, implementation, and review. Amendments MUST preserve the generated baseline, explain compatibility and migration effects, and update the version and dates below.\n\n")
 	output.WriteString("**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Revised**: [LAST_AMENDED_DATE]\n")
 	return []byte(output.String())
+}
+
+func renderSpecificationBaseline(output *strings.Builder, projectType string) {
+	output.WriteString("## Specification Baseline\n\n")
+	switch projectType {
+	case "greenfield":
+		output.WriteString("**Project classification:** Greenfield\n\n")
+		output.WriteString("No pre-existing requirement baseline existed at ratification. Approved feature specifications establish requirements prospectively.\n\n")
+	case "brownfield":
+		output.WriteString("**Project classification:** Brownfield\n\n")
+		output.WriteString("### Requirement Authority\n\n")
+		output.WriteString("[LIST EXACT REPOSITORY-RELATIVE PATHS OR DURABLE EXTERNAL LOCATIONS FOR CURRENT APPROVED REQUIREMENTS.]\n\n")
+		output.WriteString("### Historical Requirement Authority\n\n")
+		output.WriteString("[LIST APPROVED HISTORICAL REQUIREMENT SOURCES NOT CENTRALIZED ABOVE, OR STATE NONE.]\n\n")
+		output.WriteString("### Design Authority\n\n")
+		output.WriteString("[LIST EXACT REPOSITORY-RELATIVE PATHS OR DURABLE EXTERNAL LOCATIONS FOR APPROVED ARCHITECTURE AND DESIGN.]\n\n")
+		output.WriteString("### Regression Evidence and Traceability\n\n")
+		output.WriteString("[LIST EXACT REPOSITORY-RELATIVE PATHS OR DURABLE EXTERNAL LOCATIONS FOR REGRESSION EVIDENCE AND TRACEABILITY.]\n\n")
+		output.WriteString("Tests and code provide evidence of implemented behaviour. They do not approve requirements.\n\n")
+		output.WriteString("### Precedence and Supersession\n\n")
+		output.WriteString("[DEFINE THE PROJECT RULE FOR CONFLICTING OR SUPERSEDED SOURCES.]\n\n")
+	default:
+		output.WriteString("**Project classification:** [GREENFIELD OR BROWNFIELD]\n\n")
+	}
 }
 
 func ensureSpecKit(projectRoot string, config *resolvedConfig, reader *bufio.Reader, options Options) error {
@@ -692,6 +745,15 @@ func validateHarness(harness string) error {
 	}
 }
 
+func validateProjectType(projectType string) error {
+	switch strings.ToLower(strings.TrimSpace(projectType)) {
+	case "greenfield", "brownfield":
+		return nil
+	default:
+		return fmt.Errorf("unsupported project type %q; use greenfield or brownfield", projectType)
+	}
+}
+
 func validateProviderModelPairs(config resolvedConfig) error {
 	for _, pair := range []struct{ label, provider, model string }{
 		{label: "specification", provider: config.SpecProvider, model: config.SpecModel},
@@ -758,9 +820,9 @@ func constitutionPrompt(templatePath string) string {
 		"",
 		"Project documentation remains authoritative for detailed requirements and design. The constitution may elevate a concise project-wide invariant supported by those documents. Do not copy the supporting feature behaviour, mechanisms, examples, or procedures. Importance alone does not make something constitutional.",
 		"",
-		"If this is an existing implementation with approved requirements, design, or regression lineage, add a concise `Brownfield Specification Baseline` section. This section is an authority map, not a summary of the system. Name the exact repository-relative paths or durable external locations for current approved requirements, approved architecture and design, historical approved requirements that are not centralized, and regression evidence or traceability. Define the project's precedence and supersession rules when those sources conflict. Distinguish requirement authority from design authority and implementation evidence: tests and code record evidence and implemented state but do not approve requirements. Do not copy the contents of the named sources into the constitution.",
+		"Preserve the generated `Specification Baseline` structure and project classification. For a brownfield project, populate every authority field with concise, exact repository-relative paths or durable external locations verified from the project. Record current approved requirements, approved historical requirements that are not centralized, approved architecture and design, regression evidence and traceability, and the project's precedence and supersession rule. This is an authority map, not a summary of the system. Do not copy the contents of the named sources into the constitution.",
 		"",
-		"The `Brownfield Specification Baseline` will be consumed by later specification and audit commands to define bounded behavioural deltas against the implemented baseline. Include it only when authoritative existing sources are verified. For a greenfield project, or when no such authority exists, do not invent sources or placeholder paths.",
+		"Distinguish requirement authority from design authority and implementation evidence: tests and code record evidence and implemented state but do not approve requirements. The `Specification Baseline` will be consumed by later specification and audit commands to define bounded behavioural deltas against the implemented baseline. Do not invent sources or placeholder paths. For a greenfield project, retain the generated prospective-baseline statement and do not add brownfield authorities.",
 		"",
 		"Add up to four concise project-specific principles. Zero is valid only when no evidenced project-wide invariant would require a constitutional amendment to change. The existence of an invariant in another authoritative document is not, by itself, a reason to omit it. Use one concise authority and ownership hierarchy. Record only explicit standards deviations and genuine ratification blockers. Do not repeat or expand the generated baseline.",
 		"",

@@ -2,12 +2,21 @@
 
 ## Unreleased
 
-The constitution-generation prompt now requires existing projects to record a
-concise `Brownfield Specification Baseline`. The section names exact requirement,
-design, historical-authority, and regression-lineage sources; defines precedence
-and supersession; and distinguishes requirement authority from implementation
-evidence without copying the underlying documents. Greenfield projects do not
-invent baseline sources.
+The project initializer now asks whether each adopting project is greenfield or
+brownfield and renders a fixed `Specification Baseline` appropriate to that
+classification. Brownfield constitutions name exact current and historical
+requirement authorities, design authorities, regression lineage, and source
+precedence without copying the underlying documents. Greenfield constitutions
+record that approved feature specifications establish requirements
+prospectively. Project classification cannot be defaulted from the user-level
+`~/.agents/.env`.
+
+The constitution-generation prompt now populates that fixed authority map, and
+the specification, clarification, and specification-audit instructions consume
+it. Brownfield work is defined as a bounded behavioural delta against cited
+approved requirements; unchanged baseline behaviour is referenced rather than
+duplicated, while code and tests remain evidence rather than requirement
+authority.
 
 The project initializer now commits the generated
 `.specify/templates/overrides/constitution-template.md` in an isolated Git

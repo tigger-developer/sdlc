@@ -11,8 +11,18 @@ filesystem to locate it. If `~/.agents/sdlc/MAIN.md` is absent or unreadable,
 report that exact path.
 
 Read `~/.agents/sdlc/MAIN.md` and
-`~/.agents/sdlc/ISSUES.md` in full. Review the active specification without
-modifying files.
+`~/.agents/sdlc/ISSUES.md` in full. Read the project constitution. When its
+`Specification Baseline` classifies the project as brownfield, read the named
+requirement authorities relevant to the active change. Review the active
+specification as a delta against that baseline without modifying files.
+
+Do not report a finding solely because an unchanged approved requirement,
+design mechanism, fixture, oracle, or test procedure is not copied into the
+delta specification. Require a baseline citation with an identifier and
+descriptor where unchanged behaviour materially bounds the delta. Report a
+finding when the delta contradicts its baseline, changes behaviour without
+saying so, relies on an unresolved authority conflict, or lacks an observable
+boundary necessary to distinguish compliance.
 
 Check:
 

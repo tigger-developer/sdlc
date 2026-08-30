@@ -112,12 +112,15 @@ it available without changing the initializer.
 
 The generated template contains the fixed constitutional base, universal
 standard references, selected technology references, an optional external
-infrastructure contract, mandatory independent audits, and bounded placeholders
-for project-specific principles. A clean versioned build also records its exact
-SDLC source commit or release; modified or unversioned builds leave an explicit
-ratification TODO. The initializer commits only the generated baseline, leaving
-unrelated staged and working-tree changes untouched. The selected agent harness
-receives that template only after deterministic rendering and the isolated Git
+infrastructure contract, mandatory independent audits, a fixed specification
+baseline selected as greenfield or brownfield, and bounded placeholders for
+project-specific principles. The brownfield structure separates current and
+historical requirement authority, design authority, regression evidence, and
+source precedence. A clean versioned build also records its exact SDLC source
+commit or release; modified or unversioned builds leave an explicit ratification
+TODO. The initializer commits only the generated baseline, leaving unrelated
+staged and working-tree changes untouched. The selected agent harness receives
+that template only after deterministic rendering and the isolated Git
 checkpoint, and may add project evidence but must not remove or weaken the
 generated clauses.
 
@@ -126,7 +129,9 @@ standards tree. Project `.env` values override those defaults; CLI values
 override both. The initializer reads only its named `SDLC_*` keys and copies
 every resolved value into the ignored project `.env`. The project therefore
 retains its initialization snapshot when the user defaults later change, and a
-current rerun requires no questions or writes.
+current rerun requires no questions or writes. `SDLC_PROJECT_TYPE` is the sole
+project-only selection: the initializer ignores it in `~/.agents/.env` and
+accepts it only from the project, the command line, or the project prompt.
 
 ## Spec Kit composition
 
