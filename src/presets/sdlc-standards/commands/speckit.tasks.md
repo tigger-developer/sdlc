@@ -16,9 +16,7 @@ Before generating tasks, verify that the plan and design have a current
 traceability are complete, they MUST receive `audit-tests` PASS in a fresh
 agent context. Implementation MUST NOT begin without that current PASS.
 
-Before presenting a created or revised artefact for operator review, invoke the
-executable named by `HTML_PREVIEW_TOOL` with the artefact paths. If it is
-unavailable, open the artefacts in an available text editor; otherwise report
-their exact paths. Do this once after the required audit PASS, or after
-validation when no audit applies. Previewing is a presentation action, not
-approval or a reason to stop.
+After the applicable audit PASS, or validation when none applies, present
+approval artefacts with `HTML_PREVIEW_TOOL`; otherwise use an available
+non-blocking text editor or report the exact paths. Previewing is not approval
+and must not stop the workflow.
