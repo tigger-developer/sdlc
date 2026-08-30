@@ -110,14 +110,14 @@ mechanical migration:
 
 1. `docs/implementation_plan.md` moves unchanged to
    `docs/archive/implementation_plan.md`.
-2. Fixed, marked authority introductions are added to `docs/VISION.md`,
-   `docs/architecture.md`, and `docs/ACs.md`.
+2. A fixed, marked legacy introduction is added to `docs/ACs.md`.
 3. The initializer stages only those paths, shows their Git diff, and asks
    whether to commit.
 
-The initializer does not rewrite `README.md`. Removing obsolete links and
-reframing the README for the adopted process requires project-specific semantic
-review.
+Vision, architecture, and README documents remain active. The initializer does
+not rewrite them, except to remove its exact obsolete authority notices from
+vision and architecture. Adapting those documents to the adopted process
+requires project-specific semantic review.
 
 Declining leaves the reviewed migration staged and stops before constitution
 generation. Rerunning presents the same diff for confirmation. An accepted or

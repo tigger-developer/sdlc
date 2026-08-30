@@ -2,12 +2,14 @@
 
 ## Unreleased
 
-Brownfield legacy-document notices now lead with an explicit
-`# LEGACY DOCUMENT` heading. The initializer also replaces the exact earlier
-generated `Spec Kit authority` wording rather than duplicating it.
+The brownfield acceptance-criteria ledger now leads with an explicit
+`# LEGACY DOCUMENT` heading. The initializer replaces its exact earlier
+generated wording rather than duplicating it, and removes its retired authority
+notices from vision and architecture documents without otherwise changing them.
 
-The brownfield migration no longer rewrites implementation-plan links in
-`README.md`. README modernization remains project-specific semantic work.
+Vision, architecture, and README documents remain active and outside the
+mechanical legacy migration. Their Spec Kit adaptation remains project-specific
+semantic work.
 
 ## v2.0.1 - 2026-08-30
 

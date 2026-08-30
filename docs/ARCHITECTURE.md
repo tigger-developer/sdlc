@@ -113,9 +113,8 @@ it available without changing the initializer.
 Before rendering a brownfield constitution, the initializer mechanically
 migrates the established project documentation shape. It:
 
-- adds fixed, marked authority introductions to `docs/VISION.md`,
-  `docs/architecture.md`, and `docs/ACs.md` without duplicating an introduction
-  already present;
+- adds a fixed, marked legacy introduction to `docs/ACs.md` without duplicating
+  an introduction already present;
 - moves `docs/implementation_plan.md` unchanged to
   `docs/archive/implementation_plan.md`;
 - shows the managed-path Git diff and obtains operator confirmation before an
@@ -123,9 +122,10 @@ migrates the established project documentation shape. It:
 - performs no write, prompt, agent launch, or commit when the migration is
   already current.
 
-`README.md` is outside the mechanical migration. Obsolete links and process
-descriptions require project-specific semantic review rather than path
-substitution.
+Vision, architecture, and README documents remain active and outside the
+mechanical legacy migration. The initializer removes only its exact obsolete
+authority notices from vision and architecture. Any further adaptation requires
+project-specific semantic review.
 
 The migration never invokes an agent. Missing expected source documents,
 unexpected overlapping changes, or content that cannot be transformed by the

@@ -298,7 +298,7 @@ func TestRunPreservesBrownfieldProjectAndIsIdempotent(t *testing.T) {
 
 func TestEnsureAuthorityIntroductionReplacesEarlierStandardText(t *testing.T) {
 	project := t.TempDir()
-	document := brownfieldAuthorityDocuments[2]
+	document := legacyRequirementsDocument
 	target := filepath.Join(project, filepath.FromSlash(document.Path))
 	writeTestFile(t, target, "# Central Acceptance Criteria\n\n"+document.Marker+"\n"+document.PriorLanguage+"\n")
 
@@ -328,6 +328,10 @@ func TestMigrateBrownfieldDocumentsIsMechanicalReviewedAndIdempotent(t *testing.
 	writeTestFile(t, filepath.Join(project, "operator-notes.md"), "operator change\n")
 	runGitForTest(t, project, "add", "operator-notes.md")
 	planBefore := mustReadFile(t, filepath.Join(project, "docs", "implementation_plan.md"))
+	visionPath := filepath.Join(project, "docs", "VISION.md")
+	writeTestFile(t, visionPath, string(mustReadFile(t, visionPath))+"\nCurrent product clarification.\n")
+	visionBefore := mustReadFile(t, visionPath)
+	architectureBefore := mustReadFile(t, filepath.Join(project, "docs", "architecture.md"))
 
 	var output bytes.Buffer
 	options := defaultOptions(Options{
@@ -347,11 +351,15 @@ func TestMigrateBrownfieldDocumentsIsMechanicalReviewedAndIdempotent(t *testing.
 	if !bytes.Equal(planBefore, planAfter) {
 		t.Fatal("archived implementation plan content changed")
 	}
-	for _, document := range brownfieldAuthorityDocuments {
-		contents := string(mustReadFile(t, filepath.Join(project, filepath.FromSlash(document.Path))))
-		if !strings.HasPrefix(contents, document.block()) || strings.Count(contents, document.Marker) != 1 || strings.Count(contents, document.Description) != 1 {
-			t.Errorf("authority block for %s is missing or duplicated:\n%s", document.Path, contents)
-		}
+	requirements := string(mustReadFile(t, filepath.Join(project, filepath.FromSlash(legacyRequirementsDocument.Path))))
+	if !strings.HasPrefix(requirements, legacyRequirementsDocument.block()) || strings.Count(requirements, legacyRequirementsDocument.Marker) != 1 || strings.Count(requirements, legacyRequirementsDocument.Description) != 1 {
+		t.Errorf("legacy requirements block is missing or duplicated:\n%s", requirements)
+	}
+	if !bytes.Equal(visionBefore, mustReadFile(t, filepath.Join(project, "docs", "VISION.md"))) {
+		t.Fatal("product vision changed during migration")
+	}
+	if !bytes.Equal(architectureBefore, mustReadFile(t, filepath.Join(project, "docs", "architecture.md"))) {
+		t.Fatal("architecture changed during migration")
 	}
 	readme := string(mustReadFile(t, filepath.Join(project, "README.md")))
 	if !strings.Contains(readme, "docs/implementation_plan.md") || strings.Contains(readme, "docs/archive/implementation_plan.md") {
@@ -365,7 +373,7 @@ func TestMigrateBrownfieldDocumentsIsMechanicalReviewedAndIdempotent(t *testing.
 		t.Fatalf("unrelated staged change was disturbed: %q", staged)
 	}
 	committed := runGitForTest(t, project, "show", "--pretty=format:", "--name-only", "HEAD")
-	if strings.Contains(committed, "operator-notes.md") {
+	if strings.Contains(committed, "operator-notes.md") || strings.Contains(committed, "docs/VISION.md") {
 		t.Fatalf("migration committed unrelated path:\n%s", committed)
 	}
 
@@ -394,6 +402,18 @@ func TestMigrateBrownfieldDocumentsIsMechanicalReviewedAndIdempotent(t *testing.
 	}
 	if diff := runGitForTest(t, project, "diff", "--name-only", "--", "docs/architecture.md"); strings.TrimSpace(diff) != "docs/architecture.md" {
 		t.Fatalf("later documentation work was disturbed: %q", diff)
+	}
+	runGitForTest(t, project, "add", "docs/architecture.md")
+	rerunOutput.Reset()
+	proceed, err = migrateBrownfieldDocuments(project, bufio.NewReader(rerunOptions.Input), rerunOptions)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !proceed || rerunOutput.Len() != 0 {
+		t.Fatalf("current migration reacted to staged architecture work: proceed=%t output=%q", proceed, rerunOutput.String())
+	}
+	if staged := strings.TrimSpace(runGitForTest(t, project, "diff", "--cached", "--name-only")); staged != "docs/architecture.md\noperator-notes.md" && staged != "operator-notes.md\ndocs/architecture.md" {
+		t.Fatalf("staged project work was disturbed: %q", staged)
 	}
 }
 
@@ -429,6 +449,34 @@ func TestMigrateBrownfieldDocumentsDeclineLeavesReviewedChanges(t *testing.T) {
 	}
 	if !proceed || strings.TrimSpace(runGitForTest(t, project, "rev-parse", "HEAD")) == before {
 		t.Fatal("reviewed migration could not be accepted on rerun")
+	}
+}
+
+func TestMigrateBrownfieldDocumentsRemovesRetiredVisionAndArchitectureNotices(t *testing.T) {
+	project := initializeLegacyBrownfieldProject(t)
+	for _, document := range retiredAuthorityDocuments {
+		target := filepath.Join(project, filepath.FromSlash(document.Path))
+		original := mustReadFile(t, target)
+		writeTestFile(t, target, document.Marker+"\n"+document.PriorLanguage+"\n\n"+string(original))
+	}
+	runGitForTest(t, project, "add", "docs/VISION.md", "docs/architecture.md")
+	runGitForTest(t, project, "commit", "--quiet", "--message", "Add earlier generated authority notices")
+
+	options := defaultOptions(Options{
+		Input: strings.NewReader("yes\n"), Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{},
+	})
+	proceed, err := migrateBrownfieldDocuments(project, bufio.NewReader(options.Input), options)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !proceed {
+		t.Fatal("retired notice cleanup stopped migration")
+	}
+	if got := string(mustReadFile(t, filepath.Join(project, "docs", "VISION.md"))); got != "# Vision\n" {
+		t.Fatalf("vision cleanup changed project content: %q", got)
+	}
+	if got := string(mustReadFile(t, filepath.Join(project, "docs", "architecture.md"))); got != "# Architecture\n" {
+		t.Fatalf("architecture cleanup changed project content: %q", got)
 	}
 }
 
@@ -818,7 +866,7 @@ func initializeLegacyBrownfieldProject(t *testing.T) string {
 	}, "\n"))
 	writeTestFile(t, filepath.Join(project, "docs", "VISION.md"), "# Vision\n")
 	writeTestFile(t, filepath.Join(project, "docs", "architecture.md"), "# Architecture\n")
-	writeTestFile(t, filepath.Join(project, "docs", "ACs.md"), "# Central Acceptance Criteria\n\n"+brownfieldAuthorityDocuments[2].PriorLanguage+"\n")
+	writeTestFile(t, filepath.Join(project, "docs", "ACs.md"), "# Central Acceptance Criteria\n\n"+legacyRequirementsDocument.PriorLanguage+"\n")
 	writeTestFile(t, filepath.Join(project, "docs", "implementation_plan.md"), "# Implementation Plan\n\nHistorical plan.\n")
 	runGitForTest(t, project, "add", "README.md", "docs")
 	runGitForTest(t, project, "commit", "--quiet", "--message", "Initial project documentation")

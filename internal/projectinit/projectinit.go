@@ -117,7 +117,7 @@ type authorityDocument struct {
 	PriorLanguage string
 }
 
-var brownfieldAuthorityDocuments = []authorityDocument{
+var retiredAuthorityDocuments = []authorityDocument{
 	{
 		Path:   "docs/VISION.md",
 		Marker: "<!-- SDLC-SPEC-KIT-AUTHORITY: VISION -->",
@@ -148,33 +148,37 @@ var brownfieldAuthorityDocuments = []authorityDocument{
 			"> tests provide implementation evidence.",
 		}, "\n"),
 	},
-	{
-		Path:   "docs/ACs.md",
-		Marker: "<!-- SDLC-SPEC-KIT-AUTHORITY: LEGACY-REQUIREMENTS -->",
-		Description: strings.Join([]string{
-			"This legacy document is the authoritative record of requirements established under the",
-			"ticket-led process, including current and superseded requirements, provenance, and test",
-			"traceability. Requirements established or changed through Spec Kit are governed by",
-			"approved `specs/*/spec.md` artefacts.",
-		}, "\n"),
-		PriorLanguage: strings.Join([]string{
-			"Authoritative record of requirements established under the legacy ticket-led process, including",
-			"current and superseded requirements, provenance and test traceability. Requirements established or",
-			"changed through Spec Kit are governed by approved `specs/*/spec.md` artefacts.",
-		}, "\n"),
-	},
+}
+
+var legacyRequirementsDocument = authorityDocument{
+	Path:   "docs/ACs.md",
+	Marker: "<!-- SDLC-SPEC-KIT-AUTHORITY: LEGACY-REQUIREMENTS -->",
+	Description: strings.Join([]string{
+		"This legacy document is the authoritative record of requirements established under the",
+		"ticket-led process, including current and superseded requirements, provenance, and test",
+		"traceability. Requirements established or changed through Spec Kit are governed by",
+		"approved `specs/*/spec.md` artefacts.",
+	}, "\n"),
+	PriorLanguage: strings.Join([]string{
+		"Authoritative record of requirements established under the legacy ticket-led process, including",
+		"current and superseded requirements, provenance and test traceability. Requirements established or",
+		"changed through Spec Kit are governed by approved `specs/*/spec.md` artefacts.",
+	}, "\n"),
 }
 
 func (document authorityDocument) block() string {
 	return "# LEGACY DOCUMENT\n\n" + document.Marker + "\n\n" + document.Description
 }
 
-var brownfieldMigrationPaths = []string{
-	"docs/VISION.md",
-	"docs/architecture.md",
+var brownfieldBaseMigrationPaths = []string{
 	"docs/ACs.md",
 	"docs/implementation_plan.md",
 	"docs/archive/implementation_plan.md",
+}
+
+var brownfieldManagedPaths = []string{
+	"docs/VISION.md",
+	"docs/architecture.md",
 }
 
 // Run renders the deterministic constitution scaffold and, when it changes,
@@ -370,7 +374,11 @@ func migrateBrownfieldDocuments(projectRoot string, reader *bufio.Reader, option
 	if !active {
 		return true, nil
 	}
-	status, err := gitStatusForPaths(projectRoot, brownfieldMigrationPaths, options)
+	migrationPaths, err := brownfieldMutationPaths(projectRoot, current)
+	if err != nil {
+		return false, err
+	}
+	status, err := gitStatusForPaths(projectRoot, migrationPaths, options)
 	if err != nil {
 		return false, err
 	}
@@ -382,7 +390,24 @@ func migrateBrownfieldDocuments(projectRoot string, reader *bufio.Reader, option
 			return false, err
 		}
 	}
-	return reviewBrownfieldMigration(projectRoot, reader, current, options)
+	return reviewBrownfieldMigration(projectRoot, reader, current, migrationPaths, options)
+}
+
+func brownfieldMutationPaths(projectRoot string, current bool) ([]string, error) {
+	paths := append([]string(nil), brownfieldBaseMigrationPaths...)
+	if current {
+		return append(paths, brownfieldManagedPaths...), nil
+	}
+	for _, document := range retiredAuthorityDocuments {
+		containsNotice, err := containsRetiredAuthorityIntroduction(projectRoot, document)
+		if err != nil {
+			return nil, err
+		}
+		if containsNotice {
+			paths = append(paths, document.Path)
+		}
+	}
+	return paths, nil
 }
 
 func inspectBrownfieldMigration(projectRoot, sourcePlan, archivedPlan string) (bool, bool, bool, error) {
@@ -400,15 +425,13 @@ func inspectBrownfieldMigration(projectRoot, sourcePlan, archivedPlan string) (b
 	if !sourceExists && !archiveExists {
 		return false, false, false, nil
 	}
-	for _, relative := range authorityDocumentPaths() {
-		target := filepath.Join(projectRoot, filepath.FromSlash(relative))
-		exists, existsErr := regularFileExists(target)
-		if existsErr != nil {
-			return false, false, false, existsErr
-		}
-		if !exists {
-			return false, false, false, fmt.Errorf("brownfield documentation migration requires %q", target)
-		}
+	requirementsPath := filepath.Join(projectRoot, filepath.FromSlash(legacyRequirementsDocument.Path))
+	requirementsExist, existsErr := regularFileExists(requirementsPath)
+	if existsErr != nil {
+		return false, false, false, existsErr
+	}
+	if !requirementsExist {
+		return false, false, false, fmt.Errorf("brownfield documentation migration requires %q", requirementsPath)
 	}
 	current, err := brownfieldMigrationCurrent(projectRoot)
 	return true, sourceExists, current, err
@@ -423,35 +446,41 @@ func applyBrownfieldMigration(projectRoot, sourcePlan, archivedPlan string, sour
 			return fmt.Errorf("archiving implementation plan: %w", err)
 		}
 	}
-	for _, document := range brownfieldAuthorityDocuments {
-		if _, err := ensureAuthorityIntroduction(projectRoot, document); err != nil {
+	if _, err := ensureAuthorityIntroduction(projectRoot, legacyRequirementsDocument); err != nil {
+		return err
+	}
+	for _, document := range retiredAuthorityDocuments {
+		if _, err := removeRetiredAuthorityIntroduction(projectRoot, document); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func reviewBrownfieldMigration(projectRoot string, reader *bufio.Reader, current bool, options Options) (bool, error) {
+func reviewBrownfieldMigration(projectRoot string, reader *bufio.Reader, current bool, migrationPaths []string, options Options) (bool, error) {
 	if current {
-		staged, err := gitDiffNames(projectRoot, true, brownfieldMigrationPaths, options)
+		staged, err := gitDiffNames(projectRoot, true, migrationPaths, options)
 		if err != nil {
 			return false, err
 		}
 		if strings.TrimSpace(staged) == "" {
 			return true, nil
 		}
-		unstaged, err := gitDiffNames(projectRoot, false, brownfieldMigrationPaths, options)
+		if !pathListed(staged, "docs/implementation_plan.md") && !pathListed(staged, "docs/archive/implementation_plan.md") {
+			return true, nil
+		}
+		unstaged, err := gitDiffNames(projectRoot, false, migrationPaths, options)
 		if err != nil {
 			return false, err
 		}
 		if strings.TrimSpace(unstaged) != "" {
 			return false, fmt.Errorf("reviewed brownfield migration overlaps later unstaged changes:\n%s", strings.TrimSpace(unstaged))
 		}
-	} else if err := options.RunCommand("git", append([]string{"add", "--"}, brownfieldMigrationPaths...), projectRoot, strings.NewReader(""), options.Output, options.ErrorOutput); err != nil {
+	} else if err := options.RunCommand("git", append([]string{"add", "--"}, migrationPaths...), projectRoot, strings.NewReader(""), options.Output, options.ErrorOutput); err != nil {
 		return false, fmt.Errorf("staging brownfield documentation migration: %w", err)
 	}
 	fmt.Fprintln(options.Output, "Brownfield documentation migration variances:")
-	diffArguments := append([]string{"diff", "--cached", "--no-ext-diff", "--find-renames", "--"}, brownfieldMigrationPaths...)
+	diffArguments := append([]string{"diff", "--cached", "--no-ext-diff", "--find-renames", "--"}, migrationPaths...)
 	if err := options.RunCommand("git", diffArguments, projectRoot, strings.NewReader(""), options.Output, options.ErrorOutput); err != nil {
 		return false, fmt.Errorf("showing brownfield documentation migration: %w", err)
 	}
@@ -463,12 +492,21 @@ func reviewBrownfieldMigration(projectRoot string, reader *bufio.Reader, current
 		fmt.Fprintln(options.Output, "Brownfield documentation migration remains staged and constitution generation has stopped.")
 		return false, nil
 	}
-	commitArguments := append([]string{"commit", "--only", "--quiet", "--message", "docs: migrate legacy project authorities", "--"}, brownfieldMigrationPaths...)
+	commitArguments := append([]string{"commit", "--only", "--quiet", "--message", "docs: migrate legacy project authorities", "--"}, migrationPaths...)
 	if err := options.RunCommand("git", commitArguments, projectRoot, strings.NewReader(""), options.Output, options.ErrorOutput); err != nil {
 		return false, fmt.Errorf("committing brownfield documentation migration: %w", err)
 	}
 	fmt.Fprintln(options.Output, "Committed brownfield documentation migration.")
 	return true, nil
+}
+
+func pathListed(paths, target string) bool {
+	for _, path := range strings.Split(paths, "\n") {
+		if strings.TrimSpace(path) == target {
+			return true
+		}
+	}
+	return false
 }
 
 func gitDiffNames(projectRoot string, cached bool, paths []string, options Options) (string, error) {
@@ -485,14 +523,6 @@ func gitDiffNames(projectRoot string, cached bool, paths []string, options Optio
 	return names.String(), nil
 }
 
-func authorityDocumentPaths() []string {
-	paths := make([]string, 0, len(brownfieldAuthorityDocuments))
-	for _, document := range brownfieldAuthorityDocuments {
-		paths = append(paths, document.Path)
-	}
-	return paths
-}
-
 func brownfieldMigrationCurrent(projectRoot string) (bool, error) {
 	sourceExists, err := regularFileExists(filepath.Join(projectRoot, "docs", "implementation_plan.md"))
 	if err != nil {
@@ -505,16 +535,36 @@ func brownfieldMigrationCurrent(projectRoot string) (bool, error) {
 	if sourceExists || !archiveExists {
 		return false, nil
 	}
-	for _, document := range brownfieldAuthorityDocuments {
-		contents, readErr := os.ReadFile(filepath.Join(projectRoot, filepath.FromSlash(document.Path)))
-		if readErr != nil {
-			return false, fmt.Errorf("reading brownfield authority document %q: %w", document.Path, readErr)
+	requirements, err := os.ReadFile(filepath.Join(projectRoot, filepath.FromSlash(legacyRequirementsDocument.Path)))
+	if err != nil {
+		return false, fmt.Errorf("reading legacy requirements document %q: %w", legacyRequirementsDocument.Path, err)
+	}
+	if !bytes.HasPrefix(requirements, []byte(legacyRequirementsDocument.block())) {
+		return false, nil
+	}
+	for _, document := range retiredAuthorityDocuments {
+		containsNotice, noticeErr := containsRetiredAuthorityIntroduction(projectRoot, document)
+		if noticeErr != nil {
+			return false, noticeErr
 		}
-		if !bytes.HasPrefix(contents, []byte(document.block())) {
+		if containsNotice {
 			return false, nil
 		}
 	}
 	return true, nil
+}
+
+func containsRetiredAuthorityIntroduction(projectRoot string, document authorityDocument) (bool, error) {
+	target := filepath.Join(projectRoot, filepath.FromSlash(document.Path))
+	exists, err := regularFileExists(target)
+	if err != nil || !exists {
+		return false, err
+	}
+	contents, err := os.ReadFile(target)
+	if err != nil {
+		return false, fmt.Errorf("reading project authority document %q: %w", target, err)
+	}
+	return bytes.Contains(contents, []byte(document.Marker)), nil
 }
 
 func ensureAuthorityIntroduction(projectRoot string, document authorityDocument) (bool, error) {
@@ -534,6 +584,29 @@ func ensureAuthorityIntroduction(projectRoot string, document authorityDocument)
 	updated = append(updated, block...)
 	updated = append(updated, '\n', '\n')
 	updated = append(updated, cleaned...)
+	if err := writeAtomic(target, updated, 0o644); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func removeRetiredAuthorityIntroduction(projectRoot string, document authorityDocument) (bool, error) {
+	target := filepath.Join(projectRoot, filepath.FromSlash(document.Path))
+	exists, err := regularFileExists(target)
+	if err != nil || !exists {
+		return false, err
+	}
+	contents, err := os.ReadFile(target)
+	if err != nil {
+		return false, fmt.Errorf("reading project authority document %q: %w", target, err)
+	}
+	updated := bytes.Replace(contents, []byte(document.block()), nil, 1)
+	updated = bytes.Replace(updated, []byte(document.Marker), nil, 1)
+	updated = bytes.Replace(updated, []byte(document.PriorLanguage), nil, 1)
+	if bytes.Equal(contents, updated) {
+		return false, nil
+	}
+	updated = bytes.TrimLeft(updated, "\r\n")
 	if err := writeAtomic(target, updated, 0o644); err != nil {
 		return false, err
 	}
