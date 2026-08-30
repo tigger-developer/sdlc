@@ -19,3 +19,10 @@ duplicate, or silently replace an approved existing requirement.
 Clarification changes invalidate an earlier `audit-spec` PASS. After
 clarification is complete, run `audit-spec` in a fresh context and record its
 current verdict before planning.
+
+Before presenting a created or revised artefact for operator review, invoke the
+executable named by `HTML_PREVIEW_TOOL` with the artefact paths. If it is
+unavailable, open the artefacts in an available text editor; otherwise report
+their exact paths. Do this once after the required audit PASS, or after
+validation when no audit applies. Previewing is a presentation action, not
+approval or a reason to stop.

@@ -31,3 +31,10 @@ explicit rather than guessing.
 After specification and clarification are complete, the specification MUST
 receive `audit-spec` PASS in a fresh agent context. Record the verdict in the
 active feature's `audits.md`. Planning MUST NOT begin without a current PASS.
+
+Before presenting a created or revised artefact for operator review, invoke the
+executable named by `HTML_PREVIEW_TOOL` with the artefact paths. If it is
+unavailable, open the artefacts in an available text editor; otherwise report
+their exact paths. Do this once after the required audit PASS, or after
+validation when no audit applies. Previewing is a presentation action, not
+approval or a reason to stop.

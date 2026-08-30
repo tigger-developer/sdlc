@@ -19,3 +19,10 @@ Before planning, verify that the active specification has a current
 `audit-spec` PASS in the feature's `audits.md`. After the plan and design are
 complete, they MUST receive `audit-design` PASS in a fresh agent context. Test
 design and task generation MUST NOT begin without that current PASS.
+
+Before presenting a created or revised artefact for operator review, invoke the
+executable named by `HTML_PREVIEW_TOOL` with the artefact paths. If it is
+unavailable, open the artefacts in an available text editor; otherwise report
+their exact paths. Do this once after the required audit PASS, or after
+validation when no audit applies. Previewing is a presentation action, not
+approval or a reason to stop.

@@ -29,3 +29,10 @@ Replace the report line when the constitution changes. Do not accumulate reports
 or create a separate changelog. Write only `.specify/memory/constitution.md`.
 Spec Kit owns orchestration; the SDLC supplies engineering standards and
 independent audit requirements.
+
+Before presenting a created or revised artefact for operator review, invoke the
+executable named by `HTML_PREVIEW_TOOL` with the artefact paths. If it is
+unavailable, open the artefacts in an available text editor; otherwise report
+their exact paths. Do this once after the required audit PASS, or after
+validation when no audit applies. Previewing is a presentation action, not
+approval or a reason to stop.

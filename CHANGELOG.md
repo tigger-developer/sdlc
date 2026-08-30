@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+Constitution, specification, clarification, planning, checklist, and task
+commands now present approval artefacts through the optional
+`HTML_PREVIEW_TOOL`, falling back to an available text editor or the exact
+artefact paths. Presentation occurs after the applicable audit or validation
+and is explicitly non-blocking and non-approving.
+
 The README now documents the complete Spec Kit feature lifecycle for new users
 and projects migrating from the earlier SDLC. It distinguishes the reusable
 main authoring context from mandatory fresh audit contexts and identifies when

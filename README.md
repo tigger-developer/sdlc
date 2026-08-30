@@ -223,6 +223,19 @@ Do not reset the main context merely because the workflow advances from
 continue the feature, it must read the constitution and the active feature's
 current artefacts and audit record before acting.
 
+### Presenting approval artefacts
+
+Document-producing commands present their current artefacts once they have
+passed the required audit, or after validation when no audit applies. If the
+optional `HTML_PREVIEW_TOOL` environment variable names an executable, the
+command invokes it with the artefact paths. Otherwise it opens the artefacts in
+an available text editor or reports their exact paths when no editor is
+available.
+
+Previewing is an operator convenience. It is not approval, a workflow gate, or
+a reason for the agent to stop. The SDLC does not prescribe or install a
+particular preview implementation.
+
 ### Step-by-step feature workflow
 
 1. **Specify the required behaviour.**
