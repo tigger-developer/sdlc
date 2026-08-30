@@ -1,6 +1,6 @@
 interface:
-  display_name: "Migrate legacy ACs to SDLC v1"
-  short_description: "Centralize historical ticket acceptance criteria"
+  display_name: "SDLC v1 AC migration"
+  short_description: "Roll up legacy ACs into ACs.md"
   default_prompt: "Use $migrate-legacy-acs-to-sdlc-v1 to centralize legacy ticket acceptance criteria before this brownfield project adopts SDLC v2."
 
 policy:
