@@ -296,21 +296,21 @@ func TestRunPreservesBrownfieldProjectAndIsIdempotent(t *testing.T) {
 	}
 }
 
-func TestEnsureAuthorityIntroductionReusesExistingStandardText(t *testing.T) {
+func TestEnsureAuthorityIntroductionReplacesEarlierStandardText(t *testing.T) {
 	project := t.TempDir()
 	document := brownfieldAuthorityDocuments[2]
 	target := filepath.Join(project, filepath.FromSlash(document.Path))
-	writeTestFile(t, target, "# Central Acceptance Criteria\n\n"+document.Intro+"\n")
+	writeTestFile(t, target, "# Central Acceptance Criteria\n\n"+document.Marker+"\n"+document.PriorLanguage+"\n")
 
 	changed, err := ensureAuthorityIntroduction(project, document)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if !changed {
-		t.Fatal("existing standard introduction did not receive its stable marker")
+		t.Fatal("earlier standard introduction was not replaced")
 	}
 	first := string(mustReadFile(t, target))
-	if strings.Count(first, document.Marker) != 1 || strings.Count(first, document.Intro) != 1 {
+	if !strings.HasPrefix(first, document.block()) || strings.Count(first, document.Marker) != 1 || strings.Contains(first, document.PriorLanguage) {
 		t.Fatalf("authority introduction was duplicated:\n%s", first)
 	}
 
@@ -349,7 +349,7 @@ func TestMigrateBrownfieldDocumentsIsMechanicalReviewedAndIdempotent(t *testing.
 	}
 	for _, document := range brownfieldAuthorityDocuments {
 		contents := string(mustReadFile(t, filepath.Join(project, filepath.FromSlash(document.Path))))
-		if strings.Count(contents, document.Marker) != 1 || strings.Count(contents, document.Intro) != 1 {
+		if !strings.HasPrefix(contents, document.block()) || strings.Count(contents, document.Marker) != 1 || strings.Count(contents, document.Description) != 1 {
 			t.Errorf("authority block for %s is missing or duplicated:\n%s", document.Path, contents)
 		}
 	}
@@ -798,7 +798,7 @@ func initializeLegacyBrownfieldProject(t *testing.T) string {
 	}, "\n"))
 	writeTestFile(t, filepath.Join(project, "docs", "VISION.md"), "# Vision\n")
 	writeTestFile(t, filepath.Join(project, "docs", "architecture.md"), "# Architecture\n")
-	writeTestFile(t, filepath.Join(project, "docs", "ACs.md"), "# Central Acceptance Criteria\n\n"+brownfieldAuthorityDocuments[2].Intro+"\n")
+	writeTestFile(t, filepath.Join(project, "docs", "ACs.md"), "# Central Acceptance Criteria\n\n"+brownfieldAuthorityDocuments[2].PriorLanguage+"\n")
 	writeTestFile(t, filepath.Join(project, "docs", "implementation_plan.md"), "# Implementation Plan\n\nHistorical plan.\n")
 	runGitForTest(t, project, "add", "README.md", "docs")
 	runGitForTest(t, project, "commit", "--quiet", "--message", "Initial project documentation")

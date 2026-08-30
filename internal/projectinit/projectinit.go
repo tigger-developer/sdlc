@@ -111,16 +111,22 @@ type resolvedConfig struct {
 }
 
 type authorityDocument struct {
-	Path   string
-	Marker string
-	Intro  string
+	Path          string
+	Marker        string
+	Description   string
+	PriorLanguage string
 }
 
 var brownfieldAuthorityDocuments = []authorityDocument{
 	{
 		Path:   "docs/VISION.md",
 		Marker: "<!-- SDLC-SPEC-KIT-AUTHORITY: VISION -->",
-		Intro: strings.Join([]string{
+		Description: strings.Join([]string{
+			"This legacy document predates the project's adoption of Spec Kit. It remains",
+			"authoritative for durable product purpose and policy. Approved feature specifications",
+			"govern requirements established or changed through Spec Kit.",
+		}, "\n"),
+		PriorLanguage: strings.Join([]string{
 			"> **Spec Kit authority:** This document predates the project's adoption of Spec Kit. It",
 			"> remains authoritative for durable product purpose and policy. Approved feature",
 			"> specifications govern requirements established or changed through Spec Kit.",
@@ -129,7 +135,13 @@ var brownfieldAuthorityDocuments = []authorityDocument{
 	{
 		Path:   "docs/architecture.md",
 		Marker: "<!-- SDLC-SPEC-KIT-AUTHORITY: ARCHITECTURE -->",
-		Intro: strings.Join([]string{
+		Description: strings.Join([]string{
+			"This legacy document predates the project's adoption of Spec Kit. It remains",
+			"authoritative for current application architecture and design decisions within approved",
+			"requirements. Approved feature specifications govern requirements; code and tests",
+			"provide implementation evidence.",
+		}, "\n"),
+		PriorLanguage: strings.Join([]string{
 			"> **Spec Kit authority:** This document predates the project's adoption of Spec Kit. It",
 			"> remains authoritative for current application architecture and design decisions within",
 			"> approved requirements. Approved feature specifications govern requirements; code and",
@@ -139,12 +151,22 @@ var brownfieldAuthorityDocuments = []authorityDocument{
 	{
 		Path:   "docs/ACs.md",
 		Marker: "<!-- SDLC-SPEC-KIT-AUTHORITY: LEGACY-REQUIREMENTS -->",
-		Intro: strings.Join([]string{
+		Description: strings.Join([]string{
+			"This legacy document is the authoritative record of requirements established under the",
+			"ticket-led process, including current and superseded requirements, provenance, and test",
+			"traceability. Requirements established or changed through Spec Kit are governed by",
+			"approved `specs/*/spec.md` artefacts.",
+		}, "\n"),
+		PriorLanguage: strings.Join([]string{
 			"Authoritative record of requirements established under the legacy ticket-led process, including",
 			"current and superseded requirements, provenance and test traceability. Requirements established or",
 			"changed through Spec Kit are governed by approved `specs/*/spec.md` artefacts.",
 		}, "\n"),
 	},
+}
+
+func (document authorityDocument) block() string {
+	return "# LEGACY DOCUMENT\n\n" + document.Marker + "\n\n" + document.Description
 }
 
 var brownfieldMigrationPaths = []string{
@@ -490,7 +512,7 @@ func brownfieldMigrationCurrent(projectRoot string) (bool, error) {
 		if readErr != nil {
 			return false, fmt.Errorf("reading brownfield authority document %q: %w", document.Path, readErr)
 		}
-		if !bytes.Contains(contents, []byte(document.Marker)) {
+		if !bytes.HasPrefix(contents, []byte(document.block())) {
 			return false, nil
 		}
 	}
@@ -507,24 +529,17 @@ func ensureAuthorityIntroduction(projectRoot string, document authorityDocument)
 	if err != nil {
 		return false, fmt.Errorf("reading authority document %q: %w", target, err)
 	}
-	if bytes.Contains(contents, []byte(document.Marker)) {
+	block := []byte(document.block())
+	if bytes.HasPrefix(contents, block) {
 		return false, nil
 	}
-	marker := []byte(document.Marker + "\n")
-	intro := []byte(document.Intro)
-	var updated []byte
-	if position := bytes.Index(contents, intro); position >= 0 {
-		updated = make([]byte, 0, len(contents)+len(marker))
-		updated = append(updated, contents[:position]...)
-		updated = append(updated, marker...)
-		updated = append(updated, contents[position:]...)
-	} else {
-		updated = make([]byte, 0, len(contents)+len(marker)+len(intro)+2)
-		updated = append(updated, marker...)
-		updated = append(updated, intro...)
-		updated = append(updated, '\n', '\n')
-		updated = append(updated, contents...)
-	}
+	cleaned := bytes.Replace(contents, []byte(document.Marker), nil, 1)
+	cleaned = bytes.Replace(cleaned, []byte(document.PriorLanguage), nil, 1)
+	cleaned = bytes.TrimLeft(cleaned, "\r\n")
+	updated := make([]byte, 0, len(block)+len(cleaned)+2)
+	updated = append(updated, block...)
+	updated = append(updated, '\n', '\n')
+	updated = append(updated, cleaned...)
 	if err := writeAtomic(target, updated, 0o644); err != nil {
 		return false, err
 	}

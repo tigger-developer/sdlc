@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+Brownfield legacy-document notices now lead with an explicit
+`# LEGACY DOCUMENT` heading. The initializer also replaces the exact earlier
+generated `Spec Kit authority` wording rather than duplicating it.
+
 ## v2.0.1 - 2026-08-30
 
 Constitution templates no longer embed the configured audit provider or model;
