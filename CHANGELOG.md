@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+Constitution templates no longer embed the configured audit provider or model;
+runtime selection remains in project configuration. Constitution generation
+now performs a final fitness review over the assembled document, removes
+non-constitutional agent-authored material, and records any defective immutable
+baseline clause as a ratification blocker.
+
 Added the explicit-only `migrate-legacy-acs-to-sdlc-v1` skill for brownfield
 projects. It caches complete GitHub issue bodies, comments, and implementation
 links; reconciles ticket-based SDLC v0.1 AC and test lineage into the centralized

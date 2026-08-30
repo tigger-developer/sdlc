@@ -150,10 +150,15 @@ func TestRenderConstitutionPinsSDLCRevision(t *testing.T) {
 	}
 }
 
-func TestRenderConstitutionNamesAuditProviderWithModel(t *testing.T) {
+func TestRenderConstitutionOmitsAuditRuntime(t *testing.T) {
 	text := string(renderConstitution("/standards", nil, resolvedConfig{AuditProvider: "openai-codex", AuditModel: "gpt-5.6-luna"}))
-	if !strings.Contains(text, "provider `openai-codex`, model `gpt-5.6-luna`") {
-		t.Fatalf("rendered constitution omitted paired audit runtime:\n%s", text)
+	for _, runtimeValue := range []string{"openai-codex", "gpt-5.6-luna", "configured audit runtime"} {
+		if strings.Contains(text, runtimeValue) {
+			t.Fatalf("rendered constitution contains audit runtime %q:\n%s", runtimeValue, text)
+		}
+	}
+	if !strings.Contains(text, "Each audit MUST run in a fresh agent context") {
+		t.Fatalf("rendered constitution omitted durable audit governance:\n%s", text)
 	}
 }
 
@@ -481,6 +486,11 @@ func TestLaunchConstitutionRequiresProjectWideFiltering(t *testing.T) {
 		"Use a pre-1.0 version for an unratified draft",
 		"List every unresolved ratification blocker",
 		"Would changing this require amending the constitution?",
+		"review the entire assembled constitution",
+		"runtime configuration, a feature requirement, detailed design",
+		"durable across unrelated features and require a constitutional amendment",
+		"generated immutable clause fails this review",
+		"Record the defective clause as a ratification blocker",
 		"Produce only `.specify/memory/constitution.md`",
 	} {
 		if !strings.Contains(prompt, required) {

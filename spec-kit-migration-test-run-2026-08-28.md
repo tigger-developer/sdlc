@@ -795,6 +795,23 @@ approval state.
 The skill recommends `gpt-5.6-luna` as its preferred model. Provider fallback is
 owned by the invoking harness and is not encoded in the skill.
 
+### Constitution fitness and runtime configuration
+
+Review of the generated Writeback constitution found that the deterministic
+baseline copied the configured audit provider and model from the project
+`.env`. Audit independence and stage requirements are durable governance, but a
+particular runtime is operational configuration and must not require a
+constitutional amendment when it changes. The initializer must therefore retain
+audit provider and model values for runtime use without rendering them into the
+constitution.
+
+The generation prompt already filters proposed clauses before drafting. It must
+also review the entire assembled constitution before finalizing it. Agent-authored
+runtime configuration, feature requirements, detailed design, procedures,
+transient state, and duplicated authority text are removed. A generated
+immutable clause that fails the same test is preserved but recorded as a
+ratification blocker so a generator defect cannot pass silently.
+
 - Review the corrected constitution and its source mapping.
 - Obtain explicit operator ratification and record its date.
 - Trial migration of a still-live old-SDLC ticket into Spec Kit without

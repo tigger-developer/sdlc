@@ -531,9 +531,6 @@ func renderConstitution(sdlcRoot string, technologies []Technology, config resol
 	renderSpecificationBaseline(&output, config.ProjectType)
 	output.WriteString("## Mandatory Independent Audits\n\n")
 	output.WriteString("Each audit MUST run in a fresh agent context that did not author the artefact. It MUST emit the exact structured verdict required by its skill. Any finding, missing verdict, malformed verdict, or change to the audited artefact invalidates PASS. On FAIL, the author remediates and a fresh independent audit runs. The next stage MUST NOT begin until the required audit records PASS.\n\n")
-	if config.AuditProvider != "" {
-		fmt.Fprintf(&output, "The configured audit runtime is provider `%s`, model `%s`. If runtime configuration is absent, use the audit skill's preferred provider and model when available.\n\n", config.AuditProvider, config.AuditModel)
-	}
 	output.WriteString("1. Specification and clarification require `audit-spec` PASS before planning.\n")
 	output.WriteString("2. Plan and design require `audit-design` PASS before test design and tasks.\n")
 	output.WriteString("3. Test design and traceability require `audit-tests` PASS before implementation.\n")
@@ -835,6 +832,12 @@ func constitutionPrompt(templatePath string) string {
 		"Would changing this require amending the constitution?",
 		"",
 		"If not, omit it.",
+		"",
+		"Before finalizing, review the entire assembled constitution, including the generated baseline, against the same constitutional test.",
+		"",
+		"Remove any agent-authored clause that is runtime configuration, a feature requirement, detailed design, a procedure, transient project state, or duplication of an authoritative source. Every retained agent-authored clause must be durable across unrelated features and require a constitutional amendment to change.",
+		"",
+		"If a generated immutable clause fails this review, do not remove or weaken it. Record the defective clause as a ratification blocker so the generator can be corrected before ratification.",
 		"",
 		"Produce only `.specify/memory/constitution.md`.",
 	}, "\n")
