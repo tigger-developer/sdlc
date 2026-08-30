@@ -221,6 +221,13 @@ modify the judged artefact, and identify both provider and model in their
 verdict. A skill's frontmatter may recommend an inexpensive audit provider and
 model; runtime configuration has precedence.
 
+The explicit-only `migrate-legacy-acs-to-sdlc-v1` skill snapshots every GitHub
+issue, including comments and recorded implementation links, then reconciles
+ticket-based SDLC v0.1 acceptance criteria and test lineage into the centralized
+SDLC v1 record required as a brownfield baseline for SDLC v2. Tickets without
+AC tables are ignored as bug fixes; multiple tables and unresolved test
+evidence are reserved for operator adjudication.
+
 The optional Hermes hook and provider rules reinforce the common prohibitions
 on `rm`, `sed`, `awk`, and direct `python` or `python3` interpreter commands.
 They do not prevent a documented project target from invoking its own runtime.

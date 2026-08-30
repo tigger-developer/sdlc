@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+Added the explicit-only `migrate-legacy-acs-to-sdlc-v1` skill for brownfield
+projects. It caches complete GitHub issue bodies, comments, and implementation
+links; reconciles ticket-based SDLC v0.1 AC and test lineage into the centralized
+SDLC v1 record required before SDLC v2 adoption; ignores bug-fix tickets without
+AC tables; and reserves multiple tables or inconclusive test evidence for
+operator adjudication. The skill recommends Luna without defining a fallback
+model.
+
 The project initializer now asks whether each adopting project is greenfield or
 brownfield and renders a fixed `Specification Baseline` appropriate to that
 classification. Brownfield constitutions name exact current and historical

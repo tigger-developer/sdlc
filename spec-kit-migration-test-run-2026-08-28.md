@@ -773,6 +773,28 @@ an exhaustive blocker list.
 
 ## Remaining pilot work
 
+### Historical AC centralization
+
+The Writeback trial established that its centralized AC document is incomplete
+for early work because AC migration from approved tickets began after the
+project was already live. The retained regression pack provides a bounded
+index, but unit-test-only ACs and AC tables added in ticket comments require a
+complete issue snapshot.
+
+The explicit-only `migrate-legacy-acs-to-sdlc-v1` skill therefore caches every
+actual GitHub issue, including its complete body, all comments, and recorded
+implementation links. It centralizes ticket-based SDLC v0.1 ACs into the SDLC
+v1 record required as a reliable brownfield baseline before SDLC v2 adoption.
+It scans the cache in issue-number order, ignores tickets without AC tables as
+bug fixes, and requires operator adjudication when an issue contains more than
+one AC table. Current tests, historically passing unit tests, removed historical
+regression tests, pending-only tests, operator tests, and implementation
+evidence remain distinct signals rather than being collapsed into one inferred
+approval state.
+
+The skill recommends `gpt-5.6-luna` as its preferred model. Provider fallback is
+owned by the invoking harness and is not encoded in the skill.
+
 - Review the corrected constitution and its source mapping.
 - Obtain explicit operator ratification and record its date.
 - Trial migration of a still-live old-SDLC ticket into Spec Kit without
