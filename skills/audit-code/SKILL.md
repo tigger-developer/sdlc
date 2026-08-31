@@ -10,7 +10,7 @@ The canonical SDLC root is exactly `~/.agents/sdlc`. Never search the
 filesystem to locate it. If `~/.agents/sdlc/MAIN.md` is absent or unreadable,
 report that exact path.
 
-Read `~/.agents/sdlc/MAIN.md` and
+Read `~/.agents/sdlc/MAIN.md`, `~/.agents/sdlc/AUDITS.md`, and
 `~/.agents/sdlc/CODING.md` in full. Read only the language, testing, Git,
 documentation, and domain standards selected by the project constitution or
 needed for the changed files.
@@ -31,25 +31,6 @@ For each finding, give severity, a file and line reference, the violated
 requirement or standard with a descriptor, evidence, consequence, and concrete
 remediation. Do not repair the code.
 
-Run in a fresh context that did not author the implementation. End with exactly:
-
-```text
-AUDIT: audit-code
-AUDITOR_PROVIDER: <provider used for this audit>
-AUDITOR_MODEL: <model used for this audit>
-VERDICT: PASS
-```
-
-or, when any finding exists:
-
-```text
-AUDIT: audit-code
-AUDITOR_PROVIDER: <provider used for this audit>
-AUDITOR_MODEL: <model used for this audit>
-VERDICT: FAIL
-
-1. <finding ordered by severity>
-```
-
-Any finding requires `FAIL`. Do not modify the artefact or mark your own
-finding resolved. A changed artefact requires a fresh audit.
+Run in a fresh context that did not author the implementation. Follow the exact
+finding classifications, verdict format, independence rules, and changed-
+artefact rule in `~/.agents/sdlc/AUDITS.md`, using `AUDIT: audit-code`.

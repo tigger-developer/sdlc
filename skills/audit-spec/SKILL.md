@@ -10,7 +10,7 @@ The canonical SDLC root is exactly `~/.agents/sdlc`. Never search the
 filesystem to locate it. If `~/.agents/sdlc/MAIN.md` is absent or unreadable,
 report that exact path.
 
-Read `~/.agents/sdlc/MAIN.md` and
+Read `~/.agents/sdlc/MAIN.md`, `~/.agents/sdlc/AUDITS.md`, and
 `~/.agents/sdlc/ISSUES.md` in full. Read the project constitution. When its
 `Specification Baseline` classifies the project as brownfield, read the named
 requirement authorities relevant to the active change. Review the active
@@ -41,25 +41,6 @@ For each finding, state the affected requirement with its descriptor, the gap
 or contradiction, the consequence, and a concrete proposed correction. Do not
 rewrite the specification.
 
-Run in a fresh context that did not author the specification. End with exactly:
-
-```text
-AUDIT: audit-spec
-AUDITOR_PROVIDER: <provider used for this audit>
-AUDITOR_MODEL: <model used for this audit>
-VERDICT: PASS
-```
-
-or, when any finding exists:
-
-```text
-AUDIT: audit-spec
-AUDITOR_PROVIDER: <provider used for this audit>
-AUDITOR_MODEL: <model used for this audit>
-VERDICT: FAIL
-
-1. <finding ordered by severity>
-```
-
-Any finding requires `FAIL`. Do not modify the artefact or mark your own
-finding resolved. A changed artefact requires a fresh audit.
+Run in a fresh context that did not author the specification. Follow the exact
+finding classifications, verdict format, independence rules, and changed-
+artefact rule in `~/.agents/sdlc/AUDITS.md`, using `AUDIT: audit-spec`.

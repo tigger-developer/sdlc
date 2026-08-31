@@ -20,6 +20,7 @@ root is exactly `~/.agents/sdlc` for every supported provider.
 | `src/MAIN.md` | Compact universal rules and progressive-loading routes |
 | `src/ISSUES.md` | Specification and acceptance-criteria standards |
 | `src/TESTING.md` | Behavioural testing and evidence standards |
+| `src/AUDITS.md` | Independent verdict and autonomous phase-convergence contract |
 | `src/CODING.md` | Cross-language implementation standards |
 | `src/GIT.md` | Source-control and recoverability standards |
 | `src/DOCUMENTATION.md` | Public technical-documentation standards |
@@ -191,7 +192,7 @@ Spec Kit owns the feature workflow. Its
 [Agentic SDD guide](https://github.com/github/spec-kit/blob/main/docs/reference/agentic-sdd.md)
 defines the upstream command sequence and artefacts. The SDLC preset keeps that
 orchestration and adds progressively loaded engineering standards plus four
-independent audit gates.
+independent audits with bounded autonomous phase convergence.
 
 Spec Kit documentation writes commands as `/speckit.*`. Codex skills mode uses
 the equivalent `$speckit-*` form. The examples below use Codex syntax; use the
@@ -206,8 +207,9 @@ active `specs/` feature directory carry the durable state.
 
 An independent audit is the only stage transition that mandates a different
 context. The auditor must not be the context that authored the artefact. The
-main context may dispatch a fresh subagent and resume after its verdict, or the
-operator may run the audit in a separate agent session.
+main context dispatches a fresh subagent and resumes after its verdict when the
+harness supports delegation. Otherwise the operator runs the audit in a
+separate agent session.
 
 Apply these rules to the main context:
 
@@ -236,6 +238,25 @@ Previewing is an operator convenience. It is not approval, a workflow gate, or
 a reason for the agent to stop. The SDLC does not prescribe or install a
 particular preview implementation.
 
+### Autonomous phase convergence
+
+The main authoring context owns convergence within the current phase. A failed
+audit is not an operator handback when its blocking findings can be remedied in
+the current artefact. The author remediates them, records its decisions and
+assumptions, and dispatches a fresh independent audit. The initial audit counts
+as attempt one; each phase permits at most five attempts.
+
+The author stops earlier when remediation would change a signed-off upstream
+artefact or requires a human-controlled product, scope, security, privacy,
+access, persisted-data, external-contract, or irreversible decision. It must
+not change upstream authority or switch auditors merely to obtain a PASS.
+
+On PASS, the author presents the candidate and requests operator sign-off. The
+handback states the attempt count, decisions and rationale, assumptions or
+upstream changes requiring validation, retained advisories, and any unresolved
+blockers. A fifth FAIL produces the same consolidated handback without phase
+sign-off.
+
 ### Step-by-step feature workflow
 
 1. **Specify the required behaviour.**
@@ -258,10 +279,11 @@ particular preview implementation.
 
 3. **Audit the specification in a fresh context.**
 
-   Run `audit-spec`. It must return `PASS` before planning. Record the provider,
-   model, artefact revision, verdict, and findings in the feature's `audits.md`.
-   Any later specification or clarification change invalidates that PASS and
-   requires another fresh audit.
+   The main context dispatches `audit-spec`. It remediates blocking findings
+   within the specification and re-audits under the five-attempt limit. A
+   specification or clarification change invalidates that specification's PASS.
+   Record every attempt in the feature's `audits.md`; planning requires the
+   current PASS and operator sign-off.
 
 4. **Plan the implementation.**
 
@@ -273,8 +295,11 @@ particular preview implementation.
 
 5. **Audit the design in a fresh context.**
 
-   Run `audit-design`. It must return `PASS` before test design or task
-   generation. A later plan or design change invalidates that PASS.
+   The main context dispatches `audit-design`, remediates current-design
+   blockers, and re-audits under the five-attempt limit. It may make reasonable,
+   reversible technical decisions consistent with the signed-off specification
+   and must report them at handback. Test design and task generation require the
+   current PASS and operator sign-off.
 
 6. **Optionally generate focused checklists.**
 
@@ -291,9 +316,9 @@ particular preview implementation.
 
 8. **Audit the tests and tasks in a fresh context.**
 
-   Run `audit-tests`. It must return `PASS` before implementation. A later
-   change to the test design, traceability, or affected tasks invalidates that
-   PASS.
+   The main context dispatches `audit-tests`, remediates current test-design or
+   traceability blockers, and re-audits under the five-attempt limit.
+   Implementation requires the current PASS and operator sign-off.
 
 9. **Analyse cross-artefact consistency.**
 
@@ -311,9 +336,10 @@ particular preview implementation.
 
 11. **Audit the implementation in a fresh context.**
 
-    Run `audit-code` after implementation and verification. It must return
-    `PASS` before completion or convergence. Any subsequent implementation
-    change invalidates that PASS.
+    The main context dispatches `audit-code` after implementation and
+    verification. It remediates implementation blockers and re-audits under the
+    five-attempt limit. Completion or convergence requires the current PASS and
+    operator sign-off.
 
 12. **Converge and repeat when necessary.**
 
@@ -327,13 +353,13 @@ The resulting control flow is:
 
 ```text
 main:  specify -> clarify
-fresh: audit-spec PASS
+fresh: audit-spec -> main remediation -> fresh re-audit, at most 5 attempts
 main:  plan
-fresh: audit-design PASS
+fresh: audit-design -> main remediation -> fresh re-audit, at most 5 attempts
 main:  checklist (optional) -> tasks
-fresh: audit-tests PASS
+fresh: audit-tests -> main remediation -> fresh re-audit, at most 5 attempts
 main:  analyze -> implement
-fresh: audit-code PASS
+fresh: audit-code -> main remediation -> fresh re-audit, at most 5 attempts
 main:  converge -> repeat affected stages when work is appended
 ```
 
@@ -391,11 +417,13 @@ The audit skills are findings-only and have a common machine-checkable verdict:
 - `audit-tests` challenges evidence and coverage; and
 - `audit-code` reviews implementation against the selected standards.
 
-Advisory skills diagnose problems, recommend technical decisions, summarize
-open work, or load minimal project context. Audits run in a fresh context, never
-modify the judged artefact, and identify both provider and model in their
-verdict. A skill's frontmatter may recommend an inexpensive audit provider and
-model; runtime configuration has precedence.
+Audits classify material phase blockers as `[BLOCKING]` and optional
+improvements as `[ADVISORY]`. A PASS may contain advisories; a FAIL requires at
+least one blocking finding. Audits run in a fresh context, never modify the
+judged artefact, and identify both provider and model in their verdict. The
+shared contract is `~/.agents/sdlc/AUDITS.md`. A skill's frontmatter may
+recommend an inexpensive audit provider and model; runtime configuration has
+precedence.
 
 The explicit-only `migrate-legacy-acs-to-sdlc-v1` skill snapshots every GitHub
 issue, including comments and recorded implementation links, then reconciles

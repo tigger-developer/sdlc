@@ -15,8 +15,8 @@ type Verdict struct {
 	Findings []string
 }
 
-// ParseVerdict fails closed on missing headers, unknown results, or a PASS
-// accompanied by findings.
+// ParseVerdict fails closed on missing headers, unknown results, malformed
+// finding classifications, or a verdict inconsistent with its findings.
 func ParseVerdict(report string) (Verdict, error) {
 	verdict := Verdict{}
 	seen := map[string]bool{}
@@ -66,11 +66,21 @@ func ParseVerdict(report string) (Verdict, error) {
 	if verdict.Result != "PASS" && verdict.Result != "FAIL" {
 		return Verdict{}, fmt.Errorf("unsupported verdict %q", verdict.Result)
 	}
-	if verdict.Result == "PASS" && len(verdict.Findings) != 0 {
-		return Verdict{}, fmt.Errorf("PASS verdict contains findings")
+	hasBlocking := false
+	for _, finding := range verdict.Findings {
+		classification, err := findingClassification(finding)
+		if err != nil {
+			return Verdict{}, err
+		}
+		if classification == "BLOCKING" {
+			hasBlocking = true
+		}
 	}
-	if verdict.Result == "FAIL" && len(verdict.Findings) == 0 {
-		return Verdict{}, fmt.Errorf("FAIL verdict contains no numbered findings")
+	if verdict.Result == "PASS" && hasBlocking {
+		return Verdict{}, fmt.Errorf("PASS verdict contains a blocking finding")
+	}
+	if verdict.Result == "FAIL" && !hasBlocking {
+		return Verdict{}, fmt.Errorf("FAIL verdict contains no blocking finding")
 	}
 	return verdict, nil
 }
@@ -86,4 +96,16 @@ func isNumberedFinding(line string) bool {
 		}
 	}
 	return strings.TrimSpace(line[dot+1:]) != ""
+}
+
+func findingClassification(finding string) (string, error) {
+	dot := strings.IndexByte(finding, '.')
+	content := strings.TrimSpace(finding[dot+1:])
+	for _, classification := range []string{"BLOCKING", "ADVISORY"} {
+		prefix := "[" + classification + "] "
+		if strings.HasPrefix(content, prefix) && strings.TrimSpace(strings.TrimPrefix(content, prefix)) != "" {
+			return classification, nil
+		}
+	}
+	return "", fmt.Errorf("audit finding lacks BLOCKING or ADVISORY classification: %q", finding)
 }

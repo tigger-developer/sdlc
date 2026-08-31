@@ -34,8 +34,10 @@ The command fragments reference the canonical installed root
 `~/.agents/sdlc`. No command may search for an alternative SDLC root.
 
 The command fragments require independent `audit-spec`, `audit-design`,
-`audit-tests`, and `audit-code` PASS verdicts between stages. Remove the
-development preset with:
+`audit-tests`, and `audit-code` PASS verdicts between stages. The main authoring
+context remediates current-phase blocking findings and dispatches fresh audits
+for at most five attempts before returning for operator sign-off. The shared
+contract is `~/.agents/sdlc/AUDITS.md`. Remove the development preset with:
 
 ```bash
 specify preset remove sdlc-standards

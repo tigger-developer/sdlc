@@ -16,10 +16,11 @@ The repository owns engineering standards:
 - findings-only audit and advisory skills; and
 - optional provider-integrated command safeguards.
 
-It does not own delivery modes, approval gates, ticket states, planning phases,
-or implementation orchestration. Spec Kit or the adopting project owns those
-concerns. It defines evidence preconditions for advancing between Spec Kit's
-existing stages, but does not create a parallel lifecycle.
+It does not own delivery modes, ticket states, planning phases, or a parallel
+implementation lifecycle. Spec Kit or the adopting project owns those concerns.
+The preset defines audit evidence, bounded autonomous remediation, and operator
+handback requirements within Spec Kit's existing stages without creating a
+second workflow.
 
 This separation makes the standards usable with more than one agent provider
 and prevents a large lifecycle prompt from being loaded before the task needs
@@ -33,6 +34,7 @@ sdlc/
 |   |-- MAIN.md
 |   |-- ISSUES.md
 |   |-- TESTING.md
+|   |-- AUDITS.md
 |   |-- CODING.md
 |   |-- GIT.md
 |   |-- DOCUMENTATION.md
@@ -61,6 +63,7 @@ runtime:
 |-- MAIN.md
 |-- ISSUES.md
 |-- TESTING.md
+|-- AUDITS.md
 |-- CODING.md
 |-- GIT.md
 |-- DOCUMENTATION.md
@@ -93,6 +96,7 @@ coding task
     |
     +-- requirements ----------> ISSUES.md
     +-- verification ----------> TESTING.md
+    +-- audited phase ---------> AUDITS.md
     +-- implementation --------> CODING.md
     +-- source control --------> GIT.md
     +-- technical docs --------> DOCUMENTATION.md
@@ -204,12 +208,12 @@ The composition is intentionally selective:
 | Spec Kit command | Standards loaded |
 |---|---|
 | `speckit.constitution` | Universal rules, then documents selected from verified project evidence |
-| `speckit.specify`, `speckit.clarify` | Universal and specification standards |
-| `speckit.plan` | Universal, coding, Git, documentation, and selected stack standards |
-| `speckit.tasks` | Universal, testing, documentation, and profile-specific standards |
-| `speckit.analyze` | Universal, specification, and testing standards |
-| `speckit.implement` | Universal and only the profile entries needed by current tasks |
-| `speckit.converge` | Universal, coding, testing, and selected profile entries |
+| `speckit.specify`, `speckit.clarify` | Universal, audit, and specification standards |
+| `speckit.plan` | Universal, audit, coding, Git, documentation, and selected stack standards |
+| `speckit.tasks` | Universal, audit, testing, documentation, and profile-specific standards |
+| `speckit.analyze` | Universal, audit, specification, and testing standards |
+| `speckit.implement` | Universal, audit, and only the profile entries needed by current tasks |
+| `speckit.converge` | Universal, audit, coding, testing, and selected profile entries |
 | `speckit.taskstoissues` | Universal identifier and source-of-truth rules |
 
 Spec Kit copies preset material into project state and materializes composed
@@ -225,8 +229,14 @@ neutral specification artefacts.
 
 Audit skills are independent, read-only challenges of specification, design,
 tests, or code. Every audit runs in a fresh context and emits its name, provider,
-model, and exact PASS or FAIL verdict. Any finding requires FAIL; changed
-artefacts require a fresh audit.
+model, and exact PASS or FAIL verdict. Blocking findings require FAIL;
+advisories may accompany PASS or FAIL. Changed artefacts require a fresh audit.
+
+The main authoring context owns convergence within each phase. It remediates
+current-phase blockers and dispatches a fresh auditor for at most five attempts
+without intermediate operator handback. It stops earlier for a signed-off
+upstream change or human-controlled decision. PASS, the fifth FAIL, or that
+earlier blocker produces one consolidated handback for operator sign-off.
 
 ```text
 specification -- audit-spec PASS --> plan and design
@@ -236,8 +246,9 @@ implementation -- audit-code PASS -> completion or convergence
 ```
 
 Verdicts are retained in the active feature's `audits.md`. The shared parser
-fails closed on missing or malformed verdicts. Advisory skills load context,
-diagnose, recommend, or summarize.
+fails closed on missing or malformed verdicts and inconsistent finding
+classifications. The canonical contract is `~/.agents/sdlc/AUDITS.md`.
+Advisory skills load context, diagnose, recommend, or summarize.
 
 The standards-only model removes the previous SDLC commands and its drafting
 and design workflow skills. The installer has a bounded retirement list for
@@ -272,6 +283,7 @@ trees.
 | Cross-language implementation standard | `src/CODING.md` |
 | Requirement or acceptance-criteria standard | `src/ISSUES.md` |
 | Testing standard | `src/TESTING.md` |
+| Independent audit and phase-convergence contract | `src/AUDITS.md` |
 | Technology standard | A focused file under `src/technologies/`, plus a route in `MAIN.md` |
 | Spec Kit command selection | `src/presets/sdlc-standards/` |
 | Project-initializer prompt | `src/prompts/project-init/` |

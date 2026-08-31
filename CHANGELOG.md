@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+Audits now distinguish `[BLOCKING]` findings from optional `[ADVISORY]`
+improvements. A PASS may contain advisories, while a FAIL requires at least one
+blocking finding. The fail-closed verdict parser enforces those classifications.
+
+Added a shared `AUDITS.md` contract for independent review and autonomous phase
+convergence. The main authoring context remediates current-phase blockers and
+dispatches fresh audits without operator handback for at most five attempts.
+It returns after PASS, the fifth FAIL, or an earlier human-controlled decision,
+with the decisions, assumptions, advisories, attempt history, and blockers
+needed for operator sign-off.
+
 Constitution, specification, clarification, planning, checklist, and task
 commands now present approval artefacts through the optional
 `HTML_PREVIEW_TOOL`, falling back to an available text editor or the exact

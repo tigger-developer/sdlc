@@ -73,11 +73,22 @@ adapter model.
 - `audit-spec`, `audit-design`, `audit-tests`, and `audit-code` run in contexts
   independent of the artefact author and never modify the judged artefact.
 - Every report names the audit, auditor provider, auditor model, and exact PASS
-  or FAIL verdict. Any finding requires FAIL.
-- Missing or malformed headers, PASS with findings, and FAIL without numbered
-  findings are rejected.
+  or FAIL verdict. Findings are classified as `[BLOCKING]` or `[ADVISORY]`.
+- PASS permits numbered advisory findings but no blocking finding. FAIL requires
+  at least one numbered blocking finding and may also contain advisories.
+- Missing or malformed headers, unclassified findings, PASS with a blocking
+  finding, and FAIL without a blocking finding are rejected.
 - Specification PASS precedes planning; design PASS precedes tests and tasks;
   test PASS precedes implementation; code PASS precedes completion or
   convergence.
 - A change to an audited artefact invalidates its PASS and requires a fresh
   audit whose receipt supersedes the previous result.
+- The main authoring context remediates current-phase blocking findings and
+  dispatches fresh independent audits without operator handback for at most five
+  attempts, counting the first audit.
+- Autonomous remediation stops earlier when it would change signed-off upstream
+  authority or requires a human-controlled product, scope, security, privacy,
+  access, persisted-data, external-contract, or irreversible decision.
+- Phase handback occurs after PASS, the fifth FAIL, or an earlier human-controlled
+  blocker and reports attempt history, decisions, assumptions requiring
+  validation, advisories, and unresolved blockers.

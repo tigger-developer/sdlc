@@ -58,6 +58,7 @@ work. Do not preload the entire library.
 |---|---|
 | Requirements, acceptance criteria, bugs, or clarification | `~/.agents/sdlc/ISSUES.md` |
 | Test design or verification | `~/.agents/sdlc/TESTING.md` |
+| Audits or audited phase transitions | `~/.agents/sdlc/AUDITS.md` |
 | Implementation or code review | `~/.agents/sdlc/CODING.md` |
 | Git, commits, branches, or hooks | `~/.agents/sdlc/GIT.md` |
 | Technical documentation | `~/.agents/sdlc/DOCUMENTATION.md` |

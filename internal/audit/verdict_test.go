@@ -13,13 +13,24 @@ func TestParseVerdictAcceptsPass(t *testing.T) {
 	}
 }
 
-func TestParseVerdictAcceptsFailWithFinding(t *testing.T) {
-	report := "AUDIT: audit-spec\nAUDITOR_PROVIDER: openai-codex\nAUDITOR_MODEL: gpt-5.6-luna\nVERDICT: FAIL\n\n1. Requirement R1, named export behavior, has no failure case.\n"
+func TestParseVerdictAcceptsPassWithAdvisory(t *testing.T) {
+	report := "AUDIT: audit-design\nAUDITOR_PROVIDER: openai-codex\nAUDITOR_MODEL: gpt-5.6-luna\nVERDICT: PASS\n\n1. [ADVISORY] Document the rejected cache alternative.\n"
 	verdict, err := ParseVerdict(report)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if verdict.Result != "FAIL" || len(verdict.Findings) != 1 {
+	if verdict.Result != "PASS" || len(verdict.Findings) != 1 {
+		t.Fatalf("verdict = %#v", verdict)
+	}
+}
+
+func TestParseVerdictAcceptsFailWithBlockingAndAdvisoryFindings(t *testing.T) {
+	report := "AUDIT: audit-spec\nAUDITOR_PROVIDER: openai-codex\nAUDITOR_MODEL: gpt-5.6-luna\nVERDICT: FAIL\n\n1. [BLOCKING] Requirement R1, named export behavior, has no failure case.\n2. [ADVISORY] Add a short rationale for the chosen terminology.\n"
+	verdict, err := ParseVerdict(report)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if verdict.Result != "FAIL" || len(verdict.Findings) != 2 {
 		t.Fatalf("verdict = %#v", verdict)
 	}
 }
@@ -28,8 +39,10 @@ func TestParseVerdictFailsClosed(t *testing.T) {
 	cases := []string{
 		"VERDICT: PASS\n",
 		"AUDIT: audit-code\nAUDITOR_PROVIDER: provider\nAUDITOR_MODEL: model\nVERDICT: MAYBE\n",
-		"AUDIT: audit-code\nAUDITOR_PROVIDER: provider\nAUDITOR_MODEL: model\nVERDICT: PASS\n1. finding\n",
+		"AUDIT: audit-code\nAUDITOR_PROVIDER: provider\nAUDITOR_MODEL: model\nVERDICT: PASS\n1. [BLOCKING] unsafe behavior\n",
 		"AUDIT: audit-code\nAUDITOR_PROVIDER: provider\nAUDITOR_MODEL: model\nVERDICT: FAIL\n",
+		"AUDIT: audit-code\nAUDITOR_PROVIDER: provider\nAUDITOR_MODEL: model\nVERDICT: FAIL\n1. [ADVISORY] optional improvement\n",
+		"AUDIT: audit-code\nAUDITOR_PROVIDER: provider\nAUDITOR_MODEL: model\nVERDICT: FAIL\n1. unclassified finding\n",
 		"AUDIT: audit-code\nAUDIT: audit-tests\nAUDITOR_PROVIDER: provider\nAUDITOR_MODEL: model\nVERDICT: PASS\n",
 		"AUDIT: audit-code\nAUDITOR_PROVIDER: provider\nAUDITOR_MODEL: model\nVERDICT: PASS\nunstructured explanation\n",
 	}

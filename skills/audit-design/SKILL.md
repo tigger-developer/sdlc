@@ -10,7 +10,8 @@ The canonical SDLC root is exactly `~/.agents/sdlc`. Never search the
 filesystem to locate it. If `~/.agents/sdlc/MAIN.md` is absent or unreadable,
 report that exact path.
 
-Read `~/.agents/sdlc/MAIN.md`, `~/.agents/sdlc/CODING.md`,
+Read `~/.agents/sdlc/MAIN.md`, `~/.agents/sdlc/AUDITS.md`,
+`~/.agents/sdlc/CODING.md`,
 `~/.agents/sdlc/TESTING.md`, and `~/.agents/sdlc/DOCUMENTATION.md` in full.
 Read the active specification, design or plan, project constitution, external
 integration contracts, and only the technology standards selected by the
@@ -37,25 +38,6 @@ For each finding, identify the affected requirement or decision with its
 descriptor, the missing or unsafe design reasoning, the consequence, and a
 concrete correction. Do not redesign the artefact.
 
-Run in a fresh context that did not author the design. End with exactly:
-
-```text
-AUDIT: audit-design
-AUDITOR_PROVIDER: <provider used for this audit>
-AUDITOR_MODEL: <model used for this audit>
-VERDICT: PASS
-```
-
-or, when any finding exists:
-
-```text
-AUDIT: audit-design
-AUDITOR_PROVIDER: <provider used for this audit>
-AUDITOR_MODEL: <model used for this audit>
-VERDICT: FAIL
-
-1. <finding ordered by severity>
-```
-
-Any finding requires `FAIL`. Do not modify the artefact or mark your own
-finding resolved. A changed artefact requires a fresh audit.
+Run in a fresh context that did not author the design. Follow the exact finding
+classifications, verdict format, independence rules, and changed-artefact rule
+in `~/.agents/sdlc/AUDITS.md`, using `AUDIT: audit-design`.
