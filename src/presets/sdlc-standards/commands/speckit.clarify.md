@@ -18,7 +18,8 @@ duplicate, or silently replace an approved existing requirement.
 
 Clarification changes invalidate an earlier `audit-spec` PASS. After
 clarification is complete, run `audit-spec` in a fresh context and record its
-current verdict before planning.
+current verdict before planning. A satisfied PROVISIONAL receipt is an
+effective PASS under `AUDITS.md`.
 The main authoring context owns convergence under `AUDITS.md`: remediate
 current-phase blockers and dispatch fresh audits without handback, up to five
 total attempts, then request operator sign-off with the required decision and

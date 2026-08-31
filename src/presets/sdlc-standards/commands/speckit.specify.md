@@ -29,8 +29,9 @@ baseline source is missing, conflicting, or unresolved, make that clarification
 explicit rather than guessing.
 
 After specification and clarification are complete, the specification MUST
-receive `audit-spec` PASS in a fresh agent context. Record the verdict in the
-active feature's `audits.md`. Planning MUST NOT begin without a current PASS.
+receive `audit-spec` PASS or satisfy a PROVISIONAL receipt under `AUDITS.md`.
+Record the verdict and any receipt in the active feature's `audits.md`.
+Planning MUST NOT begin without a current effective PASS.
 The main authoring context owns convergence under `AUDITS.md`: remediate
 current-phase blockers and dispatch fresh audits without handback, up to five
 total attempts, then request operator sign-off with the required decision and

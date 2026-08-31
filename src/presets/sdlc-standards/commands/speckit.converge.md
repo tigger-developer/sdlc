@@ -11,7 +11,8 @@ verified implementation evidence from remaining tasks and give every cited
 identifier an adjacent descriptor.
 
 Do not declare convergence while the implementation lacks a current
-`audit-code` PASS in the feature's `audits.md`. Changes made during convergence
-invalidate that PASS and require a fresh independent audit.
+effective `audit-code` PASS in the feature's `audits.md`. Changes made during
+convergence invalidate that PASS and require a fresh independent audit unless
+they satisfy an exact PROVISIONAL condition under `AUDITS.md`.
 Follow the autonomous convergence and handback rules in `AUDITS.md` for any
 resulting implementation and audit-code cycle.

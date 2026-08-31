@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+Added a machine-checkable PROVISIONAL audit verdict for exact mandatory
+corrections that require no further judgement. Each `[CONDITION]` includes a
+deterministic `VERIFY` clause. A condition receipt records the audited and
+corrected revisions, evidence, and effective PASS without another model audit;
+any additional, unverifiable, or judgement-based change returns to the normal
+fresh-audit loop.
+
 Audits now distinguish `[BLOCKING]` findings from optional `[ADVISORY]`
 improvements. A PASS may contain advisories, while a FAIL requires at least one
 blocking finding. The fail-closed verdict parser enforces those classifications.

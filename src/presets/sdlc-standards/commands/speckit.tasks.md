@@ -12,9 +12,10 @@ evidence, error and boundary behaviour, documentation, migration, security, and
 human validation where relevant.
 
 Before generating tasks, verify that the plan and design have a current
-`audit-design` PASS in the feature's `audits.md`. After test design and
-traceability are complete, they MUST receive `audit-tests` PASS in a fresh
-agent context. Implementation MUST NOT begin without that current PASS.
+effective `audit-design` PASS in the feature's `audits.md`. After test design
+and traceability are complete, they MUST receive `audit-tests` PASS or satisfy
+a PROVISIONAL receipt under `AUDITS.md`. Implementation MUST NOT begin without
+that current effective PASS.
 The main authoring context owns convergence under `AUDITS.md`: remediate
 current-phase blockers and dispatch fresh audits without handback, up to five
 total attempts, then request operator sign-off with the required decision and

@@ -20,12 +20,16 @@ Classify each finding as:
 - `[BLOCKING]`: a material contradiction, missing decision, unsafe boundary,
   unverifiable requirement or evidence claim, standards violation, or defect
   that prevents phase sign-off.
+- `[CONDITION]`: an exact mandatory correction that requires no further
+  judgement and has a stated deterministic verification method.
 - `[ADVISORY]`: an optional improvement that does not prevent phase sign-off.
 
 Do not fail an audit solely because an advisory exists. Use `PASS` when no
-blocking finding exists; a PASS may include numbered advisory findings. Use
-`FAIL` when at least one blocking finding exists; a FAIL may also include
-advisories. End with exactly one of these machine-checkable forms:
+required correction remains; a PASS may include numbered advisory findings.
+Use `PROVISIONAL` when every required correction qualifies as a condition and
+no blocking finding exists. Use `FAIL` when at least one blocking finding
+exists. A PROVISIONAL or FAIL verdict may also include advisories. End with
+exactly one of these machine-checkable forms:
 
 ```text
 AUDIT: <audit name>
@@ -42,6 +46,18 @@ or:
 AUDIT: <audit name>
 AUDITOR_PROVIDER: <provider used for this audit>
 AUDITOR_MODEL: <model used for this audit>
+VERDICT: PROVISIONAL
+
+1. [CONDITION] <exact required correction> | VERIFY: <deterministic check>
+2. [ADVISORY] <optional additional finding>
+```
+
+or:
+
+```text
+AUDIT: <audit name>
+AUDITOR_PROVIDER: <provider used for this audit>
+AUDITOR_MODEL: <model used for this audit>
 VERDICT: FAIL
 
 1. [BLOCKING] <material finding ordered by severity>
@@ -49,7 +65,42 @@ VERDICT: FAIL
 ```
 
 Omit numbered lines when a PASS has no advisories. A changed artefact requires a
-fresh independent audit of that artefact.
+fresh independent audit unless every change satisfies an exact PROVISIONAL
+condition under the receipt contract below.
+
+## Provisional conditions
+
+A condition is permitted only when it is:
+
+- narrow, unambiguous, and mechanical;
+- consistent with every signed-off upstream artefact;
+- deterministically verifiable by the authoring context; and
+- unrelated to product behaviour, architecture, security, privacy, access,
+  persisted data, external contracts, or irreversible outcomes.
+
+The auditor must state the exact correction and its verification method in the
+same `[CONDITION]` finding. If the correction requires interpretation, a choice
+between alternatives, or a material change, classify it as `[BLOCKING]`
+instead.
+
+The authoring context may apply exactly the stated conditions without a fresh
+audit. It must verify each condition, ensure no additional change entered the
+corrected revision, and append this receipt to the active feature's `audits.md`:
+
+```text
+CONDITION_RECEIPT:
+AUDIT: <audit name>
+AUDITED_REVISION: <revision that received PROVISIONAL>
+CORRECTED_REVISION: <revision containing only the conditions>
+EFFECTIVE_VERDICT: PASS
+
+1. [SATISFIED] <condition> | EVIDENCE: <verification result>
+```
+
+Record every condition in the auditor's order. The receipt matures the
+PROVISIONAL verdict to an effective PASS without another model audit. If any
+condition cannot be applied or verified exactly, or the corrected revision
+contains another change, treat the attempt as FAIL and obtain a fresh audit.
 
 ## Autonomous phase convergence
 
@@ -59,9 +110,13 @@ that belong to the current phase and dispatch a fresh audit without handing
 back to the operator between attempts. It may make and record reasonable,
 reversible decisions consistent with signed-off upstream artefacts.
 
+After a PROVISIONAL verdict, apply and verify its conditions under the receipt
+contract. This does not consume another audit attempt. A condition that cannot
+be satisfied exactly converts the attempt to FAIL for the five-attempt limit.
+
 Stop the autonomous loop when:
 
-- the audit passes;
+- the audit passes or a PROVISIONAL verdict matures to effective PASS;
 - five audit attempts in the phase have failed;
 - remediation would change a signed-off upstream artefact; or
 - a decision affects product behaviour, scope, security, privacy, access,
@@ -75,8 +130,9 @@ favourable verdict.
 
 ## Phase handback
 
-Return to the operator only after PASS, the fifth failed attempt, or an earlier
-human-controlled blocker. Report:
+Return to the operator only after PASS, effective PASS from a satisfied
+PROVISIONAL verdict, the fifth failed attempt, or an earlier human-controlled
+blocker. Report:
 
 - the current verdict and number of audit attempts;
 - decisions made within the signed-off authority and their rationale;
@@ -84,5 +140,5 @@ human-controlled blocker. Report:
 - retained advisories; and
 - any unresolved blocking findings.
 
-An audit PASS is independent evidence, not operator approval. Request operator
-sign-off before advancing to the next phase.
+An audit PASS or effective PASS is independent evidence, not operator approval.
+Request operator sign-off before advancing to the next phase.

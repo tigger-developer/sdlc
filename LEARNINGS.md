@@ -96,11 +96,13 @@ The audit skills remain findings-only. They:
 - cite evidence and the applicable requirement or standard;
 - recommend a concrete correction;
 - do not modify the thing they judge; and
-- emit a machine-checkable PASS or FAIL verdict identifying provider and model.
+- emit a machine-checkable PASS, PROVISIONAL, or FAIL verdict identifying
+  provider and model, with exact deterministic conditions for PROVISIONAL.
 
-Each audit runs in a fresh context. A finding, malformed result, or later change
-invalidates PASS. This avoids self-review while keeping detailed standards in
-one place.
+Each audit runs in a fresh context. A blocking finding, malformed result, or
+unrelated later change invalidates PASS. Exact PROVISIONAL conditions may be
+corrected and verified mechanically without another model audit. This avoids
+self-review while keeping detailed standards in one place.
 
 ## Behaviour is not source text
 

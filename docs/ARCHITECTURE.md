@@ -229,14 +229,17 @@ neutral specification artefacts.
 
 Audit skills are independent, read-only challenges of specification, design,
 tests, or code. Every audit runs in a fresh context and emits its name, provider,
-model, and exact PASS or FAIL verdict. Blocking findings require FAIL;
-advisories may accompany PASS or FAIL. Changed artefacts require a fresh audit.
+model, and exact PASS, PROVISIONAL, or FAIL verdict. Blocking findings require
+FAIL, exact mechanical conditions permit PROVISIONAL, and advisories may
+accompany any verdict. Changed artefacts require a fresh audit unless they
+exactly satisfy a PROVISIONAL condition and carry its evidence receipt.
 
 The main authoring context owns convergence within each phase. It remediates
 current-phase blockers and dispatches a fresh auditor for at most five attempts
 without intermediate operator handback. It stops earlier for a signed-off
 upstream change or human-controlled decision. PASS, the fifth FAIL, or that
-earlier blocker produces one consolidated handback for operator sign-off.
+earlier blocker produces one consolidated handback for operator sign-off. A
+satisfied PROVISIONAL receipt is effective PASS for this purpose.
 
 ```text
 specification -- audit-spec PASS --> plan and design
@@ -244,6 +247,11 @@ plan/design  -- audit-design PASS -> tests and tasks
 test design  -- audit-tests PASS --> implementation
 implementation -- audit-code PASS -> completion or convergence
 ```
+
+In this diagram, PASS includes effective PASS produced by satisfying every exact
+condition in a PROVISIONAL verdict. The author records the audited revision,
+corrected revision, deterministic evidence, and absence of additional changes
+instead of dispatching another model audit.
 
 Verdicts are retained in the active feature's `audits.md`. The shared parser
 fails closed on missing or malformed verdicts and inconsistent finding

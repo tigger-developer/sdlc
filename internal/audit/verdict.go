@@ -63,24 +63,34 @@ func ParseVerdict(report string) (Verdict, error) {
 	if verdict.Audit == "" || verdict.Provider == "" || verdict.Model == "" || verdict.Result == "" {
 		return Verdict{}, fmt.Errorf("audit verdict is missing a required header")
 	}
-	if verdict.Result != "PASS" && verdict.Result != "FAIL" {
+	if verdict.Result != "PASS" && verdict.Result != "PROVISIONAL" && verdict.Result != "FAIL" {
 		return Verdict{}, fmt.Errorf("unsupported verdict %q", verdict.Result)
 	}
 	hasBlocking := false
+	hasCondition := false
 	for _, finding := range verdict.Findings {
 		classification, err := findingClassification(finding)
 		if err != nil {
 			return Verdict{}, err
 		}
-		if classification == "BLOCKING" {
+		switch classification {
+		case "BLOCKING":
 			hasBlocking = true
+		case "CONDITION":
+			hasCondition = true
+			if err := validateCondition(finding); err != nil {
+				return Verdict{}, err
+			}
 		}
 	}
-	if verdict.Result == "PASS" && hasBlocking {
-		return Verdict{}, fmt.Errorf("PASS verdict contains a blocking finding")
+	if verdict.Result == "PASS" && (hasBlocking || hasCondition) {
+		return Verdict{}, fmt.Errorf("PASS verdict contains a blocking finding or condition")
 	}
-	if verdict.Result == "FAIL" && !hasBlocking {
-		return Verdict{}, fmt.Errorf("FAIL verdict contains no blocking finding")
+	if verdict.Result == "PROVISIONAL" && (hasBlocking || !hasCondition) {
+		return Verdict{}, fmt.Errorf("PROVISIONAL verdict requires a condition and no blocking finding")
+	}
+	if verdict.Result == "FAIL" && (!hasBlocking || hasCondition) {
+		return Verdict{}, fmt.Errorf("FAIL verdict requires a blocking finding and no condition")
 	}
 	return verdict, nil
 }
@@ -101,11 +111,22 @@ func isNumberedFinding(line string) bool {
 func findingClassification(finding string) (string, error) {
 	dot := strings.IndexByte(finding, '.')
 	content := strings.TrimSpace(finding[dot+1:])
-	for _, classification := range []string{"BLOCKING", "ADVISORY"} {
+	for _, classification := range []string{"BLOCKING", "CONDITION", "ADVISORY"} {
 		prefix := "[" + classification + "] "
 		if strings.HasPrefix(content, prefix) && strings.TrimSpace(strings.TrimPrefix(content, prefix)) != "" {
 			return classification, nil
 		}
 	}
-	return "", fmt.Errorf("audit finding lacks BLOCKING or ADVISORY classification: %q", finding)
+	return "", fmt.Errorf("audit finding lacks BLOCKING, CONDITION, or ADVISORY classification: %q", finding)
+}
+
+func validateCondition(finding string) error {
+	prefix := "[CONDITION] "
+	content := strings.TrimSpace(finding[strings.IndexByte(finding, '.')+1:])
+	condition := strings.TrimPrefix(content, prefix)
+	parts := strings.SplitN(condition, " | VERIFY: ", 2)
+	if len(parts) != 2 || strings.TrimSpace(parts[0]) == "" || strings.TrimSpace(parts[1]) == "" {
+		return fmt.Errorf("audit condition requires a correction and deterministic VERIFY clause: %q", finding)
+	}
+	return nil
 }

@@ -16,9 +16,10 @@ not duplicate the standards text in `plan.md`; record project decisions and
 references.
 
 Before planning, verify that the active specification has a current
-`audit-spec` PASS in the feature's `audits.md`. After the plan and design are
-complete, they MUST receive `audit-design` PASS in a fresh agent context. Test
-design and task generation MUST NOT begin without that current PASS.
+effective `audit-spec` PASS in the feature's `audits.md`. After the plan and
+design are complete, they MUST receive `audit-design` PASS or satisfy a
+PROVISIONAL receipt under `AUDITS.md`. Test design and task generation MUST NOT
+begin without that current effective PASS.
 The main authoring context owns convergence under `AUDITS.md`: remediate
 current-phase blockers and dispatch fresh audits without handback, up to five
 total attempts, then request operator sign-off with the required decision and

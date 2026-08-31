@@ -251,11 +251,18 @@ artefact or requires a human-controlled product, scope, security, privacy,
 access, persisted-data, external-contract, or irreversible decision. It must
 not change upstream authority or switch auditors merely to obtain a PASS.
 
-On PASS, the author presents the candidate and requests operator sign-off. The
-handback states the attempt count, decisions and rationale, assumptions or
-upstream changes requiring validation, retained advisories, and any unresolved
-blockers. A fifth FAIL produces the same consolidated handback without phase
-sign-off.
+On PASS, or after satisfying a PROVISIONAL verdict's exact conditions, the
+author presents the candidate and requests operator sign-off. The handback
+states the attempt count, decisions and rationale, assumptions or upstream
+changes requiring validation, retained advisories, and any unresolved blockers.
+A fifth FAIL produces the same consolidated handback without phase sign-off.
+
+A PROVISIONAL verdict avoids another model audit only for exact, mechanical,
+deterministically verifiable corrections that do not affect behaviour,
+architecture, security, privacy, access, persisted data, external contracts, or
+irreversible outcomes. The author records the audited and corrected revisions,
+condition evidence, and effective PASS in `audits.md`. Any additional or
+judgement-based change requires a fresh audit.
 
 ### Step-by-step feature workflow
 
@@ -281,9 +288,10 @@ sign-off.
 
    The main context dispatches `audit-spec`. It remediates blocking findings
    within the specification and re-audits under the five-attempt limit. A
-   specification or clarification change invalidates that specification's PASS.
-   Record every attempt in the feature's `audits.md`; planning requires the
-   current PASS and operator sign-off.
+   specification or clarification change invalidates that specification's PASS
+   unless it exactly satisfies a PROVISIONAL condition. Record every attempt and
+   any condition receipt in the feature's `audits.md`; planning requires the
+   current effective PASS and operator sign-off.
 
 4. **Plan the implementation.**
 
@@ -299,7 +307,7 @@ sign-off.
    blockers, and re-audits under the five-attempt limit. It may make reasonable,
    reversible technical decisions consistent with the signed-off specification
    and must report them at handback. Test design and task generation require the
-   current PASS and operator sign-off.
+   current effective PASS and operator sign-off.
 
 6. **Optionally generate focused checklists.**
 
@@ -318,7 +326,7 @@ sign-off.
 
    The main context dispatches `audit-tests`, remediates current test-design or
    traceability blockers, and re-audits under the five-attempt limit.
-   Implementation requires the current PASS and operator sign-off.
+   Implementation requires the current effective PASS and operator sign-off.
 
 9. **Analyse cross-artefact consistency.**
 
@@ -338,8 +346,8 @@ sign-off.
 
     The main context dispatches `audit-code` after implementation and
     verification. It remediates implementation blockers and re-audits under the
-    five-attempt limit. Completion or convergence requires the current PASS and
-    operator sign-off.
+    five-attempt limit. Completion or convergence requires the current effective
+    PASS and operator sign-off.
 
 12. **Converge and repeat when necessary.**
 
@@ -417,13 +425,14 @@ The audit skills are findings-only and have a common machine-checkable verdict:
 - `audit-tests` challenges evidence and coverage; and
 - `audit-code` reviews implementation against the selected standards.
 
-Audits classify material phase blockers as `[BLOCKING]` and optional
-improvements as `[ADVISORY]`. A PASS may contain advisories; a FAIL requires at
-least one blocking finding. Audits run in a fresh context, never modify the
-judged artefact, and identify both provider and model in their verdict. The
-shared contract is `~/.agents/sdlc/AUDITS.md`. A skill's frontmatter may
-recommend an inexpensive audit provider and model; runtime configuration has
-precedence.
+Audits classify material phase blockers as `[BLOCKING]`, exact mechanical
+corrections as `[CONDITION]`, and optional improvements as `[ADVISORY]`. PASS
+permits advisories, PROVISIONAL requires at least one condition, and FAIL
+requires at least one blocking finding. Audits run in a fresh context, never
+modify the judged artefact, and identify both provider and model in their
+verdict. The shared contract is `~/.agents/sdlc/AUDITS.md`. A skill's
+frontmatter may recommend an inexpensive audit provider and model; runtime
+configuration has precedence.
 
 The explicit-only `migrate-legacy-acs-to-sdlc-v1` skill snapshots every GitHub
 issue, including comments and recorded implementation links, then reconciles
