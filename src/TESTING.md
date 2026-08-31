@@ -205,6 +205,17 @@ suite; `make test` is preferred when the project uses Make. Keep one-off checks
 out of that persistent regression target. Bound test logs and generated output
 so failed runs cannot exhaust storage.
 
+Metered external models, APIs, hosted services, tests, and probes must never be
+embedded in automated regression tests, persistent test suites, build targets,
+CI, scheduled jobs, or other repeatedly triggered automation. Classify metered
+verification as a bounded one-off test or user test.
+
+Once a skill or governing workflow has been validly invoked, its required
+metered operations, including defined retry or audit loops, are authorized
+without separate approval for each call. A bounded one-off or user test selected
+within authorized work is likewise authorized. Do not interrupt the workflow
+merely because an invocation is metered.
+
 ## Verification reporting
 
 State exactly what was run, what passed, what failed, and what was not run.

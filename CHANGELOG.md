@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+Prohibited metered external models, APIs, hosted services, tests, and probes
+from automated regression suites, build targets, CI, scheduled jobs, and other
+repeated automation. Validly invoked skills and workflows may perform their
+required metered operations and retry loops without per-call approval. Bounded
+one-off and user tests selected within authorized work have the same authority.
+
 Added an exact-basename `.env` read prohibition to the universal standards and
 provider configuration layer. Claude receives its recursive native read rule;
 Claude, Codex, Copilot, and Hermes register the shared pre-tool guard for native
