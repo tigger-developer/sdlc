@@ -175,6 +175,22 @@ blocker. Report:
 An audit PASS or effective PASS is independent evidence, not operator approval.
 Request operator sign-off before advancing to the next phase.
 
+The operator may sign off the current phase and authorize one or more named,
+consecutive downstream phases in the same instruction. This authorization does
+not pre-approve artefacts that do not yet exist or replace any required audit.
+It permits the authoring context to advance through the named phases without an
+intermediate handback when each required audit reaches effective PASS and no
+autonomous-loop stop condition applies.
+
+After sign-off of an audited design, an instruction to "move on to test and
+build" authorizes task and test-traceability generation, `audit-tests`
+convergence, cross-artefact analysis, TDD implementation, and `audit-code`
+convergence. It does not waive RED/GREEN evidence, authorize an upstream change,
+or silently authorize a one-off or user test requiring human participation or
+separate external authority. Return after the authorized sequence with the
+decisions, assumptions, evidence, advisories, and unresolved matters required
+by this section.
+
 ## Revision and completion boundaries
 
 An audit verdict remains evidence for the artefact revision and scope it

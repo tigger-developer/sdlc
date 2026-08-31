@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+Allowed operators to authorize named consecutive delivery phases in one
+instruction. After audited design sign-off, "move on to test and build" now
+covers task and test-traceability generation, test-audit convergence, analysis,
+TDD implementation, and code-audit convergence without a redundant intermediate
+handback. Required audits, RED/GREEN evidence, human-controlled decisions,
+external authority, and autonomous-loop stop conditions remain unchanged.
+
 Expanded the explicit-only `migrate-legacy-acs-to-sdlc-v1` skill into an SDLC
 v1 project-readiness workflow for brownfield Spec Kit adoption. The skill now
 assesses delivered open-ticket and bug-fix closure candidates, historical AC

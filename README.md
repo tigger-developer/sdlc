@@ -267,6 +267,14 @@ states the attempt count, decisions and rationale, assumptions or upstream
 changes requiring validation, retained advisories, and any unresolved blockers.
 A fifth FAIL produces the same consolidated handback without phase sign-off.
 
+The operator may sign off the current phase and authorize named consecutive
+phases in one instruction. For example, after design sign-off, "move on to test
+and build" authorizes tasks and test traceability, `audit-tests`, analysis, TDD
+implementation, and `audit-code`. Each audit remains mandatory, but an effective
+PASS advances automatically within the authorized sequence. The agent hands
+back at the end, or earlier for a material decision, scope or upstream change,
+safety boundary, separate external authority, or exhausted audit limit.
+
 A PROVISIONAL verdict avoids another model audit only for exact, mechanical,
 deterministically verifiable corrections that do not affect behaviour,
 architecture, security, privacy, access, persisted data, external contracts, or
