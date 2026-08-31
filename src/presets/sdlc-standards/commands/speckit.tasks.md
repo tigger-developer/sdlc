@@ -11,6 +11,15 @@ constitution that affect the tasks. Ensure the task set covers specification
 evidence, error and boundary behaviour, documentation, migration, security, and
 human validation where relevant.
 
+Select every applicable test type; a change may require automated regression,
+one-off, and user tests together. Order each automated regression test before
+the production-code task it governs and require confirmation that it fails for
+the intended reason. Where no automated regression test is justified, add the
+specific rationale. Define one-off and user-test evidence before implementation
+where practical, and schedule its execution after implementation without a
+pre-change failure requirement. Explicitly selected paired development follows
+`PAIRING.md` instead.
+
 Before generating tasks, verify that the plan and design have a current
 effective `audit-design` PASS in the feature's `audits.md`. After test design
 and traceability are complete, they MUST receive `audit-tests` PASS or satisfy

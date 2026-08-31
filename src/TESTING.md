@@ -35,23 +35,39 @@ Cover each independent condition in a compound requirement. Include relevant:
 - compatibility and migration; and
 - accessibility, layout, readability, or other human judgement.
 
-Tests should be specified before implementation when practical. A useful loop
-is to observe the test fail for the intended reason, implement the smallest
-coherent change, observe it pass, then refactor without losing evidence.
+## Test-driven implementation
+
+Before implementation, select every test type needed to establish the specified
+behaviour. A change may require automated regression tests, one-off tests, user
+tests, or a combination of them.
+
+Only automated tests follow test-driven development. When a meaningful
+automated regression test is justified, write or amend it before changing
+production code, observe it fail for the intended reason, implement the smallest
+coherent change, observe it pass, then refactor without losing evidence. When no
+automated regression test is justified, record the specific reason; urgency,
+difficulty, or inconvenience is insufficient. An `audit-tests` PASS confirms
+test design and traceability; it does not replace a required failing automated
+test execution.
+
+Define the expected evidence for one-off and user tests before implementation
+where practical. They do not follow TDD and do not require a pre-change failure.
+Execute and record them after implementation. These rules also apply to
+`BYPASS-GATE-7`. Paired development uses the live user-validation contract below.
 
 ## Choose durable evidence
 
-Use three distinct forms of verification:
+Use three distinct test categories. A change may use more than one:
 
-- **Regression tests:** retained because the behaviour could regress.
-- **One-off verification:** temporary evidence for a migration, incident,
+- **Automated regression tests:** retained because the behaviour could regress.
+- **One-off tests:** temporary evidence for a migration, incident,
   environment, or documentation review that has no lasting regression value.
-- **Human validation:** outcomes requiring visual, editorial, ergonomic, or
-  other subjective judgement.
+- **User tests:** human verification of outcomes requiring visual, editorial,
+  ergonomic, operational, or other human judgement.
 
 Do not create permanent test code solely to satisfy a test-count rule. Record
-one-off or human evidence in the feature artefacts or final report, then remove
-temporary files from the repository.
+one-off or user-test evidence in the feature artefacts or final report, then
+remove temporary files from the repository.
 
 ## Paired user validation
 

@@ -438,9 +438,25 @@ is written.
 
 For a small emergency change before project Spec Kit artefacts exist, the human
 may include `BYPASS-GATE-7` in the request. The request then serves as a
-temporary specification for its stated outcome and scope. The exception does
-not restore the retired SDLC modes, gates, or ticket lifecycle and does not
-override safety or engineering standards.
+temporary specification only when it states the current behaviour, required
+observable behaviour, precise scope, and important constraints or exclusions.
+The agent may choose routine implementation details but may not invent the
+intended outcome. If those facts are not clear enough to define distinguishing
+evidence, the emergency change is not ready for implementation.
+
+Select every applicable test type: automated regression tests, one-off tests,
+and user tests may be combined. Only automated tests follow TDD and require a
+pre-change failure. Define one-off and user-test evidence before implementation
+where practical, then execute it afterwards. Omitting an automated regression
+test requires a specific justification; urgency, difficulty, or inconvenience
+is insufficient.
+
+After implementing and verifying the smallest coherent fix, reconcile the
+durable specification, design, and affected documentation, then obtain a
+change-scoped `audit-code` effective PASS. The route skips pre-implementation
+Spec Kit artefacts and stage audits, not applicable testing, code remediation,
+documentation, or verification. The exact keyword must appear in the human
+request and must never be inferred or invoked by an agent.
 
 The public template at
 [`templates/AGENTS-or-CLAUDE.example.md`](templates/AGENTS-or-CLAUDE.example.md)

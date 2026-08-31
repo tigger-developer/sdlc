@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+Defined `BYPASS-GATE-7` as an exact-keyword, operator-only emergency route whose
+surrounding request must state the current behaviour, required observable
+behaviour, precise scope, and material constraints. The route now explicitly
+selects every applicable automated regression, one-off, and user test. Only
+automated tests use TDD and require a pre-change failure; omitted automation
+requires a specific justification. The route retains durable specification and
+documentation reconciliation, change-scoped code audit, and remediation to
+effective PASS. Normal Spec Kit implementation applies the same test
+classification and ordering.
+
 Added an explicitly selected paired-development track for live human-agent
 iteration. Bounded operator instructions define each iteration, visual and
 subjective approvals remain first-class user-test evidence, and one final

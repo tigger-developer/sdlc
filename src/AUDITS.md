@@ -143,6 +143,20 @@ blocker. Report:
 An audit PASS or effective PASS is independent evidence, not operator approval.
 Request operator sign-off before advancing to the next phase.
 
+## Emergency changes
+
+`BYPASS-GATE-7` skips the pre-implementation specification, design, and test
+audits because its exact surrounding request is the temporary specification and
+the applicable test evidence is selected before the fix. It does not skip
+`audit-code`.
+
+After implementation, verification, and durable artefact reconciliation, run a
+change-scoped `audit-code`. Remediate blocking findings and dispatch fresh
+audits under the normal five-attempt convergence contract until the change has
+an effective PASS or reaches a defined handback condition. Unrelated legacy
+defects are not blocking unless the emergency change depends on them, worsens
+them, or cannot be assessed safely without resolving them.
+
 ## Paired development
 
 The staged specification, design, test, and code audit sequence applies to Spec

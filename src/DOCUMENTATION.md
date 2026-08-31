@@ -61,6 +61,18 @@ Keep scratch notes outside tracked documentation unless the project explicitly
 uses a tracked decision log. Convert durable findings into the appropriate
 specification, plan, architecture record, or reference document.
 
+## Delivery closure
+
+Before closing Spec Kit, paired, or `BYPASS-GATE-7` work, reconcile every
+document made inaccurate, incomplete, or misleading by the change. Record the
+documentation outcome as updated or not affected, with the reason when it is
+not affected. Known stale documentation blocks closure.
+
+For an emergency change, replace the temporary specification with durable
+project authority after verification. Update the specification, design,
+operational guidance, and user documentation only where the delivered change
+affects them; do not create duplicative prose that merely restates the code.
+
 ## Review
 
 Review documentation for technical correctness, missing prerequisites,
