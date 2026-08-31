@@ -91,11 +91,17 @@ func TestInteractiveInstallsOneCanonicalTreeAndProviderAdapters(t *testing.T) {
 	}
 	assertAbsent(t, filepath.Join(f.root, ".codex", "skills", "audit-code"))
 	assertAbsent(t, filepath.Join(f.root, ".hermes", "commands"))
-	if claude := string(mustReadFile(t, claudeConfig)); !strings.Contains(claude, "\"personal\": true") || !strings.Contains(claude, "Bash(sed:*)") {
+	if claude := string(mustReadFile(t, claudeConfig)); !strings.Contains(claude, "\"personal\": true") || !strings.Contains(claude, "Bash(sed:*)") || !strings.Contains(claude, "Read(**/.env)") || !strings.Contains(claude, "agent-command-guard.sh") {
 		t.Fatalf("interactive install did not preserve and configure Claude:\n%s", claude)
 	}
 	assertFile(t, codexConfig, "personal = true\n")
-	if hermes := string(mustReadFile(t, hermesConfig)); !strings.Contains(hermes, "personal: true") || !strings.Contains(hermes, "agent-command-guard.sh") {
+	if codexHooks := string(mustReadFile(t, filepath.Join(f.root, ".codex", "hooks.json"))); !strings.Contains(codexHooks, "agent-command-guard.sh") || !strings.Contains(codexHooks, "PreToolUse") {
+		t.Fatalf("interactive install did not configure Codex tool guard:\n%s", codexHooks)
+	}
+	if copilotHooks := string(mustReadFile(t, filepath.Join(f.root, ".copilot", "hooks", "sdlc-tool-guard.json"))); !strings.Contains(copilotHooks, "agent-command-guard.sh") || !strings.Contains(copilotHooks, "preToolUse") {
+		t.Fatalf("interactive install did not configure Copilot tool guard:\n%s", copilotHooks)
+	}
+	if hermes := string(mustReadFile(t, hermesConfig)); !strings.Contains(hermes, "personal: true") || !strings.Contains(hermes, "agent-command-guard.sh") || !strings.Contains(hermes, "matcher: .*") {
 		t.Fatalf("interactive install did not preserve and configure Hermes:\n%s", hermes)
 	}
 
@@ -349,6 +355,38 @@ func TestProviderConfigurationIsBackedUpBesideTheLiveFile(t *testing.T) {
 	updated := string(mustReadFile(t, settings))
 	if !strings.Contains(updated, "\"personal\": true") || !strings.Contains(updated, "Bash(rm:*)") {
 		t.Fatalf("updated settings lost owned or personal values:\n%s", updated)
+	}
+}
+
+func TestCodexToolGuardPreservesUnrelatedHooks(t *testing.T) {
+	f := newFixture(t, "codex")
+	writeFile(t, filepath.Join(f.root, ".codex", "config.toml"), []byte("personal = true\n"))
+	hooksPath := filepath.Join(f.root, ".codex", "hooks.json")
+	writeFile(t, hooksPath, []byte(`{
+  "description": "Personal hooks",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {"type": "command", "command": "/personal/start"}
+        ]
+      }
+    ]
+  }
+}
+`))
+
+	if err := Run(Options{
+		Agent: "codex", AgentHome: filepath.Join(f.root, ".codex"), Source: f.source,
+		Configure: true, Input: strings.NewReader("yes\n"), Output: &bytes.Buffer{},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	updated := string(mustReadFile(t, hooksPath))
+	for _, expected := range []string{"Personal hooks", "/personal/start", toolGuardCommand, "PreToolUse"} {
+		if !strings.Contains(updated, expected) {
+			t.Fatalf("Codex hooks lost %q:\n%s", expected, updated)
+		}
 	}
 }
 

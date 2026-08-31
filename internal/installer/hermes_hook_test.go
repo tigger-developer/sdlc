@@ -97,3 +97,89 @@ func TestCommandPolicyHookRetainsClaudeExitContract(t *testing.T) {
 		t.Fatalf("Claude block reason missing: %s", stderr.String())
 	}
 }
+
+func TestToolPolicyHookBlocksOnlyExactEnvBasename(t *testing.T) {
+	hookPath := filepath.Join("..", "..", "hooks", "agent-command-guard.sh")
+	tests := []struct {
+		name      string
+		toolName  string
+		toolInput map[string]any
+		blocked   bool
+	}{
+		{name: "relative read", toolName: "Read", toolInput: map[string]any{"file_path": ".env"}, blocked: true},
+		{name: "nested read", toolName: "read_file", toolInput: map[string]any{"path": "config/.env"}, blocked: true},
+		{name: "windows read", toolName: "view", toolInput: map[string]any{"path": `config\\.env`}, blocked: true},
+		{name: "search target", toolName: "Grep", toolInput: map[string]any{"path": "./.env", "pattern": "TOKEN"}, blocked: true},
+		{name: "search text only", toolName: "Grep", toolInput: map[string]any{"path": "README.md", "pattern": ".env"}, blocked: false},
+		{name: "shell read", toolName: "Bash", toolInput: map[string]any{"command": "cat config/.env"}, blocked: true},
+		{name: "shell redirection read", toolName: "terminal", toolInput: map[string]any{"command": "read value < .env"}, blocked: true},
+		{name: "example read", toolName: "Read", toolInput: map[string]any{"file_path": ".env.example"}, blocked: false},
+		{name: "local read", toolName: "read_file", toolInput: map[string]any{"path": "config/.env.local"}, blocked: false},
+		{name: "shell example", toolName: "Bash", toolInput: map[string]any{"command": "cat .env.example"}, blocked: false},
+		{name: "write env", toolName: "Write", toolInput: map[string]any{"file_path": ".env", "content": "TOKEN=value"}, blocked: false},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			payload, err := json.Marshal(map[string]any{
+				"hook_event_name": "PreToolUse",
+				"tool_name":       test.toolName,
+				"tool_input":      test.toolInput,
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+			command := exec.Command("bash", hookPath)
+			command.Stdin = bytes.NewReader(payload)
+			err = command.Run()
+			var exitError *exec.ExitError
+			blocked := errors.As(err, &exitError) && exitError.ExitCode() == 2
+			if blocked != test.blocked {
+				t.Fatalf("blocked = %t, want %t (error %v)", blocked, test.blocked, err)
+			}
+		})
+	}
+}
+
+func TestToolPolicyHookAcceptsCopilotCamelCasePayload(t *testing.T) {
+	hookPath := filepath.Join("..", "..", "hooks", "agent-command-guard.sh")
+	payload, err := json.Marshal(map[string]any{
+		"toolName": "view",
+		"toolArgs": map[string]any{"path": "config/.env"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	command := exec.Command("bash", hookPath)
+	command.Stdin = bytes.NewReader(payload)
+	err = command.Run()
+	var exitError *exec.ExitError
+	if !errors.As(err, &exitError) || exitError.ExitCode() != 2 {
+		t.Fatalf("hook error = %v, want exit code 2", err)
+	}
+}
+
+func TestToolPolicyHookReturnsHermesBlockDecisionForFileRead(t *testing.T) {
+	hookPath := filepath.Join("..", "..", "hooks", "agent-command-guard.sh")
+	payload, err := json.Marshal(map[string]any{
+		"hook_event_name": "pre_tool_call",
+		"tool_name":       "read_file",
+		"tool_input":      map[string]any{"path": "config/.env"},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	command := exec.Command("bash", hookPath)
+	command.Stdin = bytes.NewReader(payload)
+	output, err := command.Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var response map[string]string
+	if err := json.Unmarshal(output, &response); err != nil {
+		t.Fatalf("hook returned invalid JSON %q: %v", output, err)
+	}
+	if response["decision"] != "block" {
+		t.Fatalf("hook decision = %q, want block", response["decision"])
+	}
+}

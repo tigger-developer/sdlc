@@ -47,7 +47,7 @@ func TestHermesConfigurationOwnsOnlyCommandGuard(t *testing.T) {
 	if err := Run(Options{Agent: "hermes", AgentHome: filepath.Join(f.root, ".hermes"), Source: f.source, Configure: true, Input: strings.NewReader("yes\n"), Output: &output}); err != nil {
 		t.Fatal(err)
 	}
-	if !bytes.Equal(before, mustReadFile(t, configPath)) || !strings.Contains(output.String(), "already contain the SDLC command guard") {
+	if !bytes.Equal(before, mustReadFile(t, configPath)) || !strings.Contains(output.String(), "already contain the SDLC tool guard") {
 		t.Fatalf("Hermes configuration was not idempotent:\n%s", output.String())
 	}
 }
@@ -82,7 +82,7 @@ func TestHermesGeneratedCompliantConfigurationIsPreservedByteForByte(t *testing.
 	f := newFixture(t, "hermes")
 	configPath := filepath.Join(f.root, ".hermes", "config.yaml")
 	canonicalCommand := "bash \"" + filepath.Join(f.root, ".agents", "sdlc", "hooks", "agent-command-guard.sh") + "\""
-	original := []byte("model:\n  provider: openai-codex\n  default: 'gpt-5.6-terra'\nhooks:\n  pre_tool_call:\n    - command: " + canonicalCommand + "\n      matcher: terminal\n      timeout: 5\n# Security defaults are documented by Hermes.\n# security:\n#   redact_secrets: true\n_config_version: 37\n")
+	original := []byte("model:\n  provider: openai-codex\n  default: 'gpt-5.6-terra'\nhooks:\n  pre_tool_call:\n    - command: " + canonicalCommand + "\n      matcher: .*\n      timeout: 5\n# Security defaults are documented by Hermes.\n# security:\n#   redact_secrets: true\n_config_version: 37\n")
 	writeFile(t, configPath, original)
 
 	var output bytes.Buffer
@@ -92,7 +92,7 @@ func TestHermesGeneratedCompliantConfigurationIsPreservedByteForByte(t *testing.
 	}); err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(output.String(), "already contain the SDLC command guard") {
+	if !strings.Contains(output.String(), "already contain the SDLC tool guard") {
 		t.Fatalf("compliant Hermes configuration was reported as drift:\n%s", output.String())
 	}
 	if got := mustReadFile(t, configPath); !bytes.Equal(got, original) {

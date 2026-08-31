@@ -32,7 +32,7 @@ root is exactly `~/.agents/sdlc` for every supported provider.
 | `src/prompts/audits/` | Canonical prompts for isolated audit processes |
 | `src/templates/project-init/` | Constitution scaffold and managed brownfield document block |
 | `skills/` | Findings-only audits and advisory tools |
-| `hooks/` | Optional provider-integrated command safeguard |
+| `hooks/` | Provider-integrated command and sensitive-file safeguard |
 | `cmd/` and `internal/` | Installer, project initializer, isolated audit runner, and verdict implementation |
 
 Only runtime material from `src/`, `skills/`, and `hooks/` is
@@ -70,6 +70,8 @@ The installer:
 - compares source and destination before prompting;
 - lists only missing or differing destinations by default;
 - backs up owned drift before replacement;
+- configures Claude, Codex, Copilot, and Hermes pre-tool safeguards after the
+  same variance review and confirmation;
 - backs up and retires the known command and drafting-skill paths removed by
   the standards-only model; and
 - performs no deployment prompt or write when every detected destination is
@@ -534,9 +536,19 @@ applies only actions explicitly authorized by the operator. Undelivered scope
 remains open and untouched. Long readiness reports are written outside the
 repository and opened with `HTML_PREVIEW_TOOL`, with a text-editor fallback.
 
-The optional Hermes hook and provider rules reinforce the common prohibitions
-on `rm`, `sed`, `awk`, and direct `python` or `python3` interpreter commands.
-They do not prevent a documented project target from invoking its own runtime.
+Provider-native permissions and the shared pre-tool guard reinforce the common
+prohibitions on `rm`, `sed`, `awk`, and direct `python` or `python3` interpreter
+commands. They also deny native read/search requests and direct shell references
+that name a file whose exact basename is `.env`; `.env.example` and `.env.local`
+remain outside that rule. This is a harness-level guard, not an operating-system
+sandbox: it does not inspect files opened internally by an otherwise permitted
+project command.
+
+The installer merges its Claude and Codex entries with existing settings,
+creates one SDLC-owned Copilot hook file, and updates only the matching Hermes
+hook. Unrelated provider configuration and hooks remain in place. Restart the
+harness after installation and approve or trust the installed hook when the
+provider requires it; an untrusted hook is not an active guard.
 
 Hermes must create `~/.hermes/config.yaml` through its startup configuration
 before the installer can safely amend it. If the Hermes home exists without that

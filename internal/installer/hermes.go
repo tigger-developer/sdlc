@@ -34,14 +34,14 @@ func analyseHermesConfiguration(agentHome, _ string, output io.Writer) (*configu
 		return nil, fmt.Errorf("analysing %s: %w", path, err)
 	}
 	if !changed {
-		fmt.Fprintln(output, "Configuration: Hermes settings already contain the SDLC command guard.")
+		fmt.Fprintln(output, "Configuration: Hermes settings already contain the SDLC tool guard.")
 		return nil, nil
 	}
-	fmt.Fprintf(output, "Recommendation: update the SDLC command guard in %s.\n", path)
+	fmt.Fprintf(output, "Recommendation: update the SDLC tool guard in %s.\n", path)
 	return &configurationChange{
 		path:        path,
 		beforeLabel: "existing configuration; private instructions and unrelated values preserved; YAML formatting may be normalized",
-		afterLabel:  fmt.Sprintf("managed SDLC command guard %s", hookCommand),
+		afterLabel:  fmt.Sprintf("managed SDLC tool guard %s", hookCommand),
 		contents:    desired,
 		mode:        mode,
 	}, nil
@@ -120,7 +120,7 @@ func mergeHermesCommandGuard(root *yaml.Node, hookCommand string, obsoleteHookCo
 		managedCount++
 		matcher, matcherExists := hermesScalarValue(entry, "matcher")
 		timeout, timeoutExists := hermesIntegerValue(entry, "timeout")
-		compliant = managedCount == 1 && command == hookCommand && matcherExists && matcher == "terminal" && timeoutExists && timeout == 5
+		compliant = managedCount == 1 && command == hookCommand && matcherExists && matcher == ".*" && timeoutExists && timeout == 5
 	}
 	if managedCount == 1 && compliant {
 		return false, nil
@@ -137,7 +137,7 @@ func mergeHermesCommandGuard(root *yaml.Node, hookCommand string, obsoleteHookCo
 		}
 		if !managedEntryAdded {
 			hermesSetScalar(entry, "command", "!!str", hookCommand)
-			hermesSetScalar(entry, "matcher", "!!str", "terminal")
+			hermesSetScalar(entry, "matcher", "!!str", ".*")
 			hermesSetScalar(entry, "timeout", "!!int", "5")
 			normalized = append(normalized, entry)
 			managedEntryAdded = true
@@ -145,7 +145,7 @@ func mergeHermesCommandGuard(root *yaml.Node, hookCommand string, obsoleteHookCo
 	}
 	if !managedEntryAdded {
 		entry := &yaml.Node{Kind: yaml.MappingNode, Tag: "!!map"}
-		hermesSetScalar(entry, "matcher", "!!str", "terminal")
+		hermesSetScalar(entry, "matcher", "!!str", ".*")
 		hermesSetScalar(entry, "command", "!!str", hookCommand)
 		hermesSetScalar(entry, "timeout", "!!int", "5")
 		normalized = append(normalized, entry)

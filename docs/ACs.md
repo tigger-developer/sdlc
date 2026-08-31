@@ -47,7 +47,13 @@ adapter model.
   never infer ownership from an arbitrary destination-only path.
 - Hermes configuration changes own only the SDLC command-guard hook and
   preserve private instructions and unrelated configuration.
-- A repeated installation is idempotent and requires no confirmation.
+- Claude, Codex, Copilot, and Hermes provider adapters install a pre-tool guard
+  that denies direct reads of any path whose exact basename is `.env`.
+- The guard denies native file-read and content-search requests and direct shell
+  references to `.env`; names such as `.env.example` and `.env.local` remain
+  outside the rule.
+- Provider configuration changes preserve unrelated settings and hooks. A
+  repeated installation reports no variance and requires no confirmation.
 
 ## Spec Kit project initialization
 

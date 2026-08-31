@@ -1,21 +1,17 @@
 #!/usr/bin/env bash
-# ABOUTME: Blocks known-dangerous shell commands before agent tool execution.
-# ABOUTME: Intended for providers that pass Bash tool requests to a pre-use hook.
+# ABOUTME: Blocks prohibited commands and direct .env reads before agent tool execution.
+# ABOUTME: Accepts Claude, Codex, Copilot, and Hermes pre-tool hook payloads.
 set -eo pipefail
 
 command_json="$(cat)"
-command_text="$(printf '%s' "$command_json" | jq -r '.tool_input.command // .toolInput.command // .command // empty')"
-hook_event="$(printf '%s' "$command_json" | jq -r '.hook_event_name // empty')"
-tool_name="$(printf '%s' "$command_json" | jq -r '.tool_name // empty')"
-
-if [[ -z "$command_text" ]]; then
-    exit 0
-fi
+command_text="$(printf '%s' "$command_json" | jq -r '.tool_input.command // .toolInput.command // .toolArgs.command // .command // empty')"
+hook_event="$(printf '%s' "$command_json" | jq -r '.hook_event_name // .hookEventName // empty')"
+tool_name="$(printf '%s' "$command_json" | jq -r '.tool_name // .toolName // empty')"
 
 block() {
     local reason="$1"
 
-    if [[ "$hook_event" == "pre_tool_call" && "$tool_name" == "terminal" ]]; then
+    if [[ "$hook_event" == "pre_tool_call" ]]; then
         jq -cn --arg reason "$reason" '{decision:"block",reason:$reason}'
         exit 0
     fi
@@ -23,6 +19,57 @@ block() {
     printf 'Blocked by agent-command-guard: %s\n' "$reason" >&2
     exit 2
 }
+
+names_exact_env_file() {
+    local value="$1"
+
+    value="${value#file://}"
+    while [[ "$value" == \<* || "$value" == \>* ]]; do
+        value="${value:1}"
+    done
+    value="${value//\\//}"
+    [[ "$value" == ".env" || "$value" == */.env ]]
+}
+
+tool_reads_files() {
+    local normalized
+
+    normalized="$(printf '%s' "$tool_name" | tr '[:upper:]' '[:lower:]')"
+    case "$normalized" in
+    read | read_file | readfile | view | grep | rg | glob | search | search_files | searchfiles | open_file | *__read* | *__grep* | *__search*)
+        return 0
+        ;;
+    esac
+    return 1
+}
+
+if [[ -z "$command_text" ]] && tool_reads_files; then
+    while IFS= read -r candidate; do
+        if names_exact_env_file "$candidate"; then
+            block 'reading a file whose exact basename is .env is prohibited.'
+        fi
+    done < <(printf '%s' "$command_json" | jq -r '
+        def file_values:
+            if type == "object" then
+                to_entries[] |
+                if (.key | ascii_downcase | test("^(file|files|filename|file_name|filepath|file_path|path|paths|glob|include|target|uri)$")) then
+                    .value | .. | strings
+                else
+                    .value | file_values
+                end
+            elif type == "array" then
+                .[] | file_values
+            else
+                empty
+            end;
+        (.tool_input // .toolInput // .toolArgs // {}) |
+        if type == "string" then . else file_values end
+    ')
+fi
+
+if [[ -z "$command_text" ]]; then
+    exit 0
+fi
 
 TOKENS=()
 TOKEN_TYPES=()
@@ -173,6 +220,28 @@ command_invokes_prohibited() {
     done
     return 1
 }
+
+command_references_env_file() {
+    local command="$1"
+    local token
+    local -a command_tokens
+
+    tokenize_shell_command "$command"
+    command_tokens=("${TOKENS[@]}")
+    for token in "${command_tokens[@]}"; do
+        if names_exact_env_file "$token"; then
+            return 0
+        fi
+        if [[ "$token" == *[[:space:]]* ]] && command_references_env_file "$token"; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+if command_references_env_file "$command_text"; then
+    block 'reading a file whose exact basename is .env is prohibited.'
+fi
 
 if command_invokes_prohibited "$command_text"; then
     block "$BLOCK_REASON"

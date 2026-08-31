@@ -45,6 +45,8 @@ path.
 - Never invoke `python` or `python3`. Python development is permitted only
   through project-owned commands such as its task runner, test target, or
   environment manager. Direct interpreter execution is operator-controlled.
+- Never read a file whose exact basename is `.env`. This does not prohibit
+  documented example files such as `.env.example` or `.env.local`.
 - Never bypass checks with `--no-verify`, disabled hooks, suppressed failures,
   or equivalent shortcuts.
 - Do not use SSH, SCP, SFTP, or remote deployment commands without explicit

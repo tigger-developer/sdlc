@@ -15,7 +15,7 @@ The repository owns engineering standards:
 - cross-language and stack-specific implementation standards;
 - Git and documentation standards;
 - findings-only audit and advisory skills; and
-- optional provider-integrated command safeguards.
+- provider-integrated command and sensitive-file safeguards.
 
 It does not own agent-wide delivery modes, ticket states, or a parallel
 autonomous lifecycle. Spec Kit or the adopting project owns those concerns. The
@@ -360,6 +360,14 @@ It never treats repository documentation or arbitrary files as deployable merely
 because they exist. It does not create provider-specific authoritative SDLC
 trees.
 
+The Claude, Codex, Copilot, and Hermes adapters register the shared pre-tool
+guard without claiming unrelated provider configuration. Claude also receives
+its native recursive `.env` read denial. The shared guard rejects native
+read/search inputs and direct shell references whose exact path basename is
+`.env`, while leaving `.env.example` and `.env.local` outside the rule. This is
+a harness boundary; an operating-system sandbox is required to govern files
+opened internally by an otherwise permitted program.
+
 ## Extending the standards
 
 | Change | Location |
@@ -375,7 +383,7 @@ trees.
 | Project-initializer prompt | `src/prompts/project-init/` |
 | Project-initializer template or managed block | `src/templates/project-init/` |
 | Findings-only reusable review | `skills/<name>/SKILL.md` |
-| Provider command safeguard | `hooks/` plus the relevant installer adapter |
+| Provider command or file-read safeguard | `hooks/` plus the relevant installer adapter |
 
 Keep `MAIN.md` concise. A rule belongs there only when every coding task needs
 it before progressive routing. Put detailed craft guidance in a selected

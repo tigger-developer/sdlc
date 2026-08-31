@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+Added an exact-basename `.env` read prohibition to the universal standards and
+provider configuration layer. Claude receives its recursive native read rule;
+Claude, Codex, Copilot, and Hermes register the shared pre-tool guard for native
+read/search inputs and direct shell references. `.env.example` and `.env.local`
+remain readable. Provider-specific configuration merges preserve unrelated
+settings and hooks, and repeated installation remains idempotent. The guard is
+documented as a harness boundary rather than an operating-system sandbox.
+
 Allowed operators to authorize named consecutive delivery phases in one
 instruction. After audited design sign-off, "move on to test and build" now
 covers task and test-traceability generation, test-audit convergence, analysis,

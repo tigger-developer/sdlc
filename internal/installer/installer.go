@@ -72,11 +72,13 @@ var claudeDeniedCommands = []string{
 	"Bash(source:*)",
 	"Bash(python:*)",
 	"Bash(python3:*)",
+	"Read(**/.env)",
 }
 
 const (
 	codexPythonRulesStart = "# BEGIN SDLC MANAGED PYTHON RULES"
 	codexPythonRulesEnd   = "# END SDLC MANAGED PYTHON RULES"
+	toolGuardCommand      = "bash ~/.agents/sdlc/hooks/agent-command-guard.sh"
 )
 
 type Options struct {
@@ -132,7 +134,7 @@ func Run(options Options) error {
 
 	printHeading(options.Output, agent, source, agentHome, options.Apply, options.Configure)
 	printInstallationPlan(options.Output, plan, options.Apply)
-	change, err := analyseConfiguration(agent, agentHome, source, options.Output)
+	changes, err := analyseConfiguration(agent, agentHome, source, options.Output)
 	if err != nil {
 		return err
 	}
@@ -153,9 +155,9 @@ func Run(options Options) error {
 		fmt.Fprintln(options.Output, "Installation: synchronized all planned copies.")
 	}
 	if options.Configure {
-		return offerConfigurationChange(change, options.Input, options.Output)
+		return offerConfigurationChanges(changes, options.Input, options.Output)
 	}
-	if change != nil {
+	if len(changes) != 0 {
 		fmt.Fprintln(options.Output, "Configuration: recommendation only; re-run with --configure to review and confirm it.")
 	}
 	return nil
@@ -277,13 +279,11 @@ func planDetectedInstallation(source, userHome string, agents []string) (install
 func planDetectedConfigurations(source, userHome string, agents []string) ([]*configurationChange, error) {
 	var changes []*configurationChange
 	for _, agent := range agents {
-		change, err := analyseConfiguration(agent, filepath.Join(userHome, "."+agent), source, io.Discard)
+		agentChanges, err := analyseConfiguration(agent, filepath.Join(userHome, "."+agent), source, io.Discard)
 		if err != nil {
 			return nil, err
 		}
-		if change != nil {
-			changes = append(changes, change)
-		}
+		changes = append(changes, agentChanges...)
 	}
 	return changes, nil
 }
@@ -852,23 +852,32 @@ func backupArtifact(output io.Writer, path string, epoch int64) (string, error) 
 	return backup, nil
 }
 
-func analyseConfiguration(agent, agentHome, source string, output io.Writer) (*configurationChange, error) {
+func analyseConfiguration(agent, agentHome, source string, output io.Writer) ([]*configurationChange, error) {
 	switch agent {
 	case agentClaude:
-		return analyseClaudeConfiguration(agentHome, output)
+		change, err := analyseClaudeConfiguration(agentHome, output)
+		return configurationChanges(change), err
 	case agentCodex:
-		return analyseCodexConfiguration(agentHome, source, output)
+		return analyseCodexConfigurations(agentHome, source, output)
 	case agentHermes:
-		return analyseHermesConfiguration(agentHome, source, output)
+		change, err := analyseHermesConfiguration(agentHome, source, output)
+		return configurationChanges(change), err
 	case agentCopilot:
-		fmt.Fprintln(output, "Configuration: Copilot-specific modification is not implemented; review provider instructions manually.")
-		return nil, nil
+		change, err := analyseCopilotConfiguration(agentHome, output)
+		return configurationChanges(change), err
 	case agentCustom:
 		fmt.Fprintln(output, "Configuration: custom target; no provider configuration assumptions were made.")
 		return nil, nil
 	default:
 		return nil, fmt.Errorf("analysing unsupported agent %q", agent)
 	}
+}
+
+func configurationChanges(change *configurationChange) []*configurationChange {
+	if change == nil {
+		return nil
+	}
+	return []*configurationChange{change}
 }
 
 func analyseClaudeConfiguration(agentHome string, output io.Writer) (*configurationChange, error) {
@@ -885,8 +894,8 @@ func analyseClaudeConfiguration(agentHome string, output io.Writer) (*configurat
 	if err != nil {
 		return nil, fmt.Errorf("analysing %s: %w", path, err)
 	}
-	if len(changes.addedToDeny) == 0 && len(changes.removedFromAllow) == 0 {
-		fmt.Fprintln(output, "Configuration: Claude settings already contain the SDLC command restrictions.")
+	if len(changes.addedToDeny) == 0 && len(changes.removedFromAllow) == 0 && !changes.toolGuardChanged {
+		fmt.Fprintln(output, "Configuration: Claude settings already contain the SDLC tool restrictions.")
 		return nil, nil
 	}
 	for _, rule := range changes.addedToDeny {
@@ -949,6 +958,7 @@ func readClaudeSettings(path string) (map[string]any, []byte, os.FileMode, error
 type claudePolicyChanges struct {
 	addedToDeny      []string
 	removedFromAllow []string
+	toolGuardChanged bool
 }
 
 func normalizeClaudeCommandRules(settings map[string]any) (claudePolicyChanges, error) {
@@ -987,7 +997,71 @@ func normalizeClaudeCommandRules(settings map[string]any) (claudePolicyChanges, 
 		permissions["allow"] = filteredAllow
 	}
 	settings["permissions"] = permissions
+	toolGuardChanged, err := normalizeClaudeToolGuard(settings)
+	if err != nil {
+		return claudePolicyChanges{}, err
+	}
+	changes.toolGuardChanged = toolGuardChanged
 	return changes, nil
+}
+
+func normalizeClaudeToolGuard(settings map[string]any) (bool, error) {
+	hooks, err := objectField(settings, "hooks")
+	if err != nil {
+		return false, err
+	}
+	value, exists := hooks["PreToolUse"]
+	var entries []any
+	if exists {
+		var ok bool
+		entries, ok = value.([]any)
+		if !ok {
+			return false, errors.New("hooks.PreToolUse must be a JSON array")
+		}
+	}
+	changed := false
+	found := false
+	for _, item := range entries {
+		group, ok := item.(map[string]any)
+		if !ok {
+			return false, errors.New("hooks.PreToolUse entries must be JSON objects")
+		}
+		handlers, ok := group["hooks"].([]any)
+		if !ok {
+			continue
+		}
+		for _, handlerValue := range handlers {
+			handler, ok := handlerValue.(map[string]any)
+			if !ok || handler["command"] != toolGuardCommand {
+				continue
+			}
+			found = true
+			if group["matcher"] != "*" {
+				group["matcher"] = "*"
+				changed = true
+			}
+			if handler["type"] != "command" {
+				handler["type"] = "command"
+				changed = true
+			}
+			if handler["timeout"] != float64(5) {
+				handler["timeout"] = 5
+				changed = true
+			}
+		}
+	}
+	if !found {
+		entries = append(entries, map[string]any{
+			"matcher": "*",
+			"hooks": []any{map[string]any{
+				"type": "command", "command": toolGuardCommand, "timeout": 5,
+			}},
+		})
+		changed = true
+	}
+	hooks["PreToolUse"] = entries
+	settings["hooks"] = hooks
+	return changed, nil
 }
 
 func objectField(parent map[string]any, key string) (map[string]any, error) {
@@ -1042,12 +1116,15 @@ func formatClaudeDenyBefore(original []byte) string {
 }
 
 func formatClaudePolicyAfter(changes claudePolicyChanges) string {
-	parts := make([]string, 0, 2)
+	parts := make([]string, 0, 3)
 	if len(changes.addedToDeny) != 0 {
 		parts = append(parts, "permissions.deny adds: "+strings.Join(changes.addedToDeny, ", "))
 	}
 	if len(changes.removedFromAllow) != 0 {
 		parts = append(parts, "permissions.allow removes conflicts: "+strings.Join(changes.removedFromAllow, ", "))
+	}
+	if changes.toolGuardChanged {
+		parts = append(parts, "hooks.PreToolUse adds or updates the SDLC tool guard")
 	}
 	return strings.Join(parts, "; ")
 }
@@ -1059,7 +1136,26 @@ type codexConfig struct {
 	AllowLoginShell    bool   `toml:"allow_login_shell"`
 }
 
-func analyseCodexConfiguration(agentHome, source string, output io.Writer) (*configurationChange, error) {
+func analyseCodexConfigurations(agentHome, source string, output io.Writer) ([]*configurationChange, error) {
+	var changes []*configurationChange
+	rulesChange, err := analyseCodexRulesConfiguration(agentHome, source, output)
+	if err != nil {
+		return nil, err
+	}
+	if rulesChange != nil {
+		changes = append(changes, rulesChange)
+	}
+	hooksChange, err := analyseCodexHooksConfiguration(agentHome, output)
+	if err != nil {
+		return nil, err
+	}
+	if hooksChange != nil {
+		changes = append(changes, hooksChange)
+	}
+	return changes, nil
+}
+
+func analyseCodexRulesConfiguration(agentHome, source string, output io.Writer) (*configurationChange, error) {
 	configPath := filepath.Join(agentHome, "config.toml")
 	config, metadata, exists, err := readCodexConfig(configPath)
 	if err != nil {
@@ -1118,6 +1214,154 @@ func analyseCodexConfiguration(agentHome, source string, output io.Writer) (*con
 		contents:    contents,
 		mode:        0o600,
 	}, nil
+}
+
+func analyseCodexHooksConfiguration(agentHome string, output io.Writer) (*configurationChange, error) {
+	path := filepath.Join(agentHome, "hooks.json")
+	original, mode, exists, err := readOptionalRegularFile(path)
+	if err != nil {
+		return nil, err
+	}
+	root := map[string]any{}
+	if exists {
+		if err := json.Unmarshal(original, &root); err != nil {
+			return nil, fmt.Errorf("parsing %s: %w", path, err)
+		}
+		if root == nil {
+			return nil, fmt.Errorf("parsing %s: top level must be a JSON object", path)
+		}
+	}
+	changed, err := normalizeCodexToolGuard(root)
+	if err != nil {
+		return nil, fmt.Errorf("analysing %s: %w", path, err)
+	}
+	if !changed {
+		fmt.Fprintln(output, "Configuration: Codex hooks already contain the SDLC tool guard.")
+		return nil, nil
+	}
+	candidate, err := json.MarshalIndent(root, "", "  ")
+	if err != nil {
+		return nil, fmt.Errorf("encoding proposed %s: %w", path, err)
+	}
+	candidate = append(candidate, '\n')
+	before := "hooks.json absent"
+	if exists {
+		before = "existing hooks preserved; JSON spacing and key order may be normalized"
+	}
+	return &configurationChange{
+		path: path, beforeLabel: before, afterLabel: "hooks.PreToolUse adds or updates the SDLC tool guard",
+		contents: candidate, mode: mode,
+	}, nil
+}
+
+func normalizeCodexToolGuard(root map[string]any) (bool, error) {
+	hooks, err := objectField(root, "hooks")
+	if err != nil {
+		return false, err
+	}
+	value, exists := hooks["PreToolUse"]
+	var entries []any
+	if exists {
+		var ok bool
+		entries, ok = value.([]any)
+		if !ok {
+			return false, errors.New("hooks.PreToolUse must be a JSON array")
+		}
+	}
+	changed := false
+	found := false
+	for _, item := range entries {
+		group, ok := item.(map[string]any)
+		if !ok {
+			return false, errors.New("hooks.PreToolUse entries must be JSON objects")
+		}
+		handlers, ok := group["hooks"].([]any)
+		if !ok {
+			continue
+		}
+		for _, handlerValue := range handlers {
+			handler, ok := handlerValue.(map[string]any)
+			if !ok || handler["command"] != toolGuardCommand {
+				continue
+			}
+			found = true
+			if group["matcher"] != "*" {
+				group["matcher"] = "*"
+				changed = true
+			}
+			if handler["type"] != "command" {
+				handler["type"] = "command"
+				changed = true
+			}
+			if handler["timeout"] != float64(5) {
+				handler["timeout"] = 5
+				changed = true
+			}
+		}
+	}
+	if !found {
+		entries = append(entries, map[string]any{
+			"matcher": "*",
+			"hooks": []any{map[string]any{
+				"type": "command", "command": toolGuardCommand, "timeout": 5,
+				"statusMessage": "Checking SDLC tool policy",
+			}},
+		})
+		changed = true
+	}
+	hooks["PreToolUse"] = entries
+	root["hooks"] = hooks
+	return changed, nil
+}
+
+func analyseCopilotConfiguration(agentHome string, output io.Writer) (*configurationChange, error) {
+	path := filepath.Join(agentHome, "hooks", "sdlc-tool-guard.json")
+	original, mode, exists, err := readOptionalRegularFile(path)
+	if err != nil {
+		return nil, err
+	}
+	candidate, err := json.MarshalIndent(map[string]any{
+		"version": 1,
+		"hooks": map[string]any{
+			"preToolUse": []any{map[string]any{
+				"type": "command", "command": toolGuardCommand, "timeoutSec": 5,
+			}},
+		},
+	}, "", "  ")
+	if err != nil {
+		return nil, err
+	}
+	candidate = append(candidate, '\n')
+	if exists && bytes.Equal(original, candidate) {
+		fmt.Fprintln(output, "Configuration: Copilot hooks already contain the SDLC tool guard.")
+		return nil, nil
+	}
+	before := "managed hook file absent"
+	if exists {
+		before = "managed hook file differs"
+	}
+	return &configurationChange{
+		path: path, beforeLabel: before, afterLabel: "preToolUse invokes the SDLC tool guard",
+		contents: candidate, mode: mode,
+	}, nil
+}
+
+func readOptionalRegularFile(path string) ([]byte, os.FileMode, bool, error) {
+	info, err := os.Lstat(path)
+	if errors.Is(err, os.ErrNotExist) {
+		return nil, 0o600, false, nil
+	}
+	if err != nil {
+		return nil, 0, false, fmt.Errorf("inspecting %s: %w", path, err)
+	}
+	if !info.Mode().IsRegular() || info.Mode()&os.ModeSymlink != 0 {
+		return nil, 0, false, fmt.Errorf("configuration path %s must be a regular non-symlink file", path)
+	}
+	contents, err := os.ReadFile(path)
+	if err != nil {
+		return nil, 0, false, fmt.Errorf("reading %s: %w", path, err)
+	}
+	return contents, info.Mode().Perm(), true, nil
 }
 
 func mergeCodexRules(current, desired []byte) ([]byte, bool, bool, error) {
@@ -1194,13 +1438,15 @@ func printCodexRecommendations(output io.Writer, config codexConfig, metadata to
 	}
 }
 
-func offerConfigurationChange(change *configurationChange, input io.Reader, output io.Writer) error {
-	if change == nil {
+func offerConfigurationChanges(changes []*configurationChange, input io.Reader, output io.Writer) error {
+	if len(changes) == 0 {
 		fmt.Fprintln(output, "Configuration: no automatic change is available for this target.")
 		return nil
 	}
-	printConfigurationChange(output, change)
-	fmt.Fprint(output, "Apply this configuration change? Type yes to continue: ")
+	for _, change := range changes {
+		printConfigurationChange(output, change)
+	}
+	fmt.Fprint(output, "Apply these configuration changes? Type yes to continue: ")
 	scanner := bufio.NewScanner(input)
 	if !scanner.Scan() {
 		if err := scanner.Err(); err != nil {
@@ -1213,7 +1459,12 @@ func offerConfigurationChange(change *configurationChange, input io.Reader, outp
 		fmt.Fprintln(output, "Configuration unchanged.")
 		return nil
 	}
-	return applyConfigurationChange(change, output)
+	for _, change := range changes {
+		if err := applyConfigurationChange(change, output); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func printConfigurationChange(output io.Writer, change *configurationChange) {

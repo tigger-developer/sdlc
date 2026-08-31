@@ -119,8 +119,7 @@
       "Bash(python3:*)",
       "Bash(gh repo create:*)",
       "Bash(gh repo edit:*)",
-      "Read(./.env)",
-      "Read(./.env.*)",
+      "Read(**/.env)",
       "Read(./secrets/**)",
       "Read(./.agent/tmp/**)",
       "Read(./.agents/tmp/**)",
@@ -142,12 +141,12 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Bash",
+        "matcher": "*",
         "hooks": [
           {
             "type": "command",
             "command": "bash ~/.agents/sdlc/hooks/agent-command-guard.sh",
-            "timeout": 10
+            "timeout": 5
           }
         ]
       }
