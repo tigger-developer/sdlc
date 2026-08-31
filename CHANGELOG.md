@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+Expanded the explicit-only `migrate-legacy-acs-to-sdlc-v1` skill into an SDLC
+v1 project-readiness workflow for brownfield Spec Kit adoption. The skill now
+assesses delivered open-ticket and bug-fix closure candidates, historical AC
+coverage, test traceability, and stale project documentation from one immutable
+ticket snapshot. Ticket closures, AC state changes, and documentation edits
+require exact operator authorization; undelivered scope remains open and
+untouched. Long proposed-action reports are written outside the repository and
+opened with `HTML_PREVIEW_TOOL`, with a text-editor fallback.
+
 ## v2.0.2 - 2026-08-31
 
 Added `sdlc-audit`, an isolated audit controller installed with the other SDLC

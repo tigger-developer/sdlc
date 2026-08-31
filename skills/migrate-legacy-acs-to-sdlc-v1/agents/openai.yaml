@@ -1,7 +1,7 @@
 interface:
-  display_name: "SDLC v1 AC migration"
-  short_description: "Roll up legacy ACs into ACs.md"
-  default_prompt: "Use $migrate-legacy-acs-to-sdlc-v1 to centralize legacy ticket acceptance criteria before this brownfield project adopts SDLC v2."
+  display_name: "SDLC v1 readiness"
+  short_description: "Prepare project state for Spec Kit migration"
+  default_prompt: "Use $migrate-legacy-acs-to-sdlc-v1 to assess and reconcile this brownfield project's SDLC v1 readiness before Spec Kit initialization."
 
 policy:
   allow_implicit_invocation: false

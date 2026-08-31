@@ -518,12 +518,13 @@ it does not authorize a directory tree. Regression tests of the runner use a
 fake harness. Live hosted-model invocations are metered one-off tests and must
 not be added to `make test`, CI, or another persistent regression target.
 
-The explicit-only `migrate-legacy-acs-to-sdlc-v1` skill snapshots every GitHub
-issue, including comments and recorded implementation links, then reconciles
-ticket-based SDLC v0.1 acceptance criteria and test lineage into the centralized
-SDLC v1 record required as a brownfield baseline for SDLC v2. Tickets without
-AC tables are ignored as bug fixes; multiple tables and unresolved test
-evidence are reserved for operator adjudication.
+The explicit-only `migrate-legacy-acs-to-sdlc-v1` skill prepares a brownfield
+project's SDLC v1 requirements, open-ticket state, test traceability, and project
+documentation before Spec Kit initialization. It snapshots every GitHub issue
+and comment, proposes delivered-ticket closures and AC reconciliation, and
+applies only actions explicitly authorized by the operator. Undelivered scope
+remains open and untouched. Long readiness reports are written outside the
+repository and opened with `HTML_PREVIEW_TOOL`, with a text-editor fallback.
 
 The optional Hermes hook and provider rules reinforce the common prohibitions
 on `rm`, `sed`, `awk`, and direct `python` or `python3` interpreter commands.

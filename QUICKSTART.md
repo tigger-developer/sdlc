@@ -160,9 +160,12 @@ assertions, and checks the affected implementation. The resulting artefact
 states what it preserves, changes, supersedes, and leaves unaffected. Tests and
 code remain implementation evidence rather than requirement approval.
 
-Initialization does not bulk-migrate legacy tickets or acceptance criteria.
-Reconcile that material separately and bring forward only the baseline relevant
-to each new or migrated feature.
+Initialization does not bulk-migrate legacy tickets or acceptance criteria. For
+an established SDLC v1 project, invoke
+`$migrate-legacy-acs-to-sdlc-v1` before initialization to assess delivered open
+tickets, reconcile the centralized AC record and project documentation with
+explicit operator authorization, and leave undelivered scope untouched. Bring
+forward only the baseline relevant to each new or migrated feature.
 
 Review and track the same `.specify/` constitution and scaffold files listed in
 the greenfield procedure. Confirm that the generated authority hierarchy gives

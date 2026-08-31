@@ -1,28 +1,33 @@
 ---
 name: migrate-legacy-acs-to-sdlc-v1
-description: Centralize legacy ticket acceptance criteria and test traceability in the SDLC v1 record required before a brownfield project adopts SDLC v2. Invoke only when the operator requests this migration.
+description: Prepare a brownfield project's SDLC v1 requirements, tickets, tests, and documentation for Spec Kit initialization. Invoke only when the operator requests this readiness migration.
 metadata:
   preferred_provider: openai-codex
   preferred_model: gpt-5.6-luna
 ---
 
-# Migrate legacy acceptance criteria to SDLC v1
+# Prepare an SDLC v1 project for Spec Kit
 
 The canonical SDLC root is exactly `~/.agents/sdlc`. Never search the
 filesystem to locate it. If `~/.agents/sdlc/MAIN.md` is absent or unreadable,
 report that exact path.
 
 Read `~/.agents/sdlc/MAIN.md`, `~/.agents/sdlc/ISSUES.md`,
-`~/.agents/sdlc/TESTING.md`, and `~/.agents/sdlc/GIT.md` in full. Read the
-project constitution, its named requirement and design authorities, the
-centralized acceptance-criteria record, and the testing documentation.
+`~/.agents/sdlc/TESTING.md`, `~/.agents/sdlc/DOCUMENTATION.md`, and
+`~/.agents/sdlc/GIT.md` in full. Read the project's requirement and design
+authorities, centralized acceptance-criteria record, testing documentation,
+and supported test command.
 
 Use this skill only for an operator-requested brownfield migration. It
-centralizes acceptance criteria from the ticket-based SDLC v0.1 practice into
-the SDLC v1 AC record. Completing that intermediate record gives SDLC v2 and
-Spec Kit an authoritative brownfield baseline. The skill does not close or
-comment on issues, migrate undelivered scope, create feature specifications,
-change tests or implementation, or infer human approval.
+prepares an accurate SDLC v1 project state before `sdlc-project-init` introduces
+Spec Kit. It does not invoke `sdlc-project-init`, create feature specifications,
+change tests or implementation, or migrate undelivered scope.
+
+The evidence-gathering and proposal stages are read-only. Never close or
+comment on a ticket, change an AC or its state, or update project documentation
+without explicit operator authorization for that exact action. Authorization
+may cover a clearly enumerated batch. Evidence, likelihood, an existing commit,
+or a passing test never substitutes for operator authorization.
 
 ## Snapshot the issue record
 
@@ -33,17 +38,20 @@ temporary-directory mechanism and cache every issue once.
 
 Write one `<issue-number>.md` file per issue. Each file must contain:
 
-- issue number and descriptor, state, URL, author, and creation and closure
-  dates;
+- issue number and descriptor, state, URL, author, labels, milestone, and
+  creation and closure dates;
 - the complete issue body;
 - every comment in chronological order, with author and timestamp; and
 - linked pull requests, commits, cross-references, or other recorded
   implementation evidence available from the issue timeline.
 
-Confirm that comment and timeline pagination is complete. Keep the snapshot
-outside the repository, report its exact path, and use it for every subsequent
-pass. Read each cached issue in full, but never concatenate the complete issue
-set into one model context. Never mutate GitHub during this skill.
+Write a manifest containing the repository identity, snapshot time, issue
+count, and pagination result. Confirm that issue, comment, and timeline
+pagination is complete. Keep the immutable snapshot outside the repository,
+report its exact path, and use it for every subsequent pass. Read each cached
+issue in full, but never concatenate the complete issue set into one model
+context. If any page is incomplete, stop without classifying or proposing
+mutations.
 
 ## Build the evidence indexes
 
@@ -61,13 +69,63 @@ Before classifying tickets:
    implementation history but does not by itself prove approval or AC
    validity.
 
-Read [references/classification.md](references/classification.md) in full, then
-classify every cached issue in ascending issue-number order.
+Read [references/classification.md](references/classification.md) in full.
 
-## Reconcile the centralized record
+## Assess open-ticket readiness
 
-Ignore tickets containing no AC table; they are bug fixes for this migration.
-For every unambiguous AC-bearing ticket:
+Classify every open ticket before changing anything. Candidate selection is
+deliberately inclusive: a feature ticket with all or most AC evidence passing
+may be presented as delivered or probably delivered, but an outstanding AC,
+test, or documentation obligation must remain visible. A bug-fix ticket without
+an AC table may be a delivered closure candidate when implementation and
+regression evidence support that conclusion.
+
+Treat partially delivered, ambiguous, and undelivered tickets as untouched
+open scope. Do not edit them, close them, migrate their ACs, or create draft
+specifications from them.
+
+Present one proposed-action report containing:
+
+- delivered and probably delivered ticket closure candidates;
+- proposed AC additions, reconciliations, supersessions, retirements, or other
+  state changes;
+- project-documentation variances associated with each candidate;
+- unresolved evidence and the exact adjudication required; and
+- undelivered open scope explicitly marked `NO ACTION`.
+
+Every ticket, AC, test, commit, or other identifier shown to the operator must
+have its own adjacent descriptor. Never expect the operator to resolve an
+unexplained identifier.
+
+Ask in ordinary prose which exact ticket closures, AC changes, and documentation
+updates are authorized. A batch answer authorizes only the enumerated actions.
+Do not treat approval of a ticket closure as approval of an unlisted AC state
+change, or vice versa.
+
+If the proposed-action list or explanation is too long for a concise response,
+write it to a Markdown file in the snapshot directory. If
+`HTML_PREVIEW_TOOL` names an available command, open the exact report with that
+command. Otherwise open it in an available text editor. Report the exact path;
+never add the report to the repository.
+
+## Apply an authorized closure batch
+
+Process authorized tickets in ascending issue-number order so later decisions
+retain their established precedence. For each authorized closure:
+
+1. Re-fetch that exact ticket and compare its state, body, comments, and
+   timeline with the snapshot. If it changed, exclude it from the batch and
+   report the variance instead of acting on stale evidence.
+2. Apply only its authorized AC changes to `docs/ACs.md`.
+3. Check whether its delivered design or behaviour is accurately represented
+   in the project documentation. Apply only the authorized documentation
+   reconciliation.
+4. Sanitize and verify changed documentation, then create a recoverability
+   commit containing the local reconciliation.
+5. Close only the ticket explicitly authorized for closure. Do not close it if
+   an approved local reconciliation remains incomplete or uncommitted.
+
+When changing the centralized AC record:
 
 - preserve the original AC and test identifiers, descriptors, wording,
   relationships, statuses, issue provenance, and implementation evidence;
@@ -80,28 +138,59 @@ For every unambiguous AC-bearing ticket:
   preserving the older requirement and its lineage as superseded.
 
 Do not summarize, renumber, silently rewrite, or omit historical information.
-Do not change an operator-test status. Make no project-documentation changes
-outside the centralized AC record, and make no implementation, test, issue, or
-feature-specification changes.
+Do not change an operator-test status. Striking off an AC means preserving it
+as superseded or retired with its reason and lineage; it never means deleting
+it.
+
+## Reconcile the complete historical record
+
+After the authorized open-ticket batch, classify every cached issue in
+ascending issue-number order and compare every AC-bearing ticket with
+`docs/ACs.md`. Tickets without AC tables remain bug-fix history and need no AC
+migration.
 
 Process every unblocked ticket before asking for adjudication. Consolidate all
-ambiguous cases into one report. For each, give the issue and AC identifiers
-with descriptors, the available evidence, the exact ambiguity, and the
-decision required. Do not migrate an ambiguous AC until the operator decides.
+proposed changes and ambiguous cases into one report. For each, give every issue
+and AC identifier with its descriptor, the available evidence, the exact
+proposed change or ambiguity, and the decision required. Apply no historical AC
+change until the operator authorizes it, individually or as an enumerated
+batch.
 
 The migration must be idempotent. A rerun against the same issue snapshot,
 repository evidence, and operator decisions must produce no duplicate or
 unexplained change.
 
-## Report
+## Review project documentation
+
+As a final readiness check, compare the README, vision, architecture,
+operations, testing, user guidance, and other declared project authorities with
+the reconciled requirements, maintained regression evidence, current
+interfaces, and external ownership boundaries. Identify stale, conflicting,
+missing, or misleading material without rewriting documents merely to make
+them look current.
+
+Present the documentation variances and proposed corrections. Apply only the
+operator-authorized corrections. Preserve useful historical decisions and mark
+superseded material rather than silently deleting it. Sanitize changed
+technical documentation and perform proportionate link, command, and format
+checks.
+
+## Report readiness
 
 Report variances and summary counts, not a catalogue of unchanged or ignored
 issues. Include:
 
 - the snapshot path and issue count;
-- AC-bearing tickets examined, each with a descriptor;
-- current, historically valid, and superseded ACs migrated or reconciled;
-- the count of tickets ignored as bug fixes without AC tables;
-- human adjudications required;
-- files changed and the resulting commit; and
+- ticket closures and AC changes authorized and applied, each with a
+  descriptor;
+- delivered candidates left open because authorization or evidence was absent;
+- untouched undelivered scope;
+- current, historically valid, superseded, and unresolved AC reconciliation;
+- project documentation refreshed and remaining variances;
+- human adjudications still required;
+- files changed and resulting commits; and
 - verification performed and anything not verified.
+
+Conclude with the evidence supporting `sdlc-project-init` readiness and every
+remaining blocker. The operator determines whether to proceed with
+initialization.
