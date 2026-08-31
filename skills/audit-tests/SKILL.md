@@ -23,7 +23,12 @@ Check:
   broken;
 - normal, alternate, error, boundary, permission, repetition, concurrency, and
   migration paths are proportionately covered;
-- regression, one-off, and human validation are classified appropriately;
+- automated regression, one-off, and user tests are classified appropriately,
+  with a recorded rationale where no automated regression test is justified;
+- every selected one-off and user test has a `PENDING` entry in the active
+  feature's `validation.md` containing its descriptor, traceability, expected
+  result, procedure or viewing conditions, and an implementation-stage task to
+  record its observed result;
 - test architecture additions are justified in the plan;
 - temporary state is bounded, isolated, and cleaned up; and
 - every identifier in the report has an adjacent descriptor.

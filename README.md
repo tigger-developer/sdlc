@@ -290,10 +290,10 @@ judgement-based change requires a fresh audit.
 
    The main context dispatches `audit-spec`. It remediates blocking findings
    within the specification and re-audits under the five-attempt limit. A
-   specification or clarification change invalidates that specification's PASS
-   unless it exactly satisfies a PROVISIONAL condition. Record every attempt and
-   any condition receipt in the feature's `audits.md`; planning requires the
-   current effective PASS and operator sign-off.
+   specification or clarification change preserves the earlier PASS as history
+   but makes it non-current unless it exactly satisfies a PROVISIONAL condition.
+   Record every attempt and any condition receipt in the feature's `audits.md`;
+   planning requires the current effective PASS and operator sign-off.
 
 4. **Plan the implementation.**
 
@@ -322,7 +322,9 @@ judgement-based change requires a fresh audit.
 
    Invoke `$speckit-tasks`. It converts the approved specification and design
    into an ordered `tasks.md`, including the required verification,
-   documentation, migration, and human-validation work.
+   documentation, migration, and human-validation work. When one-off or user
+   tests are selected, it also creates `validation.md` in the active feature
+   directory with one `PENDING` entry per test.
 
 8. **Audit the tests and tasks in a fresh context.**
 
@@ -343,21 +345,30 @@ judgement-based change requires a fresh audit.
     A large feature may start a fresh build-focused context or be implemented in
     bounded phases; each context must load the approved artefacts before
     changing code. Implementation must not change required behaviour silently.
+    Automated tests follow RED/GREEN; one-off and user tests do not.
 
 11. **Audit the implementation in a fresh context.**
 
     The main context dispatches `audit-code` after implementation and
     verification. It remediates implementation blockers and re-audits under the
-    five-attempt limit. Completion or convergence requires the current effective
-    PASS and operator sign-off.
+    five-attempt limit. The verdict assesses the implementation, not whether
+    final non-automated results have already been recorded.
 
-12. **Converge and repeat when necessary.**
+12. **Validate the audited candidate.**
+
+    After `audit-code` has an effective PASS, execute every selected one-off and
+    user test and record its result in the active feature's `validation.md`. If a
+    result exposes a defect and remediation changes code, rerun affected
+    automated tests, `audit-code`, and affected validation. The earlier audit
+    remains evidence for its revision but is no longer current for completion.
+
+13. **Converge and repeat when necessary.**
 
     Invoke `$speckit-converge` to assess the implementation against the
     specification, plan, and tasks. If it appends missing work to `tasks.md`,
     implement that work, rerun affected verification and `audit-code` in a
     fresh context, then converge again. Stop only when no work remains and all
-    required audit records are current.
+    required audit and validation records are current.
 
 The resulting control flow is:
 
@@ -370,7 +381,8 @@ main:  checklist (optional) -> tasks
 fresh: audit-tests -> main remediation -> fresh re-audit, at most 5 attempts
 main:  analyze -> implement
 fresh: audit-code -> main remediation -> fresh re-audit, at most 5 attempts
-main:  converge -> repeat affected stages when work is appended
+main:  one-off and user tests -> validation.md -> converge
+main:  repeat affected audit and validation when remediation changes code
 ```
 
 ### Develop interactively with an operator
@@ -384,9 +396,10 @@ is not implementation authority.
 The agent implements and verifies one reviewable slice, presents the user-visible
 result, and retains explicit operator validation in a provisional ledger. At
 closure it presents the current validations once and asks whether they may be
-recorded as the user tests for the change. The record includes the behaviour,
-reviewed revision or state, material viewing conditions, and any superseded
-validation.
+recorded as the user tests for the change. In a Spec Kit feature, the mandatory
+record is the active feature's `validation.md`. It includes the behaviour,
+reviewed revision or state, material viewing conditions, result, human
+authority, and any superseded validation.
 
 Automation is added only when it protects objective, stable behaviour and adds
 evidence beyond the paired validation. The agent must not manufacture source
@@ -447,16 +460,19 @@ evidence, the emergency change is not ready for implementation.
 Select every applicable test type: automated regression tests, one-off tests,
 and user tests may be combined. Only automated tests follow TDD and require a
 pre-change failure. Define one-off and user-test evidence before implementation
-where practical, then execute it afterwards. Omitting an automated regression
-test requires a specific justification; urgency, difficulty, or inconvenience
-is insufficient.
+where practical, then execute their final verification after `audit-code` has
+an effective PASS. Omitting an automated regression test requires a specific
+justification; urgency, difficulty, or inconvenience is insufficient.
 
 After implementing and verifying the smallest coherent fix, reconcile the
 durable specification, design, and affected documentation, then obtain a
-change-scoped `audit-code` effective PASS. The route skips pre-implementation
-Spec Kit artefacts and stage audits, not applicable testing, code remediation,
-documentation, or verification. The exact keyword must appear in the human
-request and must never be inferred or invoked by an agent.
+change-scoped `audit-code` effective PASS and run the selected one-off and user
+tests. A defect-driven code change makes the earlier PASS historical rather than
+current and requires a fresh audit plus repetition of materially affected tests.
+The route skips pre-implementation Spec Kit artefacts and stage audits, not
+applicable testing, code remediation, documentation, or verification. The exact
+keyword must appear in the human request and must never be inferred or invoked
+by an agent.
 
 The public template at
 [`templates/AGENTS-or-CLAUDE.example.md`](templates/AGENTS-or-CLAUDE.example.md)

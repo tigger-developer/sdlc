@@ -182,13 +182,17 @@ for a separate sign-off after each one. At closure it reports:
 - applicable change-scoped audit results.
 
 The operator then confirms whether the listed validations may be recorded in
-the active feature's `validation.md` or the project's equivalent evidence
-record. Do not add an automated test merely to imitate a visual validation.
+the active feature's mandatory `validation.md`. Outside Spec Kit, use the
+project's equivalent evidence record. Do not add an automated test merely to
+imitate a visual validation.
 
 Run `audit-code` once at closure when the change includes new or materially
 modified code, templates, scripts, or non-trivial CSS. Run specification,
 design, or test audits only when the paired change produces material artefacts
-of those kinds. See `~/.agents/sdlc/PAIRING.md` for the complete contract.
+of those kinds. If code-audit remediation changes behaviour already validated
+by the operator, repeat only the materially affected user tests and preserve the
+earlier entries as superseded. See `~/.agents/sdlc/PAIRING.md` for the complete
+contract.
 
 ## Non-interactive selection
 

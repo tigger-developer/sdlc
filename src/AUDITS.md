@@ -64,9 +64,11 @@ VERDICT: FAIL
 2. [ADVISORY] <optional additional finding>
 ```
 
-Omit numbered lines when a PASS has no advisories. A changed artefact requires a
-fresh independent audit unless every change satisfies an exact PROVISIONAL
-condition under the receipt contract below.
+Omit numbered lines when a PASS has no advisories. A relevant change within the
+audited scope makes the earlier PASS non-current and requires a fresh independent
+audit unless every change satisfies an exact PROVISIONAL condition under the
+receipt contract below. Preserve the earlier verdict as revision-specific
+history.
 
 ## Provisional conditions
 
@@ -143,6 +145,25 @@ blocker. Report:
 An audit PASS or effective PASS is independent evidence, not operator approval.
 Request operator sign-off before advancing to the next phase.
 
+## Revision and completion boundaries
+
+An audit verdict remains evidence for the artefact revision and scope it
+assessed. A later relevant change does not erase that history, but the earlier
+verdict is no longer current for completion. The fresh audit may focus on the
+later delta plus the adjacent context needed to assess it safely; it need not
+repeat unrelated review.
+
+`audit-tests` owns the selected test strategy before implementation.
+`audit-code` owns the implementation and must not reopen an effective
+`audit-tests` PASS merely because final one-off or user-test results have not yet
+been executed. For staged and emergency delivery, execute final one-off and user
+tests after `audit-code` has an effective PASS. Completion and convergence, not
+the code audit, require their current passing results in `validation.md`.
+
+If final validation exposes a defect and remediation changes code, obtain a
+fresh `audit-code` verdict for the changed implementation and repeat only the
+test results materially affected by the change.
+
 ## Emergency changes
 
 `BYPASS-GATE-7` skips the pre-implementation specification, design, and test
@@ -153,9 +174,10 @@ the applicable test evidence is selected before the fix. It does not skip
 After implementation, verification, and durable artefact reconciliation, run a
 change-scoped `audit-code`. Remediate blocking findings and dispatch fresh
 audits under the normal five-attempt convergence contract until the change has
-an effective PASS or reaches a defined handback condition. Unrelated legacy
-defects are not blocking unless the emergency change depends on them, worsens
-them, or cannot be assessed safely without resolving them.
+an effective PASS or reaches a defined handback condition. Then execute and
+record the selected one-off and user tests. Unrelated legacy defects are not
+blocking unless the emergency change depends on them, worsens them, or cannot be
+assessed safely without resolving them.
 
 ## Paired development
 
@@ -177,6 +199,10 @@ For paired work:
   and
 - run `audit-spec` only when the paired work produces or changes a durable
   specification requiring independent review.
+
+If audit remediation changes behaviour already covered by a paired validation,
+repeat only the materially affected validation before closure. Preserve the
+earlier result as superseded evidence for its reviewed revision.
 
 When an audit does not apply, state that fact and the reason in the closure
 handback. The operator's confirmed user-test record remains evidence rather than

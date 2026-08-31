@@ -11,9 +11,9 @@ filesystem to locate it. If `~/.agents/sdlc/MAIN.md` is absent or unreadable,
 report that exact path.
 
 Read `~/.agents/sdlc/MAIN.md`, `~/.agents/sdlc/AUDITS.md`, and
-`~/.agents/sdlc/CODING.md` in full. Read only the language, testing, Git,
-documentation, and domain standards selected by the project constitution or
-needed for the changed files.
+`~/.agents/sdlc/CODING.md`, and `~/.agents/sdlc/TESTING.md` in full. Read only
+the language, Git, documentation, and domain standards selected by the project
+constitution or needed for the changed files.
 
 Review the requested scope and current diff without modifying files. Check:
 
@@ -24,8 +24,14 @@ Review the requested scope and current diff without modifying files. Check:
   diagnostics;
 - concurrency, cleanup, resource, timeout, and retry behaviour;
 - maintainability and ecosystem idioms;
-- tests at the correct observable boundary; and
+- implementation of the approved automated tests without reopening the
+  effective `audit-tests` strategy; and
 - documentation required by changed interfaces or operations.
+
+Final one-off and user tests are completion evidence executed after an effective
+`audit-code` PASS. Their missing results do not fail this audit. Challenge the
+approved test strategy only when the implementation deviates from it or concrete
+implementation evidence reveals an upstream contradiction.
 
 For each finding, give severity, a file and line reference, the violated
 requirement or standard with a descriptor, evidence, consequence, and concrete

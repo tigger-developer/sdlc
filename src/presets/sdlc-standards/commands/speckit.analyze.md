@@ -12,7 +12,8 @@ requirements have complete evidence; and no test can pass by inspecting only
 source or prose. Give every cited identifier an adjacent descriptor.
 
 This consistency analysis does not replace `audit-spec`, `audit-design`,
-`audit-tests`, or `audit-code`. Any change made after an audit invalidates that
-artefact's PASS and requires a fresh independent audit.
+`audit-tests`, or `audit-code`. A later relevant change preserves the earlier
+PASS as revision-specific history but makes it non-current for phase completion
+and requires a fresh independent audit of the delta and necessary context.
 Follow `AUDITS.md` when resolving analysis findings within the current phase;
 do not hand back between remediable revisions and their required fresh audits.

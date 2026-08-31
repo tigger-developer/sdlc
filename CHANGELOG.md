@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+Made `validation.md` the mandatory Spec Kit record for selected one-off and user
+tests. Test design now creates traceable `PENDING` entries, implementation
+records evidence-backed results after code audit, and `audit-tests` verifies the
+planned ledger and execution tasks. `audit-code` assesses implementation without
+requiring final non-automated results; completion and convergence require a
+current code-audit PASS and current passing validation. Later changes preserve
+revision-specific history while refreshing only materially affected audits and
+tests.
+
 Defined `BYPASS-GATE-7` as an exact-keyword, operator-only emergency route whose
 surrounding request must state the current behaviour, required observable
 behaviour, precise scope, and material constraints. The route now explicitly

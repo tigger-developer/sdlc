@@ -52,8 +52,11 @@ test execution.
 
 Define the expected evidence for one-off and user tests before implementation
 where practical. They do not follow TDD and do not require a pre-change failure.
-Execute and record them after implementation. These rules also apply to
-`BYPASS-GATE-7`. Paired development uses the live user-validation contract below.
+For staged Spec Kit and `BYPASS-GATE-7` work, execute their final verification
+after `audit-code` has an effective PASS. Earlier diagnostic executions may
+inform implementation but are not final evidence unless they remain current for
+the audited candidate. Paired development uses the live user-validation contract
+below.
 
 ## Choose durable evidence
 
@@ -66,8 +69,43 @@ Use three distinct test categories. A change may use more than one:
   ergonomic, operational, or other human judgement.
 
 Do not create permanent test code solely to satisfy a test-count rule. Record
-one-off or user-test evidence in the feature artefacts or final report, then
-remove temporary files from the repository.
+one-off or user-test evidence durably, then remove temporary files from the
+repository.
+
+## Non-automated test results
+
+When a Spec Kit feature selects any one-off or user test, its active feature
+directory must contain `validation.md`. Create the record before implementation
+with each selected test marked `PENDING`, then replace that status with the
+observed `PASS` or `FAIL` result after execution. Non-Spec Kit projects must use
+an equivalent durable project record.
+
+Every planned entry must include:
+
+- a test identifier with an adjacent descriptor and its one-off or user-test
+  category;
+- the requirement or task it verifies;
+- the expected result and procedure or human viewing conditions;
+- `PENDING`, `PASS`, `FAIL`, or `SUPERSEDED` status.
+
+A completed or superseded entry must also include:
+
+- the tested revision and relevant environment;
+- the observed result and supporting evidence;
+- the tester or human authority for a user test; and
+- any later result that supersedes it.
+
+Do not infer PASS from a completed task, an agent report, or an implementation
+claim. Required one-off and user tests remain incomplete until their results are
+recorded in `validation.md`. Completion and convergence require a current PASS
+for every required entry; missing, `PENDING`, `FAIL`, or materially stale results
+block closure, not `audit-code`.
+
+An audit verdict remains historical evidence for the revision and scope it
+assessed. If later remediation changes relevant code, the earlier `audit-code`
+PASS is no longer current for completion. Rerun the affected automated tests and
+`audit-code`, then repeat only the one-off and user tests materially affected by
+the change. Unaffected results remain current.
 
 ## Paired user validation
 
@@ -84,8 +122,9 @@ Maintain a provisional ledger during the session. For each validation, retain:
 
 At closure, present the current ledger once and ask whether it may be recorded
 as the user tests for the change. On approval, write it to the active feature's
-`validation.md` or the project's equivalent durable evidence record. A later
-change invalidates only entries whose observed behaviour it materially affects.
+`validation.md`. Outside Spec Kit, use the project's equivalent durable evidence
+record. A later change invalidates only entries whose observed behaviour it
+materially affects.
 
 Add automated regression coverage only when the behaviour is objective and
 stable, regression risk justifies retention, the test uses an appropriate user

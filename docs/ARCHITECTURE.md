@@ -267,8 +267,10 @@ Audit skills are independent, read-only challenges of specification, design,
 tests, or code. Every audit runs in a fresh context and emits its name, provider,
 model, and exact PASS, PROVISIONAL, or FAIL verdict. Blocking findings require
 FAIL, exact mechanical conditions permit PROVISIONAL, and advisories may
-accompany any verdict. Changed artefacts require a fresh audit unless they
-exactly satisfy a PROVISIONAL condition and carry its evidence receipt.
+accompany any verdict. A later relevant change preserves the earlier verdict as
+revision-specific history but requires a fresh audit of the delta and necessary
+context unless it exactly satisfies a PROVISIONAL condition and carries its
+evidence receipt.
 
 The main authoring context owns convergence within each phase. It remediates
 current-phase blockers and dispatches a fresh auditor for at most five attempts
@@ -281,8 +283,20 @@ satisfied PROVISIONAL receipt is effective PASS for this purpose.
 specification -- audit-spec PASS --> plan and design
 plan/design  -- audit-design PASS -> tests and tasks
 test design  -- audit-tests PASS --> implementation
-implementation -- audit-code PASS -> completion or convergence
+implementation -- audit-code PASS -> one-off and user tests
+current validation PASS -----------> completion or convergence
 ```
+
+Test design creates `PENDING` entries in the active feature's `validation.md`
+for selected one-off and user tests, and `audit-tests` approves that strategy.
+`audit-code` assesses the implementation after automated verification. Final
+one-off and user tests then validate the audited candidate. Completion requires
+both a current code-audit PASS and current passing validation results.
+
+If final validation exposes a defect, a corrective code change preserves the
+earlier audit and results as revision-specific history but makes affected
+evidence non-current. A fresh code audit may review the corrective delta plus
+necessary context, and only materially affected tests are repeated.
 
 In this diagram, PASS includes effective PASS produced by satisfying every exact
 condition in a PROVISIONAL verdict. The author records the audited revision,

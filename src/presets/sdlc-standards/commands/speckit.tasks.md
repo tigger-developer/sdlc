@@ -17,8 +17,10 @@ the production-code task it governs and require confirmation that it fails for
 the intended reason. Where no automated regression test is justified, add the
 specific rationale. Define one-off and user-test evidence before implementation
 where practical, and schedule its execution after implementation without a
-pre-change failure requirement. Explicitly selected paired development follows
-`PAIRING.md` instead.
+pre-change failure requirement. When either category is selected, create or
+update the active feature's `validation.md` with one `PENDING` entry per test as
+defined by `TESTING.md`, and include tasks that record the results there.
+Explicitly selected paired development follows `PAIRING.md` instead.
 
 Before generating tasks, verify that the plan and design have a current
 effective `audit-design` PASS in the feature's `audits.md`. After test design

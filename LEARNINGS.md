@@ -120,10 +120,11 @@ The audit skills remain findings-only. They:
 - emit a machine-checkable PASS, PROVISIONAL, or FAIL verdict identifying
   provider and model, with exact deterministic conditions for PROVISIONAL.
 
-Each audit runs in a fresh context. A blocking finding, malformed result, or
-unrelated later change invalidates PASS. Exact PROVISIONAL conditions may be
-corrected and verified mechanically without another model audit. This avoids
-self-review while keeping detailed standards in one place.
+Each audit runs in a fresh context. A blocking finding or malformed result
+prevents PASS. A later relevant change preserves the earlier verdict as evidence
+for its revision but makes it non-current for completion. Exact PROVISIONAL
+conditions may be corrected and verified mechanically without another model
+audit. This avoids self-review while keeping detailed standards in one place.
 
 ## Behaviour is not source text
 
@@ -143,6 +144,19 @@ The useful distinction is:
 
 One-off technical review remains legitimate. It simply is not mislabelled as a
 regression test.
+
+## Test strategy, code audit, and validation are separate concerns
+
+`audit-tests` approves the combination of automated regression, one-off, and
+user tests before implementation. Only automated tests use RED/GREEN. One-off
+and user tests may be the only justified evidence and are recorded in the active
+feature's `validation.md` rather than converted into artificial automation.
+
+`audit-code` assesses the implementation after automated verification. Final
+one-off and user tests then exercise the audited candidate. Completion requires
+both a current code-audit PASS and current passing validation results. If final
+validation exposes a defect, the earlier audit and results remain historical;
+only the changed implementation and materially affected tests are reassessed.
 
 ## Structured data needs structured tools
 

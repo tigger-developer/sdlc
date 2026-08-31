@@ -122,10 +122,16 @@ reason; urgency, difficulty, or inconvenience is insufficient.
 
 Define the expected evidence for one-off and user tests before implementation
 where practical, but do not require them to produce a pre-change failure. After
-implementation, execute and record every selected test. Then reconcile the
-durable specification, design, and affected documentation; run `audit-code`;
-remediate blocking findings until it has an effective PASS; and create a
-recoverable commit with precise verification evidence.
+implementation and automated verification, reconcile the durable specification,
+design, and affected documentation; run `audit-code`; and remediate blocking
+findings until it has an effective PASS. Then execute and record the required
+one-off and user tests against that audited candidate.
+
+If a one-off or user test exposes a defect and remediation changes code, the
+earlier audit remains evidence for its audited revision but is no longer current
+for completion. Rerun affected automated tests, `audit-code`, and affected
+one-off or user tests. Do not report completion until the current implementation
+has an effective audit PASS and current passing test evidence.
 
 The exception skips pre-implementation Spec Kit artefacts, tickets, modes,
 approval gates, and specification, design, and test audits. It does not override

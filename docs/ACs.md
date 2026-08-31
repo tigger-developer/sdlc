@@ -83,9 +83,10 @@ adapter model.
 - Effective specification PASS precedes planning; effective design PASS precedes
   tests and tasks; effective test PASS precedes implementation; effective code
   PASS precedes completion or convergence.
-- A change to an audited artefact invalidates its PASS and requires a fresh
-  audit whose receipt supersedes the previous result, except when the change
-  exactly satisfies a PROVISIONAL condition.
+- A later relevant change preserves the earlier PASS as revision-specific
+  history but makes it non-current for phase completion. A fresh audit assesses
+  the delta and necessary context unless the change exactly satisfies a
+  PROVISIONAL condition.
 - A PROVISIONAL verdict matures to effective PASS without another model audit
   only when the author records both revisions, verifies every exact condition,
   proves no additional change entered the correction, and appends the evidence
@@ -100,6 +101,17 @@ adapter model.
   conditions, the fifth FAIL, or an earlier human-controlled blocker and reports
   attempt history, decisions, assumptions requiring validation, advisories, and
   unresolved blockers.
+- A Spec Kit feature that selects one-off or user tests contains
+  `validation.md` with one traceable result entry per selected test.
+- `audit-tests` verifies the planned `PENDING` entries and their execution tasks
+  before implementation.
+- `audit-code` assesses implementation after automated verification without
+  requiring final one-off or user-test results.
+- Completion and convergence require a current `audit-code` PASS and current
+  passing `validation.md` results for every required non-automated test.
+- A later relevant code change preserves the earlier audit and validation as
+  revision-specific history but requires a fresh code audit and repetition of
+  only the materially affected tests.
 
 ## Paired development contract
 
