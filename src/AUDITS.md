@@ -5,13 +5,31 @@ operator an intermediary in routine revision cycles.
 
 ## Independence
 
-- Run every audit in a fresh context that did not author the audited artefact.
+- Invoke formal audits through `sdlc-audit`. It starts a new one-shot harness
+  process in an empty temporary working directory and does not resume or inherit
+  the authoring conversation.
+- The audit skill supplies only the candidate files and exact context files
+  needed for its judgement. The runner embeds their contents with the canonical
+  audit prompt and this contract. Do not pass directories, the whole repository,
+  or unrelated files.
 - The main authoring context may dispatch the auditor, wait for its verdict,
   remediate findings, and dispatch the next fresh audit.
 - The auditor is findings-only. It must not modify the audited artefact or mark
   its own finding resolved.
 - Record the audit name, provider, model, artefact revision, verdict, findings,
   and any superseding attempt in the active feature's `audits.md`.
+
+The runner reads `SDLC_AUDIT_HARNESS`, `SDLC_AUDIT_PROVIDER`, and
+`SDLC_AUDIT_MODEL` from user defaults in `~/.agents/.env`, then applies values
+from the ignored project `.env` with project precedence. This release always
+uses Hermes: an unset or `hermes` harness value is silent; any other value emits
+a warning and falls back to Hermes. Provider and model are required and passed
+explicitly to Hermes. A harness execution error, timeout, malformed verdict,
+wrong audit name, or reported provider or model that does not match the request
+fails closed. A valid FAIL remains an audit result, not a runner failure.
+Each invocation has a 15-minute runtime budget and hard timeout.
+Hermes reasoning or display text before the last exact audit header is discarded;
+only the validated machine-readable report is returned to the caller.
 
 ## Brownfield source coverage
 
@@ -39,6 +57,9 @@ Use `PROVISIONAL` when every required correction qualifies as a condition and
 no blocking finding exists. Use `FAIL` when at least one blocking finding
 exists. A PROVISIONAL or FAIL verdict may also include advisories. End with
 exactly one of these machine-checkable forms:
+
+Return only the selected form. Do not add an introduction, conclusion,
+explanation, summary, Markdown fence, or any other text before or after it.
 
 ```text
 AUDIT: <audit name>

@@ -25,6 +25,7 @@ const (
 	keySpecModel           = "SDLC_SPEC_MODEL"
 	keyBuildProvider       = "SDLC_BUILD_PROVIDER"
 	keyBuildModel          = "SDLC_BUILD_MODEL"
+	keyAuditHarness        = "SDLC_AUDIT_HARNESS"
 	keyAuditProvider       = "SDLC_AUDIT_PROVIDER"
 	keyAuditModel          = "SDLC_AUDIT_MODEL"
 	keyProjectType         = "SDLC_PROJECT_TYPE"
@@ -47,6 +48,7 @@ var managedKeys = []string{
 	keySpecModel,
 	keyBuildProvider,
 	keyBuildModel,
+	keyAuditHarness,
 	keyAuditProvider,
 	keyAuditModel,
 	keyProjectType,
@@ -88,6 +90,7 @@ type Options struct {
 	SpecModel      string
 	BuildProvider  string
 	BuildModel     string
+	AuditHarness   string
 	AuditProvider  string
 	AuditModel     string
 	ProjectType    string
@@ -109,6 +112,7 @@ type resolvedConfig struct {
 	SpecModel     string
 	BuildProvider string
 	BuildModel    string
+	AuditHarness  string
 	AuditProvider string
 	AuditModel    string
 	ProjectType   string
@@ -761,7 +765,7 @@ func resolveConfig(options Options, userValues, projectValues map[string]string)
 	config := resolvedConfig{
 		Harness: values[keyAgentHarness], SpecProvider: values[keySpecProvider], SpecModel: values[keySpecModel],
 		BuildProvider: values[keyBuildProvider], BuildModel: values[keyBuildModel],
-		AuditProvider: values[keyAuditProvider], AuditModel: values[keyAuditModel], InfraOwner: values[keyInfraOwner], InfraContract: values[keyInfraContract],
+		AuditHarness: values[keyAuditHarness], AuditProvider: values[keyAuditProvider], AuditModel: values[keyAuditModel], InfraOwner: values[keyInfraOwner], InfraContract: values[keyInfraContract],
 		ProjectType: strings.ToLower(values[keyProjectType]), Technologies: splitList(values[keyTechnologies]), SDLCRevision: options.SDLCRevision,
 	}
 	if value, ok := parseBool(values[keyInfraEnabled]); ok {
@@ -781,6 +785,9 @@ func resolveConfig(options Options, userValues, projectValues map[string]string)
 	}
 	if options.BuildModel != "" {
 		config.BuildModel = options.BuildModel
+	}
+	if options.AuditHarness != "" {
+		config.AuditHarness = options.AuditHarness
 	}
 	if options.AuditProvider != "" {
 		config.AuditProvider = options.AuditProvider
@@ -813,6 +820,7 @@ func projectSnapshot(config resolvedConfig) map[string]string {
 		keySpecModel:     config.SpecModel,
 		keyBuildProvider: config.BuildProvider,
 		keyBuildModel:    config.BuildModel,
+		keyAuditHarness:  config.AuditHarness,
 		keyAuditProvider: config.AuditProvider,
 		keyAuditModel:    config.AuditModel,
 		keyProjectType:   config.ProjectType,

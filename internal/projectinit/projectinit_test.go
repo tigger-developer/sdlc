@@ -42,10 +42,10 @@ func TestDiscoverTechnologiesIsAlphabeticalAndAutomatic(t *testing.T) {
 }
 
 func TestResolveConfigUsesCLIProjectUserPrecedence(t *testing.T) {
-	user := map[string]string{keyAgentHarness: "hermes", keySpecModel: "user-spec", keyAuditModel: "user-audit", keyProjectType: "brownfield"}
-	project := map[string]string{keyAgentHarness: "claude", keySpecModel: "project-spec", keyAuditModel: "project-audit", keyProjectType: "greenfield"}
-	got := resolveConfig(Options{Harness: "codex", SpecModel: "cli-spec", ProjectType: "brownfield"}, user, project)
-	if got.Harness != "codex" || got.SpecModel != "cli-spec" || got.AuditModel != "project-audit" || got.ProjectType != "brownfield" {
+	user := map[string]string{keyAgentHarness: "hermes", keyAuditHarness: "hermes", keySpecModel: "user-spec", keyAuditModel: "user-audit", keyProjectType: "brownfield"}
+	project := map[string]string{keyAgentHarness: "claude", keyAuditHarness: "claude", keySpecModel: "project-spec", keyAuditModel: "project-audit", keyProjectType: "greenfield"}
+	got := resolveConfig(Options{Harness: "codex", AuditHarness: "codex", SpecModel: "cli-spec", ProjectType: "brownfield"}, user, project)
+	if got.Harness != "codex" || got.AuditHarness != "codex" || got.SpecModel != "cli-spec" || got.AuditModel != "project-audit" || got.ProjectType != "brownfield" {
 		t.Fatalf("resolved config = %#v", got)
 	}
 	withoutProjectValue := resolveConfig(Options{}, user, map[string]string{})
@@ -548,6 +548,7 @@ func TestRunCommitsCurrentUntrackedScaffoldWithoutLaunching(t *testing.T) {
 		`SDLC_SPEC_MODEL=""`,
 		`SDLC_BUILD_PROVIDER=""`,
 		`SDLC_BUILD_MODEL=""`,
+		`SDLC_AUDIT_HARNESS=""`,
 		`SDLC_AUDIT_PROVIDER=""`,
 		`SDLC_AUDIT_MODEL=""`,
 		`SDLC_PROJECT_TYPE="brownfield"`,
@@ -631,6 +632,7 @@ func TestRunSnapshotsEveryResolvedGlobalDefaultIntoProject(t *testing.T) {
 		`SDLC_SPEC_MODEL="gpt-5.6-sol"`,
 		`SDLC_BUILD_PROVIDER="openai-codex"`,
 		`SDLC_BUILD_MODEL="gpt-5.6-terra"`,
+		`SDLC_AUDIT_HARNESS="hermes"`,
 		`SDLC_AUDIT_PROVIDER="openai-codex"`,
 		`SDLC_AUDIT_MODEL="gpt-5.6-luna"`,
 		`SDLC_PROJECT_TYPE="brownfield"`,

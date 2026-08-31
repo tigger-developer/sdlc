@@ -12,8 +12,8 @@
 Building or installing from source requires a Go toolchain and `rsync`. The
 installed Go executables do not require a separate Go runtime.
 
-The SDLC installer also installs the `sdlc-install` and `sdlc-project-init`
-helpers under `~/.local/bin`.
+The SDLC installer also installs the `sdlc-install`, `sdlc-project-init`, and
+`sdlc-audit` helpers under `~/.local/bin`.
 
 ```bash
 git clone https://github.com/tigger-developer/sdlc.git ~/code/sdlc
@@ -35,6 +35,10 @@ specify --version
 
 ```bash
 sdlc-project-init --help
+```
+
+```bash
+sdlc-audit audit-spec --help
 ```
 
 The installer deploys the canonical standards to `~/.agents/sdlc`. Provider
@@ -231,6 +235,13 @@ existing projects. Project classification is project-only: supply
 `--project-type`, record `SDLC_PROJECT_TYPE` in the project `.env`, or answer the
 initializer prompt. A value in `~/.agents/.env` is ignored. Command-line values
 take precedence. Run `sdlc-project-init --help` for the complete interface.
+
+Set `SDLC_AUDIT_HARNESS`, `SDLC_AUDIT_PROVIDER`, and `SDLC_AUDIT_MODEL` in
+`~/.agents/.env` to select the default independent auditor for new projects.
+The initializer snapshots those values into the project `.env`, whose values
+take precedence when the runner executes. This release always invokes Hermes
+and passes provider and model explicitly. An unset or `hermes` harness value is
+silent; any other value warns and falls back to Hermes.
 
 ## Rerun and update
 

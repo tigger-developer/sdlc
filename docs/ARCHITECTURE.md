@@ -44,6 +44,7 @@ sdlc/
 |   |-- technologies/
 |   |-- presets/sdlc-standards/
 |   |-- prompts/project-init/
+|   |-- prompts/audits/
 |   `-- templates/project-init/
 |-- skills/
 |-- hooks/
@@ -74,6 +75,7 @@ runtime:
 |-- technologies/
 |-- presets/sdlc-standards/
 |-- prompts/project-init/
+|-- prompts/audits/
 |-- templates/project-init/
 |-- skills/
 `-- hooks/
@@ -272,14 +274,25 @@ duplicative prose design.
 
 ## Skills and retired paths
 
-Audit skills are independent, read-only challenges of specification, design,
-tests, or code. Every audit runs in a fresh context and emits its name, provider,
-model, and exact PASS, PROVISIONAL, or FAIL verdict. Blocking findings require
+Audit skills are thin adapters to `sdlc-audit`. The runner composes the
+audit-specific prompt, the common audit contract, judged artefact contents, and
+only the exact context files selected by the authoring agent. It starts one
+non-resumed Hermes process in an empty temporary working
+directory, so authoring conversation and project-local instruction discovery
+are not inherited. Every audit emits its name, provider, model, and exact PASS,
+PROVISIONAL, or FAIL verdict. Blocking findings require
 FAIL, exact mechanical conditions permit PROVISIONAL, and advisories may
 accompany any verdict. A later relevant change preserves the earlier verdict as
 revision-specific history but requires a fresh audit of the delta and necessary
 context unless it exactly satisfies a PROVISIONAL condition and carries its
 evidence receipt.
+
+Ordinary context files are restricted to the project, canonical SDLC, and
+operating-system temporary directories. `--external-context FILE` admits only
+the exact named external authority; it grants no directory tree. Automated
+regression tests inject a fake harness. A live Hermes and hosted-model call is a
+metered one-off test and is excluded from `make test`, CI, scheduled automation,
+and persistent regression targets.
 
 The main authoring context owns convergence within each phase. It remediates
 current-phase blockers and dispatches a fresh auditor for at most five attempts
@@ -313,9 +326,14 @@ corrected revision, deterministic evidence, and absence of additional changes
 instead of dispatching another model audit.
 
 Verdicts are retained in the active feature's `audits.md`. The shared parser
-fails closed on missing or malformed verdicts and inconsistent finding
-classifications. The canonical contract is `~/.agents/sdlc/AUDITS.md`.
-Advisory skills load context, diagnose, recommend, or summarize.
+fails closed on missing or malformed verdicts, inconsistent finding
+classifications, or an audit, provider, or model identity different from the
+requested configuration. A valid FAIL passes through as a report. Project
+`.env` values override user defaults from `~/.agents/.env`. Hermes is the sole
+audit harness in this release; another configured harness warns and falls back
+to Hermes, which receives provider and model explicitly. Each child has a
+minimal environment and a 15-minute runtime budget and hard timeout. Advisory
+skills load context, diagnose, recommend, or summarize.
 
 The standards-only model removes the previous SDLC commands and its drafting
 and design workflow skills. The installer has a bounded retirement list for

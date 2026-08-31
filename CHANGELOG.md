@@ -1,6 +1,22 @@
 # Changelog
 
-## Unreleased
+## v2.0.2 - 2026-08-31
+
+Added `sdlc-audit`, an isolated audit controller installed with the other SDLC
+helpers. Audit skills now delegate to one-shot Hermes processes in empty
+temporary working directories. The controller embeds the canonical audit
+prompt and only explicitly selected file contents, applies project audit
+configuration over user defaults, and passes provider and model explicitly. A
+non-Hermes harness value warns and falls back to Hermes. Inputs are constrained
+to exact named files in approved directories, child environment and runtime are
+bounded, and malformed or misidentified reports are rejected. Hermes reasoning
+or display prefixes are
+discarded so callers receive only the validated report. Audit prompts now have
+a single deployed source under `src/prompts/audits/` while skills remain small
+invocation adapters. Exact external authorities use `--external-context FILE`
+without authorizing a directory tree. Regression coverage uses a fake harness;
+live hosted-model verification is a one-off test and is excluded from CI and
+persistent regression targets.
 
 Brownfield specification and planning now begin with an evidenced context pass
 across relevant requirement and design authorities, historical work records,

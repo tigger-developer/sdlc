@@ -89,8 +89,16 @@ adapter model.
 
 ## Independent audit contract
 
-- `audit-spec`, `audit-design`, `audit-tests`, and `audit-code` run in contexts
-  independent of the artefact author and never modify the judged artefact.
+- `audit-spec`, `audit-design`, `audit-tests`, and `audit-code` invoke the
+  `sdlc-audit` runner rather than auditing in the authoring context.
+- Each invocation starts a non-resumed harness process in an empty temporary
+  directory and embeds only the canonical prompt, judged artefacts, and exact
+  context files supplied by the caller.
+- The runner reads audit harness, provider, and model from user defaults, then
+  applies project `.env` values with project precedence.
+- An unset or `hermes` harness value invokes Hermes silently. Any other value
+  emits a warning and falls back to Hermes.
+- Hermes receives the configured provider and model explicitly.
 - Every report names the audit, auditor provider, auditor model, and exact PASS,
   PROVISIONAL, or FAIL verdict. Findings are classified as `[BLOCKING]`,
   `[CONDITION]`, or `[ADVISORY]`.
@@ -99,6 +107,20 @@ adapter model.
   requires at least one blocking finding and permits advisories.
 - Missing or malformed headers, unclassified findings, and verdicts inconsistent
   with their finding classifications are rejected.
+- A report whose audit, provider, or model identity differs from the requested
+  values is rejected. A structurally valid FAIL is returned to the authoring
+  context as evidence rather than treated as runner failure.
+- Hermes display or reasoning text preceding the last exact requested audit
+  header is discarded; only the validated report is emitted.
+- Inputs must be regular non-symlink files beneath the project, canonical SDLC,
+  or operating-system temporary directory. An exact external authority is
+  supplied separately with `--external-context FILE`; it does not authorize a
+  directory tree. The child receives a bounded environment and a 15-minute
+  runtime budget and hard timeout.
+- Automated regression coverage of `sdlc-audit` injects a fake harness and
+  never invokes Hermes or a hosted model. A live end-to-end audit invocation is
+  a metered one-off test only and must not be included in `make test`, CI,
+  scheduled automation, or another persistent regression target.
 - Effective specification PASS precedes planning; effective design PASS precedes
   tests and tasks; effective test PASS precedes implementation; effective code
   PASS precedes completion or convergence.

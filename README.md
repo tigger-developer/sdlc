@@ -29,10 +29,11 @@ root is exactly `~/.agents/sdlc` for every supported provider.
 | `src/technologies/*.md` | Automatically discoverable technology standards |
 | `src/presets/sdlc-standards/` | Spec Kit preset that selects standards progressively |
 | `src/prompts/project-init/` | Constitution-generation prompt resource |
+| `src/prompts/audits/` | Canonical prompts for isolated audit processes |
 | `src/templates/project-init/` | Constitution scaffold and managed brownfield document block |
 | `skills/` | Findings-only audits and advisory tools |
 | `hooks/` | Optional provider-integrated command safeguard |
-| `cmd/` and `internal/` | Installer, project initializer, and audit-verdict implementation |
+| `cmd/` and `internal/` | Installer, project initializer, isolated audit runner, and verdict implementation |
 
 Only runtime material from `src/`, `skills/`, and `hooks/` is
 deployed. Repository documentation, installer source, tests, and build metadata
@@ -60,7 +61,8 @@ make install
 
 The installer:
 
-- installs `sdlc-install` and `sdlc-project-init` under `~/.local/bin`;
+- installs `sdlc-install`, `sdlc-project-init`, and `sdlc-audit` under
+  `~/.local/bin`;
 - synchronizes `src/` into `~/.agents/sdlc` and retains the other runtime
   directory names;
 - installs common and provider-native skill copies for detected agents where
@@ -135,6 +137,7 @@ SDLC_SPEC_PROVIDER
 SDLC_SPEC_MODEL
 SDLC_BUILD_PROVIDER
 SDLC_BUILD_MODEL
+SDLC_AUDIT_HARNESS
 SDLC_AUDIT_PROVIDER
 SDLC_AUDIT_MODEL
 SDLC_PROJECT_TYPE
@@ -149,8 +152,12 @@ SDLC_INFRA_CONTRACT
 
 Specification settings apply to constitution, specification, clarification,
 design, planning, and task-definition agent invocations. Build settings apply
-to implementation and convergence. Audit settings apply to independent audit
-invocations. The initializer accepts legacy `SDLC_DELIVERY_PROVIDER` and
+to implementation and convergence. Audit settings select the independent
+audit harness, provider, and model. This release always uses Hermes: an unset
+or `hermes` harness value is silent, while another value warns and falls back
+to Hermes. Project `.env` values override `~/.agents/.env`, and provider and
+model are passed explicitly to Hermes. The initializer accepts legacy
+`SDLC_DELIVERY_PROVIDER` and
 `SDLC_DELIVERY_MODEL` values as specification defaults and rewrites project
 snapshots using the new names.
 
@@ -208,10 +215,11 @@ convergence. A context hand-off is not an approval gate; the files under the
 active `specs/` feature directory carry the durable state.
 
 An independent audit is the only stage transition that mandates a different
-context. The auditor must not be the context that authored the artefact. The
-main context dispatches a fresh subagent and resumes after its verdict when the
-harness supports delegation. Otherwise the operator runs the audit in a
-separate agent session.
+context. The audit skill invokes `sdlc-audit`, which starts a fresh one-shot
+Hermes process in an empty temporary directory. It embeds the
+canonical audit contract, the audit-specific prompt, the candidate, and only
+the exact context files named by the authoring agent. No authoring conversation
+or child-agent context is inherited.
 
 Apply these rules to the main context:
 
@@ -498,11 +506,17 @@ The audit skills are findings-only and have a common machine-checkable verdict:
 Audits classify material phase blockers as `[BLOCKING]`, exact mechanical
 corrections as `[CONDITION]`, and optional improvements as `[ADVISORY]`. PASS
 permits advisories, PROVISIONAL requires at least one condition, and FAIL
-requires at least one blocking finding. Audits run in a fresh context, never
+requires at least one blocking finding. Audits run through `sdlc-audit`, never
 modify the judged artefact, and identify both provider and model in their
-verdict. The shared contract is `~/.agents/sdlc/AUDITS.md`. A skill's
-frontmatter may recommend an inexpensive audit provider and model; runtime
-configuration has precedence.
+verdict. The runner rejects malformed reports or an identity different from the
+requested configuration. It bounds each invocation to 15 minutes. The shared
+contract is `~/.agents/sdlc/AUDITS.md`.
+
+Use `--external-context FILE` when an audit needs one exact authority outside
+the project and canonical SDLC directories. This supplies only the named file;
+it does not authorize a directory tree. Regression tests of the runner use a
+fake harness. Live hosted-model invocations are metered one-off tests and must
+not be added to `make test`, CI, or another persistent regression target.
 
 The explicit-only `migrate-legacy-acs-to-sdlc-v1` skill snapshots every GitHub
 issue, including comments and recorded implementation links, then reconciles
