@@ -65,6 +65,27 @@ Spec Kit makes this boundary durable. A plan cannot silently change a
 requirement, and an implementation cannot use ambiguity as authority to invent
 one.
 
+## Paired work preserves live validation
+
+Some outcomes cannot be specified efficiently before the operator sees them.
+Visual hierarchy, typography, interaction feel, editorial presentation, and
+similar work improve through short implementation and review cycles. Requiring
+the complete staged Spec Kit chain for every adjustment replaces useful human
+judgement with ceremony.
+
+The paired-development track keeps the specification boundary without that
+overhead. The bounded objective and each explicit instruction define the current
+iteration. The operator's observed approval is first-class user-test evidence,
+not a prompt to manufacture an automated browser imitation afterwards.
+
+Automation remains valuable when it protects stable, objective behaviour. Audit
+scope follows the same proportionality: review the changed implementation and
+necessary context, not the untouched legacy codebase. Durable architectural,
+specification, or test-design decisions still use their corresponding audits.
+
+This is deliberately not an agent-wide mode. It exists only while the operator
+is present and explicitly directing the bounded change.
+
 ## Constitutions should be generated, not hand-written repeatedly
 
 A generic global constitution either becomes another large prompt or fails to

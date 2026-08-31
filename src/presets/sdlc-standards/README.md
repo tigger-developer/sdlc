@@ -38,8 +38,13 @@ The command fragments require independent `audit-spec`, `audit-design`,
 PROVISIONAL condition receipt matures to effective PASS without another model
 audit. The main authoring context remediates current-phase blocking findings and
 dispatches fresh audits for at most five attempts before returning for operator
-sign-off. The shared contract is `~/.agents/sdlc/AUDITS.md`. Remove the
-development preset with:
+sign-off. The shared contract is `~/.agents/sdlc/AUDITS.md`.
+
+These staged transitions do not apply to an explicitly selected paired change.
+That path follows `~/.agents/sdlc/PAIRING.md`, including its user-validation and
+change-scoped audit contract.
+
+Remove the development preset with:
 
 ```bash
 specify preset remove sdlc-standards

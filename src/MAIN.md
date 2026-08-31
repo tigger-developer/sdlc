@@ -1,8 +1,9 @@
 # Engineering Standards
 
-This repository is a standards library for coding agents. It does not define a
-delivery workflow, approval gates, operating modes, ticket lifecycle, or agent
-orchestration. Spec Kit, the project, and the human operator own those matters.
+This repository is a standards library for coding agents. Spec Kit normally
+owns delivery orchestration. The library also defines one explicitly selected
+paired-development track for live human-agent iteration; it is not an
+agent-wide operating mode. The project and human operator retain authority.
 
 The canonical installed root is exactly `~/.agents/sdlc`. Never search the
 filesystem to locate it. Do not enumerate directories, mounted volumes, or
@@ -59,6 +60,7 @@ work. Do not preload the entire library.
 | Requirements, acceptance criteria, bugs, or clarification | `~/.agents/sdlc/ISSUES.md` |
 | Test design or verification | `~/.agents/sdlc/TESTING.md` |
 | Audits or audited phase transitions | `~/.agents/sdlc/AUDITS.md` |
+| Explicitly paired, operator-reviewed implementation | `~/.agents/sdlc/PAIRING.md` |
 | Implementation or code review | `~/.agents/sdlc/CODING.md` |
 | Git, commits, branches, or hooks | `~/.agents/sdlc/GIT.md` |
 | Technical documentation | `~/.agents/sdlc/DOCUMENTATION.md` |
@@ -82,6 +84,11 @@ constraints, and important failure cases. A request to "build", "fix", or
 Implementation may resolve routine, reversible details that do not change the
 specified outcome. Any choice that changes the outcome or a material constraint
 belongs in the specification before code changes.
+
+When the operator explicitly selects paired development, the bounded session
+objective and each explicit iteration instruction are the defined specification
+for that iteration. Read and follow `~/.agents/sdlc/PAIRING.md`; do not infer
+paired authority from ordinary conversation or a question.
 
 ## Emergency exception
 

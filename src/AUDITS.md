@@ -142,3 +142,28 @@ blocker. Report:
 
 An audit PASS or effective PASS is independent evidence, not operator approval.
 Request operator sign-off before advancing to the next phase.
+
+## Paired development
+
+The staged specification, design, test, and code audit sequence applies to Spec
+Kit delivery. It is not repeated for each iteration of explicitly selected
+paired development under `~/.agents/sdlc/PAIRING.md`.
+
+For paired work:
+
+- run one `audit-code` at closure when the change adds or materially modifies
+  code, templates, scripts, or non-trivial CSS;
+- scope that audit to the change and only the adjacent context needed to assess
+  it;
+- do not make unrelated legacy defects blocking unless the change relies on
+  them, worsens them, or cannot be assessed safely without resolving them;
+- run `audit-design` only for a durable structural, architectural, theme API,
+  integration, or deployment decision;
+- run `audit-tests` only when material automated-test design exists to judge;
+  and
+- run `audit-spec` only when the paired work produces or changes a durable
+  specification requiring independent review.
+
+When an audit does not apply, state that fact and the reason in the closure
+handback. The operator's confirmed user-test record remains evidence rather than
+an audit verdict.

@@ -53,6 +53,29 @@ Do not create permanent test code solely to satisfy a test-count rule. Record
 one-off or human evidence in the feature artefacts or final report, then remove
 temporary files from the repository.
 
+## Paired user validation
+
+Explicit operator validation during paired development is first-class user-test
+evidence. Do not replace it with an automated imitation of the visual or
+subjective judgement that just occurred.
+
+Maintain a provisional ledger during the session. For each validation, retain:
+
+- a plain-language description of the observed behaviour;
+- the revision or working-tree state reviewed;
+- material viewing conditions such as viewport, browser, or device; and
+- whether a later iteration superseded it.
+
+At closure, present the current ledger once and ask whether it may be recorded
+as the user tests for the change. On approval, write it to the active feature's
+`validation.md` or the project's equivalent durable evidence record. A later
+change invalidates only entries whose observed behaviour it materially affects.
+
+Add automated regression coverage only when the behaviour is objective and
+stable, regression risk justifies retention, the test uses an appropriate user
+boundary, and it adds evidence beyond the paired validation. Report useful gaps
+at closure; do not create brittle tests merely to eliminate the report.
+
 ## Test architecture
 
 Adding a new framework, browser harness, mock layer, container topology, CI

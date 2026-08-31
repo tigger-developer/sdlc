@@ -54,8 +54,8 @@ adapter model.
 - The project initializer discovers Markdown technology standards
   alphabetically from `~/.agents/sdlc/technologies/` without a hard-coded
   technology list.
-- Universal specification, coding, testing, documentation, Git, and entry-point
-  standards are included exactly once.
+- Universal specification, coding, testing, paired-development, documentation,
+  Git, and entry-point standards are included exactly once.
 - CLI values override project `.env` values, which override user SDLC defaults.
 - External infrastructure ownership is optional and, when selected, records an
   owner descriptor and integration-contract path without assuming a private
@@ -100,3 +100,24 @@ adapter model.
   conditions, the fifth FAIL, or an earlier human-controlled blocker and reports
   attempt history, decisions, assumptions requiring validation, advisories, and
   unresolved blockers.
+
+## Paired development contract
+
+- The operator explicitly selects paired development for a bounded change; the
+  agent never infers it from ordinary conversation.
+- The session objective and each explicit iteration instruction define the
+  specification for that iteration. A question does not authorize mutation.
+- Human visual or subjective validation is first-class user-test evidence and
+  is not replaced by an automated imitation.
+- The agent maintains a provisional validation ledger and obtains one operator
+  confirmation before recording the current entries as durable user tests.
+- Each validation identifies the behaviour, reviewed state, material viewing
+  conditions, and whether a later iteration superseded it.
+- Automated regression coverage is added only when it protects objective,
+  stable behaviour at proportionate cost and adds evidence beyond the user
+  validation. Source-text grep is never behavioural evidence.
+- Paired work receives one change-scoped `audit-code` at closure when code,
+  templates, scripts, or non-trivial CSS changed. Unrelated legacy defects are
+  non-blocking unless the change relies on or worsens them.
+- Specification, design, and test audits apply only when the paired change
+  creates material artefacts in their respective scopes.

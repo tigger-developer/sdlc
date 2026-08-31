@@ -61,6 +61,7 @@ var universalStandards = []standard{
 	{Path: "ISSUES.md", Subject: "Specification and requirement quality"},
 	{Path: "CODING.md", Subject: "Implementation and design"},
 	{Path: "TESTING.md", Subject: "Testing and evidence"},
+	{Path: "PAIRING.md", Subject: "Paired development"},
 	{Path: "DOCUMENTATION.md", Subject: "Documentation"},
 	{Path: "GIT.md", Subject: "Source control"},
 }

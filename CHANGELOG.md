@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+Added an explicitly selected paired-development track for live human-agent
+iteration. Bounded operator instructions define each iteration, visual and
+subjective approvals remain first-class user-test evidence, and one final
+confirmation records the session's current validation ledger. Automation is
+required only when it adds durable evidence. Paired closure uses a change-scoped
+code audit for material implementation and invokes other audits only when the
+corresponding durable artefacts exist.
+
 Added a machine-checkable PROVISIONAL audit verdict for exact mandatory
 corrections that require no further judgement. Each `[CONDITION]` includes a
 deterministic `VERIFY` clause. A condition receipt records the audited and

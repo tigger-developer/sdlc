@@ -11,16 +11,18 @@ The repository owns engineering standards:
 - universal coding constraints;
 - specification and acceptance-criteria quality;
 - testing and evidence;
+- explicitly selected paired-development evidence;
 - cross-language and stack-specific implementation standards;
 - Git and documentation standards;
 - findings-only audit and advisory skills; and
 - optional provider-integrated command safeguards.
 
-It does not own delivery modes, ticket states, planning phases, or a parallel
-implementation lifecycle. Spec Kit or the adopting project owns those concerns.
-The preset defines audit evidence, bounded autonomous remediation, and operator
-handback requirements within Spec Kit's existing stages without creating a
-second workflow.
+It does not own agent-wide delivery modes, ticket states, or a parallel
+autonomous lifecycle. Spec Kit or the adopting project owns those concerns. The
+preset defines audit evidence, bounded autonomous remediation, and operator
+handback requirements within Spec Kit's existing stages. The one additional
+path is explicit paired development, where the operator remains present and
+validates bounded iterations.
 
 This separation makes the standards usable with more than one agent provider
 and prevents a large lifecycle prompt from being loaded before the task needs
@@ -35,6 +37,7 @@ sdlc/
 |   |-- ISSUES.md
 |   |-- TESTING.md
 |   |-- AUDITS.md
+|   |-- PAIRING.md
 |   |-- CODING.md
 |   |-- GIT.md
 |   |-- DOCUMENTATION.md
@@ -64,6 +67,7 @@ runtime:
 |-- ISSUES.md
 |-- TESTING.md
 |-- AUDITS.md
+|-- PAIRING.md
 |-- CODING.md
 |-- GIT.md
 |-- DOCUMENTATION.md
@@ -97,6 +101,7 @@ coding task
     +-- requirements ----------> ISSUES.md
     +-- verification ----------> TESTING.md
     +-- audited phase ---------> AUDITS.md
+    +-- paired development ----> PAIRING.md
     +-- implementation --------> CODING.md
     +-- source control --------> GIT.md
     +-- technical docs --------> DOCUMENTATION.md
@@ -225,6 +230,37 @@ The `--integration` selected during `specify init` controls the project-local
 agent adapter. It does not launch an agent and does not change the provider-
 neutral specification artefacts.
 
+## Paired development path
+
+Paired development is selected explicitly for a bounded change whose outcome is
+refined through live operator review. It is not another autonomous lifecycle.
+The session objective and each explicit iteration instruction supply the
+specification boundary for that slice, while the constitution and selected
+standards continue to apply.
+
+The path separates three concerns:
+
+```text
+explicit instruction -> reviewable change -> operator validation
+                                      |              |
+                                      v              v
+                             objective checks   user-test ledger
+                                      \              /
+                                       closure review
+```
+
+The provisional ledger becomes durable user-test evidence only after one final
+operator confirmation. Automation remains proportional and must add evidence
+rather than imitate human visual judgement. Auditing is likewise proportional:
+one change-scoped code audit for material implementation, with specification,
+design, or test audits only when corresponding durable artefacts exist.
+
+This path permits artefact-native web work without treating CSS selectors or
+HTML text as the specification. Explicit instructions govern the requested
+outcome; Markdown, YAML, CSS, templates, and rendered pages carry the content,
+configuration, implementation, and reviewed presentation without requiring a
+duplicative prose design.
+
 ## Skills and retired paths
 
 Audit skills are independent, read-only challenges of specification, design,
@@ -292,6 +328,7 @@ trees.
 | Requirement or acceptance-criteria standard | `src/ISSUES.md` |
 | Testing standard | `src/TESTING.md` |
 | Independent audit and phase-convergence contract | `src/AUDITS.md` |
+| Paired-development contract | `src/PAIRING.md` |
 | Technology standard | A focused file under `src/technologies/`, plus a route in `MAIN.md` |
 | Spec Kit command selection | `src/presets/sdlc-standards/` |
 | Project-initializer prompt | `src/prompts/project-init/` |

@@ -151,15 +151,18 @@ func TestRenderConstitutionPinsSDLCRevision(t *testing.T) {
 	}
 }
 
-func TestRenderConstitutionOmitsAuditRuntime(t *testing.T) {
+func TestRenderConstitutionOmitsAuditRuntimeAndIncludesGovernance(t *testing.T) {
 	text := string(renderConstitutionForTest(t, "/standards", nil, resolvedConfig{AuditProvider: "openai-codex", AuditModel: "gpt-5.6-luna"}))
 	for _, runtimeValue := range []string{"openai-codex", "gpt-5.6-luna", "configured audit runtime"} {
 		if strings.Contains(text, runtimeValue) {
 			t.Fatalf("rendered constitution contains audit runtime %q:\n%s", runtimeValue, text)
 		}
 	}
-	if !strings.Contains(text, "Each audit MUST run in a fresh agent context") {
+	if !strings.Contains(text, "For staged Spec Kit delivery, each audit MUST run in a fresh agent context") {
 		t.Fatalf("rendered constitution omitted durable audit governance:\n%s", text)
+	}
+	if !strings.Contains(text, "explicitly selects paired development under `~/.agents/sdlc/PAIRING.md`") {
+		t.Fatalf("rendered constitution omitted paired-development governance:\n%s", text)
 	}
 }
 

@@ -6,9 +6,10 @@
 > initializing this SDLC.
 
 This public repository provides a provider-neutral engineering standards
-library for coding agents. Spec Kit owns
-specification and delivery orchestration; this repository supplies the coding,
-testing, Git, documentation, language, and domain standards applied within it.
+library for coding agents. Spec Kit owns staged specification and delivery
+orchestration. This repository supplies the coding, testing, Git,
+documentation, language, and domain standards applied within it, plus a bounded
+paired-development track for work refined through live operator review.
 
 The library does not require private agent instructions. Its canonical installed
 root is exactly `~/.agents/sdlc` for every supported provider.
@@ -21,6 +22,7 @@ root is exactly `~/.agents/sdlc` for every supported provider.
 | `src/ISSUES.md` | Specification and acceptance-criteria standards |
 | `src/TESTING.md` | Behavioural testing and evidence standards |
 | `src/AUDITS.md` | Independent verdict and autonomous phase-convergence contract |
+| `src/PAIRING.md` | Explicit paired-development and live user-validation contract |
 | `src/CODING.md` | Cross-language implementation standards |
 | `src/GIT.md` | Source-control and recoverability standards |
 | `src/DOCUMENTATION.md` | Public technical-documentation standards |
@@ -371,6 +373,32 @@ fresh: audit-code -> main remediation -> fresh re-audit, at most 5 attempts
 main:  converge -> repeat affected stages when work is appended
 ```
 
+### Develop interactively with an operator
+
+Paired development is available when the required result must be refined
+through live human review, such as visual and experience-led web work. The
+operator selects it explicitly and provides a bounded session objective. Each
+explicit iteration instruction is the specification for that slice; a question
+is not implementation authority.
+
+The agent implements and verifies one reviewable slice, presents the user-visible
+result, and retains explicit operator validation in a provisional ledger. At
+closure it presents the current validations once and asks whether they may be
+recorded as the user tests for the change. The record includes the behaviour,
+reviewed revision or state, material viewing conditions, and any superseded
+validation.
+
+Automation is added only when it protects objective, stable behaviour and adds
+evidence beyond the paired validation. The agent must not manufacture source
+greps or synthetic browser tests to imitate a visual judgement the operator has
+already made.
+
+Paired work does not repeat every staged Spec Kit audit. A change-scoped
+`audit-code` runs at closure for new or materially modified code, templates,
+scripts, or non-trivial CSS. Other audits apply only when the change creates the
+corresponding durable specification, design, or test architecture. The complete
+contract is `~/.agents/sdlc/PAIRING.md`.
+
 `$speckit-taskstoissues` is optional. It projects tasks into GitHub issues while
 retaining Spec Kit's task artefacts as the source of truth and applying the
 rule that human-facing identifiers always include descriptors.
@@ -389,6 +417,10 @@ explicit transitions:
 - `spec.md`, `plan.md`, and `tasks.md` replace conversational scope hand-offs;
 - independent audit PASS records replace approval gates; and
 - Spec Kit commands own progression between stages.
+
+The paired-development track is not a restored agent-wide mode or alternative
+autonomous workflow. It is an explicitly selected, operator-present path for a
+bounded change, with its own closure evidence.
 
 The operator may review, correct, or pause at any stage. No legacy keyword is
 required to continue. `BYPASS-GATE-7` remains only the narrowly defined

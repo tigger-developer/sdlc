@@ -62,7 +62,7 @@ Tests and code provide evidence of implemented behaviour. They do not approve re
 {{end}}
 ## Mandatory Independent Audits
 
-Each audit MUST run in a fresh agent context that did not author the artefact. It MUST emit the exact structured verdict required by its skill. Any finding, missing verdict, malformed verdict, or change to the audited artefact invalidates PASS. On FAIL, the author remediates and a fresh independent audit runs. The next stage MUST NOT begin until the required audit records PASS.
+For staged Spec Kit delivery, each audit MUST run in a fresh agent context that did not author the artefact and MUST emit the exact structured verdict required by its skill. PASS may retain advisories. A PROVISIONAL verdict becomes effective PASS only through the exact condition receipt defined by the audit standard. On FAIL, the author remediates and a fresh independent audit runs. The next stage MUST NOT begin until the required audit records effective PASS.
 
 1. Specification and clarification require `audit-spec` PASS before planning.
 2. Plan and design require `audit-design` PASS before test design and tasks.
@@ -70,6 +70,8 @@ Each audit MUST run in a fresh agent context that did not author the artefact. I
 4. Implementation requires `audit-code` PASS before completion or convergence.
 
 Record each audit name, auditor provider and model, artefact revision, exact verdict, findings, and superseding rerun in the active feature's `audits.md`. `speckit-analyze` is a consistency check and does not replace an independent audit.
+
+When the operator explicitly selects paired development under `~/.agents/sdlc/PAIRING.md`, its change-scoped closure and user-validation contract replaces these staged transitions for that change. Engineering standards and applicable audit requirements remain mandatory.
 
 ## Project-Specific Principles
 

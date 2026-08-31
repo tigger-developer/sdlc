@@ -3,7 +3,9 @@
 > **Prerequisite:** Install
 > [GitHub Spec Kit](https://github.com/github/spec-kit) 1.0 or later and ensure
 > the `specify` CLI is available on `PATH`. SDLC v2 uses Spec Kit for project
-> initialization, specification, planning, tasks, analysis, and implementation.
+> initialization and staged specification, planning, tasks, analysis, and
+> implementation. Explicitly paired development remains available for bounded
+> work refined through live operator review.
 
 ## Install SDLC v2
 
@@ -153,6 +155,40 @@ the greenfield procedure. Confirm that the generated authority hierarchy gives
 approved specifications authority over observable behaviour, approved design
 authority over technical choices within those requirements, and code and tests
 the status of implementation evidence rather than requirement approval.
+
+## Run an interactive paired change
+
+Use paired development when the outcome must be refined through live operator
+review, such as a Hugo layout, typography, navigation, or other visual change.
+Select it explicitly and state the bounded objective:
+
+```text
+Use the SDLC paired-development track for this Hugo change. Preserve the
+existing deployment contracts. Start by making the requested navigation change
+and present the rendered result for review.
+```
+
+The agent then works in reviewable slices. Each explicit iteration instruction
+authorizes that slice; questions and requests for advice do not. Existing
+standards and project constraints remain mandatory.
+
+During the session, the agent retains explicit user validations without asking
+for a separate sign-off after each one. At closure it reports:
+
+- what changed;
+- current and superseded user validations;
+- objective checks and their results;
+- unvalidated behaviour and justified automation gaps; and
+- applicable change-scoped audit results.
+
+The operator then confirms whether the listed validations may be recorded in
+the active feature's `validation.md` or the project's equivalent evidence
+record. Do not add an automated test merely to imitate a visual validation.
+
+Run `audit-code` once at closure when the change includes new or materially
+modified code, templates, scripts, or non-trivial CSS. Run specification,
+design, or test audits only when the paired change produces material artefacts
+of those kinds. See `~/.agents/sdlc/PAIRING.md` for the complete contract.
 
 ## Non-interactive selection
 

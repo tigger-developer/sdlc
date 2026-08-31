@@ -91,6 +91,21 @@ Decision tree by tier:
 
 Per `~/.agents/sdlc/TESTING.md`, the real-user test question still applies: *what user action does this test simulate, and what would the user observe?* For rendered HTML, generated feeds, or served static files the answer is "the user loads this URL and the browser/feed reader receives this response" -- legitimate. For source-template grep the answer is "nothing the user does" -- forbidden.
 
+## Paired visual development
+
+When the operator explicitly selects paired development, follow
+`~/.agents/sdlc/PAIRING.md`. Hugo Markdown and YAML may carry accepted content
+and configuration, while CSS, templates, and rendered pages carry the design
+under review. A separate detailed design document is not required merely to
+restate those artefacts.
+
+Automation is not mandatory simply because rendered HTML can be queried. Use
+`htmltest`, `htmlq`, browser automation, or another retained test only when it
+protects an objective, stable behaviour at proportionate cost. Do not translate
+a live visual approval into source-text assertions or a synthetic browser test
+whose only purpose is to replay the operator's judgement. Record that judgement
+as user-test evidence under `~/.agents/sdlc/TESTING.md`.
+
 ## Reference Standards
 
 - HTML: [MDN HTML reference](https://developer.mozilla.org/en-US/docs/Web/HTML), [HTML Living Standard](https://html.spec.whatwg.org/)
