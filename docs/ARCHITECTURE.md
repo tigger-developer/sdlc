@@ -170,8 +170,9 @@ technology references, an optional external
 infrastructure contract, mandatory independent audits, a fixed specification
 baseline selected as greenfield or brownfield, and bounded placeholders for
 project-specific principles. The brownfield structure separates current and
-historical requirement authority, design authority, regression evidence, and
-source precedence. A build made at an exact SDLC release tag records that tag;
+historical requirement authority, historical work context, design authority,
+regression evidence, and source precedence. A build made at an exact SDLC
+release tag records that tag;
 other clean versioned builds record their source commit. Modified or unversioned
 builds leave an explicit ratification TODO. The initializer commits only the
 generated scaffold, leaving unrelated
@@ -214,7 +215,7 @@ The composition is intentionally selective:
 |---|---|
 | `speckit.constitution` | Universal rules, then documents selected from verified project evidence |
 | `speckit.specify`, `speckit.clarify` | Universal, audit, and specification standards |
-| `speckit.plan` | Universal, audit, coding, Git, documentation, and selected stack standards |
+| `speckit.plan` | Universal, audit, coding, testing, Git, documentation, and selected stack standards |
 | `speckit.tasks` | Universal, audit, testing, documentation, and profile-specific standards |
 | `speckit.analyze` | Universal, audit, specification, and testing standards |
 | `speckit.implement` | Universal, audit, and only the profile entries needed by current tasks |
@@ -229,6 +230,14 @@ selection changes after any required brownfield documentation migration.
 The `--integration` selected during `specify init` controls the project-local
 agent adapter. It does not launch an agent and does not change the provider-
 neutral specification artefacts.
+
+For brownfield authoring, the command preambles require a bounded context pass
+before drafting. Specification and planning consult the relevant requirement
+and design authorities, historical work records, maintained regression tests
+and their traceability, and affected implementation. The authored artefact
+records what it preserves, changes, supersedes, and leaves unaffected. Audit
+skills independently check that source coverage without requiring the baseline
+to be copied into each delta artefact.
 
 ## Paired development path
 

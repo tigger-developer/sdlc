@@ -681,7 +681,7 @@ func TestRunSnapshotsEveryResolvedGlobalDefaultIntoProject(t *testing.T) {
 	}
 }
 
-func TestLaunchConstitutionRequiresProjectWideFiltering(t *testing.T) {
+func TestLaunchConstitutionUsesConfiguredHarness(t *testing.T) {
 	sdlcRoot := t.TempDir()
 	installProjectInitResourcesForTest(t, sdlcRoot)
 	var command string
@@ -701,56 +701,6 @@ func TestLaunchConstitutionRequiresProjectWideFiltering(t *testing.T) {
 	}
 	if command != "codex" || directory != projectRoot || len(arguments) != 3 || arguments[0] != "--model" || arguments[1] != "gpt-5.6-sol" {
 		t.Fatalf("constitution launch = command %q, arguments %#v, directory %q", command, arguments, directory)
-	}
-	prompt := arguments[2]
-	for _, required := range []string{
-		"`" + templatePath + "` as editable scaffolding",
-		"It has no authority before ratification",
-		"This is a filtering exercise, not a summary",
-		"It applies across unrelated future features",
-		"Changing it would require a constitutional decision",
-		"supported by authoritative project documentation",
-		"feature requirements and acceptance criteria",
-		"migration algorithms, schema procedures, commands, test gates",
-		"The constitution may elevate a concise project-wide invariant",
-		"Importance alone does not make something constitutional",
-		"Use the generated `Specification Baseline` as a proposed structure",
-		"Archived implementation plans are historical provenance, not design authority",
-		"an authority map, not a summary of the system",
-		"current approved requirements",
-		"approved historical requirements that are not centralized",
-		"regression evidence and traceability",
-		"the project's precedence and supersession rule",
-		"tests and code record evidence and implemented state but do not approve requirements",
-		"consumed by later specification and audit commands",
-		"Do not invent sources or placeholder paths",
-		"retain the generated prospective-baseline statement",
-		"requirements established under a legacy process",
-		"The legacy record governs only requirements established through that process",
-		"Approved Spec Kit feature specifications govern requirements established or changed through Spec Kit",
-		"may supersede a legacy requirement only explicitly and must preserve its lineage",
-		"Add up to four concise project-specific principles",
-		"Zero is valid only when no evidenced project-wide invariant",
-		"not, by itself, a reason to omit it",
-		"Make the authority hierarchy concern-specific",
-		"Approved feature specifications govern observable behaviour",
-		"Code and tests record implemented state and evidence",
-		"Do not place undifferentiated project documentation above approved specifications",
-		"The Governance section must name the human ratification and amendment authority",
-		"Use a pre-1.0 version for an unratified draft",
-		"List every unresolved ratification blocker",
-		"Would changing this require amending the constitution?",
-		"review the entire assembled constitution",
-		"runtime configuration, a feature requirement, detailed design",
-		"durable across unrelated features and require a constitutional amendment",
-		"Remove or correct any scaffold clause that fails this review",
-		"the initialization template, is the candidate presented to the human for ratification",
-		"Keep the core workflow's Sync Impact Report as the first line",
-		"do not accumulate reports or create a separate changelog",
-	} {
-		if !strings.Contains(prompt, required) {
-			t.Errorf("constitution launch prompt omitted %q:\n%s", required, prompt)
-		}
 	}
 }
 

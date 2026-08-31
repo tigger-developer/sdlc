@@ -5,11 +5,31 @@ filesystem to locate it. If `~/.agents/sdlc/MAIN.md` is absent or unreadable,
 report that exact path.
 
 Read `~/.agents/sdlc/MAIN.md`, `~/.agents/sdlc/AUDITS.md`,
-`~/.agents/sdlc/CODING.md`, `~/.agents/sdlc/GIT.md`, and
-`~/.agents/sdlc/DOCUMENTATION.md` in full. Read only the additional language
-and domain documents selected by the constitution's Engineering Standards
-Profile. Apply them to architecture, dependencies, interfaces, migration,
-security, test architecture, compatibility, and operational design.
+`~/.agents/sdlc/CODING.md`, `~/.agents/sdlc/TESTING.md`,
+`~/.agents/sdlc/GIT.md`, and `~/.agents/sdlc/DOCUMENTATION.md` in full. Read
+only the additional language and domain documents selected by the
+constitution's Engineering Standards Profile. Apply them to architecture,
+dependencies, interfaces, migration, security, test architecture,
+compatibility, and operational design.
+
+Read the project constitution, its `Specification Baseline`, and the active
+specification before drafting. For a brownfield project:
+
+- read the current design and architecture authorities relevant to the change;
+- consult relevant historical work records, including ticket comments or their
+  equivalent, for rationale, rejected alternatives, migrations, and operational
+  lessons;
+- inspect the maintained regression tests and follow their requirement and
+  ticket traceability to identify protected behaviour and compatibility
+  constraints;
+- inspect the affected implementation for current facts and untested behaviour;
+  and
+- record the inherited design constraints, deliberate changes, superseded
+  decisions, unaffected boundaries, and unresolved conflicts.
+
+Historical work records inform rationale and lineage but are not automatically
+current design authority. Tests and code are implementation evidence, not
+authority to change signed-off requirements or design.
 
 If the plan needs a standard not yet selected, amend the standards profile. Do
 not duplicate the standards text in `plan.md`; record project decisions and

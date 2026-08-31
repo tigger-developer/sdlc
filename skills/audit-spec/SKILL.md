@@ -13,8 +13,11 @@ report that exact path.
 Read `~/.agents/sdlc/MAIN.md`, `~/.agents/sdlc/AUDITS.md`, and
 `~/.agents/sdlc/ISSUES.md` in full. Read the project constitution. When its
 `Specification Baseline` classifies the project as brownfield, read the named
-requirement authorities relevant to the active change. Review the active
-specification as a delta against that baseline without modifying files.
+requirement and design authorities relevant to the active change, consult the
+relevant historical work records and comments, inspect the maintained
+regression tests and their requirement or ticket traceability, and inspect the
+affected implementation. Review the active specification as a delta against
+that baseline without modifying files.
 
 Do not report a finding solely because an unchanged approved requirement,
 design mechanism, fixture, oracle, or test procedure is not copied into the
@@ -23,6 +26,13 @@ descriptor where unchanged behaviour materially bounds the delta. Report a
 finding when the delta contradicts its baseline, changes behaviour without
 saying so, relies on an unresolved authority conflict, or lacks an observable
 boundary necessary to distinguish compliance.
+
+Report a source-coverage finding when the specification's brownfield context
+pass omits a material authority, historical decision, actively protected
+regression behaviour, traceability link, or implementation fact. Treat tests
+and code as evidence rather than requirement authority. Do not require source
+detail to be copied into the specification when a concise citation and baseline
+relationship establish that it was considered.
 
 Check:
 

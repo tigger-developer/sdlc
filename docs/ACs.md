@@ -67,6 +67,25 @@ adapter model.
   manifests.
 - A changed baseline is written atomically before the selected Codex, Claude,
   or Hermes harness receives the constitution-only semantic prompt.
+- A brownfield baseline distinguishes current and historical requirement
+  authority, historical work context, current design authority, and the
+  maintained regression test pack with its supported command and requirement
+  traceability.
+
+## Brownfield specification and design
+
+- Before drafting, the author examines the relevant requirement and design
+  authorities, historical work records and comments, maintained regression
+  tests and traceability, and affected implementation.
+- The specification or design records the sources consulted and what existing
+  behaviour or decisions it preserves, changes, supersedes, or leaves
+  unaffected without copying the baseline.
+- Regression-test assertions are used as evidence of actively protected
+  functional behaviour and to trace that behaviour to originating
+  requirements. Tests and code do not approve requirements.
+- `audit-spec` and `audit-design` report a source-coverage finding when a
+  material authority, historical decision, protected regression behaviour,
+  traceability link, or implementation fact was omitted from the context pass.
 
 ## Independent audit contract
 

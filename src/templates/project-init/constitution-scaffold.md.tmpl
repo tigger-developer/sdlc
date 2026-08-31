@@ -25,7 +25,7 @@ TODO(SDLC_REVISION): Pin the canonical SDLC release or Git revision before ratif
 {{end}}
 ## Specification and Evidence
 
-No implementation may begin without a defined specification. Brownfield work MUST preserve lineage to previously implemented requirements and regression evidence. Project documentation and the active specification MUST be updated when delivered behaviour or ownership boundaries change.
+No implementation may begin without a defined specification. Before drafting a brownfield specification or design, the author MUST examine the current requirement and design authorities, relevant historical work records, the maintained regression test pack, and the affected implementation. The resulting artefact MUST identify what existing behaviour and decisions it preserves, changes, supersedes, or leaves unaffected. Tests MUST be used to trace actively protected behaviour to its originating requirements and compatibility constraints. Tests and code are implementation evidence; they do not approve requirements. Project documentation and the active specification MUST be updated when delivered behaviour or ownership boundaries change.
 
 ## Specification Baseline
 
@@ -44,13 +44,17 @@ No pre-existing requirement baseline existed at ratification. Approved feature s
 
 [LIST APPROVED HISTORICAL REQUIREMENT SOURCES NOT CENTRALIZED ABOVE, OR STATE NONE.]
 
+### Historical Work Context
+
+[LIST EXACT DURABLE LOCATIONS FOR FEATURE-RELEVANT TICKETS, COMMENTS, DECISION RECORDS, OR EQUIVALENT WORK HISTORY. THESE SOURCES PROVIDE RATIONALE AND LINEAGE BUT ARE NOT AUTOMATICALLY CURRENT REQUIREMENT OR DESIGN AUTHORITY.]
+
 ### Design Authority
 
 [LIST EXACT REPOSITORY-RELATIVE PATHS OR DURABLE EXTERNAL LOCATIONS FOR CURRENT APPROVED ARCHITECTURE AND DESIGN. EXCLUDE ARCHIVED IMPLEMENTATION PLANS.]
 
 ### Regression Evidence and Traceability
 
-[LIST EXACT REPOSITORY-RELATIVE PATHS OR DURABLE EXTERNAL LOCATIONS FOR REGRESSION EVIDENCE AND TRACEABILITY.]
+[LIST EXACT REPOSITORY-RELATIVE PATHS OR DURABLE EXTERNAL LOCATIONS FOR THE MAINTAINED REGRESSION TEST PACK, ITS SUPPORTED EXECUTION COMMAND, AND REQUIREMENT TRACEABILITY.]
 
 Tests and code provide evidence of implemented behaviour. They do not approve requirements.
 

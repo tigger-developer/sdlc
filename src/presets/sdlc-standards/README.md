@@ -33,6 +33,12 @@ agent.
 The command fragments reference the canonical installed root
 `~/.agents/sdlc`. No command may search for an alternative SDLC root.
 
+For brownfield projects, the specification and planning fragments require an
+evidenced context pass across the relevant requirement and design authorities,
+historical work records, maintained regression tests and traceability, and
+affected implementation. The resulting delta records what it preserves,
+changes, supersedes, and leaves unaffected without copying the baseline.
+
 The command fragments require independent `audit-spec`, `audit-design`,
 `audit-tests`, and `audit-code` effective PASS verdicts between stages. An exact
 PROVISIONAL condition receipt matures to effective PASS without another model

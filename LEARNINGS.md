@@ -126,6 +126,17 @@ for its revision but makes it non-current for completion. Exact PROVISIONAL
 conditions may be corrected and verified mechanically without another model
 audit. This avoids self-review while keeping detailed standards in one place.
 
+## Brownfield authors need the auditor's source discipline
+
+An independent auditor may find established constraints that the author missed
+when drafting from a single requirements ledger. That is an authoring-process
+gap, not a reason to weaken the audit. Brownfield specification and design must
+first reconcile the relevant requirement and design authorities, historical
+work records, maintained regression tests and traceability, and affected
+implementation. Recording what the change preserves, changes, supersedes, and
+leaves unaffected makes that investigation reviewable without copying the
+existing system into every feature artefact.
+
 ## Behaviour is not source text
 
 Persistent tests must exercise an observable boundary. A grep proving that a

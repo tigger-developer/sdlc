@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+Brownfield specification and planning now begin with an evidenced context pass
+across relevant requirement and design authorities, historical work records,
+the maintained regression test pack and its traceability, and affected
+implementation. Feature artefacts record what they preserve, change, supersede,
+and leave unaffected. The constitution scaffold, project-initializer prompt,
+Spec Kit command overlays, audit skills, standards, public guidance, and
+acceptance criteria all carry the same source-coverage contract. Removed the
+brittle unit assertions that searched the constitution prompt for prose
+fragments; the retained launcher test covers harness, model, arguments, and
+working-directory behaviour.
+
 Made `validation.md` the mandatory Spec Kit record for selected one-off and user
 tests. Test design now creates traceable `PENDING` entries, implementation
 records evidence-backed results after code audit, and `audit-tests` verifies the

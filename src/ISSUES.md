@@ -19,6 +19,28 @@ Open questions that can materially change those facts must be resolved in the
 specification before implementation. Routine, reversible implementation details
 may remain to the plan.
 
+## Brownfield context pass
+
+Before drafting a brownfield specification, examine the affected area rather
+than treating one requirements document as an exhaustive system description.
+Consult:
+
+- the current and historical requirement authorities named by the project;
+- the current design and architecture authorities;
+- relevant tickets, comments, decisions, or equivalent work records found
+  through direct traceability references and a targeted search;
+- the maintained regression test pack and its requirement or ticket
+  traceability; and
+- the affected implementation as evidence of current facts and untested
+  behaviour.
+
+Record a concise baseline relationship in the active specification: the sources
+consulted and the existing behaviour it preserves, changes, supersedes, or
+leaves unaffected. Do not copy the baseline into the delta specification.
+Tests and code are implementation evidence, not authority to approve or change
+requirements. Make missing, conflicting, stale, or unresolved sources explicit
+rather than silently choosing one.
+
 ## Requirement quality
 
 Each requirement must be:

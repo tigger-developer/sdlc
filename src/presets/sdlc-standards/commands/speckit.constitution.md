@@ -16,6 +16,13 @@ project-specific principles, ownership boundaries, and explicit deviations.
 If a ratified constitution exists, amend that document directly. Do not resolve,
 reapply, or restore the initialization template.
 
+For a brownfield constitution, keep the `Specification Baseline` concern-
+specific. Distinguish current and historical requirement authority, historical
+work context, current design authority, the maintained regression test pack and
+its traceability, and source precedence. Historical work records provide
+rationale and lineage but are not automatically current authority. Tests and
+code are implementation evidence and do not approve requirements.
+
 Do not copy feature requirements or detailed architecture into the
 constitution, select an additional standard without recording it, or resolve an
 unsupported fact by guessing. Leave unresolved matters explicit.

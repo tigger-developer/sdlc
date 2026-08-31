@@ -134,17 +134,27 @@ byte. A marker outside the expected prefix is an error.
 For brownfield projects:
 
 - the constitution populates the fixed `Specification Baseline` with the exact
-  requirement, design, historical-authority, and regression-lineage sources
-  that later delta specifications must consult;
+  requirement, design, historical-authority, historical-work, and
+  regression-lineage sources that later delta specifications and plans must
+  consult;
 - project documentation is evidence for durable constitutional invariants, not
   text to copy into the constitution;
-- existing requirements, acceptance criteria, code, and tests describe the
-  as-built baseline with their existing approval and traceability status;
+- existing requirements and acceptance criteria define intended behaviour,
+  while code and tests provide evidence of the as-built baseline with their
+  existing traceability status;
 - the constitution records project-wide principles and authority, not the
   feature catalogue or detailed architecture;
 - a new Spec Kit feature specification defines its change as a delta against
   the relevant existing behaviour; and
 - superseded requirements and regression lineage remain discoverable.
+
+Before drafting a brownfield specification or plan, the agent performs a
+bounded context pass for the affected area. It reads the relevant requirement
+and design authorities, follows traceability into tickets and comments or
+equivalent work records, inspects the maintained regression tests and their
+assertions, and checks the affected implementation. The resulting artefact
+states what it preserves, changes, supersedes, and leaves unaffected. Tests and
+code remain implementation evidence rather than requirement approval.
 
 Initialization does not bulk-migrate legacy tickets or acceptance criteria.
 Reconcile that material separately and bring forward only the baseline relevant

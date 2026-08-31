@@ -13,9 +13,21 @@ requirements.
 Read `.specify/memory/constitution.md` and its `Specification Baseline` before
 drafting. When the project classification is brownfield:
 
-- read the named requirement authorities relevant to the requested change;
-- treat approved existing requirements as the implemented baseline;
+- complete the brownfield context pass in `ISSUES.md` before drafting;
+- read the named requirement and design authorities relevant to the requested
+  change;
+- consult relevant historical work records, including ticket comments or their
+  equivalent, by following direct traceability references and performing a
+  targeted search of the affected area;
+- inspect the maintained regression tests for the affected behaviour, follow
+  their requirement and ticket references, and read their assertions as
+  evidence of actively protected functional behaviour;
+- inspect the affected implementation for current facts and untested behaviour;
+- treat approved existing requirements as the requirement baseline and use
+  tests and code to establish the current implemented state;
 - specify only the requested behavioural delta and its compatibility boundaries;
+- record the sources consulted and what existing behaviour the delta preserves,
+  changes, supersedes, or leaves unaffected;
 - cite unchanged baseline requirements with identifiers and descriptors instead
   of copying them into the feature specification;
 - use design authorities only for technical context, not to manufacture product

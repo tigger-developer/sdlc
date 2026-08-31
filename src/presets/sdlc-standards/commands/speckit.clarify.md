@@ -11,10 +11,12 @@ compatibility, or irreversible outcomes. Resolve those facts in the
 specification rather than leaving them to implementation.
 
 Read `.specify/memory/constitution.md` and its `Specification Baseline`. For a
-brownfield delta, consult the named requirement authorities before treating an
-existing behaviour as ambiguous. Clarify only the requested change, its
-compatibility boundaries, or a genuine conflict in the baseline. Do not reopen,
-duplicate, or silently replace an approved existing requirement.
+brownfield delta, preserve the specification's context pass and consult the
+requirement, design, historical-work, regression-test, or implementation source
+that bears on an apparent ambiguity before treating existing behaviour as
+undefined. Clarify only the requested change, its compatibility boundaries, or
+a genuine conflict in the baseline. Do not reopen, duplicate, or silently
+replace an approved existing requirement.
 
 Clarification changes preserve an earlier `audit-spec` PASS as
 revision-specific history but make it non-current. After clarification is

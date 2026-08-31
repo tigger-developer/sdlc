@@ -13,6 +13,15 @@ operator an intermediary in routine revision cycles.
 - Record the audit name, provider, model, artefact revision, verdict, findings,
   and any superseding attempt in the active feature's `audits.md`.
 
+## Brownfield source coverage
+
+For a brownfield specification or design, verify that the author examined the
+relevant requirement and design authorities, historical work records,
+maintained regression tests and traceability, and affected implementation. An
+auditor that discovers a material source or conflict omitted from the authored
+context pass must report a source-coverage finding. Do not require baseline
+detail to be copied into a delta artefact merely to prove that it was examined.
+
 ## Finding classifications and verdicts
 
 Classify each finding as:

@@ -25,6 +25,20 @@ regression test coupled to prose wording.
 Map each automated or human check to a described requirement. Give any cited
 requirement or test identifier an adjacent descriptor.
 
+### Regression packs as brownfield evidence
+
+For brownfield specification and design work, inspect the maintained regression
+test pack for the affected behaviour. Follow its requirement and ticket
+references to their source records, and use its assertions to identify
+observable behaviour that is still actively protected and compatibility
+constraints that a change must address.
+
+A passing or maintained test is strong implementation evidence, but it is not
+exhaustive and does not approve a requirement. Code may contain untested
+behaviour, and a test may preserve a stale assumption or defect. Reconcile
+disagreements among requirements, design, tests, historical work records, and
+code explicitly.
+
 Cover each independent condition in a compound requirement. Include relevant:
 
 - happy, alternate, and failure paths;

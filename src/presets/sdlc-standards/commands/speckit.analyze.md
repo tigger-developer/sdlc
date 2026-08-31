@@ -11,6 +11,12 @@ tasks agree; every material decision is defined at the correct layer; compound
 requirements have complete evidence; and no test can pass by inspecting only
 source or prose. Give every cited identifier an adjacent descriptor.
 
+For a brownfield feature, also verify that the specification and plan record a
+credible context pass across relevant requirement and design authorities,
+historical work records, maintained regression tests and traceability, and
+affected implementation. Check that the artefacts agree on what is preserved,
+changed, superseded, and unaffected without duplicating the baseline.
+
 This consistency analysis does not replace `audit-spec`, `audit-design`,
 `audit-tests`, or `audit-code`. A later relevant change preserves the earlier
 PASS as revision-specific history but makes it non-current for phase completion

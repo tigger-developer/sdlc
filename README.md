@@ -273,9 +273,11 @@ judgement-based change requires a fresh audit.
    Invoke `$speckit-specify` with the requested change. Describe observable
    behaviour, purpose, boundaries, and important failure cases, not the
    implementation. It creates the feature directory and `spec.md`. In a
-   brownfield project, the SDLC overlay requires a bounded delta against the
-   authorities named in the constitution rather than a restatement of the
-   existing system.
+   brownfield project, the SDLC overlay first requires a context pass across the
+   relevant requirement and design authorities, historical work records,
+   maintained regression tests and traceability, and affected implementation.
+   The specification records what the bounded delta preserves, changes,
+   supersedes, and leaves unaffected rather than restating the existing system.
 
 2. **Clarify material ambiguity.**
 
@@ -300,6 +302,10 @@ judgement-based change requires a fresh audit.
    Resume the main context and invoke `$speckit-plan`. This is where
    architecture, technology, interfaces, data structures, migration,
    compatibility, security, operability, and test architecture are decided.
+   Brownfield planning consults the current design authority, relevant tickets
+   and comments or equivalent work history, regression tests and traceability,
+   and affected code before recording inherited constraints, deliberate
+   changes, superseded decisions, and unaffected boundaries.
    Depending on the feature, Spec Kit may create `plan.md`, `research.md`,
    `data-model.md`, `contracts/`, and `quickstart.md`.
 
