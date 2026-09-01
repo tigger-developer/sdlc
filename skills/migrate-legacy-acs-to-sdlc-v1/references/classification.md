@@ -31,6 +31,13 @@ Compare each classified AC with `docs/ACs.md`:
 - ask the operator when the cached record does not establish whether two
   entries duplicate, extend, or contradict one another.
 
+The final live-regression checksum runs in the opposite direction. For every RT
+still in the maintained harness, verify that its cited AC exists in
+`docs/ACs.md` and that the ledger records their relationship. Recover a missing
+AC only from its cached ticket table. A test body may explain behaviour but is
+never authority to invent or rewrite an AC. A live RT with missing or ambiguous
+traceability belongs in the consolidated operator list.
+
 For documentation reconciliation, requirements preserve historical intent,
 approved architecture and design provide technical authority, maintained tests
 provide current behavioural evidence, code and interfaces provide current

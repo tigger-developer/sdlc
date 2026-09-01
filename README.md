@@ -572,7 +572,10 @@ The explicit-only `migrate-legacy-acs-to-sdlc-v1` skill prepares a brownfield
 project's SDLC v1 requirements and documentation before Spec Kit initialization.
 It caches every open and closed GitHub issue with all comments once, runs at most
 one whole-suite command, and creates one local commit containing only the AC
-ledger, stale-document corrections, and implementation-plan archival.
+ledger, stale-document corrections, and implementation-plan archival. A final
+checksum pass walks every RT still in the maintained harness and ensures its
+cited AC and traceability relationship exist in `docs/ACs.md`; it never invents
+requirements from test code.
 Undelivered scope remains open and untouched. An operator may then authorize one
 descriptor-bearing batch of delivered tickets for closure without comments.
 Long readiness reports remain outside the repository and open with

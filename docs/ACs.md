@@ -86,6 +86,11 @@ adapter model.
 - It runs the supported whole-suite command at most once and never reruns or
   diagnoses historical individual tests. A maintained regression test plus a
   current passing suite may correct a legacy pending or unverified status.
+- After ticket-led reconciliation, it performs one reverse checksum over every
+  RT still present in the maintained harness. Each live RT must resolve to at
+  least one AC in `docs/ACs.md`, and every cited AC and RT relationship must be
+  present in the ledger. Missing AC wording comes only from the cached ticket
+  record, never from reverse-engineering the test.
 - It creates one local migration commit, never a per-ticket or per-document
   commit loop.
 - Historical tickets receive no comments or edits. After local reconciliation,

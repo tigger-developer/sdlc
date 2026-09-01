@@ -9,7 +9,10 @@ that cache, uses at most one whole-suite run, and produces only a current
 the legacy implementation plan. It creates one batched local commit, never
 comments on historical tickets, and may offer one operator-authorized silent
 closure batch. Implementation-plan archival moved out of `sdlc-project-init`,
-which retains only the mechanical legacy-ledger prefix.
+which retains only the mechanical legacy-ledger prefix. A final reverse
+checksum now walks every maintained RT and verifies that its cited AC and
+traceability relationship exist in `docs/ACs.md`, recovering missing wording
+only from the cached ticket record.
 
 Standardized the Make interface across adopting projects. Added canonical
 contracts for `test`, `vulncheck`, `install`, `sync`, and `deploy`; defined

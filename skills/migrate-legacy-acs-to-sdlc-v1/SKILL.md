@@ -90,6 +90,27 @@ identifiers, descriptors, wording, relationships, statuses, issue provenance,
 and supersession lineage. Never delete or silently rewrite historical
 requirements.
 
+## Run the regression checksum pass
+
+After the ticket-led reconciliation, enumerate every regression test that is
+still present in the maintained harness. For each live RT, confirm that:
+
+- it has traceability to at least one AC;
+- every cited AC exists in `docs/ACs.md` with its descriptor and source-ticket
+  provenance; and
+- the ledger records the RT-to-AC relationship.
+
+When an AC is missing, recover its original wording and lineage from the cached
+ticket body or comments and add it to `docs/ACs.md`. Never reverse-engineer a
+new requirement from test code. If the live RT has no resolvable AC reference,
+or the cache does not contain the cited AC, add that RT with its descriptor to
+the single operator-adjudication list.
+
+When the one whole-suite run passed, record each live RT as current passing
+evidence according to the classification rules. This is one static checksum
+pass over the maintained harness, not permission to rerun tests, re-fetch
+tickets, inspect historical implementation, or create intermediate commits.
+
 Compare current project documentation with the reconciled AC ledger, maintained
 regression evidence, current interfaces, approved architecture and design, and
 external ownership contracts. Correct only stale, conflicting, missing, or
@@ -130,6 +151,7 @@ Report only:
 
 - the snapshot path and issue count;
 - the single whole-suite result, or the current evidence reused instead;
+- the live-RT checksum count, including mapped and unresolved tests;
 - changes to `docs/ACs.md`;
 - stale project documents corrected;
 - implementation-plan archival;
