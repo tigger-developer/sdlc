@@ -11,6 +11,7 @@ The repository owns engineering standards:
 - universal coding constraints;
 - specification and acceptance-criteria quality;
 - testing and evidence;
+- application vulnerability checking and exception governance;
 - explicitly selected paired-development evidence;
 - cross-language and stack-specific implementation standards;
 - Git and documentation standards;
@@ -36,6 +37,7 @@ sdlc/
 |   |-- MAIN.md
 |   |-- ISSUES.md
 |   |-- TESTING.md
+|   |-- SECURITY.md
 |   |-- AUDITS.md
 |   |-- PAIRING.md
 |   |-- CODING.md
@@ -67,6 +69,7 @@ runtime:
 |-- MAIN.md
 |-- ISSUES.md
 |-- TESTING.md
+|-- SECURITY.md
 |-- AUDITS.md
 |-- PAIRING.md
 |-- CODING.md
@@ -102,18 +105,20 @@ coding task
     |
     +-- requirements ----------> ISSUES.md
     +-- verification ----------> TESTING.md
+    +-- application security --> SECURITY.md
     +-- audited phase ---------> AUDITS.md
     +-- paired development ----> PAIRING.md
     +-- implementation --------> CODING.md
     +-- source control --------> GIT.md
     +-- technical docs --------> DOCUMENTATION.md
-    `-- selected stack --------> technologies/GO.md, technologies/WEB.md, and so on
+    `-- selected stack --------> technologies/GO.md, technologies/HUGO.md, and so on
 ```
 
-The project constitution references the selected standards. An agent loads only
-the entries relevant to the current activity. The shared files remain the
-single source of truth; their contents are not copied into every feature
-artefact.
+The project constitution references the selected standards. `SECURITY.md` is a
+universal reference; technology documents select its concrete scanners. An
+agent loads only the entries relevant to the current activity. The shared files
+remain the single source of truth; their contents are not copied into every
+feature artefact.
 
 ## Deterministic project initialization
 
@@ -376,6 +381,7 @@ opened internally by an otherwise permitted program.
 | Cross-language implementation standard | `src/CODING.md` |
 | Requirement or acceptance-criteria standard | `src/ISSUES.md` |
 | Testing standard | `src/TESTING.md` |
+| Application-security and vulnerability-gate standard | `src/SECURITY.md` |
 | Independent audit and phase-convergence contract | `src/AUDITS.md` |
 | Paired-development contract | `src/PAIRING.md` |
 | Technology standard | A focused file under `src/technologies/`, plus a route in `MAIN.md` |

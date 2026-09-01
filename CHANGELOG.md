@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+Added a universal application-security standard requiring a read-only,
+fail-closed `make vulncheck` interface for deployable applications, kept
+separate from behavioural regression tests. Added selectable Hugo and Node.js
+standards, including an explicit justification requirement for new Node.js
+runtimes; tightened Python for internet-facing services; and added
+stack-specific `govulncheck`, `pip-audit`, package-manager audit, `cpan-audit`,
+Trivy, and OSV-Scanner guidance. Project initialization now includes the
+security standard in every constitution, while deployment systems may consume
+the common target without transferring host-security ownership to applications.
+
 Prohibited metered external models, APIs, hosted services, tests, and probes
 from automated regression suites, build targets, CI, scheduled jobs, and other
 repeated automation. Validly invoked skills and workflows may perform their

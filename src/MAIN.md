@@ -61,6 +61,7 @@ work. Do not preload the entire library.
 |---|---|
 | Requirements, acceptance criteria, bugs, or clarification | `~/.agents/sdlc/ISSUES.md` |
 | Test design or verification | `~/.agents/sdlc/TESTING.md` |
+| Application security, dependencies, or vulnerability checking | `~/.agents/sdlc/SECURITY.md` |
 | Audits or audited phase transitions | `~/.agents/sdlc/AUDITS.md` |
 | Explicitly paired, operator-reviewed implementation | `~/.agents/sdlc/PAIRING.md` |
 | Implementation or code review | `~/.agents/sdlc/CODING.md` |
@@ -72,6 +73,8 @@ work. Do not preload the entire library.
 | Perl | `~/.agents/sdlc/technologies/PERL.md` |
 | Swift | `~/.agents/sdlc/technologies/SWIFT.md` |
 | Web interfaces or sites | `~/.agents/sdlc/technologies/WEB.md` |
+| Hugo sites | `~/.agents/sdlc/technologies/HUGO.md` and `~/.agents/sdlc/technologies/WEB.md` |
+| Node.js or npm-managed applications | `~/.agents/sdlc/technologies/NODE.md` |
 
 Project instructions and the project constitution select which standards
 apply. If a project rule conflicts with this library, make the conflict visible

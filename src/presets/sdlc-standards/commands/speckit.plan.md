@@ -6,11 +6,17 @@ report that exact path.
 
 Read `~/.agents/sdlc/MAIN.md`, `~/.agents/sdlc/AUDITS.md`,
 `~/.agents/sdlc/CODING.md`, `~/.agents/sdlc/TESTING.md`,
-`~/.agents/sdlc/GIT.md`, and `~/.agents/sdlc/DOCUMENTATION.md` in full. Read
+`~/.agents/sdlc/SECURITY.md`, `~/.agents/sdlc/GIT.md`, and
+`~/.agents/sdlc/DOCUMENTATION.md` in full. Read
 only the additional language and domain documents selected by the
 constitution's Engineering Standards Profile. Apply them to architecture,
 dependencies, interfaces, migration, security, test architecture,
 compatibility, and operational design.
+
+For a deployable application, define the repository-owned `make vulncheck`
+implementation, scanner inputs, failure behaviour, exception mechanism, and
+boundary with any external infrastructure owner. Do not treat vulnerability
+checking as part of the behavioural regression suite.
 
 Read the project constitution, its `Specification Baseline`, and the active
 specification before drafting. For a brownfield project:

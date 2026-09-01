@@ -17,6 +17,11 @@ The audit PASS is not a substitute for this failing test execution. Where no
 automated regression test applies, preserve the approved rationale. Explicitly
 selected paired development follows `PAIRING.md` instead.
 
+For a deployable application, implement and run the approved `make vulncheck`
+security-gate contract after the dependency graph and build artefact are current.
+Do not count it as behavioural regression evidence or include it in `make test`.
+A missing, incomplete, or failing gate blocks implementation handoff.
+
 After implementation, automated verification, and documentation reconciliation,
 the implementation MUST receive `audit-code` PASS or satisfy a PROVISIONAL
 receipt under `AUDITS.md`. Then execute every selected one-off and user test and

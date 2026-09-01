@@ -10,6 +10,11 @@ existing project or its ecosystem is the strongest fit, especially for machine
 learning, scientific computing, or data work. Evaluate a compiled language for
 portable CLIs, services, systems work, and self-contained distribution.
 
+Python as the runtime for a new internet-facing service requires a recorded
+justification. The design must compare a compiled service, static architecture,
+or existing platform component and explain why Python's ecosystem or delivery
+characteristics are the better fit.
+
 ## Runtime and environment
 
 - Pin a supported Python version in project configuration. Do not describe a
@@ -81,3 +86,40 @@ names for import sorting and document any deviation.
 - Pass subprocess arguments as an array and validate any executable path.
 - Treat dependency installation and build backends as code execution; use
   trusted sources and locked inputs.
+
+## Internet-facing services
+
+- Build a frozen application environment from the committed lock in a controlled
+  build environment. Never resolve or install production dependencies on the
+  serving host.
+- Use a production WSGI or ASGI server appropriate to the selected framework.
+  Never deploy a framework development server, debugger, interactive console,
+  autoreloader, or development exception page.
+- Run without root privileges and with the minimum filesystem and network access
+  required by the application.
+- Bind, route, terminate TLS, receive secrets, and expose health checks according
+  to the applicable infrastructure contract.
+- Configure explicit request-body, header, connection, worker, upstream,
+  shutdown, and resource limits at the application-owned boundary.
+- Make worker and concurrency choices explicit. Do not mix blocking work into an
+  asynchronous request path without a bounded executor or another deliberate
+  isolation mechanism.
+- Validate external input before using it in paths, commands, templates,
+  redirects, database queries, deserialization, or outbound requests.
+- Keep production logs structured and free of secrets, tokens, request bodies,
+  development tracebacks, and unnecessary personal data.
+- Health responses must not disclose configuration, dependency versions,
+  credentials, or internal topology.
+
+## Vulnerability checking
+
+Deployable Python applications must expose the `make vulncheck` contract defined
+by `~/.agents/sdlc/SECURITY.md`. Run `pip-audit` through the project-managed
+environment against the committed lock, fully pinned requirements, or an
+equivalent already-resolved environment.
+
+The target must not install packages, invoke an unconstrained dependency
+resolution, apply `--fix`, modify the lock, or suppress the audit exit code.
+Where a private package index is required, use the project's established
+non-interactive authentication boundary without placing credentials in source
+or command output.

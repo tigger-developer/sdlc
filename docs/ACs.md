@@ -60,8 +60,9 @@ adapter model.
 - The project initializer discovers Markdown technology standards
   alphabetically from `~/.agents/sdlc/technologies/` without a hard-coded
   technology list.
-- Universal specification, coding, testing, paired-development, documentation,
-  Git, and entry-point standards are included exactly once.
+- Universal specification, coding, testing, application-security,
+  paired-development, documentation, Git, and entry-point standards are
+  included exactly once.
 - CLI values override project `.env` values, which override user SDLC defaults.
 - External infrastructure ownership is optional and, when selected, records an
   owner descriptor and integration-contract path without assuming a private
@@ -77,6 +78,24 @@ adapter model.
   authority, historical work context, current design authority, and the
   maintained regression test pack with its supported command and requirement
   traceability.
+
+## Application vulnerability checking
+
+- Every deployable application exposes a repository-owned `make vulncheck`
+  security gate separate from `make test`.
+- The target scans all application-managed dependency graphs that affect the
+  built or deployed artefact and aggregates every selected stack.
+- A missing scanner, stale or uncovered manifest, unavailable advisory source,
+  or incomplete scan fails the gate.
+- The gate never installs tools, resolves or updates dependencies, modifies
+  locks, applies fixes, suppresses exit codes, or creates exceptions.
+- Findings block by default. Every exception is exact, durable,
+  human-authorized, evidenced, and time-bounded.
+- Stack standards prefer `govulncheck` for Go, `pip-audit` for Python, the
+  selected package manager's audit for Node.js, `cpan-audit` for Perl, and Trivy
+  for Swift, with Trivy or OSV-Scanner available as documented fallbacks.
+- External infrastructure may invoke the application target but retains its own
+  host, operating-system, service, container, and package-closure controls.
 
 ## Brownfield specification and design
 

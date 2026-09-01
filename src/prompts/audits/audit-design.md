@@ -16,6 +16,8 @@ Challenge:
   retirement;
 - dependencies, complexity, alternatives, assumptions, and explicit
   trade-offs among relevant quality attributes;
+- for deployable applications, the scanner inputs, failure and exception policy,
+  and infrastructure boundary of the required `make vulncheck` security gate;
 - operability, observability, diagnosability, and justified test architecture;
   and
 - unresolved decisions that would force implementation to invent behaviour.

@@ -21,6 +21,7 @@ root is exactly `~/.agents/sdlc` for every supported provider.
 | `src/MAIN.md` | Compact universal rules and progressive-loading routes |
 | `src/ISSUES.md` | Specification and acceptance-criteria standards |
 | `src/TESTING.md` | Behavioural testing and evidence standards |
+| `src/SECURITY.md` | Application vulnerability-checking and exception contract |
 | `src/AUDITS.md` | Independent verdict and autonomous phase-convergence contract |
 | `src/PAIRING.md` | Explicit paired-development and live user-validation contract |
 | `src/CODING.md` | Cross-language implementation standards |
@@ -370,6 +371,9 @@ judgement-based change requires a fresh audit.
     bounded phases; each context must load the approved artefacts before
     changing code. Implementation must not change required behaviour silently.
     Automated tests follow RED/GREEN; one-off and user tests do not.
+    Deployable applications also run their repository-owned `make vulncheck`
+    security gate after the dependency graph and build artefact are current.
+    This gate remains separate from `make test` and behavioural traceability.
 
 11. **Audit the implementation in a fresh context.**
 
@@ -403,11 +407,26 @@ main:  plan
 fresh: audit-design -> main remediation -> fresh re-audit, at most 5 attempts
 main:  checklist (optional) -> tasks
 fresh: audit-tests -> main remediation -> fresh re-audit, at most 5 attempts
-main:  analyze -> implement
+main:  analyze -> implement -> vulncheck for deployable applications
 fresh: audit-code -> main remediation -> fresh re-audit, at most 5 attempts
 main:  one-off and user tests -> validation.md -> converge
 main:  repeat affected audit and validation when remediation changes code
 ```
+
+### Check application vulnerabilities
+
+Every deployable application exposes the stable `make vulncheck` interface
+defined by `~/.agents/sdlc/SECURITY.md`. It uses the scanner selected by the
+applicable technology standards, changes nothing, fails closed when scanning is
+unavailable or incomplete, and blocks on non-exempt findings. Mixed-stack
+projects aggregate every applicable dependency set.
+
+The target is a security gate, not a behavioural regression test, and therefore
+does not belong in `make test`. Deployment systems may invoke it before release;
+projects should also use proportionate periodic scanning because a vulnerability
+can be disclosed after an unchanged version has been deployed. Infrastructure
+owners retain responsibility for host, operating-system, service, container, or
+package-closure controls beyond the application boundary.
 
 ### Develop interactively with an operator
 

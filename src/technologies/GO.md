@@ -162,6 +162,7 @@ See `~/.agents/sdlc/TESTING.md` for the cross-language testing standards.
 | `go vet` | Built-in static analysis | Yes |
 | `golangci-lint` | Aggregator: `errcheck`, `staticcheck`, `govet`, `bodyclose`, `gosec`, `unused` | Yes |
 | `go test -race` | Race detector | When code uses goroutines |
+| `govulncheck` | Reachability-aware vulnerability analysis | Yes for deployable applications |
 
 Minimum `.golangci.yml`:
 
@@ -175,6 +176,12 @@ linters:
     - gosec
     - unused
 ```
+
+Deployable Go applications must expose the `make vulncheck` contract defined by
+`~/.agents/sdlc/SECURITY.md`, implemented with `govulncheck ./...`. Provision
+the scanner reproducibly outside the target. The target must not install
+`govulncheck`, suppress its exit code, or use JSON/SARIF output modes whose
+documented exit behaviour would conceal findings.
 
 ## Standard Library Preference
 

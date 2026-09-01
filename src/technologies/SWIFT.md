@@ -18,6 +18,7 @@ Use the project's existing configuration first.
 | `swift-format` | Formatting | Yes, unless the project already standardizes on another formatter |
 | SwiftLint | Linting | Yes, when the project has or needs lint configuration |
 | XCTest / Swift Testing | Tests | Yes, use whichever the project already uses |
+| Trivy | Resolved-dependency vulnerability scanning | Yes for deployable applications with package dependencies |
 
 Run formatting and linting on changed Swift files before review. Do not introduce a new formatter or lint rule set into an existing project without explicit reason.
 
@@ -124,6 +125,17 @@ Any new package must be justified by:
 - platform support
 - why standard libraries/frameworks are insufficient
 - impact on build and release
+
+Commit `Package.resolved` for applications and other deployable artefacts so the
+reviewed dependency graph is the graph used by builds and vulnerability scans.
+Do not update resolved packages implicitly during deployment.
+
+Deployable Swift applications with Swift Package Manager or CocoaPods
+dependencies must expose the `make vulncheck` contract defined by
+`~/.agents/sdlc/SECURITY.md`. Use Trivy against `Package.resolved`,
+`Podfile.lock`, or the built artefact as appropriate. The target must not update
+packages, rewrite resolved files, download an unpinned scanner, or suppress
+findings.
 
 ## Interop
 

@@ -67,6 +67,11 @@ When `.specify/` is absent, the initializer:
 9. commits only that generated scaffold; and
 10. launches the selected agent to create an unratified project constitution.
 
+Select `HUGO` together with `WEB` for a Hugo site. Select `NODE` whenever
+Node.js is the application runtime or npm-managed dependencies participate in
+the build; incidental use of an npm-installed developer tool still brings its
+dependency graph into vulnerability checking when it can affect the artefact.
+
 The generated scaffold records an exact SDLC release tag when the initializer
 was built at that tag; other clean versioned builds record their source commit.
 A modified or unversioned build leaves an explicit `TODO(SDLC_REVISION)` and
@@ -172,6 +177,24 @@ the greenfield procedure. Confirm that the generated authority hierarchy gives
 approved specifications authority over observable behaviour, approved design
 authority over technical choices within those requirements, and code and tests
 the status of implementation evidence rather than requirement approval.
+
+## Add the deployment vulnerability gate
+
+Every deployable application must expose:
+
+```bash
+make vulncheck
+```
+
+The project implements that target with the scanner selected by its technology
+standards. It scans committed locks, resolved dependencies, or the built
+artefact; makes no changes; and fails when scanning is unavailable, incomplete,
+or reports a non-exempt vulnerability. Keep it separate from `make test`.
+
+An external infrastructure owner may invoke the same target before deployment.
+That application check complements rather than replaces host, operating-system,
+service, container, and package-closure controls. See
+`~/.agents/sdlc/SECURITY.md` for scanner selection and exception requirements.
 
 ## Run an interactive paired change
 

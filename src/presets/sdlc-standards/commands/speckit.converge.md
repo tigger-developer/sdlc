@@ -5,10 +5,15 @@ filesystem to locate it. If `~/.agents/sdlc/MAIN.md` is absent or unreadable,
 report that exact path.
 
 Read `~/.agents/sdlc/MAIN.md`, `~/.agents/sdlc/AUDITS.md`,
-`~/.agents/sdlc/CODING.md`, and `~/.agents/sdlc/TESTING.md` in full, plus the
+`~/.agents/sdlc/CODING.md`, `~/.agents/sdlc/TESTING.md`, and
+`~/.agents/sdlc/SECURITY.md` in full, plus the
 constitution's selected standards that apply to the assessment. Distinguish
 verified implementation evidence from remaining tasks and give every cited
 identifier an adjacent descriptor.
+
+For a deployable application, do not declare convergence while the required
+`make vulncheck` target is absent, incomplete, or failing. Report its result as
+a security gate, not as behavioural regression evidence.
 
 Do not declare convergence while the implementation lacks a current
 effective `audit-code` PASS in the feature's `audits.md`. Relevant changes made

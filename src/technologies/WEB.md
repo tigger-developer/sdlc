@@ -4,6 +4,11 @@ Standards for HTML, CSS, JavaScript, and the testing/tooling concerns that span 
 
 When a Go application serves HTML, CSS, or JavaScript, the server-side patterns in `~/.agents/sdlc/technologies/GO.md` (HTTP server, error handling, timeouts) apply for the server; the standards in this document apply for the response payload.
 
+Hugo projects also load `~/.agents/sdlc/technologies/HUGO.md`. Projects that
+use Node.js as an application runtime, or npm-managed packages in their build,
+also load `~/.agents/sdlc/technologies/NODE.md`. npm-managed development tooling
+does not by itself justify selecting Node.js as the production runtime.
+
 ## Source vs Rendered Tier Model
 
 Web content moves through three tiers between authoring and the user:
@@ -73,6 +78,11 @@ Format-aware tools for web content:
 Do not introduce a new web test architecture without explicit human approval. For static-site checks, do not add Node.js, npm, Playwright, Cypress, or another browser stack merely to verify generated HTML, feeds, links, assets, routes, headers, or file serving. Prefer `htmltest`, `htmlq`, and `xmlstarlet` unless the project already has a narrower appropriate harness.
 
 For tests that genuinely require a browser (computed styles, hover behaviour, JS-executed content), reach for Playwright or Cypress -- but only when the body of UI tests justifies the tooling cost (heuristic: roughly 8-10 UTs across the project) and the human has approved the added test architecture.
+
+Any deployable web project with package-managed application or build
+dependencies must expose the `make vulncheck` contract defined by
+`~/.agents/sdlc/SECURITY.md`. Scan dependencies capable of changing the served
+artefact, even when they are absent from the final static output.
 
 ## Testing Web Content
 

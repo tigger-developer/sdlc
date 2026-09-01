@@ -5,11 +5,15 @@ filesystem to locate it. If `~/.agents/sdlc/MAIN.md` is absent or unreadable,
 report that exact path.
 
 Read `~/.agents/sdlc/MAIN.md`, `~/.agents/sdlc/AUDITS.md`,
-`~/.agents/sdlc/TESTING.md`, and
+`~/.agents/sdlc/TESTING.md`, `~/.agents/sdlc/SECURITY.md`, and
 `~/.agents/sdlc/DOCUMENTATION.md` in full, plus the standards selected by the
 constitution that affect the tasks. Ensure the task set covers specification
 evidence, error and boundary behaviour, documentation, migration, security, and
 human validation where relevant.
+
+For a deployable application, include implementation and verification of the
+`make vulncheck` security-gate contract. Keep it separate from `make test` and
+from behavioural test traceability.
 
 Select every applicable test type; a change may require automated regression,
 one-off, and user tests together. Order each automated regression test before
