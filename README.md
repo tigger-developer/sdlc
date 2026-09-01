@@ -428,6 +428,22 @@ can be disclosed after an unchanged version has been deployed. Infrastructure
 owners retain responsibility for host, operating-system, service, container, or
 package-closure controls beyond the application boundary.
 
+### Use the standard Make interface
+
+Projects using Make use the same target names for the same operations:
+`build`, `lint`, `test`, `vulncheck`, `install`, `sync`, and `deploy` where each
+operation applies. `make sync` is deliberately simple: it stages the worktree,
+commits changed content with the short `COMMIT_MESSAGE` subject, then pulls and
+pushes. It does not invent a detailed commit message or add hidden Git policy.
+The default subject is `chore: sync`.
+
+Deployment runs `make test` and `make vulncheck` before the project-specific
+deployment action. An operator may use `SKIP_TESTS=1 make deploy` when the suite
+has already been established, but this does not skip vulnerability checking.
+Use `VERBOSE=1` for full output; normal output remains concise. The complete
+contracts live in `~/.agents/sdlc/CODING.md`, `GIT.md`, `TESTING.md`, and
+`SECURITY.md`.
+
 ### Develop interactively with an operator
 
 Paired development is available when the required result must be refined

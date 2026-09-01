@@ -196,6 +196,19 @@ That application check complements rather than replaces host, operating-system,
 service, container, and package-closure controls. See
 `~/.agents/sdlc/SECURITY.md` for scanner selection and exception requirements.
 
+Projects using Make use the canonical `test`, `vulncheck`, `install`, `sync`,
+and `deploy` target names where those operations apply. Deployment runs tests
+and vulnerability checking before the project-specific action. To omit only an
+already-established regression run:
+
+```bash
+SKIP_TESTS=1 make deploy
+```
+
+`make sync` stages, commits, pulls, and pushes in that order. Its optional
+`COMMIT_MESSAGE` is a short subject and defaults to `chore: sync`; the target
+does not try to manufacture a detailed commit message.
+
 ## Run an interactive paired change
 
 Use paired development when the outcome must be refined through live operator

@@ -97,6 +97,25 @@ adapter model.
 - External infrastructure may invoke the application target but retains its own
   host, operating-system, service, container, and package-closure controls.
 
+## Standard Make interface
+
+- Projects using Make expose canonical target names for each applicable
+  operation: `build`, `lint`, `test`, `vulncheck`, `install`, `sync`, and
+  `deploy`.
+- Every Make-based Git software project provides `test` and `sync`; applicability
+  determines the other targets without permitting successful no-ops.
+- `make sync` stages the complete worktree, creates a commit when staged changes
+  exist, pulls, and pushes, in that order. It uses a short `COMMIT_MESSAGE`
+  value, defaulting to `chore: sync`, and does not infer or demand a long
+  message.
+- `make deploy` runs the complete regression suite and the application
+  vulnerability gate before deployment.
+- `SKIP_TESTS=1 make deploy` skips only the regression suite, reports the skip,
+  and does not skip vulnerability checking.
+- `VERBOSE=1` consistently requests full output. Normal output remains concise.
+- Targets stop on failure and do not silently add rebasing, stashing, branch
+  selection, force, hook bypass, or other inferred policy.
+
 ## Brownfield specification and design
 
 - Before drafting, the author examines the relevant requirement and design

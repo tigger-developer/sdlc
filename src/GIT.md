@@ -38,6 +38,31 @@ Do not rely on commit-message keywords to close work automatically unless the
 project explicitly adopts that behaviour. A merged change and a verified
 outcome are separate facts.
 
+## Make synchronization
+
+For a project that uses Make, `make sync` is the canonical operator-facing
+synchronization entry point. It performs this sequence and stops on the first
+failure:
+
+1. `git add -A`
+2. If staged changes exist, `git commit -m "$(COMMIT_MESSAGE)"`
+3. `git pull`
+4. `git push`
+
+`COMMIT_MESSAGE` defaults to the short neutral subject `chore: sync`. The target
+must not infer a detailed message from the diff, demand a long message, amend an
+existing commit, select a branch, rebase, stash, clean, force, bypass hooks, or
+run unrelated generation or verification. When no staged changes exist, it
+skips only the commit and still pulls and pushes through the configured
+upstream and pull strategy.
+
+The target stages the whole worktree by definition. An agent must inspect the
+working tree first and may invoke `make sync` only when the human has explicitly
+authorized synchronization and the agent can preserve every unrelated or
+human-authored change. An operator invocation is the decision to include the
+current worktree; the target must not try to outsmart that decision by filtering
+or rewriting it.
+
 ## Branches and history
 
 - Follow the repository's configured default branch and existing branch naming

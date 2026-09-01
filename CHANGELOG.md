@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+Standardized the Make interface across adopting projects. Added canonical
+contracts for `test`, `vulncheck`, `install`, `sync`, and `deploy`; defined
+`make sync` as add, concise commit, pull, and push; and standardized
+`COMMIT_MESSAGE`, `SKIP_TESTS=1`, and `VERBOSE=1` behaviour. Deployment may skip
+an already-established regression run explicitly but never uses that control to
+skip vulnerability checking.
+
 Added a universal application-security standard requiring a read-only,
 fail-closed `make vulncheck` interface for deployable applications, kept
 separate from behavioural regression tests. Added selectable Hugo and Node.js

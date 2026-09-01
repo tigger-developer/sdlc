@@ -16,6 +16,8 @@ Check:
 - concurrency, cleanup, resource, timeout, and retry behaviour;
 - for deployable applications, the required `make vulncheck` implementation and
   current result, kept separate from behavioural regression evidence;
+- canonical Make target names and common variable semantics where the project
+  uses Make;
 - maintainability and ecosystem idioms;
 - implementation of the approved automated tests without reopening the
   effective test-strategy audit; and

@@ -175,9 +175,45 @@ the exact target.
 
 ## Repository entry points and packaging
 
-- Provide stable repository-owned entry points for build, test, lint, and
-  installation. A Makefile is preferred when it fits the project and no
-  ecosystem-native task interface already exists.
+- Provide stable repository-owned entry points. A Makefile is preferred when it
+  fits the project and no ecosystem-native task interface already exists.
+- A project that uses Make must use these canonical target names when the
+  corresponding operation exists. Do not create aliases with different
+  semantics or successful no-op targets merely to fill the table.
+
+Every Make-based Git software project provides `test` and `sync`. An installable
+project also provides `install`; a deployable application provides `vulncheck`;
+and a project that owns a deployment action provides `deploy`. Provide `build`
+and `lint` when those are distinct project operations.
+
+| Target | Contract |
+|---|---|
+| `make build` | Produce the project artefact without installing or deploying it. |
+| `make lint` | Run the complete project-owned static and formatting checks. |
+| `make test` | Run the complete persistent behavioural regression suite defined by `TESTING.md`. |
+| `make vulncheck` | Run the read-only application vulnerability gate defined by `SECURITY.md`; required for deployable applications. |
+| `make install` | Build and install locally; do not deploy remotely. Repeated installation must be safe and idempotent where the installed state is managed by the project. |
+| `make sync` | Perform the operator-invoked Git synchronization contract defined by `GIT.md`. |
+| `make deploy` | Verify and deploy the current project through its documented deployment boundary. |
+
+`make deploy` must run `make test` and, for a deployable application,
+`make vulncheck` before the deployment action. `SKIP_TESTS=1 make deploy` skips
+only the behavioural regression suite and must print that fact. It never skips
+`make vulncheck`; security exceptions follow `SECURITY.md`.
+
+Use the following common variables consistently:
+
+| Variable | Meaning |
+|---|---|
+| `COMMIT_MESSAGE` | Short subject used by `make sync`; defaults to `chore: sync`. |
+| `SKIP_TESTS=1` | Skip an automatic prerequisite invocation of `make test`; it does not alter a direct `make test`. |
+| `VERBOSE=1` | Show the full itemized output instead of the normal concise variances or summary. |
+
+Use unset or `0` for normal behaviour and `1` to enable a Boolean control. A
+project may add necessary project-specific variables, but it must document them
+beside the target and must not introduce alternate spellings for these common
+controls.
+
 - Keep help text reviewable as documentation and make `--help` and `--version`
   available on CLI executables. Provide dry-run behaviour for operations whose
   effects merit preview.
