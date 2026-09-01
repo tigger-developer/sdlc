@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+Narrowed `migrate-legacy-acs-to-sdlc-v1` to a fast readiness reconciliation.
+It now downloads every open and closed ticket with comments once, relies only on
+that cache, uses at most one whole-suite run, and produces only a current
+`docs/ACs.md`, refreshed stale project documentation, and unchanged archival of
+the legacy implementation plan. It creates one batched local commit, never
+comments on historical tickets, and may offer one operator-authorized silent
+closure batch. Implementation-plan archival moved out of `sdlc-project-init`,
+which retains only the mechanical legacy-ledger prefix.
+
 Standardized the Make interface across adopting projects. Added canonical
 contracts for `test`, `vulncheck`, `install`, `sync`, and `deploy`; defined
 `make sync` as add, concise commit, pull, and push; and standardized
@@ -40,14 +49,10 @@ TDD implementation, and code-audit convergence without a redundant intermediate
 handback. Required audits, RED/GREEN evidence, human-controlled decisions,
 external authority, and autonomous-loop stop conditions remain unchanged.
 
-Expanded the explicit-only `migrate-legacy-acs-to-sdlc-v1` skill into an SDLC
-v1 project-readiness workflow for brownfield Spec Kit adoption. The skill now
-assesses delivered open-ticket and bug-fix closure candidates, historical AC
-coverage, test traceability, and stale project documentation from one immutable
-ticket snapshot. Ticket closures, AC state changes, and documentation edits
-require exact operator authorization; undelivered scope remains open and
-untouched. Long proposed-action reports are written outside the repository and
-opened with `HTML_PREVIEW_TOOL`, with a text-editor fallback.
+Kept `migrate-legacy-acs-to-sdlc-v1` explicit-only, preserved descriptor-bearing
+operator adjudication for genuine ambiguities and closure batches, and retained
+temporary long-report presentation through `HTML_PREVIEW_TOOL` with a text-editor
+fallback. Undelivered scope remains open and untouched.
 
 ## v2.0.2 - 2026-08-31
 

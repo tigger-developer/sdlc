@@ -364,7 +364,7 @@ func TestEnsureManagedPrefixReplacesOnlyStalePrefix(t *testing.T) {
 	}
 }
 
-func TestMigrateBrownfieldDocumentsIsMechanicalReviewedAndIdempotent(t *testing.T) {
+func TestMigrateBrownfieldDocumentsMarksOnlyLegacyACsAndIsIdempotent(t *testing.T) {
 	project := initializeLegacyBrownfieldProject(t)
 	block := managedBlockForTest(t)
 	writeTestFile(t, filepath.Join(project, "operator-notes.md"), "operator change\n")
@@ -386,12 +386,12 @@ func TestMigrateBrownfieldDocumentsIsMechanicalReviewedAndIdempotent(t *testing.
 	if !proceed {
 		t.Fatal("accepted migration stopped initialization")
 	}
-	if _, err := os.Stat(filepath.Join(project, "docs", "implementation_plan.md")); !os.IsNotExist(err) {
-		t.Fatalf("legacy implementation plan remains at its active path: %v", err)
-	}
-	planAfter := mustReadFile(t, filepath.Join(project, "docs", "archive", "implementation_plan.md"))
+	planAfter := mustReadFile(t, filepath.Join(project, "docs", "implementation_plan.md"))
 	if !bytes.Equal(planBefore, planAfter) {
-		t.Fatal("archived implementation plan content changed")
+		t.Fatal("project initializer changed the implementation plan")
+	}
+	if _, err := os.Stat(filepath.Join(project, "docs", "archive", "implementation_plan.md")); !os.IsNotExist(err) {
+		t.Fatalf("project initializer archived the implementation plan: %v", err)
 	}
 	requirements := string(mustReadFile(t, filepath.Join(project, filepath.FromSlash(legacyACDocumentPath))))
 	if !strings.HasPrefix(requirements, string(block.content)) || strings.Count(requirements, string(block.marker)) != 1 {
@@ -415,7 +415,7 @@ func TestMigrateBrownfieldDocumentsIsMechanicalReviewedAndIdempotent(t *testing.
 		t.Fatalf("unrelated staged change was disturbed: %q", staged)
 	}
 	committed := runGitForTest(t, project, "show", "--pretty=format:", "--name-only", "HEAD")
-	if strings.Contains(committed, "operator-notes.md") || strings.Contains(committed, "docs/VISION.md") {
+	if strings.Contains(committed, "operator-notes.md") || strings.Contains(committed, "docs/VISION.md") || strings.Contains(committed, "implementation_plan.md") {
 		t.Fatalf("migration committed unrelated path:\n%s", committed)
 	}
 
@@ -482,16 +482,16 @@ func TestMigrateBrownfieldDocumentsDeclineLeavesReviewedChanges(t *testing.T) {
 		t.Fatalf("declined migration output = %q", output.String())
 	}
 
-	var acceptedOutput bytes.Buffer
-	acceptedOptions := defaultOptions(Options{
-		Input: strings.NewReader("yes\n"), Output: &acceptedOutput, ErrorOutput: &bytes.Buffer{},
+	var rerunOutput bytes.Buffer
+	rerunOptions := defaultOptions(Options{
+		Input: strings.NewReader(""), Output: &rerunOutput, ErrorOutput: &bytes.Buffer{},
 	})
-	proceed, err = migrateBrownfieldDocuments(project, block, bufio.NewReader(acceptedOptions.Input), acceptedOptions)
+	proceed, err = migrateBrownfieldDocuments(project, block, bufio.NewReader(rerunOptions.Input), rerunOptions)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !proceed || strings.TrimSpace(runGitForTest(t, project, "rev-parse", "HEAD")) == before {
-		t.Fatal("reviewed migration could not be accepted on rerun")
+	if !proceed || strings.TrimSpace(runGitForTest(t, project, "rev-parse", "HEAD")) != before || rerunOutput.Len() != 0 {
+		t.Fatalf("current declined migration was not a silent rerun: proceed=%t output=%q", proceed, rerunOutput.String())
 	}
 }
 

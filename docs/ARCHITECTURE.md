@@ -130,26 +130,33 @@ Kit override is resolved before preset composition, so constitution generation
 does not require a preset manifest parser. Adding a technology document makes
 it available without changing the initializer.
 
-Before rendering a brownfield constitution, the initializer mechanically
-migrates the established project documentation shape. It:
+Before initialization, the explicit
+`migrate-legacy-acs-to-sdlc-v1` skill performs the semantic readiness migration.
+It caches every open and closed ticket with comments once, uses the maintained
+regression harness and at most one whole-suite run as current evidence,
+reconciles `docs/ACs.md`, corrects stale project documentation, archives
+`docs/implementation_plan.md`, and batches the local result into one commit. It
+does not mutate historical tickets; an operator may separately authorize one
+silent closure batch.
+
+Before rendering a brownfield constitution, the initializer performs only the
+remaining mechanical authority update. It:
 
 - applies the file-backed, marked legacy prefix to `docs/ACs.md`, replacing
   only an older managed prefix when the resource changes;
-- moves `docs/implementation_plan.md` unchanged to
-  `docs/archive/implementation_plan.md`;
-- shows the managed-path Git diff and obtains operator confirmation before an
+- shows that path's Git diff and obtains operator confirmation before an
   isolated commit; and
 - performs no write, prompt, agent launch, or commit when the migration is
   already current.
 
 Vision, architecture, and README documents remain active and outside the
 mechanical legacy migration. The initializer never modifies them; adaptation
-requires project-specific semantic review.
+and implementation-plan archival belong to the pre-migration skill.
 
-The migration never invokes an agent. Missing expected source documents,
-unexpected overlapping changes, or content that cannot be transformed by the
-fixed rules are reported rather than guessed. Declining the commit leaves the
-reviewed working-tree changes in place and stops constitution generation.
+The initializer's mechanical update never invokes an agent. Unexpected
+overlapping changes or content that cannot be transformed by the fixed rules
+are reported rather than guessed. Declining the commit leaves the reviewed
+working-tree change in place and stops constitution generation.
 
 ### Project-initializer resources
 

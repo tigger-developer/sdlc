@@ -108,6 +108,15 @@ Start from a recoverable Git checkpoint. Existing unrelated or human-authored
 changes are not an initialization workspace; checkpoint or separate them
 according to the project's normal source-control practice before proceeding.
 
+First invoke `$migrate-legacy-acs-to-sdlc-v1`. It caches every open and closed
+ticket with its comments once, may run the supported whole-suite command once,
+and produces only an accurate `docs/ACs.md`, corrections to stale project
+documentation, and the unchanged archival of `docs/implementation_plan.md`.
+It batches those local changes into one commit. It does not rerun historical
+tests, comment on tickets, or investigate old tickets beyond the cached record
+and maintained regression harness. Afterward it may offer to close one exact
+batch of already-delivered open tickets without comments.
+
 Run the same initializer from the existing project root:
 
 ```bash
@@ -116,23 +125,21 @@ sdlc-project-init
 
 After authorization, Spec Kit merges its project infrastructure into the
 existing working tree with its `--here --force` initialization path. For the
-established SDLC v1 document shape, the initializer then performs a bounded,
-mechanical migration:
+established SDLC v1 document shape, the initializer then performs one bounded,
+mechanical authority update:
 
-1. `docs/implementation_plan.md` moves unchanged to
-   `docs/archive/implementation_plan.md`.
-2. The file-backed, marked legacy prefix is applied to `docs/ACs.md`.
-3. The initializer stages only those paths, shows their Git diff, and asks
+1. The file-backed, marked legacy prefix is applied to `docs/ACs.md`.
+2. The initializer stages only that path, shows its Git diff, and asks
    whether to commit.
 
 Vision, architecture, and README documents remain active. The initializer does
-not rewrite them. Adapting those documents to the adopted process requires
-project-specific semantic review.
+not rewrite them or archive the implementation plan; those are pre-migration
+skill responsibilities.
 
 Declining leaves the reviewed migration staged and stops before constitution
-generation. Rerunning presents the same diff for confirmation. An accepted or
-already-current migration is silent on later runs. Brownfield repositories
-without this document shape are not altered.
+generation. Resolve that staged choice through normal Git review before
+continuing. An accepted or already-current authority prefix is silent on later
+runs. Brownfield repositories without `docs/ACs.md` are not altered.
 
 The managed prefix ends at a line containing only `***`. The initializer hashes
 that prefix independently of the existing ledger: an absent marker causes a
@@ -165,12 +172,9 @@ assertions, and checks the affected implementation. The resulting artefact
 states what it preserves, changes, supersedes, and leaves unaffected. Tests and
 code remain implementation evidence rather than requirement approval.
 
-Initialization does not bulk-migrate legacy tickets or acceptance criteria. For
-an established SDLC v1 project, invoke
-`$migrate-legacy-acs-to-sdlc-v1` before initialization to assess delivered open
-tickets, reconcile the centralized AC record and project documentation with
-explicit operator authorization, and leave undelivered scope untouched. Bring
-forward only the baseline relevant to each new or migrated feature.
+Initialization does not bulk-migrate legacy tickets or acceptance criteria.
+The pre-migration skill leaves undelivered scope untouched. Bring forward only
+the baseline relevant to each new or migrated feature.
 
 Review and track the same `.specify/` constitution and scaffold files listed in
 the greenfield procedure. Confirm that the generated authority hierarchy gives

@@ -78,6 +78,22 @@ adapter model.
   authority, historical work context, current design authority, and the
   maintained regression test pack with its supported command and requirement
   traceability.
+- Brownfield pre-migration uses one immutable cache containing every open and
+  closed ticket body and all comments. It does not re-fetch individual tickets.
+- Its only repository deliverables are a current `docs/ACs.md`, corrections to
+  stale project documentation, and unchanged archival of
+  `docs/implementation_plan.md` when present.
+- It runs the supported whole-suite command at most once and never reruns or
+  diagnoses historical individual tests. A maintained regression test plus a
+  current passing suite may correct a legacy pending or unverified status.
+- It creates one local migration commit, never a per-ticket or per-document
+  commit loop.
+- Historical tickets receive no comments or edits. After local reconciliation,
+  the operator may authorize one exact batch of delivered open tickets to be
+  closed without comment.
+- `sdlc-project-init` does not archive or semantically revise project
+  documentation. It only applies the managed legacy prefix to `docs/ACs.md`
+  before constitution generation.
 
 ## Application vulnerability checking
 

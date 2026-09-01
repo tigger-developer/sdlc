@@ -147,11 +147,7 @@ type constitutionTemplateData struct {
 	ProjectType            string
 }
 
-var brownfieldBaseMigrationPaths = []string{
-	legacyACDocumentPath,
-	"docs/implementation_plan.md",
-	"docs/archive/implementation_plan.md",
-}
+var brownfieldMigrationPaths = []string{legacyACDocumentPath}
 
 // Run renders the deterministic constitution scaffold and, when it changes,
 // invokes the selected agent harness for project-specific completion.
@@ -348,17 +344,14 @@ func Run(options Options) error {
 }
 
 func migrateBrownfieldDocuments(projectRoot string, block managedBlock, reader *bufio.Reader, options Options) (bool, error) {
-	sourcePlan := filepath.Join(projectRoot, "docs", "implementation_plan.md")
-	archivedPlan := filepath.Join(projectRoot, "docs", "archive", "implementation_plan.md")
-	active, sourceExists, current, err := inspectBrownfieldMigration(projectRoot, sourcePlan, archivedPlan, block)
+	active, current, err := inspectBrownfieldMigration(projectRoot, block)
 	if err != nil {
 		return false, err
 	}
 	if !active {
 		return true, nil
 	}
-	migrationPaths := brownfieldBaseMigrationPaths
-	status, err := gitStatusForPaths(projectRoot, migrationPaths, options)
+	status, err := gitStatusForPaths(projectRoot, brownfieldMigrationPaths, options)
 	if err != nil {
 		return false, err
 	}
@@ -366,79 +359,35 @@ func migrateBrownfieldDocuments(projectRoot string, block managedBlock, reader *
 		return false, fmt.Errorf("brownfield documentation migration overlaps existing changes:\n%s", strings.TrimSpace(status))
 	}
 	if !current {
-		if err := applyBrownfieldMigration(projectRoot, sourcePlan, archivedPlan, sourceExists, block); err != nil {
+		if _, err := ensureManagedPrefix(projectRoot, legacyACDocumentPath, block); err != nil {
 			return false, err
 		}
 	}
-	return reviewBrownfieldMigration(projectRoot, reader, current, migrationPaths, options)
+	return reviewBrownfieldMigration(projectRoot, reader, current, options)
 }
 
-func inspectBrownfieldMigration(projectRoot, sourcePlan, archivedPlan string, block managedBlock) (bool, bool, bool, error) {
-	sourceExists, err := regularFileExists(sourcePlan)
-	if err != nil {
-		return false, false, false, err
-	}
-	archiveExists, err := regularFileExists(archivedPlan)
-	if err != nil {
-		return false, false, false, err
-	}
-	if sourceExists && archiveExists {
-		return false, false, false, fmt.Errorf("brownfield migration found both %q and %q", sourcePlan, archivedPlan)
-	}
-	if !sourceExists && !archiveExists {
-		return false, false, false, nil
-	}
+func inspectBrownfieldMigration(projectRoot string, block managedBlock) (bool, bool, error) {
 	requirementsPath := filepath.Join(projectRoot, filepath.FromSlash(legacyACDocumentPath))
-	requirementsExist, existsErr := regularFileExists(requirementsPath)
-	if existsErr != nil {
-		return false, false, false, existsErr
+	requirementsExist, err := regularFileExists(requirementsPath)
+	if err != nil {
+		return false, false, err
 	}
 	if !requirementsExist {
-		return false, false, false, fmt.Errorf("brownfield documentation migration requires %q", requirementsPath)
+		return false, false, nil
 	}
 	current, err := brownfieldMigrationCurrent(projectRoot, block)
-	return true, sourceExists, current, err
+	return true, current, err
 }
 
-func applyBrownfieldMigration(projectRoot, sourcePlan, archivedPlan string, sourceExists bool, block managedBlock) error {
-	if sourceExists {
-		if err := os.MkdirAll(filepath.Dir(archivedPlan), 0o755); err != nil {
-			return fmt.Errorf("creating brownfield archive directory: %w", err)
-		}
-		if err := os.Rename(sourcePlan, archivedPlan); err != nil {
-			return fmt.Errorf("archiving implementation plan: %w", err)
-		}
-	}
-	if _, err := ensureManagedPrefix(projectRoot, legacyACDocumentPath, block); err != nil {
-		return err
-	}
-	return nil
-}
-
-func reviewBrownfieldMigration(projectRoot string, reader *bufio.Reader, current bool, migrationPaths []string, options Options) (bool, error) {
+func reviewBrownfieldMigration(projectRoot string, reader *bufio.Reader, current bool, options Options) (bool, error) {
 	if current {
-		staged, err := gitDiffNames(projectRoot, true, migrationPaths, options)
-		if err != nil {
-			return false, err
-		}
-		if strings.TrimSpace(staged) == "" {
-			return true, nil
-		}
-		if !pathListed(staged, "docs/implementation_plan.md") && !pathListed(staged, "docs/archive/implementation_plan.md") {
-			return true, nil
-		}
-		unstaged, err := gitDiffNames(projectRoot, false, migrationPaths, options)
-		if err != nil {
-			return false, err
-		}
-		if strings.TrimSpace(unstaged) != "" {
-			return false, fmt.Errorf("reviewed brownfield migration overlaps later unstaged changes:\n%s", strings.TrimSpace(unstaged))
-		}
-	} else if err := options.RunCommand("git", append([]string{"add", "--"}, migrationPaths...), projectRoot, strings.NewReader(""), options.Output, options.ErrorOutput); err != nil {
+		return true, nil
+	}
+	if err := options.RunCommand("git", append([]string{"add", "--"}, brownfieldMigrationPaths...), projectRoot, strings.NewReader(""), options.Output, options.ErrorOutput); err != nil {
 		return false, fmt.Errorf("staging brownfield documentation migration: %w", err)
 	}
 	fmt.Fprintln(options.Output, "Brownfield documentation migration variances:")
-	diffArguments := append([]string{"diff", "--cached", "--no-ext-diff", "--find-renames", "--"}, migrationPaths...)
+	diffArguments := append([]string{"diff", "--cached", "--no-ext-diff", "--find-renames", "--"}, brownfieldMigrationPaths...)
 	if err := options.RunCommand("git", diffArguments, projectRoot, strings.NewReader(""), options.Output, options.ErrorOutput); err != nil {
 		return false, fmt.Errorf("showing brownfield documentation migration: %w", err)
 	}
@@ -450,7 +399,7 @@ func reviewBrownfieldMigration(projectRoot string, reader *bufio.Reader, current
 		fmt.Fprintln(options.Output, "Brownfield documentation migration remains staged and constitution generation has stopped.")
 		return false, nil
 	}
-	commitArguments := append([]string{"commit", "--only", "--quiet", "--message", "docs: migrate legacy project authorities", "--"}, migrationPaths...)
+	commitArguments := append([]string{"commit", "--only", "--quiet", "--message", "docs: mark legacy requirements authority", "--"}, brownfieldMigrationPaths...)
 	if err := options.RunCommand("git", commitArguments, projectRoot, strings.NewReader(""), options.Output, options.ErrorOutput); err != nil {
 		return false, fmt.Errorf("committing brownfield documentation migration: %w", err)
 	}
@@ -458,41 +407,7 @@ func reviewBrownfieldMigration(projectRoot string, reader *bufio.Reader, current
 	return true, nil
 }
 
-func pathListed(paths, target string) bool {
-	for _, path := range strings.Split(paths, "\n") {
-		if strings.TrimSpace(path) == target {
-			return true
-		}
-	}
-	return false
-}
-
-func gitDiffNames(projectRoot string, cached bool, paths []string, options Options) (string, error) {
-	arguments := []string{"diff", "--name-only"}
-	if cached {
-		arguments = append(arguments, "--cached")
-	}
-	arguments = append(arguments, "--")
-	arguments = append(arguments, paths...)
-	var names bytes.Buffer
-	if err := options.RunCommand("git", arguments, projectRoot, strings.NewReader(""), &names, options.ErrorOutput); err != nil {
-		return "", fmt.Errorf("checking brownfield documentation differences: %w", err)
-	}
-	return names.String(), nil
-}
-
 func brownfieldMigrationCurrent(projectRoot string, block managedBlock) (bool, error) {
-	sourceExists, err := regularFileExists(filepath.Join(projectRoot, "docs", "implementation_plan.md"))
-	if err != nil {
-		return false, err
-	}
-	archiveExists, err := regularFileExists(filepath.Join(projectRoot, "docs", "archive", "implementation_plan.md"))
-	if err != nil {
-		return false, err
-	}
-	if sourceExists || !archiveExists {
-		return false, nil
-	}
 	requirements, err := os.ReadFile(filepath.Join(projectRoot, filepath.FromSlash(legacyACDocumentPath)))
 	if err != nil {
 		return false, fmt.Errorf("reading legacy requirements document %q: %w", legacyACDocumentPath, err)

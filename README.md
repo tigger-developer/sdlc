@@ -168,22 +168,27 @@ The external owner and contract are optional project inputs. The public SDLC
 does not assume any particular infrastructure project. Run
 `sdlc-project-init --help` for non-interactive overrides and `--no-launch`.
 
-When the rendered scaffold, brownfield migration, and selections are already current, the initializer
-writes nothing, asks nothing, and does not relaunch an agent. If the current
-generated scaffold is untracked or modified, it checkpoints that file without
-relaunching the agent.
+When the rendered scaffold, brownfield authority marker, and selections are
+already current, the initializer writes nothing, asks nothing, and does not
+relaunch an agent. If the current generated scaffold is untracked or modified,
+it checkpoints that file without relaunching the agent.
 
 For a greenfield repository, the initializer offers to run `specify init`, then
 creates the standards profile and unratified constitution. For a brownfield
-repository, it preserves the existing project, installs Spec Kit into the
-working tree, applies the current managed legacy prefix to the
-acceptance-criteria ledger, archives
-`docs/implementation_plan.md`, and shows the bounded Git diff before asking
-whether to commit the migration. Vision, architecture, and README documents
-remain active and require project-specific semantic review. The initializer then
-generates a proposed `Specification Baseline` authority map for the constitution
-agent to populate without copying feature or design detail. Projects without
-that legacy document shape are left unchanged.
+repository, first invoke `$migrate-legacy-acs-to-sdlc-v1`. That bounded skill
+uses one complete cached ticket snapshot and at most one whole-suite run to
+reconcile `docs/ACs.md`, refresh stale project documentation, archive
+`docs/implementation_plan.md`, and create one local commit. It never comments on
+historical tickets or reruns their individual tests. It may then offer one exact
+batch of delivered open tickets for silent closure.
+
+The initializer preserves the existing project, installs Spec Kit into the
+working tree, and applies the current managed legacy prefix to the
+acceptance-criteria ledger. It shows only that bounded Git diff before asking
+whether to commit. It does not archive or semantically revise project
+documentation. It then generates a proposed `Specification Baseline` authority
+map for the constitution agent to populate without copying feature or design
+detail. Projects without the legacy AC ledger are left unchanged.
 
 The managed `docs/ACs.md` prefix comes from the deployed SDLC resource rather
 than Go source. A rerun compares the prefix through its `***` delimiter by
@@ -564,12 +569,14 @@ fake harness. Live hosted-model invocations are metered one-off tests and must
 not be added to `make test`, CI, or another persistent regression target.
 
 The explicit-only `migrate-legacy-acs-to-sdlc-v1` skill prepares a brownfield
-project's SDLC v1 requirements, open-ticket state, test traceability, and project
-documentation before Spec Kit initialization. It snapshots every GitHub issue
-and comment, proposes delivered-ticket closures and AC reconciliation, and
-applies only actions explicitly authorized by the operator. Undelivered scope
-remains open and untouched. Long readiness reports are written outside the
-repository and opened with `HTML_PREVIEW_TOOL`, with a text-editor fallback.
+project's SDLC v1 requirements and documentation before Spec Kit initialization.
+It caches every open and closed GitHub issue with all comments once, runs at most
+one whole-suite command, and creates one local commit containing only the AC
+ledger, stale-document corrections, and implementation-plan archival.
+Undelivered scope remains open and untouched. An operator may then authorize one
+descriptor-bearing batch of delivered tickets for closure without comments.
+Long readiness reports remain outside the repository and open with
+`HTML_PREVIEW_TOOL`, with a text-editor fallback.
 
 Provider-native permissions and the shared pre-tool guard reinforce the common
 prohibitions on `rm`, `sed`, `awk`, and direct `python` or `python3` interpreter
