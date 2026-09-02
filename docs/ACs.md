@@ -89,13 +89,17 @@ adapter model.
 - After ticket-led reconciliation, it performs one reverse checksum over every
   RT still present in the maintained harness. Each live RT must resolve to at
   least one AC in `docs/ACs.md`, and every cited AC and RT relationship must be
-  present in the ledger. Missing AC wording comes only from the cached ticket
-  record, never from reverse-engineering the test.
+  present in the ledger. Missing AC wording normally comes from the cached
+  ticket record. With operator authorization, RT-backed partially completed
+  work becomes migration baseline without treating its unfinished remainder as
+  delivered. Orphan live RTs may receive minimal evidence-bounded ACs under one
+  purpose-created pre-migration baseline ticket.
 - It creates one local migration commit, never a per-ticket or per-document
   commit loop.
-- Historical tickets receive no comments or edits. After local reconciliation,
-  the operator may authorize one exact batch of delivered open tickets to be
-  closed without comment.
+- Historical tickets receive no routine comments or edits. After local
+  reconciliation, the operator may authorize fully delivered tickets for silent
+  closure and separately authorize partially completed baseline tickets for
+  closure with one migration-baseline comment.
 - `sdlc-project-init` does not archive or semantically revise project
   documentation. It only applies the managed legacy prefix to `docs/ACs.md`
   before constitution generation.

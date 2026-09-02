@@ -179,8 +179,11 @@ repository, first invoke `$migrate-legacy-acs-to-sdlc-v1`. That bounded skill
 uses one complete cached ticket snapshot and at most one whole-suite run to
 reconcile `docs/ACs.md`, refresh stale project documentation, archive
 `docs/implementation_plan.md`, and create one local commit. It never comments on
-historical tickets or reruns their individual tests. It may then offer one exact
-batch of delivered open tickets for silent closure.
+historical tickets as routine migration work or reruns their individual tests. Maintained
+RT-backed portions of partially completed tickets may be adopted as baseline by
+the operator without treating unfinished scope as delivered. It may then offer
+separate exact batches for silent closure of fully delivered tickets and
+commented baseline closure of partially completed tickets.
 
 The initializer preserves the existing project, installs Spec Kit into the
 working tree, and applies the current managed legacy prefix to the
@@ -574,10 +577,15 @@ It caches every open and closed GitHub issue with all comments once, runs at mos
 one whole-suite command, and creates one local commit containing only the AC
 ledger, stale-document corrections, and implementation-plan archival. A final
 checksum pass walks every RT still in the maintained harness and ensures its
-cited AC and traceability relationship exist in `docs/ACs.md`; it never invents
-requirements from test code.
-Undelivered scope remains open and untouched. An operator may then authorize one
-descriptor-bearing batch of delivered tickets for closure without comments.
+cited AC and traceability relationship exist in `docs/ACs.md`. It derives an AC
+from test evidence only for an operator-approved orphan RT assigned to the
+pre-migration baseline ticket.
+When the operator adopts maintained RT-backed partial work as baseline, the
+skill migrates only that tested scope. It retains the original ticket number or,
+for orphan RTs, creates one authorized pre-migration baseline ticket to provide
+AC provenance. Wholly undelivered scope remains open and untouched. The
+operator may authorize fully delivered tickets for silent closure and partial
+baseline tickets for closure with one explanatory migration comment.
 Long readiness reports remain outside the repository and open with
 `HTML_PREVIEW_TOOL`, with a text-editor fallback.
 

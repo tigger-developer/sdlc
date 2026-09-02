@@ -32,9 +32,11 @@ scope. Do not re-litigate a ticket's design, reproduce historical verification,
 or investigate old implementation work merely to improve confidence beyond the
 classification rules below.
 
-Never comment on a ticket, edit its body, labels, milestone, or test tables, or
-record migration activity in it. Historical tickets remain available through
-the traceability preserved in `docs/ACs.md`.
+Never edit a ticket body, labels, milestone, or test tables, and do not add
+routine migration commentary. The only permitted ticket mutations are the
+operator-authorized baseline creation and closure actions defined below.
+Historical tickets remain available through the traceability preserved in
+`docs/ACs.md`.
 
 ## Cache the complete issue record once
 
@@ -101,10 +103,23 @@ still present in the maintained harness. For each live RT, confirm that:
 - the ledger records the RT-to-AC relationship.
 
 When an AC is missing, recover its original wording and lineage from the cached
-ticket body or comments and add it to `docs/ACs.md`. Never reverse-engineer a
-new requirement from test code. If the live RT has no resolvable AC reference,
-or the cache does not contain the cited AC, add that RT with its descriptor to
-the single operator-adjudication list.
+ticket body or comments and add it to `docs/ACs.md`. Never ordinarily
+reverse-engineer a new requirement from test code. If a live RT has no
+resolvable ticket or AC provenance, add it with its descriptor to the single
+operator-adjudication list.
+
+Partially completed work with maintained RT evidence may be adopted as the
+pre-migration baseline when the operator authorizes it. Migrate only the ACs
+traced to those live RTs; do not claim that the ticket's untested or unfinished
+scope was delivered. Preserve the original ticket number for AC numbering.
+
+For operator-approved live RTs that have no source ticket, create one
+pre-migration baseline ticket explaining that it exists solely to establish AC
+provenance for the migration. Use its ticket number for those AC identifiers.
+In this narrow case, write the minimum observable AC supported by the maintained
+test, current documentation, and operator's baseline decision. Do not expand the
+requirement beyond the behaviour that evidence establishes. Create no ticket
+until the operator authorizes the exact descriptor-bearing orphan-RT list.
 
 When the one whole-suite run passed, record each live RT as current passing
 evidence according to the classification rules. This is one static checksum
@@ -139,11 +154,20 @@ Never commit per ticket, AC, document, finding, or processing pass. If a long
 report is necessary, write it only in the snapshot directory and open it with
 `HTML_PREVIEW_TOOL` when configured, otherwise with an available text editor.
 
-After the local deliverables are committed, present a concise descriptor-bearing
-list of open tickets whose cached evidence says they were delivered and should
-already have been closed. Offer to close that exact batch. If authorized, close
-the tickets without a comment and without changing any other ticket field. Do
-not re-fetch them first. Leave undelivered or uncertain open tickets untouched.
+After the local deliverables are committed, present two concise,
+descriptor-bearing closure lists where applicable:
+
+1. Open tickets whose cached evidence says they were fully delivered and should
+   already have been closed. If the operator authorizes that exact batch, close
+   them without comments.
+2. Partially completed tickets whose maintained RT-backed behaviour the operator
+   adopted as the pre-migration baseline. If the operator authorizes that exact
+   batch, close each with one concise comment stating that the RT-backed scope
+   was carried into `docs/ACs.md` as the migration baseline and that any
+   undelivered remainder must be specified afresh if pursued.
+
+Do not re-fetch tickets before closure or change any other ticket field. Leave
+wholly undelivered, uncertain, or unauthorized tickets untouched.
 
 ## Completion report
 
@@ -153,10 +177,13 @@ Report only:
 - the single whole-suite result, or the current evidence reused instead;
 - the live-RT checksum count, including mapped and unresolved tests;
 - changes to `docs/ACs.md`;
+- any pre-migration baseline ticket created, with its descriptor;
 - stale project documents corrected;
 - implementation-plan archival;
 - the local commit;
-- silently closed tickets, each with its descriptor; and
+- fully delivered tickets closed silently, each with its descriptor;
+- partially completed baseline tickets closed with a migration comment, each
+  with its descriptor; and
 - unresolved operator decisions or readiness blockers.
 
 Do not report a catalogue of unchanged tickets. The operator decides whether

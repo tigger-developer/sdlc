@@ -8,6 +8,8 @@ Count AC tables across the complete cached issue body and comments.
 | More than one AC table | Ambiguous source. Ask the operator which table governs; do not select or merge one. |
 | Explicit passing test evidence | Implemented AC. Reconcile it into `docs/ACs.md` with its original traceability. |
 | Regression test is present in the maintained harness and the single whole-suite run passed | Current passing evidence. Correct a legacy pending or unverified regression-test and AC status in `docs/ACs.md`. |
+| Partially completed ticket has one or more regression tests in the maintained passing harness | Operator-selectable migration baseline. Migrate only the ACs traced to the live tests under the original ticket number. Do not mark the remaining scope delivered. The ticket may enter the separately authorized baseline-closure batch. |
+| Maintained regression test has no resolvable ticket or AC provenance | Ask the operator whether to adopt it as baseline. If authorized, create one pre-migration baseline ticket for the descriptor-bearing orphan-RT set and use that ticket number for minimal evidence-bounded ACs. |
 | Most tests passed and the only outstanding evidence is a pending unit or operator test | Delivered AC set and closure candidate. Preserve the pending test status; do not rerun it or treat it as PASS. |
 | Closed ticket whose tests are all pending or unverified, with a traced regression test in the maintained passing harness | Implemented AC. Reconcile it using the current regression evidence. |
 | Closed ticket whose tests are all pending or unverified, with no maintained regression evidence | Possibly abandoned. Ask whether its ACs belong in the ledger; do not investigate the historical implementation. |
@@ -34,9 +36,12 @@ Compare each classified AC with `docs/ACs.md`:
 The final live-regression checksum runs in the opposite direction. For every RT
 still in the maintained harness, verify that its cited AC exists in
 `docs/ACs.md` and that the ledger records their relationship. Recover a missing
-AC only from its cached ticket table. A test body may explain behaviour but is
-never authority to invent or rewrite an AC. A live RT with missing or ambiguous
-traceability belongs in the consolidated operator list.
+AC from its cached ticket table when provenance exists. A test body is not
+normally authority to invent or rewrite an AC. The sole exception is an
+operator-approved orphan RT assigned to the pre-migration baseline ticket; its
+AC must be the narrowest observable behaviour established by the maintained
+test and current documentation. Missing or ambiguous traceability belongs in
+the consolidated operator list until that decision is made.
 
 For documentation reconciliation, requirements preserve historical intent,
 approved architecture and design provide technical authority, maintained tests

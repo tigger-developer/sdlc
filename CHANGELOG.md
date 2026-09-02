@@ -12,7 +12,12 @@ closure batch. Implementation-plan archival moved out of `sdlc-project-init`,
 which retains only the mechanical legacy-ledger prefix. A final reverse
 checksum now walks every maintained RT and verifies that its cited AC and
 traceability relationship exist in `docs/ACs.md`, recovering missing wording
-only from the cached ticket record.
+from the cached ticket record. Operator-selected RT-backed portions of partially
+completed work may now become migration baseline without marking the unfinished
+remainder delivered. Orphan live RTs may be assigned evidence-bounded ACs under
+one authorized pre-migration baseline ticket. Fully delivered tickets retain
+silent closure; partial baseline tickets close only in a separately authorized
+batch with a concise migration comment.
 
 Standardized the Make interface across adopting projects. Added canonical
 contracts for `test`, `vulncheck`, `install`, `sync`, and `deploy`; defined

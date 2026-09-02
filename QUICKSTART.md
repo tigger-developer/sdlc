@@ -113,11 +113,16 @@ ticket with its comments once, may run the supported whole-suite command once,
 and produces only an accurate `docs/ACs.md`, corrections to stale project
 documentation, and the unchanged archival of `docs/implementation_plan.md`.
 It batches those local changes into one commit. It does not rerun historical
-tests, comment on tickets, or investigate old tickets beyond the cached record
-and maintained regression harness. A final checksum pass confirms that every RT
-still live in that harness has its cited AC and relationship in `docs/ACs.md`.
-Afterward it may offer to close one exact batch of already-delivered open
-tickets without comments.
+tests, add routine migration comments, or investigate old tickets beyond the
+cached record and maintained regression harness. A final checksum pass confirms
+that every RT still live in that harness has its cited AC and relationship in
+`docs/ACs.md`.
+The operator may adopt RT-backed portions of partially completed tickets as the
+migration baseline without marking unfinished scope delivered. Orphan live RTs
+may be assigned to one authorized pre-migration baseline ticket for AC
+provenance. Afterward the skill may offer separate authorized closure batches:
+fully delivered tickets without comments, and partial baseline tickets with one
+explanatory migration comment.
 
 Run the same initializer from the existing project root:
 
