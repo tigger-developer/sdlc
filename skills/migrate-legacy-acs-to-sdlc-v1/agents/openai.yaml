@@ -1,7 +1,7 @@
 interface:
-  display_name: "SDLC v1 readiness"
-  short_description: "Prepare project state for Spec Kit migration"
-  default_prompt: "Use $migrate-legacy-acs-to-sdlc-v1 to assess and reconcile this brownfield project's SDLC v1 readiness before Spec Kit initialization."
+  display_name: "Retire SDLC v1 tickets"
+  short_description: "Archive legacy issues and close the old tracker"
+  default_prompt: "Use $migrate-legacy-acs-to-sdlc-v1 to archive and close this brownfield project's legacy tickets before Spec Kit initialization."
 
 policy:
   allow_implicit_invocation: false

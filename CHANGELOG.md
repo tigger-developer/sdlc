@@ -2,22 +2,18 @@
 
 ## Unreleased
 
-Narrowed `migrate-legacy-acs-to-sdlc-v1` to a fast readiness reconciliation.
-It now downloads every open and closed ticket with comments once, relies only on
-that cache, uses at most one whole-suite run, and produces only a current
-`docs/ACs.md`, refreshed stale project documentation, and unchanged archival of
-the legacy implementation plan. It creates one batched local commit, never
-comments on historical tickets, and may offer one operator-authorized silent
-closure batch. Implementation-plan archival moved out of `sdlc-project-init`,
-which retains only the mechanical legacy-ledger prefix. A final reverse
-checksum now walks every maintained RT and verifies that its cited AC and
-traceability relationship exist in `docs/ACs.md`, recovering missing wording
-from the cached ticket record. Operator-selected RT-backed portions of partially
-completed work may now become migration baseline without marking the unfinished
-remainder delivered. Orphan live RTs may be assigned evidence-bounded ACs under
-one authorized pre-migration baseline ticket. Fully delivered tickets retain
-silent closure; partial baseline tickets close only in a separately authorized
-batch with a concise migration comment.
+Redesigned `migrate-legacy-acs-to-sdlc-v1` as a fast, lossless retirement of the
+legacy ticket system. It archives every issue and comment under
+`docs/archive/migrated-tickets/`, works only from that tracked snapshot, runs the
+whole suite at most once, and performs a reverse live-RT checksum against
+`docs/ACs.md`. A new `docs/ticket-migration.org` index records open defects,
+defined but undelivered features, unresolved classifications, and delivered
+tickets. The automatic near-complete heuristic marks ACs and tickets whose
+delivery depends solely on one or two assumed UT or OT passes, preserving the
+difference between migration inference and observed evidence. The skill batches
+repository changes, closes every issue that was open at the snapshot without
+comment, and commits the closure result. `sdlc-project-init` retains only the
+mechanical legacy-ledger prefix.
 
 Standardized the Make interface across adopting projects. Added canonical
 contracts for `test`, `vulncheck`, `install`, `sync`, and `deploy`; defined

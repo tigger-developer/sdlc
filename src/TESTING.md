@@ -115,6 +115,13 @@ recorded in `validation.md`. Completion and convergence require a current PASS
 for every required entry; missing, `PENDING`, `FAIL`, or materially stale results
 block closure, not `audit-code`.
 
+The explicit pre-Spec-Kit ticket-migration skill has one historical-record
+exception. Its near-complete delivery heuristic may treat at most two
+unrecorded unit or operator tests as assumed passing when all its other evidence
+conditions hold. It must mark every AC supported only by that inference and
+explain the heuristic in a footnote. An assumed migration pass is not
+contemporaneous test evidence and creates no precedent for active delivery.
+
 An audit verdict remains historical evidence for the revision and scope it
 assessed. If later remediation changes relevant code, the earlier `audit-code`
 PASS is no longer current for completion. Rerun the affected automated tests and

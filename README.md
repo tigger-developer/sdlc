@@ -176,14 +176,12 @@ it checkpoints that file without relaunching the agent.
 For a greenfield repository, the initializer offers to run `specify init`, then
 creates the standards profile and unratified constitution. For a brownfield
 repository, first invoke `$migrate-legacy-acs-to-sdlc-v1`. That bounded skill
-uses one complete cached ticket snapshot and at most one whole-suite run to
-reconcile `docs/ACs.md`, refresh stale project documentation, archive
-`docs/implementation_plan.md`, and create one local commit. It never comments on
-historical tickets as routine migration work or reruns their individual tests. Maintained
-RT-backed portions of partially completed tickets may be adopted as baseline by
-the operator without treating unfinished scope as delivered. It may then offer
-separate exact batches for silent closure of fully delivered tickets and
-commented baseline closure of partially completed tickets.
+archives every ticket and comment in the repository, uses at most one
+whole-suite run, reconciles `docs/ACs.md`, writes `docs/ticket-migration.org`,
+refreshes stale project documentation, and archives
+`docs/implementation_plan.md`. It performs no ticket-by-ticket code archaeology,
+test reruns, comments, or commits. After the archive commit succeeds, it closes
+every legacy issue and records the closure result.
 
 The initializer preserves the existing project, installs Spec Kit into the
 working tree, and applies the current managed legacy prefix to the
@@ -571,23 +569,23 @@ it does not authorize a directory tree. Regression tests of the runner use a
 fake harness. Live hosted-model invocations are metered one-off tests and must
 not be added to `make test`, CI, or another persistent regression target.
 
-The explicit-only `migrate-legacy-acs-to-sdlc-v1` skill prepares a brownfield
-project's SDLC v1 requirements and documentation before Spec Kit initialization.
-It caches every open and closed GitHub issue with all comments once, runs at most
-one whole-suite command, and creates one local commit containing only the AC
-ledger, stale-document corrections, and implementation-plan archival. A final
-checksum pass walks every RT still in the maintained harness and ensures its
-cited AC and traceability relationship exist in `docs/ACs.md`. It derives an AC
-from test evidence only for an operator-approved orphan RT assigned to the
-pre-migration baseline ticket.
-When the operator adopts maintained RT-backed partial work as baseline, the
-skill migrates only that tested scope. It retains the original ticket number or,
-for orphan RTs, creates one authorized pre-migration baseline ticket to provide
-AC provenance. Wholly undelivered scope remains open and untouched. The
-operator may authorize fully delivered tickets for silent closure and partial
-baseline tickets for closure with one explanatory migration comment.
-Long readiness reports remain outside the repository and open with
-`HTML_PREVIEW_TOOL`, with a text-editor fallback.
+The explicit-only `migrate-legacy-acs-to-sdlc-v1` skill retires a brownfield
+project's legacy GitHub issue system before Spec Kit initialization. It archives
+every issue and comment once under `docs/archive/migrated-tickets/`; subsequent
+classification uses only that local source. One optional whole-suite run and a
+reverse live-RT checksum reconcile implemented ACs into `docs/ACs.md` without
+historical implementation research.
+
+`docs/ticket-migration.org` then records open defects, features abandoned
+undelivered at migration, unresolved classifications, and delivered tickets.
+Reviving abandoned scope requires a new Spec Kit specification. The near-complete
+heuristic automatically treats one or two otherwise-unrecorded UT or OT results
+as assumed passing when every other ticket test passed and no contrary evidence
+exists. ACs supported only by that inference and their delivered-list entries
+carry a footnote distinguishing migration inference from observed test evidence.
+After the durable archive commit, every issue that was open at the snapshot is
+closed without comment and the closure outcome is committed. Later agents can
+understand the legacy baseline without depending on GitHub.
 
 Provider-native permissions and the shared pre-tool guard reinforce the common
 prohibitions on `rm`, `sed`, `awk`, and direct `python` or `python3` interpreter

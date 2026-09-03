@@ -1,51 +1,47 @@
-# Historical acceptance-criteria classification
+# Historical ticket classification
 
-Count AC tables across the complete cached issue body and comments.
+Classify from the archived issue body and comments. Use the first decisive rule;
+consolidate genuine conflicts for the operator instead of investigating old
+code or Git history.
 
-| Cached evidence | Classification and action |
+| Archived evidence | Classification and action |
 |---|---|
-| No AC table | Bug-fix history. Do not migrate an AC. An open ticket may appear in the final closure proposal only when its cached record already shows delivery. |
-| More than one AC table | Ambiguous source. Ask the operator which table governs; do not select or merge one. |
-| Explicit passing test evidence | Implemented AC. Reconcile it into `docs/ACs.md` with its original traceability. |
-| Regression test is present in the maintained harness and the single whole-suite run passed | Current passing evidence. Correct a legacy pending or unverified regression-test and AC status in `docs/ACs.md`. |
-| Partially completed ticket has one or more regression tests in the maintained passing harness | Operator-selectable migration baseline. Migrate only the ACs traced to the live tests under the original ticket number. Do not mark the remaining scope delivered. The ticket may enter the separately authorized baseline-closure batch. |
-| Maintained regression test has no resolvable ticket or AC provenance | Ask the operator whether to adopt it as baseline. If authorized, create one pre-migration baseline ticket for the descriptor-bearing orphan-RT set and use that ticket number for minimal evidence-bounded ACs. |
-| Most tests passed and the only outstanding evidence is a pending unit or operator test | Delivered AC set and closure candidate. Preserve the pending test status; do not rerun it or treat it as PASS. |
-| Closed ticket whose tests are all pending or unverified, with a traced regression test in the maintained passing harness | Implemented AC. Reconcile it using the current regression evidence. |
-| Closed ticket whose tests are all pending or unverified, with no maintained regression evidence | Possibly abandoned. Ask whether its ACs belong in the ledger; do not investigate the historical implementation. |
-| Historically passing regression test absent from the current maintained pack | Historically valid but superseded. Preserve the AC, original evidence, and superseded status; name the replacement only when the cached record or ledger establishes it. |
-| Evidence does not fit these cases | Ask the operator once in the consolidated adjudication list. |
+| Bug-fix ticket without an AC table whose archive or maintained RT proves delivery | Delivered ticket. Add it to the final Org list without inventing an AC. |
+| Open bug report without delivery evidence | Open defect at migration. Summarize it in the first Org section; do not invent an AC. |
+| Feature ticket without implementation evidence | Defined but undelivered. Preserve its relevant ACs in the Org index, mark it abandoned at migration, and do not add it to `docs/ACs.md`. |
+| More than one materially different AC table | Requires human review unless the archive proves that a later table replaces or supplements the earlier one. Never silently merge or select one. |
+| Explicit passing test evidence | Delivered AC. Reconcile it into `docs/ACs.md` with its original traceability. |
+| RT is present in the maintained harness and the single suite run passed | Current passing evidence. Correct its legacy pending or unverified RT and AC status in `docs/ACs.md`. |
+| Partially completed ticket has maintained passing RTs | Split by AC evidence. Migrate the live RT-backed ACs as baseline and summarize the undelivered remainder in the Org index. Do not mark the whole ticket delivered. |
+| All tests pass except one or two pending or unverified UTs or OTs, with no failure, abandonment, reversion, or known-incomplete evidence | Apply the near-complete heuristic automatically. Classify the ticket as delivered, assume those tests passed for migration, and mark solely heuristic-supported ACs and the delivered-list entry with the required footnote. |
+| Maintained RT has no resolvable ticket or AC provenance | Requires operator adjudication. If adopted, assign it to the purpose-created baseline ticket and write only an evidence-bounded AC. |
+| Historically passing RT is absent from the maintained pack | Historically valid but superseded. Preserve its AC, evidence, and superseded status; name a replacement only when the archive or ledger establishes it. |
+| Evidence fits none of these cases | Requires human review. Record the uncertainty and available evidence without historical implementation research. |
 
-The purpose is an accurate historical ledger, not a new approval exercise.
-Passing evidence establishes implementation; it does not invite redesign or
-commentary on the old ticket. A linked commit or current code may corroborate a
-fact already encountered, but do not search Git history or source ticket by
-ticket.
+Passing evidence establishes implementation; it does not invite redesign. A
+linked commit or current code may corroborate a fact already in the archive,
+but do not search either ticket by ticket.
 
-Compare each classified AC with `docs/ACs.md`:
+When reconciling `docs/ACs.md`:
 
-- leave an exact complete entry unchanged;
-- complete a partial entry in place;
-- add a missing implemented AC with its issue and test traceability;
-- preserve every operator-test status exactly as recorded;
-- treat materially conflicting requirements from the higher-numbered issue as
-  later authority, preserving the older AC as superseded with its lineage; and
-- ask the operator when the cached record does not establish whether two
-  entries duplicate, extend, or contradict one another.
+- leave exact complete entries unchanged;
+- complete partial entries in place;
+- add missing implemented ACs with ticket and test traceability;
+- retain original test results unless the maintained-RT rule or near-complete
+  heuristic applies;
+- mark an assumed test pass and any AC solely dependent on it with the migration
+  heuristic footnote;
+- preserve superseded requirements and their lineage; and
+- ask only when the archive cannot establish whether entries duplicate, extend,
+  or contradict one another.
 
-The final live-regression checksum runs in the opposite direction. For every RT
-still in the maintained harness, verify that its cited AC exists in
-`docs/ACs.md` and that the ledger records their relationship. Recover a missing
-AC from its cached ticket table when provenance exists. A test body is not
-normally authority to invent or rewrite an AC. The sole exception is an
-operator-approved orphan RT assigned to the pre-migration baseline ticket; its
-AC must be the narrowest observable behaviour established by the maintained
-test and current documentation. Missing or ambiguous traceability belongs in
-the consolidated operator list until that decision is made.
+For the reverse checksum, verify every maintained RT against `docs/ACs.md` and
+its recorded relationship. Recover a missing AC from its archived ticket when
+provenance exists. A test body is not normally authority to invent an AC. The
+sole exception is an operator-approved orphan RT assigned to the pre-migration
+baseline ticket.
 
 For documentation reconciliation, requirements preserve historical intent,
 approved architecture and design provide technical authority, maintained tests
 provide current behavioural evidence, code and interfaces provide current
 facts, and external integration contracts govern their declared boundaries.
-Correct clear staleness; consolidate genuine authority conflicts for the
-operator instead of reopening every historical decision.

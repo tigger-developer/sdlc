@@ -108,21 +108,21 @@ Start from a recoverable Git checkpoint. Existing unrelated or human-authored
 changes are not an initialization workspace; checkpoint or separate them
 according to the project's normal source-control practice before proceeding.
 
-First invoke `$migrate-legacy-acs-to-sdlc-v1`. It caches every open and closed
-ticket with its comments once, may run the supported whole-suite command once,
-and produces only an accurate `docs/ACs.md`, corrections to stale project
-documentation, and the unchanged archival of `docs/implementation_plan.md`.
-It batches those local changes into one commit. It does not rerun historical
-tests, add routine migration comments, or investigate old tickets beyond the
-cached record and maintained regression harness. A final checksum pass confirms
-that every RT still live in that harness has its cited AC and relationship in
-`docs/ACs.md`.
-The operator may adopt RT-backed portions of partially completed tickets as the
-migration baseline without marking unfinished scope delivered. Orphan live RTs
-may be assigned to one authorized pre-migration baseline ticket for AC
-provenance. Afterward the skill may offer separate authorized closure batches:
-fully delivered tickets without comments, and partial baseline tickets with one
-explanatory migration comment.
+First invoke `$migrate-legacy-acs-to-sdlc-v1`. It archives every issue and
+comment under `docs/archive/migrated-tickets/`, then works only from that local
+snapshot. It may run the supported whole-suite command once and performs one
+reverse checksum from every maintained RT to `docs/ACs.md`. It does not rerun
+historical tests or investigate old code ticket by ticket.
+
+The skill writes `docs/ticket-migration.org` with open defects, features
+abandoned undelivered at migration, unresolved items, and a final
+delivered-ticket list. A
+near-complete ticket with only one or two unrecorded UT or OT results is
+automatically treated as delivered; ACs relying solely on that inference and
+the ticket's delivered-list entry are footnoted. Once the archive, AC ledger,
+documentation corrections, and unchanged implementation-plan archival are
+committed in a batch, the skill closes every remaining legacy issue without
+comment and records the result.
 
 Run the same initializer from the existing project root:
 

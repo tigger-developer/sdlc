@@ -132,12 +132,14 @@ it available without changing the initializer.
 
 Before initialization, the explicit
 `migrate-legacy-acs-to-sdlc-v1` skill performs the semantic readiness migration.
-It caches every open and closed ticket with comments once, uses the maintained
-regression harness and at most one whole-suite run as current evidence,
-reconciles `docs/ACs.md`, corrects stale project documentation, archives
-`docs/implementation_plan.md`, and batches the local result into one commit. It
-does not mutate historical tickets; an operator may separately authorize one
-silent closure batch.
+It archives every open and closed issue with comments once under
+`docs/archive/migrated-tickets/`, uses only that local snapshot thereafter, and
+creates `docs/ticket-migration.org` as the concise disposition map. The
+maintained regression harness and at most one whole-suite run reconcile
+`docs/ACs.md`; a marked near-complete heuristic preserves the distinction
+between observed and inferred test evidence. Targeted documentation corrections
+and implementation-plan archival join one pre-closure commit. The skill then
+closes every issue that was open in the snapshot and commits the closure record.
 
 Before rendering a brownfield constitution, the initializer performs only the
 remaining mechanical authority update. It:

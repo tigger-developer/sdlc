@@ -78,10 +78,13 @@ adapter model.
   authority, historical work context, current design authority, and the
   maintained regression test pack with its supported command and requirement
   traceability.
-- Brownfield pre-migration uses one immutable cache containing every open and
-  closed ticket body and all comments. It does not re-fetch individual tickets.
-- Its only repository deliverables are a current `docs/ACs.md`, corrections to
-  stale project documentation, and unchanged archival of
+- Brownfield pre-migration archives every open and closed ticket body and all
+  comments under `docs/archive/migrated-tickets/`, with a manifest. It reads
+  only that tracked snapshot after download and does not re-fetch individual
+  tickets.
+- Its repository deliverables are a current `docs/ACs.md`, a concise
+  `docs/ticket-migration.org` index, the complete ticket archive, targeted stale
+  documentation corrections, and unchanged archival of
   `docs/implementation_plan.md` when present.
 - It runs the supported whole-suite command at most once and never reruns or
   diagnoses historical individual tests. A maintained regression test plus a
@@ -94,12 +97,17 @@ adapter model.
   work becomes migration baseline without treating its unfinished remainder as
   delivered. Orphan live RTs may receive minimal evidence-bounded ACs under one
   purpose-created pre-migration baseline ticket.
-- It creates one local migration commit, never a per-ticket or per-document
-  commit loop.
-- Historical tickets receive no routine comments or edits. After local
-  reconciliation, the operator may authorize fully delivered tickets for silent
-  closure and separately authorize partially completed baseline tickets for
-  closure with one migration-baseline comment.
+- When all ticket tests pass except one or two unrecorded UTs or OTs, and no
+  contrary evidence exists, the ticket is automatically classified as
+  delivered. An AC supported only by such an assumed pass, and its delivered
+  ticket entry, carry a migration-heuristic footnote distinguishing inference
+  from contemporaneous evidence.
+- The Org index records open defects, defined but undelivered features, any
+  unresolved classifications, and a final simple list of delivered tickets.
+  Local archive links make this history usable without GitHub.
+- It commits the archive and reconciled project state in a batch before closing
+  every issue that was open in the snapshot. It closes without comments,
+  records closure failures, and never enters a per-ticket commit loop.
 - `sdlc-project-init` does not archive or semantically revise project
   documentation. It only applies the managed legacy prefix to `docs/ACs.md`
   before constitution generation.
