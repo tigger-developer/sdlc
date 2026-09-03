@@ -67,6 +67,7 @@ work. Do not preload the entire library.
 | Implementation or code review | `~/.agents/sdlc/CODING.md` |
 | Git, commits, branches, or hooks | `~/.agents/sdlc/GIT.md` |
 | Technical documentation | `~/.agents/sdlc/DOCUMENTATION.md` |
+| Providing or consuming APIs, webhooks, or service integrations | `~/.agents/sdlc/technologies/API.md` |
 | Go | `~/.agents/sdlc/technologies/GO.md` |
 | Python projects | `~/.agents/sdlc/technologies/PYTHON.md` |
 | Shell | `~/.agents/sdlc/technologies/SHELL.md` |

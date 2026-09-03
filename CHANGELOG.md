@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+Added a cross-cutting API technology standard for providers, consumers,
+webhooks, compatibility, lifecycle, observability, contract testing, and common
+antipatterns. Progressive loading now selects it for API and service-integration
+work without conflating machine interfaces with browser-facing web standards.
+
 ## v2.0.6 - 2026-09-03
 
 Moved project-initializer configuration metadata into a strictly validated YAML
