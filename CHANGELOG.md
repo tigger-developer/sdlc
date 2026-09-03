@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v2.0.3 - 2026-09-03
+
 Redesigned `migrate-legacy-acs-to-sdlc-v1` as a fast, lossless retirement of the
 legacy ticket system. It archives every issue and comment under
 `docs/archive/migrated-tickets/`, including ticket status, comments, and timeline
