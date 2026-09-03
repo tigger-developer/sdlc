@@ -1,0 +1,110 @@
+#+TITLE: Legacy ticket migration
+#+DATE:
+#+OPTIONS: toc:2
+
+# SDLC ticket-migration template
+#
+# Keep this file valid Org throughout the migration because it is the durable
+# progress record used after interruptions or context compaction.
+#
+# Mini Org syntax guide:
+# - Headings begin at column one: =*=, =**=, =***=.
+# - Bullets use =- =. Indent child bullets by two spaces beneath their parent.
+# - Links use =[[file:path][#123 - Ticket descriptor]]=.
+# - Inline commands, paths, and identifiers use Org verbatim markers:
+#   =make test= or =docs/ACs.md=.
+# - Never use Markdown backticks or escaped backticks in this Org file.
+# - Every ticket, AC, RT, UT, and OT identifier needs an adjacent descriptor.
+# - Summarize ticket material here in native Org. Preserve the exact source text
+#   only in =docs/archive/migrated-tickets/=.
+# - Replace every =TODO= before finalization. Remove an inapplicable optional
+#   section or record =- None.= as directed below.
+# - After each major evidence phase and before every commit or presentation,
+#   validate this file with Pandoc's Org reader. Repair any parse failure before
+#   continuing.
+
+* Migration state and evidence
+
+** Current phase
+
+- *Phase:* TODO
+- *Completed tickets:* TODO
+- *Next unfinished ticket:* TODO
+- *Next action:* TODO
+
+** Archive
+
+- *Repository:* TODO
+- *Snapshot:* TODO
+- *Manifest:* TODO
+- *Coverage:* TODO
+- *Verification:* TODO
+
+** Suite evidence
+
+- *Command:* TODO
+- *Result:* TODO
+- *Evidence source:* TODO
+
+** Live RT map
+
+- *Maintained harness:* TODO
+- *Before reconciliation:* TODO
+- *Traceability repairs:* TODO
+- *Reconciled checksum:* TODO
+
+** Ledger and documentation reconciliation
+
+- *Canonical ledger:* TODO
+- *Legacy additions:* TODO
+- *Heuristic markings:* TODO
+- *Documentation changes:* TODO
+- *Implementation-plan archival:* TODO
+
+** Classification checkpoint
+
+- *Delivered:* TODO
+- *Open defects:* TODO
+- *Defined but undelivered:* TODO
+- *Abandoned:* TODO
+- *Requires human review:* TODO
+
+** Closure record
+
+- *Archive commit:* TODO
+- *Closure date:* TODO
+- *Tickets attempted:* TODO
+- *Tickets closed:* TODO
+- *Closure failures:* TODO
+- *Closure-record commit:* TODO
+
+* Open defects at migration
+
+# Use one subtree per ticket. If there are none, record =- None.=.
+#
+# ** [[file:archive/migrated-tickets/123.md][#123 - Ticket descriptor]]
+#
+# - *Snapshot state:* Open.
+# - *Evidence:* Concise evidence with descriptor-bearing IDs.
+# - *Disposition:* Concise current defect status.
+# - *Relevant legacy criteria:*
+#   - AC123.1 - Observable requirement.
+
+* Defined but undelivered features
+
+# Use the same ticket-subtree structure as open defects. Distinguish abandoned
+# closed scope from undelivered open scope. If there are none, record =- None.=.
+
+* Requires human review
+
+# Keep this section only when a classification remains unresolved. State the
+# exact uncertainty and available evidence in one ticket subtree.
+
+* Delivered tickets
+
+# Use one simple linked bullet per delivered ticket. This section comes last.
+#
+# - [[file:archive/migrated-tickets/123.md][#123 - Ticket descriptor]]
+#
+# Append =[fn:migration-heuristic]= to a ticket whose delivery depends on an
+# inference, then define that footnote once below the list.

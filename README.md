@@ -32,6 +32,7 @@ root is exactly `~/.agents/sdlc` for every supported provider.
 | `src/prompts/project-init/` | Constitution-generation prompt resource |
 | `src/prompts/audits/` | Canonical prompts for isolated audit processes |
 | `src/templates/project-init/` | Constitution scaffold and managed brownfield document block |
+| `src/templates/migration/` | Canonical legacy-ticket migration index template |
 | `skills/` | Findings-only audits and advisory tools |
 | `hooks/` | Provider-integrated command and sensitive-file safeguard |
 | `cmd/` and `internal/` | Installer, project initializer, isolated audit runner, and verdict implementation |
@@ -183,6 +184,9 @@ and archives the single file matching `docs/implementation?plan.md`, preserving
 its basename. It performs no ticket-by-ticket code archaeology,
 test reruns, migration comments, or per-ticket commits. After the archive commit
 succeeds, it closes every legacy issue and records the closure result.
+The Org index is initialized from the canonical deployed template, which carries
+its native Org syntax guide, required structure, and Pandoc parse-validation
+rule.
 
 The initializer preserves the existing project, installs Spec Kit into the
 working tree, and applies the current managed legacy prefix to the

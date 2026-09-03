@@ -47,7 +47,8 @@ sdlc/
 |   |-- presets/sdlc-standards/
 |   |-- prompts/project-init/
 |   |-- prompts/audits/
-|   `-- templates/project-init/
+|   |-- templates/project-init/
+|   `-- templates/migration/
 |-- skills/
 |-- hooks/
 |-- templates/
@@ -80,6 +81,7 @@ runtime:
 |-- prompts/project-init/
 |-- prompts/audits/
 |-- templates/project-init/
+|-- templates/migration/
 |-- skills/
 `-- hooks/
 ```
@@ -135,7 +137,9 @@ Before initialization, the explicit
 It archives every open and closed issue with comments once under
 `docs/archive/migrated-tickets/`, uses only that local snapshot thereafter, and
 creates `docs/ticket-migration.org` immediately as the incremental progress,
-evidence, and disposition map. The
+evidence, and disposition map from the deployed canonical Org template. Its
+embedded native-syntax guide and Pandoc parse check keep the durable state
+machine-readable. The
 maintained regression harness and at most one whole-suite run reconcile
 `docs/ACs.md`. Every maintained RT is reviewed and mapped to tickets and ACs
 before ticket classification begins. Ticket-linked commits provide further

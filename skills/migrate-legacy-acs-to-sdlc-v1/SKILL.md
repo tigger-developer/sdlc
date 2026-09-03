@@ -72,24 +72,11 @@ material, stop before closure.
 ## Start the durable migration index
 
 Immediately after verifying and promoting the archive, create
-`docs/ticket-migration.org`. This is both the incremental working record and the
-final migration index. Initialize it with:
-
-1. **Migration state and evidence:** repository identity, snapshot time,
-   manifest link, current phase, completed ticket IDs or ranges, the next
-   unfinished ticket with its descriptor, suite command and result, the
-   RT-to-ticket-to-AC evidence map, active migration assumptions, and closure
-   totals.
-2. **Open defects at migration:** one Org subtree per defect, containing its
-   important current facts, relevant AC text, evidence, and disposition.
-3. **Defined but undelivered features:** one Org subtree per ticket, summarizing
-   its intended outcome and relevant ACs. Mark closed no-evidence scope as
-   abandoned and open no-evidence scope as undelivered. State that any revival
-   or delivery requires a new Spec Kit specification.
-4. **Requires human review:** include only when classification remains
-   unresolved; record the exact uncertainty and available evidence.
-5. **Delivered tickets:** a simple bulleted list of every delivered ticket,
-   including those open at migration but classified as delivered.
+`docs/ticket-migration.org` from
+`~/.agents/sdlc/templates/migration/ticket-migration.org`. Read that template in
+full and follow its embedded structure, syntax, and validation instructions. If
+an interrupted migration already has an index, preserve its recorded state and
+reconcile its structure rather than overwriting it.
 
 Update the document after each completed evidence phase and immediately after
 classifying each ticket. Incremental writes are required; per-ticket commits are
@@ -222,12 +209,12 @@ tests that grep documentation.
 
 ## Finalize the Org migration index
 
-Use Org heading levels to nest the detail sections initialized earlier. Original
-GitHub URLs remain in the lossless snapshots. Mark every heuristic-delivered
-ticket with `[fn:migration-heuristic]` and define that footnote once in the Org
-document. Set the migration phase to complete only after reconciliation and
-closure recording finish. The archive is exhaustive; the Org file is the
-concise map a later agent reads first.
+Follow the canonical template's finalization instructions. Original GitHub URLs
+remain in the lossless snapshots. Mark every heuristic-delivered ticket with
+`[fn:migration-heuristic]` and define that footnote once in the Org document.
+Set the migration phase to complete only after reconciliation and closure
+recording finish. The archive is exhaustive; the Org file is the concise map a
+later agent reads first.
 
 ## Preserve context continuity
 
