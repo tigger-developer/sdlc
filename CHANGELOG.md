@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+Accepted both `docs/implementation-plan.md` and `docs/implementation_plan.md`
+when archiving a legacy implementation plan by matching
+`docs/implementation?plan.md` and preserving the matched basename.
+
 Made `docs/ticket-migration.org` the incremental durable state for legacy-ticket
 migration. The skill creates it immediately after archive verification, records
 each evidence phase and ticket disposition as work progresses, processes one

@@ -27,8 +27,9 @@ produces:
 2. a lossless ticket snapshot under `docs/archive/migrated-tickets/`;
 3. a concise `docs/ticket-migration.org` migration index;
 4. targeted corrections to stale project documentation;
-5. the unchanged move of `docs/implementation_plan.md` to
-   `docs/archive/implementation_plan.md`, when the source exists; and
+5. the unchanged move of the single file matching
+   `docs/implementation?plan.md` to `docs/archive/` with the same basename,
+   when the source exists; and
 6. closure of every legacy issue after the archive is committed.
 
 Do not invoke `sdlc-project-init`, create Spec Kit artefacts, change tests or
@@ -209,10 +210,11 @@ unsure whether behaviour or documentation is current, inspect only the relevant
 implementation as a tie-breaker. Do not inspect code AC by AC, search Git
 history, or broaden the investigation beyond that uncertainty.
 
-If `docs/implementation_plan.md` exists and
-`docs/archive/implementation_plan.md` does not, move it unchanged with Git and
-repair references made stale by the move. If both paths exist or the destination
-conflicts, ask the operator rather than overwriting either.
+Match `docs/implementation?plan.md` so either the hyphenated or underscored
+filename is accepted. If exactly one source matches and its same-basename path
+under `docs/archive/` does not exist, move it unchanged with Git and repair
+references made stale by the move. If more than one source matches or the
+destination conflicts, ask the operator rather than overwriting anything.
 
 Sanitize changed technical documentation except the lossless ticket snapshots.
 Use proportionate link, format, and traceability checks; never create regression

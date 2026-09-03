@@ -179,8 +179,8 @@ repository, first invoke `$migrate-legacy-acs-to-sdlc-v1`. That bounded skill
 archives every ticket and comment in the repository, uses at most one
 whole-suite run, reconciles `docs/ACs.md`, builds `docs/ticket-migration.org`
 incrementally as durable working state, refreshes stale project documentation,
-and archives
-`docs/implementation_plan.md`. It performs no ticket-by-ticket code archaeology,
+and archives the single file matching `docs/implementation?plan.md`, preserving
+its basename. It performs no ticket-by-ticket code archaeology,
 test reruns, migration comments, or per-ticket commits. After the archive commit
 succeeds, it closes every legacy issue and records the closure result.
 

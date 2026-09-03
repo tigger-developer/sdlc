@@ -84,8 +84,8 @@ adapter model.
   tickets.
 - Its repository deliverables are a current `docs/ACs.md`, a concise
   `docs/ticket-migration.org` index, the complete ticket archive, targeted stale
-  documentation corrections, and unchanged archival of
-  `docs/implementation_plan.md` when present.
+  documentation corrections, and unchanged archival of the single file matching
+  `docs/implementation?plan.md` when present, preserving its basename.
 - It creates `docs/ticket-migration.org` immediately after archive verification
   and updates it after each evidence phase and ticket classification. This
   durable state records the suite result, RT map, completed tickets, next ticket,
