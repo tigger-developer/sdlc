@@ -197,6 +197,18 @@ unsure whether behaviour or documentation is current, inspect only the relevant
 implementation as a tie-breaker. Do not inspect code AC by AC, search Git
 history, or broaden the investigation beyond that uncertainty.
 
+Before recording reconciliation complete, refresh the leading managed block in
+`docs/ACs.md` from
+`~/.agents/sdlc/templates/project-init/legacy-acs-header.md`. Replace an older
+managed block through its marker and `***` delimiter, or prepend the canonical
+block when it is absent. Then inspect only the ledger preamble before its first
+AC section or table. Rewrite any introductory statement that says migration is
+unfinished, that older criteria still live authoritatively in tickets, or that
+ticket bodies and comments remain requirement authorities. Preserve document
+metadata and every AC entry. The canonical managed block must be the sole
+normative authority statement; a retained migration note may record the
+completion date or final migrated identifier as history.
+
 Match `docs/implementation?plan.md` so either the hyphenated or underscored
 filename is accepted. If exactly one source matches and its same-basename path
 under `docs/archive/` does not exist, move it unchanged with Git and repair

@@ -122,6 +122,9 @@ reconciliation, or remote mutation.
 `docs/ACs.md` is normally an existing ledger. The skill augments it in
 identifier sequence rather than replacing it. An AC already present in the
 ledger is delivery evidence even when its archived ticket omitted test results.
+It also refreshes the ledger's canonical managed introduction and removes stale
+preamble claims that completed migration left requirements authoritative only in
+ticket bodies or comments.
 
 The skill creates `docs/ticket-migration.org` immediately after verifying the
 archive, then updates it after every evidence phase and ticket classification.

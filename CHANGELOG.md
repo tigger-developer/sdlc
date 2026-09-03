@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+Made completed brownfield migration authoritative and unambiguous in generated
+constitutions. The scaffold now treats `docs/ACs.md` as the sole legacy-process
+requirement authority after migration, with the migration index and ticket
+archive retained only for disposition, provenance, and rationale. Incomplete
+migration becomes a ratification blocker rather than granting live tickets
+default authority. Constitution drafting must retain the shared independent
+audit covenant unless the human explicitly removes it.
+
+The legacy-ticket migration now refreshes the canonical managed introduction in
+`docs/ACs.md` and rewrites contradictory preamble claims that migration remains
+unfinished or historical tickets retain requirement authority. The ledger stays
+in Markdown and all AC content and metadata are preserved.
+
 Accepted either `y` or `yes`, case-insensitively, for interactive SDLC
 installation and explicit provider-configuration confirmations.
 

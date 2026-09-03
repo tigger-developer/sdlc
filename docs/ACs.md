@@ -75,10 +75,12 @@ adapter model.
   manifests.
 - A changed baseline is written atomically before the selected Codex, Claude,
   or Hermes harness receives the constitution-only semantic prompt.
-- A brownfield baseline distinguishes current and historical requirement
-  authority, historical work context, current design authority, and the
-  maintained regression test pack with its supported command and requirement
-  traceability.
+- A brownfield baseline distinguishes the centralized legacy requirement
+  authority, the migration disposition and historical context, current design
+  authority, and the maintained regression test pack with its supported command
+  and requirement traceability. A completed migration makes `docs/ACs.md` the
+  sole legacy-process requirement authority; live tickets and archived snapshots
+  remain provenance rather than requirement authority.
 - Brownfield pre-migration archives every open and closed ticket body and all
   comments under `docs/archive/migrated-tickets/`, with a manifest. It reads
   only that tracked snapshot after download and does not re-fetch individual
@@ -124,6 +126,10 @@ adapter model.
   already present is delivery evidence even when its ticket has no recorded
   test result. Missing ACs are inserted at their correct identifier positions;
   existing identifiers are never renumbered.
+- Before completion, the skill refreshes the ledger's leading managed block from
+  the canonical deployed template and rewrites any contradictory preamble that
+  still says migration is unfinished or historical tickets remain requirement
+  authorities. AC entries and document metadata are preserved.
 - The Org index records open defects, defined but undelivered features, any
   unresolved classifications, and a final simple list of delivered tickets.
   Local archive links make this history usable without GitHub.

@@ -1,6 +1,6 @@
 $speckit-constitution
 
-Create an unratified project constitution using the generated template at `{{.TemplatePath}}` as editable scaffolding. It has no authority before ratification, and any proposed clause may be corrected, removed, or replaced.
+Create an unratified project constitution using the generated template at `{{.TemplatePath}}` as editable scaffolding. It has no authority before ratification, and project-specific proposed clauses may be corrected, removed, or replaced. Retain the generated Engineering Standards and Mandatory Independent Audits sections unless the human explicitly instructs otherwise; they are proposed shared governance, not an immutable baseline.
 
 This is a filtering exercise, not a summary of the project documentation. Read the project documentation as evidence, but do not restate its important requirements.
 
@@ -16,13 +16,15 @@ Exclude:
 
 - feature requirements and acceptance criteria;
 - user journeys, actor permissions, approval sequences, and state transitions;
-- migration algorithms, schema procedures, commands, test gates, and validation procedures;
+- migration algorithms, schema procedures, commands, project-specific test gates, and validation procedures; the generated Mandatory Independent Audits section is shared governance and is not excluded by this rule;
 - detailed architecture, component responsibilities, interfaces, and operational mechanisms; and
 - historical examples and unresolved feature or design questions.
 
 Project documentation remains authoritative for detailed requirements and design. The constitution may elevate a concise project-wide invariant supported by those documents. Do not copy the supporting feature behaviour, mechanisms, examples, or procedures. Importance alone does not make something constitutional.
 
-Use the generated `Specification Baseline` as a proposed structure and retain the verified project classification. Correct the structure if project evidence shows it is inaccurate. For a brownfield project, populate every field with concise, exact repository-relative paths or durable external locations verified from the project. Record current approved requirements, approved historical requirements that are not centralized, feature-relevant tickets and comments or equivalent work history, current approved architecture and design, the maintained regression test pack and its requirement traceability, and the project's precedence and supersession rule. Historical work records provide rationale and lineage but are not automatically current requirement or design authority. Archived implementation plans are historical provenance, not design authority. This is an authority map, not a summary of the system. Do not copy the contents of the named sources into the constitution.
+Use the generated `Specification Baseline` as a proposed structure and retain the verified project classification. Correct the structure if project evidence shows it is inaccurate. For a brownfield project, first establish whether an SDLC v1 legacy-ticket migration applies. When `docs/ticket-migration.org` records that migration as complete, identify `docs/ACs.md` as the sole legacy-process requirement authority, identify `docs/ticket-migration.org` as the disposition index, and identify `docs/archive/migrated-tickets/` as the lossless historical source. The index and archive provide provenance and rationale, not current requirement or design authority. Scope classified as defective, undelivered, or abandoned requires an approved Spec Kit specification before implementation. Do not restore requirement authority to live tickets or comments merely because they contain historical criteria. When that migration applies but is absent or incomplete, record the incomplete authority reconciliation as a ratification blocker instead of guessing or granting the live tracker default authority. For other brownfield projects, identify their verified current requirement authorities and historical context without assuming an SDLC v1 ticket system.
+
+Also record current approved architecture and design, the maintained regression test pack and its requirement traceability, and the project's precedence and supersession rule. Archived implementation plans are historical provenance, not design authority. This is an authority map, not a summary of the system. Do not copy the contents of the named sources into the constitution.
 
 Distinguish requirement authority from design authority, historical context, and implementation evidence. The maintained regression pack is evidence of actively protected functional behaviour and should carry traceability to its originating requirements; affected code records additional implementation facts. Neither tests nor code approve requirements. The `Specification Baseline` will be consumed by later specification, planning, and audit commands to define bounded behavioural and design deltas against the existing system baseline. Do not invent sources or placeholder paths. For a greenfield project, retain the generated prospective-baseline statement and do not add brownfield authorities.
 
@@ -40,10 +42,10 @@ Would changing this require amending the constitution?
 
 If not, omit it.
 
-Before finalizing, review the entire assembled constitution, including every scaffold clause retained in the draft, against the same constitutional test.
+Before finalizing, review the entire assembled constitution, including every scaffold clause retained in the draft, against the same constitutional test. Treat the generated Engineering Standards and Mandatory Independent Audits sections as shared governance selected by the SDLC; if either conflicts with verified project needs, record the conflict for the human rather than removing the section autonomously.
 
 Remove any agent-authored clause that is runtime configuration, a feature requirement, detailed design, a procedure, transient project state, or duplication of an authoritative source. Every retained agent-authored clause must be durable across unrelated features and require a constitutional amendment to change.
 
-Remove or correct any scaffold clause that fails this review. The final unratified draft, not the initialization template, is the candidate presented to the human for ratification.
+Remove or correct any other scaffold clause that fails this review. The final unratified draft, not the initialization template, is the candidate presented to the human for ratification.
 
 Produce only `.specify/memory/constitution.md`. Keep the core workflow's Sync Impact Report as the first line, using the compact one-line format from the generated scaffold. Replace that line when the constitution changes; do not accumulate reports or create a separate changelog.

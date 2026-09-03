@@ -178,7 +178,7 @@ func TestRenderConstitutionUsesFixedSpecificationBaseline(t *testing.T) {
 			t.Errorf("greenfield scaffold omitted %q:\n%s", expected, greenfield)
 		}
 	}
-	if strings.Contains(greenfield, "### Historical Requirement Authority") {
+	if strings.Contains(greenfield, "### Migration Record and Historical Context") {
 		t.Fatal("greenfield scaffold contains brownfield authority placeholders")
 	}
 
@@ -188,8 +188,9 @@ func TestRenderConstitutionUsesFixedSpecificationBaseline(t *testing.T) {
 		"SDLC-GENERATED-SCAFFOLD: editable until ratification",
 		"**Project classification:** Brownfield",
 		"### Requirement Authority",
-		"DISTINGUISH LEGACY-PROCESS RECORDS FROM APPROVED SPEC KIT FEATURE SPECIFICATIONS",
-		"### Historical Requirement Authority",
+		"docs/ACs.md IS THE SOLE LEGACY-PROCESS REQUIREMENT AUTHORITY",
+		"### Migration Record and Historical Context",
+		"docs/ticket-migration.org AS THE DISPOSITION INDEX",
 		"### Design Authority",
 		"EXCLUDE ARCHIVED IMPLEMENTATION PLANS",
 		"### Regression Evidence and Traceability",

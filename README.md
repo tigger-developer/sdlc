@@ -192,6 +192,11 @@ detail categories, and individual ACs use nested Org headings so the operator
 can fold the report at useful levels. The template also carries its native Org
 syntax guide and Pandoc parse-validation rule.
 
+Before completion, the migration refreshes the canonical `docs/ACs.md` managed
+introduction and removes contradictory preamble claims that legacy tickets still
+hold uncentralized requirement authority. The AC ledger remains Markdown and is
+augmented in place; it is not converted to Org.
+
 The initializer preserves the existing project, installs Spec Kit into the
 working tree, and applies the current managed legacy prefix to the
 acceptance-criteria ledger. It shows only that bounded Git diff before asking
