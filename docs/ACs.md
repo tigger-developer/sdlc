@@ -92,22 +92,28 @@ adapter model.
 - After ticket-led reconciliation, it performs one reverse checksum over every
   RT still present in the maintained harness. Each live RT must resolve to at
   least one AC in `docs/ACs.md`, and every cited AC and RT relationship must be
-  present in the ledger. Missing AC wording normally comes from the cached
-  ticket record. With operator authorization, RT-backed partially completed
-  work becomes migration baseline without treating its unfinished remainder as
-  delivered. Orphan live RTs may receive minimal evidence-bounded ACs under one
-  purpose-created pre-migration baseline ticket.
+  present in the ledger. Missing AC wording normally comes from the archived
+  ticket record. When a ticket has no recorded passing evidence but retains at
+  least one RT in the passing harness, the whole ticket is assumed delivered;
+  inferred AC and test statuses are footnoted. Orphan live RTs automatically
+  receive minimal evidence-bounded ACs under one purpose-created pre-migration
+  baseline ticket.
 - When all ticket tests pass except one or two unrecorded UTs or OTs, and no
   contrary evidence exists, the ticket is automatically classified as
   delivered. An AC supported only by such an assumed pass, and its delivered
   ticket entry, carry a migration-heuristic footnote distinguishing inference
   from contemporaneous evidence.
+- When no delivery evidence remains after the evidence pass, ticket state
+  determines only the disposition: closed scope is abandoned and open scope is
+  undelivered. Ticket-linked code commits are delivery evidence unless the
+  archived record limits or contradicts them.
 - The Org index records open defects, defined but undelivered features, any
   unresolved classifications, and a final simple list of delivered tickets.
   Local archive links make this history usable without GitHub.
 - It commits the archive and reconciled project state in a batch before closing
   every issue that was open in the snapshot. It closes without comments,
-  records closure failures, and never enters a per-ticket commit loop.
+  records closure failures, minimizes operator questions, and never enters a
+  per-ticket commit loop.
 - `sdlc-project-init` does not archive or semantically revise project
   documentation. It only applies the managed legacy prefix to `docs/ACs.md`
   before constitution generation.

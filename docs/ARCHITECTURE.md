@@ -136,10 +136,13 @@ It archives every open and closed issue with comments once under
 `docs/archive/migrated-tickets/`, uses only that local snapshot thereafter, and
 creates `docs/ticket-migration.org` as the concise disposition map. The
 maintained regression harness and at most one whole-suite run reconcile
-`docs/ACs.md`; a marked near-complete heuristic preserves the distinction
-between observed and inferred test evidence. Targeted documentation corrections
-and implementation-plan archival join one pre-closure commit. The skill then
-closes every issue that was open in the snapshot and commits the closure record.
+`docs/ACs.md`; ticket-linked commits provide delivery evidence, while marked
+near-complete and live-RT heuristics preserve the distinction between observed
+and inferred evidence. Documentation reconciliation groups ACs by product area
+and consults code only when the documented authorities remain ambiguous.
+Targeted corrections and implementation-plan archival join one pre-closure
+commit. The skill then closes every issue that was open in the snapshot and
+commits the closure record.
 
 Before rendering a brownfield constitution, the initializer performs only the
 remaining mechanical authority update. It:

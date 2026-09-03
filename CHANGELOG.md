@@ -4,16 +4,18 @@
 
 Redesigned `migrate-legacy-acs-to-sdlc-v1` as a fast, lossless retirement of the
 legacy ticket system. It archives every issue and comment under
-`docs/archive/migrated-tickets/`, works only from that tracked snapshot, runs the
-whole suite at most once, and performs a reverse live-RT checksum against
-`docs/ACs.md`. A new `docs/ticket-migration.org` index records open defects,
-defined but undelivered features, unresolved classifications, and delivered
-tickets. The automatic near-complete heuristic marks ACs and tickets whose
-delivery depends solely on one or two assumed UT or OT passes, preserving the
-difference between migration inference and observed evidence. The skill batches
-repository changes, closes every issue that was open at the snapshot without
-comment, and commits the closure result. `sdlc-project-init` retains only the
-mechanical legacy-ledger prefix.
+`docs/archive/migrated-tickets/`, including ticket status, comments, and timeline
+commit references, then works only from that tracked snapshot. Ticket-linked
+commits count as delivery evidence. The whole suite runs at most once before a
+reverse live-RT checksum against `docs/ACs.md`. Automatic heuristics classify
+near-complete tickets and whole tickets with partial maintained RT coverage as
+delivered while visibly marking inferred AC and test status. When no delivery
+evidence remains, state determines only the disposition: closed scope is
+abandoned and open scope is undelivered. Orphan RTs
+receive one automatic baseline ticket. Documentation is reconciled in
+product-area batches, with targeted code inspection only when necessary. The
+skill minimizes operator questions, batches repository changes, closes every
+legacy issue without comment, and commits the closure result.
 
 Standardized the Make interface across adopting projects. Added canonical
 contracts for `test`, `vulncheck`, `install`, `sync`, and `deploy`; defined

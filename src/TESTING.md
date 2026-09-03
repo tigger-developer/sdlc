@@ -116,11 +116,13 @@ for every required entry; missing, `PENDING`, `FAIL`, or materially stale result
 block closure, not `audit-code`.
 
 The explicit pre-Spec-Kit ticket-migration skill has one historical-record
-exception. Its near-complete delivery heuristic may treat at most two
-unrecorded unit or operator tests as assumed passing when all its other evidence
-conditions hold. It must mark every AC supported only by that inference and
-explain the heuristic in a footnote. An assumed migration pass is not
-contemporaneous test evidence and creates no precedent for active delivery.
+exception. It may infer delivery when either its near-complete rule has at least
+one recorded pass and leaves at most two unrecorded unit or operator tests, or a
+ticket without recorded passing evidence retains at least one RT in the
+maintained passing harness. It must mark every AC supported only by inference,
+identify the applicable heuristic in a
+footnote, and distinguish an assumed migration pass from contemporaneous test
+evidence. This creates no precedent for active delivery.
 
 An audit verdict remains historical evidence for the revision and scope it
 assessed. If later remediation changes relevant code, the earlier `audit-code`

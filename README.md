@@ -180,8 +180,8 @@ archives every ticket and comment in the repository, uses at most one
 whole-suite run, reconciles `docs/ACs.md`, writes `docs/ticket-migration.org`,
 refreshes stale project documentation, and archives
 `docs/implementation_plan.md`. It performs no ticket-by-ticket code archaeology,
-test reruns, comments, or commits. After the archive commit succeeds, it closes
-every legacy issue and records the closure result.
+test reruns, migration comments, or per-ticket commits. After the archive commit
+succeeds, it closes every legacy issue and records the closure result.
 
 The initializer preserves the existing project, installs Spec Kit into the
 working tree, and applies the current managed legacy prefix to the
@@ -574,15 +574,21 @@ project's legacy GitHub issue system before Spec Kit initialization. It archives
 every issue and comment once under `docs/archive/migrated-tickets/`; subsequent
 classification uses only that local source. One optional whole-suite run and a
 reverse live-RT checksum reconcile implemented ACs into `docs/ACs.md` without
-historical implementation research.
+historical implementation research. Ticket-linked code commits count as
+delivery evidence. When no delivery evidence remains after the evidence pass,
+ticket state determines only the disposition: closed scope is abandoned and
+open scope is undelivered.
 
-`docs/ticket-migration.org` then records open defects, features abandoned
-undelivered at migration, unresolved classifications, and delivered tickets.
+`docs/ticket-migration.org` then records open defects, abandoned or undelivered
+feature scope, unresolved classifications, and delivered tickets.
 Reviving abandoned scope requires a new Spec Kit specification. The near-complete
 heuristic automatically treats one or two otherwise-unrecorded UT or OT results
 as assumed passing when every other ticket test passed and no contrary evidence
-exists. ACs supported only by that inference and their delivered-list entries
-carry a footnote distinguishing migration inference from observed test evidence.
+exists. A ticket without recorded passing evidence but with any maintained
+passing RT is likewise assumed delivered in full. ACs supported only by either
+inference and their delivered-list entries carry a footnote distinguishing
+migration inference from observed test evidence. Orphan RTs automatically
+receive AC provenance through one purpose-created baseline ticket.
 After the durable archive commit, every issue that was open at the snapshot is
 closed without comment and the closure outcome is committed. Later agents can
 understand the legacy baseline without depending on GitHub.

@@ -112,17 +112,23 @@ First invoke `$migrate-legacy-acs-to-sdlc-v1`. It archives every issue and
 comment under `docs/archive/migrated-tickets/`, then works only from that local
 snapshot. It may run the supported whole-suite command once and performs one
 reverse checksum from every maintained RT to `docs/ACs.md`. It does not rerun
-historical tests or investigate old code ticket by ticket.
+historical tests or investigate old code ticket by ticket. Ticket status,
+comments, timeline commit references, and code-commit evidence are retained in
+the archive.
 
-The skill writes `docs/ticket-migration.org` with open defects, features
-abandoned undelivered at migration, unresolved items, and a final
-delivered-ticket list. A
+The skill writes `docs/ticket-migration.org` with open defects, abandoned or
+undelivered feature scope, unresolved items, and a final delivered-ticket list.
+A
 near-complete ticket with only one or two unrecorded UT or OT results is
-automatically treated as delivered; ACs relying solely on that inference and
-the ticket's delivered-list entry are footnoted. Once the archive, AC ledger,
-documentation corrections, and unchanged implementation-plan archival are
-committed in a batch, the skill closes every remaining legacy issue without
-comment and records the result.
+automatically treated as delivered. The same applies when a ticket has no
+recorded passing evidence but any of its RTs remain in the passing harness.
+ACs relying solely on either inference and their delivered-list entries are
+footnoted. When no delivery evidence remains, closed scope is abandoned and
+open scope is undelivered. Orphan RTs automatically receive AC provenance through one
+baseline ticket. Once the archive, AC ledger, documentation
+corrections, and unchanged implementation-plan archival are committed in a
+batch, the skill closes every remaining legacy issue without comment and
+records the result.
 
 Run the same initializer from the existing project root:
 

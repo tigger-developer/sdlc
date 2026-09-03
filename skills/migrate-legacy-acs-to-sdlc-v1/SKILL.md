@@ -42,17 +42,20 @@ GitHub mutations.
 ## Archive every issue once
 
 Use the authenticated GitHub interface for the current repository. Retrieve
-every actual issue, open and closed, with all comments; exclude pull requests
-and do not iterate an assumed numeric range. Download into an operating-system
-temporary staging directory, verify complete issue and comment pagination, then
-promote the complete snapshot to `docs/archive/migrated-tickets/`.
+every actual issue, open and closed, with all comments and the timeline events
+needed to identify linked code commits; exclude pull requests and do not iterate
+an assumed numeric range. Download into an operating-system temporary staging
+directory, verify complete issue, comment, and timeline pagination, then promote
+the complete snapshot to `docs/archive/migrated-tickets/`.
 
 Write one `<issue-number>.md` file per issue containing:
 
 - issue number and descriptor, original URL, snapshot state and reason, labels,
   milestone, author, and creation and closure dates;
 - the complete original issue body; and
-- every comment in chronological order, with author and timestamp.
+- every comment in chronological order, with author and timestamp; and
+- every code-commit reference recorded in the body, comments, or ticket
+  timeline.
 
 Write `manifest.json` in that directory with repository identity, snapshot
 time, issue count, open and closed counts, pagination result, and filenames.
@@ -60,7 +63,7 @@ Preserve archived source text exactly; do not sanitize it.
 
 The tracked archive is the immutable cache. Read only it for all later ticket
 passes and never re-fetch individual issues. A purpose-created baseline issue
-is the sole exception: archive it exactly once after creation and add it to the
+is the sole exception: create and archive it exactly once, then add it to the
 manifest. If staging is incomplete or the destination contains conflicting
 material, stop before closure.
 
@@ -76,6 +79,14 @@ material, stop before closure.
 
 A passing suite makes each RT in its maintained harness current passing evidence
 for its traced AC. Use this to correct legacy pending or unverified RT statuses.
+Treat a code-commit reference recorded on a ticket as delivery evidence unless
+the archived record explicitly says that work was reverted, abandoned, or only
+partial.
+
+Ticket state is not delivery evidence. Apart from identifying issues that need
+final closure, use it only after the evidence pass finds no delivery evidence:
+a closed ticket's scope is abandoned, while an open ticket's scope is
+undelivered.
 
 Read [references/classification.md](references/classification.md) in full and
 classify the archived tickets in ascending number order. Apply unambiguous AC
@@ -91,19 +102,24 @@ For every RT still in the maintained harness, confirm that:
 - every cited AC exists in `docs/ACs.md`; and
 - the ledger records the RT-to-AC relationship.
 
-Recover a missing AC from its archived ticket when provenance exists.
-Partially completed tickets contribute only the ACs backed by maintained RTs;
-their unfinished scope remains undelivered.
+Recover a missing AC from its archived ticket when provenance exists. When a
+ticket has no recorded passing test evidence but one or more of its RTs remain
+in the passing maintained harness, classify the whole ticket as delivered.
+Migrate every AC and treat its pending or unverified UTs and OTs as assumed
+passing for migration. Mark every AC without independent passing evidence and
+the delivered-ticket entry with the migration-heuristic footnote.
 
-Put orphan RTs in the single operator-adjudication list with descriptors. If
-the operator adopts them, create one pre-migration baseline issue for the whole
-set, archive it once, and use its ticket number for minimal observable ACs
-bounded by the maintained tests and current documentation.
+For orphan RTs, automatically create one pre-migration baseline issue for the
+complete descriptor-bearing set, archive it once, and use its ticket number for
+minimal observable ACs bounded by the maintained tests and current
+documentation. Explicit invocation authorizes this issue creation; do not stop
+for operator confirmation.
 
 ## Apply the near-complete heuristic automatically
 
 Classify a ticket as delivered when:
 
+- at least one test has a recorded passing result;
 - every recorded test has a passing result except no more than two tests in
   total;
 - every unresolved test is a unit test or operator test marked `PENDING` or
@@ -122,16 +138,26 @@ evidence is one of these assumed passes:
   whose results were not recorded.
 
 The footnote must state that this is an inferred migration status, not a
-contemporaneous test result. Do not mark an AC that has independent recorded
-passing evidence. Mark the ticket in the delivered list with Org footnote
-`[fn:migration-heuristic]`.
+contemporaneous test result, and identify whether inference came from the
+near-complete rule or maintained-RT evidence for the ticket. Do not mark an AC
+that has independent recorded passing evidence. Mark the ticket in the
+delivered list with Org footnote `[fn:migration-heuristic]`.
+
+When no delivery evidence remains after applying the evidence rules, use only
+the ticket's snapshot state to classify its scope: closed means abandoned; open
+means undelivered. Record an open bug under open defects. Record feature scope
+under defined but undelivered features with its precise disposition. Do not
+investigate the code merely to rescue the ticket from this classification.
 
 ## Reconcile project documents
 
-Compare project documentation with the reconciled AC ledger, maintained RT
-evidence, approved design and architecture, and external ownership contracts.
-Correct clear stale or misleading material only. Do not modernize prose or
-research old implementation merely to improve confidence.
+Group the migrated ACs by affected product area, then compare each batch with
+the approved design, architecture, project documentation, maintained RT
+evidence, and external ownership contracts. When the batch clearly represents
+a newer feature or change, update the affected documentation. When the agent is
+unsure whether behaviour or documentation is current, inspect only the relevant
+implementation as a tie-breaker. Do not inspect code AC by AC, search Git
+history, or broaden the investigation beyond that uncertainty.
 
 If `docs/implementation_plan.md` exists and
 `docs/archive/implementation_plan.md` does not, move it unchanged with Git and
@@ -149,8 +175,9 @@ Create `docs/ticket-migration.org` with these sections in order:
 1. **Open defects at migration:** one Org subtree per defect, containing its
    important current facts, relevant AC text, evidence, and disposition.
 2. **Defined but undelivered features:** one Org subtree per ticket, summarizing
-   its intended outcome and relevant ACs. Mark its disposition as abandoned at
-   migration and state that any revival requires a new Spec Kit specification.
+   its intended outcome and relevant ACs. Mark closed no-evidence scope as
+   abandoned and open no-evidence scope as undelivered. State that any revival
+   or delivery requires a new Spec Kit specification.
 3. **Requires human review:** include only when classification remains
    unresolved; record the exact uncertainty and available evidence.
 4. **Delivered tickets:** a simple bulleted list of every delivered ticket,
@@ -166,15 +193,16 @@ the Org file is the concise map a later agent reads first.
 
 ## Commit and close in batches
 
-Finish every unambiguous classification before asking questions. Consolidate
-only genuine ambiguities into one descriptor-bearing operator list. An
-unresolved item may remain in the human-review section and does not prevent its
-legacy ticket from closing.
+Classify automatically wherever these rules apply. Do not stop for operator
+confirmation of heuristics, orphan RTs, baseline-ticket creation, or closure.
+Put genuinely contradictory or unclassifiable records in the human-review
+section and continue; they do not prevent legacy ticket closure.
 
 Commit the complete archive, AC ledger, Org index, documentation corrections,
-and implementation-plan move before mutating GitHub. Never commit per ticket or
-AC. For an unusually large migration, use occasional fixed-size recovery
-commits only when necessary.
+and implementation-plan move before closing any issue. The authorized baseline
+issue for orphan RTs is the only earlier GitHub mutation. Never commit per
+ticket or AC. For an unusually large migration, use occasional fixed-size
+recovery commits only when necessary.
 
 After that durable commit succeeds, close every issue that was open in the
 snapshot and any archived pre-migration baseline issue created during the
@@ -198,5 +226,10 @@ Report only:
 - archive and closure-record commits;
 - tickets closed; and
 - unresolved classifications or closure failures, with descriptors.
+
+If the migration index or completion report does not fit in one terminal
+screen, present `docs/ticket-migration.org` with `HTML_PREVIEW_TOOL` when that
+variable names an available command; otherwise use an available text editor.
+Presentation is not an approval gate.
 
 The operator decides whether the project is ready for `sdlc-project-init`.
