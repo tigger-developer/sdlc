@@ -572,12 +572,15 @@ not be added to `make test`, CI, or another persistent regression target.
 The explicit-only `migrate-legacy-acs-to-sdlc-v1` skill retires a brownfield
 project's legacy GitHub issue system before Spec Kit initialization. It archives
 every issue and comment once under `docs/archive/migrated-tickets/`; subsequent
-classification uses only that local source. One optional whole-suite run and a
-reverse live-RT checksum reconcile implemented ACs into `docs/ACs.md` without
-historical implementation research. Ticket-linked code commits count as
-delivery evidence. When no delivery evidence remains after the evidence pass,
+classification uses only that local source. Before classifying any ticket, it
+reviews every maintained regression test, runs or accepts one current passing
+whole-suite result, and builds an RT-to-ticket-to-AC delivery-evidence map. A
+reverse checksum then reconciles implemented ACs into `docs/ACs.md` without
+historical implementation research. Ticket-linked code commits provide further
+delivery evidence. When no delivery evidence remains after the complete pass,
 ticket state determines only the disposition: closed scope is abandoned and
-open scope is undelivered.
+open scope is undelivered. A failed suite stops the migration after a
+recoverable archive checkpoint and before classification or remote mutation.
 
 `docs/ticket-migration.org` then records open defects, abandoned or undelivered
 feature scope, unresolved classifications, and delivered tickets.

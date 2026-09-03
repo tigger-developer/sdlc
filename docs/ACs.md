@@ -90,14 +90,18 @@ adapter model.
   diagnoses historical individual tests. A maintained regression test plus a
   current passing suite may correct a legacy pending or unverified status.
 - After ticket-led reconciliation, it performs one reverse checksum over every
-  RT still present in the maintained harness. Each live RT must resolve to at
-  least one AC in `docs/ACs.md`, and every cited AC and RT relationship must be
-  present in the ledger. Missing AC wording normally comes from the archived
-  ticket record. When a ticket has no recorded passing evidence but retains at
-  least one RT in the passing harness, the whole ticket is assumed delivered;
-  inferred AC and test statuses are footnoted. Orphan live RTs automatically
-  receive minimal evidence-bounded ACs under one purpose-created pre-migration
-  baseline ticket.
+  RT still present in the maintained harness. This is the first analytical pass:
+  every maintained RT is reviewed and mapped to its ticket and AC before ticket
+  classification begins. Each live RT must resolve to at least one AC in
+  `docs/ACs.md`, and every cited AC and RT relationship must be present in the
+  ledger. Missing AC wording normally comes from the archived ticket record.
+  When a ticket has no recorded passing evidence but retains at least one RT in
+  the passing harness, the whole ticket is assumed delivered; inferred AC and
+  test statuses are footnoted. Orphan live RTs automatically receive minimal
+  evidence-bounded ACs under one purpose-created pre-migration baseline ticket.
+- A failed supported whole-suite run stops migration after a recoverable archive
+  checkpoint. No ticket classification, ledger reconciliation, documentation
+  change, baseline-ticket creation, or ticket closure follows that failure.
 - When all ticket tests pass except one or two unrecorded UTs or OTs, and no
   contrary evidence exists, the ticket is automatically classified as
   delivered. An AC supported only by such an assumed pass, and its delivered

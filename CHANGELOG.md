@@ -7,15 +7,19 @@ legacy ticket system. It archives every issue and comment under
 `docs/archive/migrated-tickets/`, including ticket status, comments, and timeline
 commit references, then works only from that tracked snapshot. Ticket-linked
 commits count as delivery evidence. The whole suite runs at most once before a
-reverse live-RT checksum against `docs/ACs.md`. Automatic heuristics classify
-near-complete tickets and whole tickets with partial maintained RT coverage as
-delivered while visibly marking inferred AC and test status. When no delivery
-evidence remains, state determines only the disposition: closed scope is
-abandoned and open scope is undelivered. Orphan RTs
+complete review of every maintained RT builds an RT-to-ticket-to-AC evidence
+map. This occurs before ticket classification and is followed by the reverse
+checksum against `docs/ACs.md`. Automatic heuristics classify near-complete
+tickets and whole tickets with partial maintained RT coverage as delivered
+while visibly marking inferred AC and test status. When no delivery evidence
+remains, state determines only the disposition: closed scope is abandoned and
+open scope is undelivered. Orphan RTs
 receive one automatic baseline ticket. Documentation is reconciled in
 product-area batches, with targeted code inspection only when necessary. The
 skill minimizes operator questions, batches repository changes, closes every
 legacy issue without comment, and commits the closure result.
+A failed whole-suite run checkpoints only the verified archive and stops before
+classification, reconciliation, or GitHub mutation.
 
 Standardized the Make interface across adopting projects. Added canonical
 contracts for `test`, `vulncheck`, `install`, `sync`, and `deploy`; defined

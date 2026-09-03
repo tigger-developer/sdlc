@@ -1,10 +1,12 @@
 # Historical ticket classification
 
-Classify from the archived issue body, comments, and recorded commit references.
-Apply every relevant integrity and evidence rule; the rules are not mutually
-exclusive. Establish delivery from evidence before considering ticket state.
-Consolidate genuine conflicts for the operator instead of investigating old
-code or Git history.
+Use this classification only after reviewing every maintained regression test
+and completing the RT-to-ticket-to-AC evidence map. Classify from that map and
+the archived issue body, comments, and recorded commit references. Apply every
+relevant integrity and evidence rule; the rules are not mutually exclusive.
+Establish delivery from evidence before considering ticket state. Consolidate
+genuine conflicts for the operator instead of investigating old code or Git
+history.
 
 | Archived evidence | Classification and action |
 |---|---|
@@ -20,9 +22,11 @@ code or Git history.
 | Historically passing RT is absent from the maintained pack | Historically valid but superseded. Preserve its AC, evidence, and superseded status; name a replacement only when the archive or ledger establishes it. |
 | Evidence fits none of these cases | Requires human review. Record the uncertainty and available evidence without historical implementation research. |
 
-Passing evidence and ticket-linked commits establish delivery without inviting
-redesign. Do not inspect current code or search Git history ticket by ticket.
-An open ticket may therefore be delivered and a closed ticket may be abandoned;
+Each RT in the passing maintained harness is delivery evidence for the behaviour
+it verifies and every ticket and AC to which it directly traces. Passing
+evidence and ticket-linked commits establish delivery without inviting
+redesign. Do not inspect current code or search Git history ticket by ticket. An
+open ticket may therefore be delivered and a closed ticket may be abandoned;
 state never overrides evidence.
 
 When reconciling `docs/ACs.md`:

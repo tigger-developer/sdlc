@@ -111,10 +111,13 @@ according to the project's normal source-control practice before proceeding.
 First invoke `$migrate-legacy-acs-to-sdlc-v1`. It archives every issue and
 comment under `docs/archive/migrated-tickets/`, then works only from that local
 snapshot. It may run the supported whole-suite command once and performs one
-reverse checksum from every maintained RT to `docs/ACs.md`. It does not rerun
-historical tests or investigate old code ticket by ticket. Ticket status,
-comments, timeline commit references, and code-commit evidence are retained in
-the archive.
+reverse checksum from every maintained RT to `docs/ACs.md`. Before classifying
+any ticket, it reviews every maintained RT and builds an RT-to-ticket-to-AC
+delivery-evidence map. It does not rerun historical tests or investigate old
+code ticket by ticket. Ticket status, comments, timeline commit references, and
+code-commit evidence are retained in the archive. If the suite fails, the skill
+checkpoints only the verified archive and stops before classification,
+reconciliation, or remote mutation.
 
 The skill writes `docs/ticket-migration.org` with open defects, abandoned or
 undelivered feature scope, unresolved items, and a final delivered-ticket list.

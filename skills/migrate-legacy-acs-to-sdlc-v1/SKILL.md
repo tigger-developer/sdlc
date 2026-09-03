@@ -67,34 +67,31 @@ is the sole exception: create and archive it exactly once, then add it to the
 manifest. If staging is incomplete or the destination contains conflicting
 material, stop before closure.
 
-## Establish evidence once
+## Build the live-RT delivery map first
 
 1. Index `docs/ACs.md` without renumbering entries.
-2. Index the maintained regression harness, including its AC and issue
-   references and membership in the supported whole-suite command.
+2. Review every test definition in the maintained regression harness. Record
+   its descriptor, path or test name, AC references, issue references, and
+   membership in the supported whole-suite command. Do not infer this inventory
+   solely from `docs/ACs.md`.
 3. Run that whole suite, normally `make test`, at most once. Reuse current
    operator-supplied passing evidence when available.
-4. Record the result. Do not diagnose a failure or rerun individual or
-   historical tests within this skill.
+4. If the suite fails, record its result, checkpoint only the verified ticket
+   archive when it has already been promoted, and stop. Do not diagnose the
+   failure, classify tickets, change the AC ledger or project documentation,
+   create a baseline issue, close tickets, or rerun individual or historical
+   tests within this skill.
+5. Only after a current passing result, build the RT-to-ticket-to-AC evidence
+   map.
 
 A passing suite makes each RT in its maintained harness current passing evidence
-for its traced AC. Use this to correct legacy pending or unverified RT statuses.
-Treat a code-commit reference recorded on a ticket as delivery evidence unless
-the archived record explicitly says that work was reverted, abandoned, or only
-partial.
+for the behaviour it verifies and every ticket and AC to which it directly
+traces. Use this to correct legacy pending or unverified RT statuses. Reviewing
+test definitions here is evidence inspection, not implementation investigation.
+Do not classify any ticket as delivered, abandoned, or undelivered until this
+complete live-RT map exists.
 
-Ticket state is not delivery evidence. Apart from identifying issues that need
-final closure, use it only after the evidence pass finds no delivery evidence:
-a closed ticket's scope is abandoned, while an open ticket's scope is
-undelivered.
-
-Read [references/classification.md](references/classification.md) in full and
-classify the archived tickets in ascending number order. Apply unambiguous AC
-additions, status corrections, supersessions, and traceability repairs directly
-to `docs/ACs.md`. Preserve identifiers, descriptors, wording, relationships,
-statuses, provenance, and supersession lineage.
-
-## Run the live-RT checksum
+## Complete the live-RT delivery sweep
 
 For every RT still in the maintained harness, confirm that:
 
@@ -114,6 +111,23 @@ complete descriptor-bearing set, archive it once, and use its ticket number for
 minimal observable ACs bounded by the maintained tests and current
 documentation. Explicit invocation authorizes this issue creation; do not stop
 for operator confirmation.
+
+## Classify tickets after the RT sweep
+
+Read [references/classification.md](references/classification.md) in full and
+classify the archived tickets in ascending number order, using the completed
+live-RT map first. Then apply archived test results, ticket-linked code commits,
+and other explicit evidence. Apply unambiguous AC additions, status corrections,
+supersessions, and traceability repairs directly to `docs/ACs.md`. Preserve
+identifiers, descriptors, wording, relationships, statuses, provenance, and
+supersession lineage.
+
+Treat a code-commit reference recorded on a ticket as delivery evidence unless
+the archived record explicitly says that work was reverted, abandoned, or only
+partial. Ticket state is not delivery evidence. Apart from identifying issues
+that need final closure, use it only after the complete evidence pass finds no
+delivery evidence: a closed ticket's scope is abandoned, while an open ticket's
+scope is undelivered.
 
 ## Apply the near-complete heuristic automatically
 
