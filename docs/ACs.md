@@ -88,9 +88,11 @@ adapter model.
   `docs/implementation?plan.md` when present, preserving its basename.
 - It creates `docs/ticket-migration.org` immediately after archive verification
   from the canonical deployed Org template and updates it after each evidence
-  phase and ticket classification. The template defines native Org syntax,
-  required structure, and Pandoc parse validation. This durable state records
-  the suite result, RT map, completed tickets, next ticket, assumptions,
+  phase and ticket classification. Report sections, ticket records, detail
+  categories, and individual ACs use nested Org headings for operator folding;
+  bullets are reserved for genuinely flat summaries. The template also defines
+  native Org syntax and Pandoc parse validation. This durable state records the
+  suite result, RT map, completed tickets, next ticket, assumptions,
   dispositions, and closure result.
 - It runs the supported whole-suite command at most once and never reruns or
   diagnoses historical individual tests. A maintained regression test plus a

@@ -184,9 +184,10 @@ and archives the single file matching `docs/implementation?plan.md`, preserving
 its basename. It performs no ticket-by-ticket code archaeology,
 test reruns, migration comments, or per-ticket commits. After the archive commit
 succeeds, it closes every legacy issue and records the closure result.
-The Org index is initialized from the canonical deployed template, which carries
-its native Org syntax guide, required structure, and Pandoc parse-validation
-rule.
+The Org index is initialized from the canonical deployed template. Tickets,
+detail categories, and individual ACs use nested Org headings so the operator
+can fold the report at useful levels. The template also carries its native Org
+syntax guide and Pandoc parse-validation rule.
 
 The initializer preserves the existing project, installs Spec Kit into the
 working tree, and applies the current managed legacy prefix to the

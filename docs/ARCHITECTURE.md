@@ -138,6 +138,8 @@ It archives every open and closed issue with comments once under
 `docs/archive/migrated-tickets/`, uses only that local snapshot thereafter, and
 creates `docs/ticket-migration.org` immediately as the incremental progress,
 evidence, and disposition map from the deployed canonical Org template. Its
+heading hierarchy makes report sections, tickets, ticket details, and individual
+ACs independently foldable; bullets remain limited to flat summaries. Its
 embedded native-syntax guide and Pandoc parse check keep the durable state
 machine-readable. The
 maintained regression harness and at most one whole-suite run reconcile

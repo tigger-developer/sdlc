@@ -4,8 +4,11 @@
 
 Added a canonical `ticket-migration.org` template with the required migration
 structure, a compact native Org syntax guide, and staged Pandoc parse
-validation. The migration skill now initializes and resumes its durable index
-through that deployed template instead of repeating the format contract.
+validation. Its nested heading hierarchy makes report sections, tickets, detail
+categories, and individual ACs independently foldable instead of representing
+the outline as pseudo-Markdown bullets. The migration skill now initializes and
+resumes its durable index through that deployed template instead of repeating
+the format contract.
 
 Accepted both `docs/implementation-plan.md` and `docs/implementation_plan.md`
 when archiving a legacy implementation plan by matching

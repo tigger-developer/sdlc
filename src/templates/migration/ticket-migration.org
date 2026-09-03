@@ -8,8 +8,13 @@
 # progress record used after interruptions or context compaction.
 #
 # Mini Org syntax guide:
-# - Headings begin at column one: =*=, =**=, =***=.
-# - Bullets use =- =. Indent child bullets by two spaces beneath their parent.
+# - Use headings, not nested bullets, to express the outline hierarchy.
+# - Level-one headings are report sections. Level-two headings are evidence
+#   categories or tickets. Level-three headings divide a ticket's details.
+#   Level-four headings identify individual ACs when their text needs detail.
+# - Headings begin at column one: =*=, =**=, =***=, =****=.
+# - Use bullets only for short, flat lists of peers such as summary statistics
+#   or the final delivered-ticket index.
 # - Links use =[[file:path][#123 - Ticket descriptor]]=.
 # - Inline commands, paths, and identifiers use Org verbatim markers:
 #   =make test= or =docs/ACs.md=.
@@ -80,25 +85,32 @@
 
 * Open defects at migration
 
-# Use one subtree per ticket. If there are none, record =- None.=.
+# Create one foldable level-two subtree per ticket. Use this exact hierarchy:
 #
 # ** [[file:archive/migrated-tickets/123.md][#123 - Ticket descriptor]]
+# *** Snapshot state
+# Open.
+# *** Evidence
+# Concise evidence with descriptor-bearing IDs.
+# *** Disposition
+# Concise current defect status.
+# *** Relevant legacy criteria
+# **** AC123.1 - Observable requirement descriptor
+# Full legacy criterion text.
 #
-# - *Snapshot state:* Open.
-# - *Evidence:* Concise evidence with descriptor-bearing IDs.
-# - *Disposition:* Concise current defect status.
-# - *Relevant legacy criteria:*
-#   - AC123.1 - Observable requirement.
+# If there are no open defects, record =- None.=.
 
 * Defined but undelivered features
 
-# Use the same ticket-subtree structure as open defects. Distinguish abandoned
-# closed scope from undelivered open scope. If there are none, record =- None.=.
+# Use the same foldable ticket, detail, and AC heading hierarchy as open defects.
+# Distinguish abandoned closed scope from undelivered open scope. If there are
+# none, record =- None.=.
 
 * Requires human review
 
 # Keep this section only when a classification remains unresolved. State the
-# exact uncertainty and available evidence in one ticket subtree.
+# exact uncertainty and available evidence using the same foldable ticket and
+# detail hierarchy.
 
 * Delivered tickets
 
