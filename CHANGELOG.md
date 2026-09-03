@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v2.0.5 - 2026-09-03
+
 Standardized completed legacy requirement ledgers as `docs/ACs.org`. The
 pre-migration skill now losslessly converts a pre-existing `docs/ACs.md` through
 a canonical nested Org template before reconciling new criteria, removes the
