@@ -40,6 +40,33 @@ or test-oracle requirements merely to fill the core template. If a material
 baseline source is missing, conflicting, or unresolved, make that clarification
 explicit rather than guessing.
 
+The resolved SDLC `spec-template` is authoritative for the specification's
+structure. Follow its concise Outcome, Scope, Existing baseline, Requirements,
+Boundaries and failure behaviour, Assumptions and unresolved decisions, and
+optional Terms sections. Where the lower-priority core command refers to stock
+User Scenarios and Testing, separate Acceptance Scenarios, Key Entities, or
+Success Criteria sections, do not recreate those sections. Express their
+material behavioural content once in the resolved template instead.
+
+Apply the ABC presentation contract in `~/.agents/sdlc/ISSUES.md`. Use ordinary
+Markdown headings. Within specification content, bold the smallest meaningful
+functional keywords and noun phrases, not generic labels or modal verbs. Do not
+use emphasis as a substitute for accurate structure or repeat content merely to
+create more visual anchors.
+
+Before audit, replace the stock specification checklist expectations with these
+checks:
+
+- every segment is Accurate, Brief, and Clear;
+- each behavioural rule appears once;
+- every requirement is observable, falsifiable, bounded, and has a descriptor;
+- functional actors, artefacts, states, configuration, boundaries, and outcomes
+  have proportionate bold anchors for visual scanning;
+- scope, baseline relationships, failure behaviour, assumptions, and unresolved
+  decisions are explicit where relevant; and
+- implementation details and test procedures are absent unless they are part of
+  the public contract.
+
 After specification and clarification are complete, the specification MUST
 receive `audit-spec` PASS or satisfy a PROVISIONAL receipt under `AUDITS.md`.
 Record the verdict and any receipt in the active feature's `audits.md`.

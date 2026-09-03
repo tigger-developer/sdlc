@@ -55,6 +55,40 @@ Each requirement must be:
 Avoid vague terms such as "fast", "secure", "user-friendly", or "appropriate"
 unless the specification supplies a measurable or reviewable meaning.
 
+## ABC presentation contract
+
+A specification is an approval and working artefact. Every section, paragraph,
+and bullet must be **Accurate, Brief, and Clear**. Failure of any one quality
+means the specification is not ready for audit or approval.
+
+- **Accurate:** agree with the request and cited authorities; distinguish
+  requirements, evidence, assumptions, and unresolved decisions.
+- **Brief:** state each behavioural rule once; do not repeat it as a user story,
+  requirement, acceptance scenario, and success criterion.
+- **Clear:** use direct, falsifiable language; separate independently failing
+  conditions and name actors, states, boundaries, and outcomes precisely.
+
+Use ordinary Markdown headings without additional emphasis. Within prose and
+bullets, bold the smallest meaningful functional keywords and noun phrases that
+identify the functionality, actors, artefacts, states, configuration,
+boundaries, and outcomes. A reader scanning the bold phrases should be able to
+locate the functional concepts quickly. Do not bold whole sentences, generic
+labels, or modal verbs merely because they structure a requirement, and do not
+emphasize every occurrence mechanically.
+
+For example:
+
+- In addition to the **base URL**, a **Hugo website** may declare in its
+  **environment configuration** that it is deployed to **additional domains**.
+- Requests received through an **additional deployment domain** retain the
+  configured **base URL** as the source of the generated **canonical URL**.
+- Sites without **additional domains** retain their existing **deployment
+  behaviour**.
+
+Prefer a concise list of authoritative requirements and boundaries over parallel
+restatements of the same behaviour. Length follows the complexity of the change;
+brevity must not remove a material case, constraint, or source relationship.
+
 ## Acceptance criteria
 
 Acceptance criteria describe required system states, not test procedures.

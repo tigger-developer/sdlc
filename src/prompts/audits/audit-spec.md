@@ -15,6 +15,13 @@ bounds the change.
 Check that:
 
 - the user or system outcome is explicit;
+- every section, paragraph, and bullet satisfies the Accurate, Brief, and Clear
+  presentation contract in `ISSUES.md`;
+- each behavioural rule is stated once rather than repeated through parallel
+  user-story, acceptance-scenario, requirement, and success-criterion sections;
+- ordinary Markdown headings provide structure while proportionate bold
+  functional keywords and noun phrases identify actors, artefacts, states, configuration,
+  boundaries, and outcomes for visual scanning;
 - every requirement is observable, falsifiable, bounded, and internally
   consistent;
 - requirements describe behaviour rather than test procedures;

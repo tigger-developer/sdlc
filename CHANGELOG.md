@@ -7,6 +7,13 @@ webhooks, compatibility, lifecycle, observability, contract testing, and common
 antipatterns. Progressive loading now selects it for API and service-integration
 work without conflating machine interfaces with browser-facing web standards.
 
+Replaced Spec Kit's repetitive stock specification layout with a concise SDLC
+template governed by an Accurate, Brief, and Clear presentation contract.
+Specifications now state each behavioural rule once and bold functional keywords
+and noun phrases for rapid visual scanning. The specification command and
+independent audit enforce the same structure, readability, and non-duplication
+rules.
+
 ## v2.0.6 - 2026-09-03
 
 Moved project-initializer configuration metadata into a strictly validated YAML
