@@ -23,9 +23,9 @@ Check that:
   measure overall feature success;
 - repetition is limited to what connects those views, without verbose narrative
   restating detailed behaviour;
-- ordinary Markdown headings provide structure while proportionate bold
-  functional keywords and noun phrases identify actors, artefacts, states, configuration,
-  boundaries, and outcomes for visual scanning;
+- ordinary Markdown headings provide structure while each statement's bold
+  semantic spine forms an accurate compressed summary of its distinctive state,
+  action, qualifier, quantity, boundary, and outcome;
 - paragraphs containing several facts are split into scan-friendly bullets, and
   `GIVEN`, `WHEN`, `THEN`, and `AND` are unbolded capitals on separate lines;
 - every requirement is observable, falsifiable, bounded, and internally

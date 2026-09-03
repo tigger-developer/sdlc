@@ -7,11 +7,11 @@ implementation workflow.
 It refines the stock specification layout with a concise ABC template while
 retaining the user stories, acceptance scenarios, functional requirements,
 success criteria, and other concepts consumed by later Spec Kit commands. Each
-section has a distinct purpose, functional keywords and noun phrases provide
-visual anchors, and brownfield specifications remain bounded deltas instead of
-restating the existing system. A fictional scheduled-report specification under
-`examples/` demonstrates the complete presentation contract. Spec Kit continues
-to own creation, clarification, planning, task generation, and implementation
+section has a distinct purpose, a bold semantic spine provides visual anchors,
+and brownfield specifications remain bounded deltas instead of restating the
+existing system. A fictional scheduled-report specification under `examples/`
+demonstrates the complete presentation contract. Spec Kit continues to own
+creation, clarification, planning, task generation, and implementation
 orchestration.
 
 Install this repository with `make install`, which deploys the standards and

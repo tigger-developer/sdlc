@@ -71,13 +71,13 @@ means the specification is not ready for audit or approval.
 
 Prefer scan-friendly bullets to a paragraph containing several facts. Keep one
 primary fact per bullet. Use ordinary Markdown headings without additional
-emphasis. Within prose and bullets, bold the smallest meaningful functional
-keywords and noun phrases that identify the functionality, actors, artefacts,
-states, configuration, boundaries, and outcomes. A reader scanning the bold
-phrases should be able to locate the functional concepts quickly. Do not bold
-whole sentences, generic labels, identifiers, or modal verbs merely because
-they structure a requirement, and do not emphasize every occurrence
-mechanically.
+emphasis. Within prose and bullets, bold the semantic spine: the smallest words
+or phrases that carry the distinctive state, action, qualifier, quantity,
+boundary, or outcome. Include a verb or modifier when it conveys the important
+change; do not default mechanically to nouns. Read in order, the bold fragments
+should give an accurate compressed summary of the statement. Do not bold
+context already supplied by its heading or preceding line, whole sentences,
+generic labels, identifiers, modal verbs, or every occurrence of a term.
 
 In acceptance scenarios, put `GIVEN`, `WHEN`, `THEN`, and `AND` in unbolded
 capitals on separate lines. Their position and capitalization provide the
@@ -91,12 +91,12 @@ retelling individual requirements.
 
 For example:
 
-- A **report schedule** declares an **output format** and may declare a
+- A report **schedule** **declares** an **output format** and may declare a
   **recipient list**.
-- An **empty recipient list** disables delivery without disabling **report
-  generation**.
-- Repeating a scheduled run with the same **execution identifier** creates
-  neither a **duplicate report** nor a **duplicate notification**.
+- An **empty recipient list** **disables delivery** without disabling report
+  generation.
+- Repeating a scheduled run with the **same execution identifier** creates **no
+  duplicate report** or **notification**.
 
 Prefer concise authoritative requirements and boundaries over narrative
 restatements of the same behaviour. Length follows the complexity of the

@@ -64,12 +64,15 @@ Retain only the repetition needed to connect those views. Do not repeat detailed
 behaviour in narrative merely to fill every section.
 
 Apply the ABC presentation contract in `~/.agents/sdlc/ISSUES.md`. Use ordinary
-Markdown headings. Within specification content, bold the smallest meaningful
-functional keywords and noun phrases, not generic labels, identifiers, modal
-verbs, or acceptance-scenario signposts. Write `GIVEN`, `WHEN`, `THEN`, and
-`AND` in unbolded capitals on separate lines. Prefer bullets to multi-fact prose
-and keep one primary fact per bullet. Do not use emphasis as a substitute for
-accurate structure or repeat content merely to create more visual anchors.
+Markdown headings. Bold the semantic spine of each statement: the smallest
+words or phrases carrying its distinctive state, action, qualifier, quantity,
+boundary, or outcome. Read in order, the bold fragments must form an accurate
+compressed summary. Do not mechanically bold nouns, context already supplied
+nearby, generic labels, identifiers, modal verbs, or acceptance-scenario
+signposts. Write `GIVEN`, `WHEN`, `THEN`, and `AND` in unbolded capitals on
+separate lines. Prefer bullets to multi-fact prose and keep one primary fact per
+bullet. Do not use emphasis as a substitute for accurate structure or repeat
+content merely to create more visual anchors.
 
 Use the fictional example at
 `~/.agents/sdlc/presets/sdlc-standards/examples/spec-example.md` only to
@@ -85,8 +88,8 @@ checks:
 - user stories remain brief while acceptance scenarios carry concrete
   behavioural examples;
 - every requirement is observable, falsifiable, bounded, and has a descriptor;
-- functional actors, artefacts, states, configuration, boundaries, and outcomes
-  have proportionate bold anchors for visual scanning;
+- the bold semantic spine captures the distinctive state, action, qualifier,
+  quantity, boundary, and outcome without emphasizing surrounding context;
 - multi-fact prose is split into scan-friendly bullets, and acceptance-scenario
   signposts use unbolded capitals;
 - scope, baseline relationships, failure behaviour, assumptions, and unresolved

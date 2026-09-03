@@ -336,9 +336,8 @@ judgement-based change requires a fresh audit.
    template keeps user stories brief, gives acceptance scenarios the concrete
    behavioural detail, expresses authoritative rules as functional
    requirements, and reserves success criteria for feature-level measurements.
-   Scan-friendly bullets and bold functional keywords and noun phrases provide
-   visual anchors. In a brownfield project, the SDLC overlay first requires a
-   context pass across the
+   Scan-friendly bullets and a bold semantic spine provide visual anchors. In a
+   brownfield project, the SDLC overlay first requires a context pass across the
    relevant requirement and design authorities, historical work records,
    maintained regression tests and traceability, and affected implementation.
    The specification records what the bounded delta preserves, changes,

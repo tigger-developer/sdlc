@@ -10,10 +10,13 @@ Input: [OPERATOR REQUEST]
 
 <!--
 Follow the ABC presentation contract in ~/.agents/sdlc/ISSUES.md. Use ordinary
-Markdown headings and scan-friendly bullets. Bold functional keywords and noun
-phrases within content, not headings, generic labels, identifiers, modal verbs,
-or GIVEN/WHEN/THEN/AND signposts. Remove every instruction comment and unused
-optional section from the completed specification.
+Markdown headings and scan-friendly bullets. Bold the semantic spine of each
+statement: the smallest words or phrases carrying its distinctive state,
+action, qualifier, quantity, boundary, or outcome. Do not bold headings, generic
+labels, identifiers, modal verbs, GIVEN/WHEN/THEN/AND signposts, or context
+already supplied nearby. The bold fragments must form an accurate compressed
+summary when read in order. Remove every instruction comment and unused optional
+section from the completed specification.
 
 The complete fictional presentation example is at:
 ~/.agents/sdlc/presets/sdlc-standards/examples/spec-example.md

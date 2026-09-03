@@ -12,9 +12,9 @@ template governed by an Accurate, Brief, and Clear presentation contract. The
 template retains the concepts consumed by later Spec Kit commands while keeping
 user stories brief, putting concrete behaviour in acceptance scenarios, and
 giving functional requirements and success criteria distinct jobs. Added a
-fictional scheduled-report example, scan-friendly bullets, semantic bolding, and
-unbolded uppercase acceptance-scenario signposts. The specification command and
-independent audit enforce the same contract.
+fictional scheduled-report example, scan-friendly bullets, semantic-spine
+bolding, and unbolded uppercase acceptance-scenario signposts. The specification
+command and independent audit enforce the same contract.
 
 ## v2.0.6 - 2026-09-03
 
