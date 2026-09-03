@@ -188,7 +188,7 @@ func TestRenderConstitutionUsesFixedSpecificationBaseline(t *testing.T) {
 		"SDLC-GENERATED-SCAFFOLD: editable until ratification",
 		"**Project classification:** Brownfield",
 		"### Requirement Authority",
-		"docs/ACs.md IS THE SOLE LEGACY-PROCESS REQUIREMENT AUTHORITY",
+		"docs/ACs.org AND STATE THAT IT IS THE SOLE LEGACY-PROCESS REQUIREMENT AUTHORITY",
 		"### Migration Record and Historical Context",
 		"docs/ticket-migration.org AS THE DISPOSITION INDEX",
 		"### Design Authority",
@@ -722,6 +722,30 @@ func TestValidateConstitutionCandidateRequiresCompleteSharedGovernance(t *testin
 	writeTestFile(t, candidatePath, "# Project\n\n## Engineering Standards\n\nFollow the selected standards.\n\n## Specification and Evidence\n\nA shorter summary.\n\n## Mandatory Independent Audits\n\nRun every audit.\n")
 	if err := validateConstitutionCandidate(projectRoot, scaffold); err == nil || !strings.Contains(err.Error(), "Specification and Evidence") {
 		t.Fatalf("changed specification covenant was not rejected: %v", err)
+	}
+}
+
+func TestValidateBrownfieldLedgerRequiresOrgAfterTicketMigration(t *testing.T) {
+	projectRoot := t.TempDir()
+	writeTestFile(t, filepath.Join(projectRoot, "docs", "ACs.md"), "# Acceptance Criteria\n")
+	writeTestFile(t, filepath.Join(projectRoot, "docs", "ticket-migration.org"), "* Migration state and evidence\n")
+	writeTestFile(t, filepath.Join(projectRoot, "docs", "archive", "migrated-tickets", "manifest.json"), "{}\n")
+
+	err := validateBrownfieldLedger(projectRoot)
+	if err == nil || !strings.Contains(err.Error(), "docs/ACs.org") || !strings.Contains(err.Error(), "$convert-migrated-acs-to-org") {
+		t.Fatalf("missing migrated Org ledger was not reported: %v", err)
+	}
+
+	writeTestFile(t, filepath.Join(projectRoot, "docs", "ACs.org"), "#+TITLE: Legacy acceptance criteria\n")
+	if err := validateBrownfieldLedger(projectRoot); err == nil || !strings.Contains(err.Error(), "both docs/ACs.org and docs/ACs.md") {
+		t.Fatalf("conflicting ledgers were not reported: %v", err)
+	}
+
+	if err := os.Remove(filepath.Join(projectRoot, "docs", "ACs.md")); err != nil {
+		t.Fatal(err)
+	}
+	if err := validateBrownfieldLedger(projectRoot); err != nil {
+		t.Fatalf("canonical migrated ledger was rejected: %v", err)
 	}
 }
 

@@ -83,14 +83,15 @@ adapter model.
 - A brownfield baseline distinguishes the centralized legacy requirement
   authority, the migration disposition and historical context, current design
   authority, and the maintained regression test pack with its supported command
-  and requirement traceability. A completed migration makes `docs/ACs.md` the
-  sole legacy-process requirement authority; live tickets and archived snapshots
-  remain provenance rather than requirement authority.
+  and requirement traceability. A completed migration makes `docs/ACs.org` the
+  sole legacy-process requirement authority; live tickets, comments, the
+  migration index, and archived snapshots remain disposition, provenance, and
+  rationale rather than requirement or AC authority.
 - Brownfield pre-migration archives every open and closed ticket body and all
   comments under `docs/archive/migrated-tickets/`, with a manifest. It reads
   only that tracked snapshot after download and does not re-fetch individual
   tickets.
-- Its repository deliverables are a current `docs/ACs.md`, a concise
+- Its repository deliverables are a current `docs/ACs.org`, a concise
   `docs/ticket-migration.org` index, the complete ticket archive, targeted stale
   documentation corrections, and unchanged archival of the single file matching
   `docs/implementation?plan.md` when present, preserving its basename.
@@ -109,15 +110,16 @@ adapter model.
   RT still present in the maintained harness. This is the first analytical pass:
   every maintained RT is reviewed and mapped to its ticket and AC before ticket
   classification begins. Each live RT must resolve to at least one AC in
-  `docs/ACs.md`, and every cited AC and RT relationship must be present in the
+  `docs/ACs.org`, and every cited AC and RT relationship must be present in the
   ledger. Missing AC wording normally comes from the archived ticket record.
   When a ticket has no recorded passing evidence but retains at least one RT in
   the passing harness, the whole ticket is assumed delivered; inferred AC and
   test statuses are footnoted. Orphan live RTs automatically receive minimal
   evidence-bounded ACs under one purpose-created pre-migration baseline ticket.
-- A failed supported whole-suite run stops migration after a recoverable archive
-  checkpoint. No ticket classification, ledger reconciliation, documentation
-  change, baseline-ticket creation, or ticket closure follows that failure.
+- A failed supported whole-suite run stops migration after a recoverable
+  checkpoint of the verified archive, migration index, and format-only Org
+  conversion. No ticket classification, semantic ledger reconciliation, other
+  documentation change, baseline-ticket creation, or ticket closure follows.
 - When all ticket tests pass except one or two unrecorded UTs or OTs, and no
   contrary evidence exists, the ticket is automatically classified as
   delivered. An AC supported only by such an assumed pass, and its delivered
@@ -127,14 +129,19 @@ adapter model.
   determines only the disposition: closed scope is abandoned and open scope is
   undelivered. Ticket-linked code commits are delivery evidence unless the
   archived record limits or contradicts them.
-- The ledger normally predates migration and is augmented in place. An AC
-  already present is delivery evidence even when its ticket has no recorded
-  test result. Missing ACs are inserted at their correct identifier positions;
-  existing identifiers are never renumbered.
-- Before completion, the skill refreshes the ledger's leading managed block from
-  the canonical deployed template and rewrites any contradictory preamble that
-  still says migration is unfinished or historical tickets remain requirement
-  authorities. AC entries and document metadata are preserved.
+- The ledger normally predates migration as `docs/ACs.md`. Before any additions,
+  the skill losslessly converts it to `docs/ACs.org` using the canonical deployed
+  template and removes the Markdown source. Every identifier, requirement,
+  provenance field, status, test relationship, evidence note, supersession,
+  footnote, glossary entry, and explanatory note is preserved. An AC already
+  present is delivery evidence even when its ticket has no recorded test result.
+  Missing ACs are inserted at their correct identifier positions; existing
+  identifiers are never renumbered.
+- The explicit `convert-migrated-acs-to-org` repair path runs only when the
+  ticket archive and completed migration index exist, GitHub reports zero open
+  issues, `docs/ACs.md` exists, and `docs/ACs.org` does not. It preserves every
+  ledger field, updates current references, leaves archived tickets unchanged,
+  and commits the tracked rename only after Org parsing and field reconciliation.
 - The Org index records open defects, defined but undelivered features, any
   unresolved classifications, and a final simple list of delivered tickets.
   Local archive links make this history usable without GitHub.
@@ -143,8 +150,9 @@ adapter model.
   records closure failures, minimizes operator questions, and never enters a
   per-ticket commit loop.
 - `sdlc-project-init` does not archive or semantically revise project
-  documentation. It only applies the managed legacy prefix to `docs/ACs.md`
-  before constitution generation.
+  documentation. A migrated brownfield project must contain `docs/ACs.org` and
+  no `docs/ACs.md`; migration artefacts without the Org ledger, or both formats
+  together, stop initialization with an actionable diagnostic.
 
 ## Application vulnerability checking
 

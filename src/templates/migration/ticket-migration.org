@@ -17,7 +17,7 @@
 #   or the final delivered-ticket index.
 # - Links use =[[file:path][#123 - Ticket descriptor]]=.
 # - Inline commands, paths, and identifiers use Org verbatim markers:
-#   =make test= or =docs/ACs.md=.
+#   =make test= or =docs/ACs.org=.
 # - Never use Markdown backticks or escaped backticks in this Org file.
 # - Every ticket, AC, RT, UT, and OT identifier needs an adjacent descriptor.
 # - Summarize ticket material here in native Org. Preserve the exact source text

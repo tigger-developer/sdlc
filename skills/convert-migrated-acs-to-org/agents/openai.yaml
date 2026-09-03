@@ -1,0 +1,7 @@
+interface:
+  display_name: "Convert migrated ACs to Org"
+  short_description: "Normalize a completed migration ledger to Org"
+  default_prompt: "Use $convert-migrated-acs-to-org to losslessly convert this completed legacy migration from docs/ACs.md to docs/ACs.org."
+
+policy:
+  allow_implicit_invocation: false

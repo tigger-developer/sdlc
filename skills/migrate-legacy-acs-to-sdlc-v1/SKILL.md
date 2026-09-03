@@ -22,8 +22,8 @@ for the targeted staleness pass.
 This is a fast archival and classification pass, not a historical review. It
 produces:
 
-1. an accurate, complete, and current `docs/ACs.md`, normally produced by
-   augmenting the pre-existing ledger in place;
+1. an accurate, complete, and current `docs/ACs.org`, produced by losslessly
+   converting the normally pre-existing `docs/ACs.md` before reconciliation;
 2. a lossless ticket snapshot under `docs/archive/migrated-tickets/`;
 3. a concise `docs/ticket-migration.org` migration index;
 4. targeted corrections to stale project documentation;
@@ -33,7 +33,7 @@ produces:
 6. closure of every legacy issue after the archive is committed.
 
 Do not invoke `sdlc-project-init`, create Spec Kit artefacts, change tests or
-implementation, or migrate undelivered scope into `docs/ACs.md`. Do not inspect
+implementation, or migrate undelivered scope into `docs/ACs.org`. Do not inspect
 old code, search Git history ticket by ticket, re-litigate design, reproduce
 historical verification, or add migration comments to tickets.
 
@@ -83,22 +83,58 @@ classifying each ticket. Incremental writes are required; per-ticket commits are
 not. Give every ID a descriptor and link ticket titles to the local archived
 files. Keep complete source text in the archive rather than duplicating it here.
 
+## Normalize the legacy AC ledger before reconciliation
+
+Read `~/.agents/sdlc/templates/migration/ACs.org` in full. Before indexing live
+RTs or appending migrated ACs, convert the pre-existing `docs/ACs.md` into
+`docs/ACs.org` using that canonical structure. Use `git mv` so the tracked
+history remains visible and no conflicting Markdown ledger remains.
+
+The conversion is structural, not editorial. Inventory and reconcile every AC
+identifier, descriptor, requirement, source, shipped or migration version,
+status, test relationship, test status, evidence note, supersession link,
+footnote, glossary entry, and explanatory note. Normalize Markdown links,
+tables, emphasis, code spans, and footnotes into native Org without summarizing,
+silently correcting, reinterpreting, merging, splitting, renumbering, or dropping
+information. Counts are supporting checks only; perform a field-by-field
+source-to-target reconciliation before continuing.
+
+Remove the AC template's instructional comments and placeholders from the
+project ledger. Keep `docs/ACs.org` valid Org throughout the remaining migration
+and validate it with Pandoc's Org reader after conversion and before every
+repository commit that changes it.
+
+If `docs/ACs.org` already exists and `docs/ACs.md` does not, validate it against
+the template and resume. If both exist, stop and report the conflict rather than
+choosing or merging a ledger. If neither exists, initialize an empty
+`docs/ACs.org` from the canonical template; do not invent legacy entries. After
+conversion or initialization, verify that `docs/ACs.md` is absent and use only
+`docs/ACs.org` for all later passes.
+
+The authority section must state that `docs/ACs.org` is the sole authority for
+requirements established under the legacy ticket-led process. Archived tickets,
+comments, and `docs/ticket-migration.org` retain disposition, provenance, and
+rationale only; they are not current requirement or AC authorities. Approved
+Spec Kit feature specifications govern requirements established or changed
+after migration.
+
 ## Build the live-RT delivery map first
 
-1. Index the pre-existing `docs/ACs.md` without renumbering entries. Presence of
+1. Index `docs/ACs.org` without renumbering entries. Presence of
    an AC in this ledger is delivery evidence even when its archived ticket does
    not record test results.
 2. Review every test definition in the maintained regression harness. Record
    its descriptor, path or test name, AC references, issue references, and
    membership in the supported whole-suite command. Do not infer this inventory
-   solely from `docs/ACs.md`.
+   solely from `docs/ACs.org`.
 3. Run that whole suite, normally `make test`, at most once. Reuse current
    operator-supplied passing evidence when available.
 4. If the suite fails, record its result in `docs/ticket-migration.org`,
-   checkpoint only that index and the verified ticket archive, and stop. Do not
-   diagnose the failure, classify tickets, change the AC ledger or project
-   documentation, create a baseline issue, close tickets, or rerun individual
-   or historical tests within this skill.
+   checkpoint only that index, the verified ticket archive, and the verified
+   format-only `docs/ACs.org` conversion, and stop. Do not diagnose the failure,
+   append or semantically change ACs, classify tickets, change other project
+   documentation, create a baseline issue, close tickets, or rerun individual or
+   historical tests within this skill.
 5. Only after a current passing result, build the RT-to-ticket-to-AC evidence
    map.
 
@@ -114,7 +150,7 @@ complete live-RT map exists.
 For every RT still in the maintained harness, confirm that:
 
 - it traces to at least one AC;
-- every cited AC exists in `docs/ACs.md`; and
+- every cited AC exists in `docs/ACs.org`; and
 - the ledger records the RT-to-AC relationship.
 
 Recover a missing AC from its archived ticket when provenance exists. When a
@@ -134,10 +170,10 @@ for operator confirmation.
 
 Read [references/classification.md](references/classification.md) in full and
 classify the archived tickets in ascending number order, using the completed
-live-RT map first. Then apply pre-existing `docs/ACs.md` entries, archived test
+live-RT map first. Then apply pre-existing `docs/ACs.org` entries, archived test
 results, ticket-linked code commits, and other explicit evidence. Apply
 unambiguous AC additions, status corrections, supersessions, and traceability
-repairs directly to `docs/ACs.md`. Add missing ACs at their correct identifier
+repairs directly to `docs/ACs.org`. Add missing ACs at their correct identifier
 positions so the ledger remains in sequence. Preserve identifiers, descriptors,
 wording, relationships, statuses, provenance, and supersession lineage.
 
@@ -164,7 +200,7 @@ Classify a ticket as delivered when:
 Treat those one or two tests as assumed passing for migration. If an AC's only
 evidence is one of these assumed passes:
 
-- mark the AC visibly in `docs/ACs.md` without changing its identifier;
+- mark the AC visibly in `docs/ACs.org` without changing its identifier;
 - mark the test as an assumed pass using the existing table conventions; and
 - add one footnote explaining that delivery was inferred because every other
   ticket test passed and the only unresolved evidence was one or two UTs or OTs
@@ -197,17 +233,13 @@ unsure whether behaviour or documentation is current, inspect only the relevant
 implementation as a tie-breaker. Do not inspect code AC by AC, search Git
 history, or broaden the investigation beyond that uncertainty.
 
-Before recording reconciliation complete, refresh the leading managed block in
-`docs/ACs.md` from
-`~/.agents/sdlc/templates/project-init/legacy-acs-header.md`. Replace an older
-managed block through its marker and `***` delimiter, or prepend the canonical
-block when it is absent. Then inspect only the ledger preamble before its first
-AC section or table. Rewrite any introductory statement that says migration is
-unfinished, that older criteria still live authoritatively in tickets, or that
-ticket bodies and comments remain requirement authorities. Preserve document
-metadata and every AC entry. The canonical managed block must be the sole
-normative authority statement; a retained migration note may record the
-completion date or final migrated identifier as history.
+Before recording reconciliation complete, verify that `docs/ACs.org` follows the
+canonical template and that its authority section is the sole normative
+authority statement. Remove or rewrite migrated Markdown preamble wording that
+says migration is unfinished, older criteria still live authoritatively in
+tickets, or ticket bodies and comments remain requirement or AC authorities.
+Preserve document metadata and every substantive source item. A migration note
+may record the completion date or final migrated identifier as history.
 
 Match `docs/implementation?plan.md` so either the hyphenated or underscored
 filename is accepted. If exactly one source matches and its same-basename path
@@ -241,7 +273,7 @@ the current phase, completed ticket IDs or ranges, active assumptions, evidence,
 unresolved items, and next action in `docs/ticket-migration.org`.
 
 If the harness compacts automatically, continue without operator handback.
-Reread this skill, the archive manifest, `docs/ACs.md`, and
+Reread this skill, the archive manifest, `docs/ACs.org`, and
 `docs/ticket-migration.org`, then resume from the first unfinished ticket. Do not
 re-fetch tickets, repeat completed analysis, rerun tests, or reconsider recorded
 decisions without contradictory evidence.
@@ -253,11 +285,11 @@ confirmation of heuristics, orphan RTs, baseline-ticket creation, or closure.
 Put genuinely contradictory or unclassifiable records in the human-review
 section and continue; they do not prevent legacy ticket closure.
 
-Commit the complete archive, AC ledger, Org index, documentation corrections,
-and implementation-plan move before closing any issue. The authorized baseline
-issue for orphan RTs is the only earlier GitHub mutation. Never commit per
-ticket or AC. For an unusually large migration, use occasional fixed-size
-recovery commits only when necessary.
+Commit the complete archive, `docs/ACs.org`, removal of `docs/ACs.md`, Org index,
+documentation corrections, and implementation-plan move before closing any
+issue. The authorized baseline issue for orphan RTs is the only earlier GitHub
+mutation. Never commit per ticket or AC. For an unusually large migration, use
+occasional fixed-size recovery commits only when necessary.
 
 After that durable commit succeeds, close every issue that was open in the
 snapshot and any archived pre-migration baseline issue created during the
@@ -276,7 +308,7 @@ Report only:
 - the single suite result or current evidence reused;
 - live-RT checksum totals, mapped and unresolved;
 - migration-category totals;
-- `docs/ACs.md` changes and heuristic-marked AC count;
+- `docs/ACs.org` changes and heuristic-marked AC count;
 - stale documents corrected and implementation-plan archival;
 - archive and closure-record commits;
 - tickets closed; and

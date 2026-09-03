@@ -175,7 +175,7 @@ The external owner and contract are optional project inputs. The public SDLC
 does not assume any particular infrastructure project. Run
 `sdlc-project-init --help` for non-interactive overrides and `--no-launch`.
 
-When the rendered scaffold, brownfield authority marker, and selections are
+When the rendered scaffold, brownfield ledger state, and selections are
 already current, the initializer writes nothing, asks nothing, and does not
 relaunch an agent. If the current generated scaffold is untracked or modified,
 it checkpoints that file without relaunching the agent.
@@ -183,11 +183,13 @@ it checkpoints that file without relaunching the agent.
 For a greenfield repository, the initializer offers to run `specify init`, then
 creates the standards profile and unratified constitution. For a brownfield
 repository, first invoke `$migrate-legacy-acs-to-sdlc-v1`. That bounded skill
-archives every ticket and comment in the repository, uses at most one
-whole-suite run, reconciles `docs/ACs.md`, builds `docs/ticket-migration.org`
-incrementally as durable working state, refreshes stale project documentation,
-and archives the single file matching `docs/implementation?plan.md`, preserving
-its basename. It performs no ticket-by-ticket code archaeology,
+archives every ticket and comment in the repository, losslessly converts the
+pre-existing `docs/ACs.md` to the canonical foldable `docs/ACs.org` before
+appending criteria, uses at most one whole-suite run, and builds
+`docs/ticket-migration.org` incrementally as durable working state. It refreshes
+stale project documentation and archives the single file matching
+`docs/implementation?plan.md`, preserving its basename. It performs no
+ticket-by-ticket code archaeology,
 test reruns, migration comments, or per-ticket commits. After the archive commit
 succeeds, it closes every legacy issue and records the closure result.
 The Org index is initialized from the canonical deployed template. Tickets,
@@ -195,24 +197,17 @@ detail categories, and individual ACs use nested Org headings so the operator
 can fold the report at useful levels. The template also carries its native Org
 syntax guide and Pandoc parse-validation rule.
 
-Before completion, the migration refreshes the canonical `docs/ACs.md` managed
-introduction and removes contradictory preamble claims that legacy tickets still
-hold uncentralized requirement authority. The AC ledger remains Markdown and is
-augmented in place; it is not converted to Org.
+The AC ledger is initialized from the deployed `ACs.org` template. Its nested
+headings standardize requirement, provenance, status, test, supersession, and
+note records without discarding source information. `docs/ACs.md` is removed by
+the tracked conversion so the project has one legacy-requirement authority.
 
-The initializer preserves the existing project, installs Spec Kit into the
-working tree, and applies the current managed legacy prefix to the
-acceptance-criteria ledger. It shows only that bounded Git diff before asking
-whether to commit. It does not archive or semantically revise project
-documentation. It then generates a proposed `Specification Baseline` authority
-map for the constitution agent to populate without copying feature or design
-detail. Projects without the legacy AC ledger are left unchanged.
-
-The managed `docs/ACs.md` prefix comes from the deployed SDLC resource rather
-than Go source. A rerun compares the prefix through its `***` delimiter by
-SHA-256. It prepends the block when absent, writes nothing when current, and
-replaces only a stale managed prefix while preserving the ledger body byte for
-byte. A marker outside the managed prefix is reported as an error.
+The initializer preserves the existing project and installs Spec Kit into the
+working tree. A migrated brownfield project must contain `docs/ACs.org` and must
+not retain `docs/ACs.md`. Migration artefacts without the Org ledger, or both
+ledger formats together, produce an actionable error before constitution
+generation. The initializer then generates a proposed `Specification Baseline`
+authority map without copying feature or design detail.
 
 The generated template has no authority before ratification. The candidate may
 correct, remove, or replace project-specific scaffold clauses. Only the human may
@@ -596,15 +591,16 @@ every issue and comment once under `docs/archive/migrated-tickets/`; subsequent
 classification uses only that local source. Before classifying any ticket, it
 reviews every maintained regression test, runs or accepts one current passing
 whole-suite result, and builds an RT-to-ticket-to-AC delivery-evidence map. A
-reverse checksum then reconciles implemented ACs into `docs/ACs.md` without
-historical implementation research. Ticket-linked code commits provide further
-delivery evidence. The normally pre-existing `docs/ACs.md` is augmented in
-identifier sequence, and an AC already present there is itself delivery evidence
-even when its ticket lacks recorded test results. When no delivery evidence
-remains after the complete pass, ticket state determines only the disposition:
+reverse checksum then reconciles implemented ACs into `docs/ACs.org` without
+historical implementation research. Before that reconciliation, the normally
+pre-existing `docs/ACs.md` is converted losslessly into the canonical Org
+structure and removed. Ticket-linked code commits provide further delivery
+evidence. An AC already present in the converted ledger is itself delivery
+evidence even when its ticket lacks recorded test results. When no delivery
+evidence remains after the complete pass, ticket state determines only the disposition:
 closed scope is abandoned and open scope is undelivered. A failed suite stops
-the migration after a recoverable archive checkpoint and before classification
-or remote mutation.
+the migration after a recoverable checkpoint of the archive, index, and
+format-only Org conversion, before classification or remote mutation.
 
 `docs/ticket-migration.org` then records open defects, abandoned or undelivered
 feature scope, unresolved classifications, and delivered tickets.
@@ -622,6 +618,12 @@ receive AC provenance through one purpose-created baseline ticket.
 After the durable archive commit, every issue that was open at the snapshot is
 closed without comment and the closure outcome is committed. Later agents can
 understand the legacy baseline without depending on GitHub.
+
+The explicit-only `convert-migrated-acs-to-org` skill handles projects that
+finished ticket migration before `docs/ACs.org` became canonical. It requires the
+tracked archive and completed migration record, verifies that GitHub has no open
+issues, converts every ledger field without changing its meaning, updates current
+references, and removes `docs/ACs.md` in the same tracked rename.
 
 Provider-native permissions and the shared pre-tool guard reinforce the common
 prohibitions on `rm`, `sed`, `awk`, and direct `python` or `python3` interpreter

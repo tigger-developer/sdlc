@@ -116,21 +116,25 @@ according to the project's normal source-control practice before proceeding.
 
 First invoke `$migrate-legacy-acs-to-sdlc-v1`. It archives every issue and
 comment under `docs/archive/migrated-tickets/`, then works only from that local
-snapshot. It may run the supported whole-suite command once and performs one
-reverse checksum from every maintained RT to `docs/ACs.md`. Before classifying
+snapshot. Before appending criteria, it losslessly converts the normally
+pre-existing `docs/ACs.md` to the canonical foldable `docs/ACs.org` structure and
+removes the Markdown source. It may run the supported whole-suite command once
+and performs one reverse checksum from every maintained RT to `docs/ACs.org`. Before classifying
 any ticket, it reviews every maintained RT and builds an RT-to-ticket-to-AC
 delivery-evidence map. It does not rerun historical tests or investigate old
 code ticket by ticket. Ticket status, comments, timeline commit references, and
 code-commit evidence are retained in the archive. If the suite fails, the skill
-checkpoints only the verified archive and stops before classification,
-reconciliation, or remote mutation.
+checkpoints only the verified archive, migration index, and format-only Org
+conversion, then stops before classification, semantic reconciliation, or remote
+mutation.
 
-`docs/ACs.md` is normally an existing ledger. The skill augments it in
-identifier sequence rather than replacing it. An AC already present in the
-ledger is delivery evidence even when its archived ticket omitted test results.
-It also refreshes the ledger's canonical managed introduction and removes stale
-preamble claims that completed migration left requirements authoritative only in
-ticket bodies or comments.
+The Org conversion preserves every requirement, identifier, provenance field,
+status, test relationship, evidence note, supersession, footnote, glossary
+entry, and explanatory note. It standardizes those fields through nested
+headings and keeps criteria in identifier sequence. An AC already present in the
+source ledger is delivery evidence even when its archived ticket omitted test
+results. Archived tickets and comments remain provenance only, never current AC
+authority.
 
 The skill creates `docs/ticket-migration.org` immediately after verifying the
 archive, then updates it after every evidence phase and ticket classification.
@@ -160,28 +164,23 @@ sdlc-project-init
 ```
 
 After authorization, Spec Kit merges its project infrastructure into the
-existing working tree with its `--here --force` initialization path. For the
-established SDLC v1 document shape, the initializer then performs one bounded,
-mechanical authority update:
+existing working tree with its `--here --force` initialization path. The
+initializer then verifies the migrated ledger boundary before constitution
+generation:
 
-1. The file-backed, marked legacy prefix is applied to `docs/ACs.md`.
-2. The initializer stages only that path, shows its Git diff, and asks
-   whether to commit.
+1. A completed migration must provide `docs/ACs.org`.
+2. `docs/ACs.md` must no longer coexist with the Org ledger.
+3. Migration artefacts without `docs/ACs.org` stop with an instruction to run
+   `$convert-migrated-acs-to-org`.
 
 Vision, architecture, and README documents remain active. The initializer does
 not rewrite them or archive the implementation plan; those are pre-migration
 skill responsibilities.
 
-Declining leaves the reviewed migration staged and stops before constitution
-generation. Resolve that staged choice through normal Git review before
-continuing. An accepted or already-current authority prefix is silent on later
-runs. Brownfield repositories without `docs/ACs.md` are not altered.
-
-The managed prefix ends at a line containing only `***`. The initializer hashes
-that prefix independently of the existing ledger: an absent marker causes a
-prepend, a matching prefix is a no-op, and an older managed prefix is replaced
-through the delimiter. The remainder of `docs/ACs.md` is preserved byte for
-byte. A marker outside the expected prefix is an error.
+For projects migrated before the Org format was introduced, invoke
+`$convert-migrated-acs-to-org`. It refuses unless the archived ticket corpus and
+completed migration record exist and GitHub reports zero open issues. It
+performs no ticket, test, code, or requirement changes.
 
 For brownfield projects:
 

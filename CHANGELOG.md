@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+Standardized completed legacy requirement ledgers as `docs/ACs.org`. The
+pre-migration skill now losslessly converts a pre-existing `docs/ACs.md` through
+a canonical nested Org template before reconciling new criteria, removes the
+Markdown source, and makes archived tickets and comments provenance rather than
+current AC authority. Added the explicit-only `convert-migrated-acs-to-org`
+repair skill for projects migrated under earlier releases. Brownfield project
+initialization now reports completed or partial migration artefacts without the
+Org ledger and rejects coexisting Markdown and Org ledgers.
+
 ## v2.0.4 - 2026-09-03
 
 Made completed brownfield migration authoritative and unambiguous in generated

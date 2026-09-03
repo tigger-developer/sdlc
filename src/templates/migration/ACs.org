@@ -1,0 +1,119 @@
+#+TITLE: Legacy acceptance criteria
+#+DATE:
+#+OPTIONS: toc:3 num:nil
+
+# SDLC legacy-AC ledger template
+#
+# This file is the canonical post-migration shape for requirements established
+# under the legacy ticket-led process. Keep it valid Org so a human can navigate
+# large ledgers by folding headings.
+#
+# Authority:
+# - After migration, this file is the sole authority for requirements
+#   established under the legacy ticket-led process.
+# - =docs/ticket-migration.org= and =docs/archive/migrated-tickets/= retain
+#   disposition, provenance, and rationale only. Ticket bodies and comments are
+#   not current requirement or AC authorities.
+# - Requirements established or changed through Spec Kit are governed by
+#   approved =specs/*/spec.md= artefacts.
+#
+# Lossless conversion rules:
+# - Preserve every AC identifier, descriptor, requirement, source, shipped or
+#   migration version, status, test relationship, test status, evidence note,
+#   supersession link, footnote, glossary entry, and explanatory note.
+# - Normalize structure and status vocabulary only. Do not summarize, silently
+#   correct, reinterpret, merge, split, renumber, or drop source information.
+# - Preserve contradictory or uncertain material visibly under =Notes= or
+#   =Supersession and conflicts= until its disposition is established.
+# - Keep ACs in identifier sequence. Use a source or product-area grouping only
+#   when it does not obscure that sequence.
+# - Every identifier in human-facing text needs an adjacent descriptor.
+#
+# Mini Org syntax guide:
+# - Headings begin at column one. Use =*= for sections, =**= for product areas or
+#   source groups, =***= for ACs, =****= for AC fields, and =*****= for tests.
+# - Use headings, not deeply nested bullets, for foldable information.
+# - Use bullets only for short, flat peer facts within a field.
+# - Links use =[[file:path][descriptive label]]= or =[[URL][descriptive label]]=.
+# - Inline commands, paths, and identifiers use Org verbatim markers such as
+#   =make test= and =AC42.1=; never use Markdown backticks.
+# - Org footnote references use =[fn:name]= and are defined once under
+#   =Migration notes and footnotes=.
+# - Remove all instructional comments and placeholders before finalization.
+# - Validate the final document with Pandoc's Org reader.
+
+* Ledger authority
+
+This file is the sole authoritative record of requirements established under
+the legacy ticket-led process, including current and superseded requirements,
+provenance, and test traceability. Requirements established or changed through
+Spec Kit are governed by approved =specs/*/spec.md= artefacts.
+
+The migration index and archived tickets retain disposition, provenance, and
+rationale only. Ticket bodies and comments are not current requirement or AC
+authorities.
+
+* Status vocabulary
+
+- *HOLDING:* The requirement remains current and its recorded evidence passes.
+- *PENDING:* The requirement or some required evidence remains unverified.
+- *FAILING:* Current evidence shows the requirement does not hold.
+- *SUPERSEDED:* A named later requirement replaces or retires it.
+- *ASSUMED PASS:* Migration inferred delivery under a named heuristic; this is
+  not a contemporaneous test result.
+
+* Acceptance criteria
+
+# Repeat this hierarchy. Replace every placeholder and retain only fields that
+# have a value, except =Requirement=, =Provenance=, =Status=, and =Tests=, which
+# are mandatory. A test with material detail receives its own level-five
+# heading. Short test peers may instead be flat bullets under =Tests=.
+
+** [PRODUCT AREA OR SOURCE GROUP]
+
+*** AC1.1 - Observable requirement descriptor
+
+**** Requirement
+
+[FULL REQUIREMENT TEXT]
+
+**** Provenance
+
+- *Introduced by:* [[file:archive/migrated-tickets/1.md][#1 - Ticket descriptor]]
+- *Shipped or migrated:* [VERSION OR DATE]
+- *Additional provenance:* [SOURCE OR NONE]
+
+**** Status
+
+[HOLDING, PENDING, FAILING, SUPERSEDED, OR ASSUMED PASS, WITH ANY QUALIFICATION]
+
+**** Tests
+
+***** RT-1.1 - Regression-test descriptor
+
+- *Type:* Automated regression test
+- *Status:* PASS
+- *Evidence:* [TEST PATH, NAME, OBSERVATION, OR HISTORICAL RESULT]
+
+***** UT-1.1 - User-test descriptor
+
+- *Type:* User test
+- *Status:* [PASS, PENDING, FAIL, SUPERSEDED, OR ASSUMED PASS]
+- *Evidence:* [OBSERVATION, AUTHORITY, OR MIGRATION HEURISTIC]
+
+**** Supersession and conflicts
+
+[NAMED SUPERSEDING OR CONFLICTING REQUIREMENT AND DISPOSITION, OR OMIT FIELD]
+
+**** Notes
+
+[GLOSSARY, RATIONALE, LIMITATION, OR OTHER SOURCE INFORMATION, OR OMIT FIELD]
+
+* Migration notes and footnotes
+
+# Preserve and translate every source footnote. Define shared migration
+# heuristic footnotes once here and reference them from each affected AC or test.
+
+[fn:migration-heuristic] Delivery was inferred during migration under the
+recorded heuristic. This is an assumed migration status, not a contemporaneous
+test result.

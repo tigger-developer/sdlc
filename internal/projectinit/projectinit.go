@@ -40,6 +40,9 @@ const (
 	constitutionLayoutPath = "templates/project-init/constitution-scaffold.md.tmpl"
 	constitutionPromptPath = "prompts/project-init/constitution.md.tmpl"
 	legacyACDocumentPath   = "docs/ACs.md"
+	migratedACDocumentPath = "docs/ACs.org"
+	ticketMigrationPath    = "docs/ticket-migration.org"
+	ticketManifestPath     = "docs/archive/migrated-tickets/manifest.json"
 )
 
 var managedKeys = []string{
@@ -316,6 +319,9 @@ func Run(options Options) error {
 		}
 	}
 	if config.ProjectType == "brownfield" {
+		if err := validateBrownfieldLedger(projectRoot); err != nil {
+			return err
+		}
 		legacyBlock, blockErr := loadManagedBlock(sdlcRoot)
 		if blockErr != nil {
 			return blockErr
@@ -347,6 +353,33 @@ func Run(options Options) error {
 		return nil
 	}
 	return launchConstitution(config, projectRoot, sdlcRoot, target, options)
+}
+
+func validateBrownfieldLedger(projectRoot string) error {
+	markdownExists, err := regularFileExists(filepath.Join(projectRoot, filepath.FromSlash(legacyACDocumentPath)))
+	if err != nil {
+		return err
+	}
+	orgExists, err := regularFileExists(filepath.Join(projectRoot, filepath.FromSlash(migratedACDocumentPath)))
+	if err != nil {
+		return err
+	}
+	if markdownExists && orgExists {
+		return fmt.Errorf("brownfield project contains both %s and %s; retain only the canonical Org ledger", migratedACDocumentPath, legacyACDocumentPath)
+	}
+
+	migrationIndexExists, err := regularFileExists(filepath.Join(projectRoot, filepath.FromSlash(ticketMigrationPath)))
+	if err != nil {
+		return err
+	}
+	migrationManifestExists, err := regularFileExists(filepath.Join(projectRoot, filepath.FromSlash(ticketManifestPath)))
+	if err != nil {
+		return err
+	}
+	if (migrationIndexExists || migrationManifestExists) && !orgExists {
+		return fmt.Errorf("legacy ticket-migration artefacts exist but %s is missing; invoke $convert-migrated-acs-to-org before project initialization", migratedACDocumentPath)
+	}
+	return nil
 }
 
 func migrateBrownfieldDocuments(projectRoot string, block managedBlock, reader *bufio.Reader, options Options) (bool, error) {

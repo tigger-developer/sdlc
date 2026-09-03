@@ -141,10 +141,13 @@ evidence, and disposition map from the deployed canonical Org template. Its
 heading hierarchy makes report sections, tickets, ticket details, and individual
 ACs independently foldable; bullets remain limited to flat summaries. Its
 embedded native-syntax guide and Pandoc parse check keep the durable state
-machine-readable. The
-maintained regression harness and at most one whole-suite run reconcile
-`docs/ACs.md`. Every maintained RT is reviewed and mapped to tickets and ACs
-before ticket classification begins. Ticket-linked commits provide further
+machine-readable. Before reconciliation, the skill losslessly converts the
+normally pre-existing `docs/ACs.md` to canonical `docs/ACs.org`, preserving all
+requirements and metadata while replacing tables or Markdown sections with a
+foldable heading hierarchy. The maintained regression harness and at most one
+whole-suite run then reconcile `docs/ACs.org`. Every maintained RT is reviewed
+and mapped to tickets and ACs before ticket classification begins. Ticket-linked
+commits provide further
 delivery evidence, while marked near-complete and live-RT heuristics preserve
 the distinction between observed and inferred evidence. Documentation
 reconciliation groups ACs by product area and consults code only when the
@@ -153,52 +156,39 @@ The normally pre-existing AC ledger is augmented in identifier sequence;
 presence in that ledger is itself delivery evidence when the originating ticket
 omits test results.
 If the supported whole-suite run fails, the skill checkpoints only the verified
-archive and incremental Org record, then stops before classification or GitHub
-mutation. One-ticket-at-a-time processing treats the archive as external memory;
+archive, incremental migration index, and format-only AC-ledger conversion, then
+stops before classification or GitHub mutation. One-ticket-at-a-time processing
+treats the archive as external memory;
 automatic compaction resumes from the durable Org record without repeating
 completed work.
 Targeted corrections and implementation-plan archival join one pre-closure
 commit. The skill then closes every issue that was open in the snapshot and
 commits the closure record.
 
-Before rendering a brownfield constitution, the initializer performs only the
-remaining mechanical authority update. It:
-
-- applies the file-backed, marked legacy prefix to `docs/ACs.md`, replacing
-  only an older managed prefix when the resource changes;
-- shows that path's Git diff and obtains operator confirmation before an
-  isolated commit; and
-- performs no write, prompt, agent launch, or commit when the migration is
-  already current.
+Before rendering a brownfield constitution, the initializer validates the
+migration boundary. Migration artefacts require `docs/ACs.org`; retaining both
+that file and `docs/ACs.md` is a conflict. A migrated project missing the Org
+ledger stops with an instruction to run the explicit conversion skill.
 
 Vision, architecture, and README documents remain active and outside the
 mechanical legacy migration. The initializer never modifies them; adaptation
 and implementation-plan archival belong to the pre-migration skill.
 
-The initializer's mechanical update never invokes an agent. Unexpected
-overlapping changes or content that cannot be transformed by the fixed rules
-are reported rather than guessed. Declining the commit leaves the reviewed
-working-tree change in place and stops constitution generation.
+The initializer does not convert or semantically revise the ledger. The
+pre-migration skill owns new conversions; the smaller conversion skill repairs
+projects whose migration finished before the Org format became canonical.
 
 ### Project-initializer resources
 
-User-facing blocks, templates, and prompts are source files under `src/`; they
+User-facing templates and prompts are source files under `src/`; they
 are not assembled from prose embedded in Go. The installer deploys these files
 under the canonical SDLC root, and `sdlc-project-init` performs only explicit
 template-field substitution.
 
-The legacy acceptance-criteria notice is a managed prefix ending at a line that
-contains only `***`. Its stable marker identifies the prefix independently of
-the document's own headings or content. The initializer treats the remainder of
-`docs/ACs.md` as opaque bytes:
-
-- if no managed prefix exists, prepend the current block;
-- if the prefix hash matches the current template, write nothing; and
-- if the marker exists at the start but the hash differs, replace only the
-  prefix through its delimiter.
-
-A managed marker outside the prefix is an error rather than permission to
-duplicate or reorganize document content.
+The deployed migration resources include separate canonical Org templates for
+the AC ledger and migration index. Their embedded syntax and hierarchy guidance
+keeps the public skills concise while making generated artefacts independently
+usable.
 
 The generated template is editable pre-ratification scaffolding. It contains
 the fixed standards proposal, universal standard references, selected
@@ -421,6 +411,7 @@ opened internally by an otherwise permitted program.
 | Spec Kit command selection | `src/presets/sdlc-standards/` |
 | Project-initializer prompt | `src/prompts/project-init/` |
 | Project-initializer template or managed block | `src/templates/project-init/` |
+| Migration artefact template | `src/templates/migration/` |
 | Findings-only reusable review | `skills/<name>/SKILL.md` |
 | Provider command or file-read safeguard | `hooks/` plus the relevant installer adapter |
 
