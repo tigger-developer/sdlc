@@ -41,27 +41,54 @@ baseline source is missing, conflicting, or unresolved, make that clarification
 explicit rather than guessing.
 
 The resolved SDLC `spec-template` is authoritative for the specification's
-structure. Follow its concise Outcome, Scope, Existing baseline, Requirements,
-Boundaries and failure behaviour, Assumptions and unresolved decisions, and
-optional Terms sections. Where the lower-priority core command refers to stock
-User Scenarios and Testing, separate Acceptance Scenarios, Key Entities, or
-Success Criteria sections, do not recreate those sections. Express their
-material behavioural content once in the resolved template instead.
+structure. Preserve its Spec Kit-compatible User Scenarios and Testing,
+Acceptance Scenarios, Requirements, Success Criteria, Assumptions, and optional
+Key Entities sections. Preserve Scope and, for brownfield work, Existing
+Baseline.
+
+Give those sections distinct jobs:
+
+- a user story uses no more than one or two sentences to establish actor,
+  purpose, and value;
+- its priority rationale is one sentence;
+- its independent test names one independently observable outcome rather than a
+  test procedure;
+- acceptance scenarios carry the concrete behavioural examples and boundary
+  conditions;
+- functional requirements state the authoritative generalized rules
+  demonstrated by those scenarios; and
+- success criteria measure overall feature success without retelling each
+  requirement.
+
+Retain only the repetition needed to connect those views. Do not repeat detailed
+behaviour in narrative merely to fill every section.
 
 Apply the ABC presentation contract in `~/.agents/sdlc/ISSUES.md`. Use ordinary
 Markdown headings. Within specification content, bold the smallest meaningful
-functional keywords and noun phrases, not generic labels or modal verbs. Do not
-use emphasis as a substitute for accurate structure or repeat content merely to
-create more visual anchors.
+functional keywords and noun phrases, not generic labels, identifiers, modal
+verbs, or acceptance-scenario signposts. Write `GIVEN`, `WHEN`, `THEN`, and
+`AND` in unbolded capitals on separate lines. Prefer bullets to multi-fact prose
+and keep one primary fact per bullet. Do not use emphasis as a substitute for
+accurate structure or repeat content merely to create more visual anchors.
+
+Use the fictional example at
+`~/.agents/sdlc/presets/sdlc-standards/examples/spec-example.md` only to
+understand structure and presentation. Never copy its requirements,
+terminology, or behaviour into the project specification.
 
 Before audit, replace the stock specification checklist expectations with these
 checks:
 
 - every segment is Accurate, Brief, and Clear;
-- each behavioural rule appears once;
+- each required section performs its distinct job without unnecessary narrative
+  repetition;
+- user stories remain brief while acceptance scenarios carry concrete
+  behavioural examples;
 - every requirement is observable, falsifiable, bounded, and has a descriptor;
 - functional actors, artefacts, states, configuration, boundaries, and outcomes
   have proportionate bold anchors for visual scanning;
+- multi-fact prose is split into scan-friendly bullets, and acceptance-scenario
+  signposts use unbolded capitals;
 - scope, baseline relationships, failure behaviour, assumptions, and unresolved
   decisions are explicit where relevant; and
 - implementation details and test procedures are absent unless they are part of

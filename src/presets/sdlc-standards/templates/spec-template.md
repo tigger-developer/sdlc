@@ -1,4 +1,4 @@
-# Specification: [FEATURE NAME]
+# Feature Specification: [FEATURE NAME]
 
 Feature branch: `[FEATURE BRANCH]`
 
@@ -9,26 +9,94 @@ Status: Draft
 Input: [OPERATOR REQUEST]
 
 <!--
-Follow the ABC presentation contract in ~/.agents/sdlc/ISSUES.md.
-Use ordinary Markdown headings. Bold functional keywords and noun phrases within
-the content, not headings, generic labels, or modal verbs. Remove every
-instruction comment and unused optional section from the completed specification.
+Follow the ABC presentation contract in ~/.agents/sdlc/ISSUES.md. Use ordinary
+Markdown headings and scan-friendly bullets. Bold functional keywords and noun
+phrases within content, not headings, generic labels, identifiers, modal verbs,
+or GIVEN/WHEN/THEN/AND signposts. Remove every instruction comment and unused
+optional section from the completed specification.
+
+The complete fictional presentation example is at:
+~/.agents/sdlc/presets/sdlc-standards/examples/spec-example.md
+Use it only to understand structure and presentation. Never copy its
+requirements, terminology, or behaviour into a project specification.
 -->
-
-## Outcome
-
-[State the required user or system outcome once, using concise prose or bullets.]
 
 ## Scope
 
 - In scope: [Observable behaviour introduced or changed.]
 - Out of scope: [Adjacent behaviour deliberately left unchanged.]
 
-## Existing baseline
+## User Scenarios & Testing
 
 <!--
-Required for brownfield work. Remove this section for greenfield work.
-Do not copy the existing system specification into this delta.
+Keep each user story to one or two sentences establishing actor, purpose, and
+value. Do not narrate the feature or repeat its requirements here. Acceptance
+scenarios carry the concrete behavioural examples.
+-->
+
+### User Story 1 - [BRIEF OUTCOME] (Priority: P1)
+
+[State the actor, purpose, and value briefly.]
+
+Why this priority: [Explain the value in one sentence.]
+
+Independent Test: [State one independently observable outcome, not a test procedure.]
+
+#### Acceptance Scenarios
+
+1. GIVEN [initial state]
+
+   WHEN [action]
+
+   THEN [observable outcome]
+
+   AND [additional outcome, when needed]
+
+<!-- Add only the stories and scenarios required by the feature. -->
+
+### Edge Cases
+
+- [Material boundary, alternate path, or failure case.]
+
+## Requirements
+
+### Functional Requirements
+
+<!--
+State the authoritative generalized rules demonstrated by the scenarios. Give
+every identifier a descriptor. Each requirement must be observable, falsifiable,
+bounded, and free of implementation or test detail unless the mechanism is part
+of the public contract.
+-->
+
+- FR-001 - [DESCRIPTIVE REQUIREMENT TITLE]: [State one behavioural rule.]
+
+### Key Entities
+
+<!-- Include only when the feature involves material data or domain entities. -->
+
+- [ENTITY]: [Meaning and relationships without implementation detail.]
+
+## Success Criteria
+
+### Measurable Outcomes
+
+<!--
+Measure overall feature success. Do not restate each functional requirement or
+invent arbitrary targets merely to populate this section.
+-->
+
+- SC-001 - [DESCRIPTIVE OUTCOME]: [State a measurable, technology-neutral result.]
+
+## Assumptions
+
+- [Material assumption, dependency, or none.]
+
+## Existing Baseline
+
+<!--
+Required for brownfield work. Remove this section for greenfield work. Record a
+concise delta relationship; do not copy the existing system specification.
 -->
 
 - Sources consulted: [Current requirements, design, relevant work history,
@@ -37,45 +105,3 @@ Do not copy the existing system specification into this delta.
 - Changes: [Existing behaviour changed by this specification.]
 - Supersedes: [Existing requirements explicitly replaced, or none.]
 - Unaffected: [Important compatibility and ownership boundaries.]
-
-## Requirements
-
-<!--
-State each behavioural rule exactly once. Give every identifier a descriptor.
-Each requirement must be observable, falsifiable, bounded, and free of test
-procedure or implementation detail unless that mechanism is the public contract.
-
-Presentation example only:
-
-### FR-001 - Additional deployment domains
-
-In addition to the **base URL**, a **Hugo website** may declare in its
-**environment configuration** that it is deployed to **additional domains**.
-
-Origin: [Operator request or cited baseline requirement with its descriptor.]
--->
-
-### FR-001 - [DESCRIPTIVE REQUIREMENT TITLE]
-
-[State one requirement. Bold its functional actors, artefacts, states,
-configuration, boundaries, and outcomes.]
-
-Origin: [Operator request or cited baseline requirement with its descriptor.]
-
-## Boundaries and failure behaviour
-
-- [State each material limit, alternate path, or observable failure not already
-  expressed as a requirement.]
-- [Include relevant security, privacy, access, migration, compatibility, and
-  accessibility boundaries.]
-
-## Assumptions and unresolved decisions
-
-- Assumption: [Authorized material assumption, or none.]
-- Decision required: [Unresolved decision that can change the outcome, or none.]
-
-## Terms
-
-<!-- Include only when the specification introduces or depends on ambiguous domain terms. -->
-
-- [TERM]: [Concise project meaning.]

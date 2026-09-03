@@ -4,11 +4,15 @@ This preset composes the public SDLC standards into Spec Kit 1.0 or later. It
 does not replace Spec Kit's specification, planning, task, analysis, or
 implementation workflow.
 
-It replaces the stock specification layout with a concise ABC template. Each
-behavioural rule appears once, functional keywords and noun phrases provide
+It refines the stock specification layout with a concise ABC template while
+retaining the user stories, acceptance scenarios, functional requirements,
+success criteria, and other concepts consumed by later Spec Kit commands. Each
+section has a distinct purpose, functional keywords and noun phrases provide
 visual anchors, and brownfield specifications remain bounded deltas instead of
-restating the existing system. Spec Kit continues to own creation,
-clarification, planning, task generation, and implementation orchestration.
+restating the existing system. A fictional scheduled-report specification under
+`examples/` demonstrates the complete presentation contract. Spec Kit continues
+to own creation, clarification, planning, task generation, and implementation
+orchestration.
 
 Install this repository with `make install`, which deploys the standards and
 installs the CLI helpers. Then run the project initializer from the adopting

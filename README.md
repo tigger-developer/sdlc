@@ -333,10 +333,12 @@ judgement-based change requires a fresh audit.
    behaviour, purpose, boundaries, and important failure cases, not the
    implementation. It creates the feature directory and `spec.md`. In a
    specification, every segment must be Accurate, Brief, and Clear. The SDLC
-   template states each behavioural rule once and uses bold functional keywords
-   and noun phrases as visual anchors rather than duplicating stock user-story,
-   acceptance-scenario, and success-criteria sections. In a
-   brownfield project, the SDLC overlay first requires a context pass across the
+   template keeps user stories brief, gives acceptance scenarios the concrete
+   behavioural detail, expresses authoritative rules as functional
+   requirements, and reserves success criteria for feature-level measurements.
+   Scan-friendly bullets and bold functional keywords and noun phrases provide
+   visual anchors. In a brownfield project, the SDLC overlay first requires a
+   context pass across the
    relevant requirement and design authorities, historical work records,
    maintained regression tests and traceability, and affected implementation.
    The specification records what the bounded delta preserves, changes,

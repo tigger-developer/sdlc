@@ -7,12 +7,14 @@ webhooks, compatibility, lifecycle, observability, contract testing, and common
 antipatterns. Progressive loading now selects it for API and service-integration
 work without conflating machine interfaces with browser-facing web standards.
 
-Replaced Spec Kit's repetitive stock specification layout with a concise SDLC
-template governed by an Accurate, Brief, and Clear presentation contract.
-Specifications now state each behavioural rule once and bold functional keywords
-and noun phrases for rapid visual scanning. The specification command and
-independent audit enforce the same structure, readability, and non-duplication
-rules.
+Refined Spec Kit's repetitive stock specification layout with a concise SDLC
+template governed by an Accurate, Brief, and Clear presentation contract. The
+template retains the concepts consumed by later Spec Kit commands while keeping
+user stories brief, putting concrete behaviour in acceptance scenarios, and
+giving functional requirements and success criteria distinct jobs. Added a
+fictional scheduled-report example, scan-friendly bullets, semantic bolding, and
+unbolded uppercase acceptance-scenario signposts. The specification command and
+independent audit enforce the same contract.
 
 ## v2.0.6 - 2026-09-03
 

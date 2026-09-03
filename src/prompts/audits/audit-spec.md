@@ -17,11 +17,17 @@ Check that:
 - the user or system outcome is explicit;
 - every section, paragraph, and bullet satisfies the Accurate, Brief, and Clear
   presentation contract in `ISSUES.md`;
-- each behavioural rule is stated once rather than repeated through parallel
-  user-story, acceptance-scenario, requirement, and success-criterion sections;
+- each Spec Kit section performs its distinct job: user stories briefly establish
+  context and value, acceptance scenarios carry concrete examples, functional
+  requirements state authoritative generalized rules, and success criteria
+  measure overall feature success;
+- repetition is limited to what connects those views, without verbose narrative
+  restating detailed behaviour;
 - ordinary Markdown headings provide structure while proportionate bold
   functional keywords and noun phrases identify actors, artefacts, states, configuration,
   boundaries, and outcomes for visual scanning;
+- paragraphs containing several facts are split into scan-friendly bullets, and
+  `GIVEN`, `WHEN`, `THEN`, and `AND` are unbolded capitals on separate lines;
 - every requirement is observable, falsifiable, bounded, and internally
   consistent;
 - requirements describe behaviour rather than test procedures;

@@ -63,31 +63,45 @@ means the specification is not ready for audit or approval.
 
 - **Accurate:** agree with the request and cited authorities; distinguish
   requirements, evidence, assumptions, and unresolved decisions.
-- **Brief:** state each behavioural rule once; do not repeat it as a user story,
-  requirement, acceptance scenario, and success criterion.
+- **Brief:** give every Spec Kit section a distinct purpose; retain only the
+  repetition needed to connect user value, behavioural examples, authoritative
+  rules, and feature-level measurements.
 - **Clear:** use direct, falsifiable language; separate independently failing
   conditions and name actors, states, boundaries, and outcomes precisely.
 
-Use ordinary Markdown headings without additional emphasis. Within prose and
-bullets, bold the smallest meaningful functional keywords and noun phrases that
-identify the functionality, actors, artefacts, states, configuration,
-boundaries, and outcomes. A reader scanning the bold phrases should be able to
-locate the functional concepts quickly. Do not bold whole sentences, generic
-labels, or modal verbs merely because they structure a requirement, and do not
-emphasize every occurrence mechanically.
+Prefer scan-friendly bullets to a paragraph containing several facts. Keep one
+primary fact per bullet. Use ordinary Markdown headings without additional
+emphasis. Within prose and bullets, bold the smallest meaningful functional
+keywords and noun phrases that identify the functionality, actors, artefacts,
+states, configuration, boundaries, and outcomes. A reader scanning the bold
+phrases should be able to locate the functional concepts quickly. Do not bold
+whole sentences, generic labels, identifiers, or modal verbs merely because
+they structure a requirement, and do not emphasize every occurrence
+mechanically.
+
+In acceptance scenarios, put `GIVEN`, `WHEN`, `THEN`, and `AND` in unbolded
+capitals on separate lines. Their position and capitalization provide the
+structural emphasis; reserve bold text for the functional concepts.
+
+Keep each user story to one or two sentences establishing actor, purpose, and
+value. Acceptance scenarios carry concrete behavioural examples. Functional
+requirements state the authoritative generalized rules demonstrated by those
+scenarios. Success criteria measure overall feature success rather than
+retelling individual requirements.
 
 For example:
 
-- In addition to the **base URL**, a **Hugo website** may declare in its
-  **environment configuration** that it is deployed to **additional domains**.
-- Requests received through an **additional deployment domain** retain the
-  configured **base URL** as the source of the generated **canonical URL**.
-- Sites without **additional domains** retain their existing **deployment
-  behaviour**.
+- A **report schedule** declares an **output format** and may declare a
+  **recipient list**.
+- An **empty recipient list** disables delivery without disabling **report
+  generation**.
+- Repeating a scheduled run with the same **execution identifier** creates
+  neither a **duplicate report** nor a **duplicate notification**.
 
-Prefer a concise list of authoritative requirements and boundaries over parallel
-restatements of the same behaviour. Length follows the complexity of the change;
-brevity must not remove a material case, constraint, or source relationship.
+Prefer concise authoritative requirements and boundaries over narrative
+restatements of the same behaviour. Length follows the complexity of the
+change; brevity must not remove a material case, constraint, or source
+relationship.
 
 ## Acceptance criteria
 
