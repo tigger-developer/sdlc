@@ -79,6 +79,9 @@ The installer:
 - performs no deployment prompt or write when every detected destination is
   current.
 
+Interactive installation and provider-configuration confirmations accept `y`
+or `yes`, case-insensitively.
+
 Set `VERBOSE=1` to include matching destinations in the plan:
 
 ```bash

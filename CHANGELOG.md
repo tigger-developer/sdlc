@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+Accepted either `y` or `yes`, case-insensitively, for interactive SDLC
+installation and explicit provider-configuration confirmations.
+
 Added a canonical `ticket-migration.org` template with the required migration
 structure, a compact native Org syntax guide, and staged Pandoc parse
 validation. Its nested heading hierarchy makes report sections, tickets, detail

@@ -11,7 +11,8 @@ adapter model.
   detects existing `~/.claude`, `~/.codex`, `~/.copilot`, and `~/.hermes`
   provider homes.
 - It preflights every SDLC-owned destination before writing.
-- One `yes` applies the complete detected batch; one refusal writes nothing.
+- One `y` or `yes`, matched case-insensitively, applies the complete detected
+  batch; one refusal writes nothing.
 - Explicit `--agent` mode limits provider deployment and retains deliberate
   `--apply` and `--configure` operations.
 

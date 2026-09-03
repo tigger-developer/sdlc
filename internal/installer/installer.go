@@ -294,7 +294,16 @@ func confirm(reader *bufio.Reader, output io.Writer, prompt string) (bool, error
 	if err != nil && !errors.Is(err, io.EOF) {
 		return false, fmt.Errorf("reading installation confirmation: %w", err)
 	}
-	return strings.EqualFold(strings.TrimSpace(response), "yes"), nil
+	return confirmationAccepted(response), nil
+}
+
+func confirmationAccepted(response string) bool {
+	switch strings.ToLower(strings.TrimSpace(response)) {
+	case "y", "yes":
+		return true
+	default:
+		return false
+	}
 }
 
 func detectedAgents(userHome string) ([]string, error) {
@@ -1455,7 +1464,7 @@ func offerConfigurationChanges(changes []*configurationChange, input io.Reader, 
 		fmt.Fprintln(output, "Configuration unchanged.")
 		return nil
 	}
-	if strings.ToLower(strings.TrimSpace(scanner.Text())) != "yes" {
+	if !confirmationAccepted(scanner.Text()) {
 		fmt.Fprintln(output, "Configuration unchanged.")
 		return nil
 	}

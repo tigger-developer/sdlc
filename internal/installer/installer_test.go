@@ -114,6 +114,15 @@ func TestInteractiveInstallsOneCanonicalTreeAndProviderAdapters(t *testing.T) {
 	}
 }
 
+func TestInteractiveConfirmationAcceptsShortYes(t *testing.T) {
+	f := newFixture(t)
+	var output bytes.Buffer
+	if err := RunInteractive(f.source, f.root, strings.NewReader("y\n"), &output); err != nil {
+		t.Fatal(err)
+	}
+	assertFile(t, filepath.Join(f.root, ".agents", "sdlc", "MAIN.md"), "# Main\n")
+}
+
 // RT-5.1
 func TestInteractiveIgnoresTimestampOnlySourceChanges(t *testing.T) {
 	f := newFixture(t, "agents", "codex")
@@ -346,7 +355,7 @@ func TestProviderConfigurationIsBackedUpBesideTheLiveFile(t *testing.T) {
 	writeFile(t, settings, []byte(original))
 	if err := Run(Options{
 		Agent: "claude", AgentHome: filepath.Join(f.root, ".claude"), Source: f.source,
-		Configure: true, Input: strings.NewReader("yes\n"), Output: &bytes.Buffer{},
+		Configure: true, Input: strings.NewReader("y\n"), Output: &bytes.Buffer{},
 	}); err != nil {
 		t.Fatal(err)
 	}
