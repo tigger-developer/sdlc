@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v2.0.7 - 2026-09-03
+
 Reduced loaded instruction repetition without weakening entry-point safety.
 Canonical-root bootstraps retain the literal path, no-search rule, and exact
 failure response; Spec Kit commands now defer convergence detail to the
