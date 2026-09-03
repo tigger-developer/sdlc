@@ -33,6 +33,8 @@ root is exactly `~/.agents/sdlc` for every supported provider.
 | `src/prompts/audits/` | Canonical prompts for isolated audit processes |
 | `src/templates/project-init/` | Constitution scaffold and managed brownfield document block |
 | `src/templates/migration/` | Canonical legacy-ticket migration index template |
+| `src/config/project-init.schema.yaml` | Declared project-init fields, prompts, defaults, and persistence |
+| `src/libexec/load-sdlc-env.sh` | Bash wrapper returning only allowlisted SDLC `.env` fields |
 | `skills/` | Findings-only audits and advisory tools |
 | `hooks/` | Provider-integrated command and sensitive-file safeguard |
 | `cmd/` and `internal/` | Installer, project initializer, isolated audit runner, and verdict implementation |
@@ -601,6 +603,12 @@ modify the judged artefact, and identify the effective provider and model in
 their verdict. The runner rejects malformed reports or an identity different
 from the effective configuration. It bounds each invocation to 15 minutes. The
 shared contract is `~/.agents/sdlc/AUDITS.md`.
+
+The advisory skills `useful-be`, `diagnose-issue`, `recommendations-please`,
+and `summarize-issues` load bounded project context, diagnose an observed
+problem, recommend a technical decision, and summarize open work against the
+project's specifications; the latter three are findings-only and make no file
+changes.
 
 Use `--external-context FILE` when an audit needs one exact authority outside
 the project and canonical SDLC directories. This supplies only the named file;
