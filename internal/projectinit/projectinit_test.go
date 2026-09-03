@@ -687,23 +687,41 @@ func TestRunSnapshotsEveryResolvedGlobalDefaultIntoProject(t *testing.T) {
 func TestLaunchConstitutionUsesConfiguredHarness(t *testing.T) {
 	sdlcRoot := t.TempDir()
 	installProjectInitResourcesForTest(t, sdlcRoot)
+	projectRoot := t.TempDir()
 	var command string
 	var arguments []string
 	var directory string
+	templatePath := filepath.Join(projectRoot, ".specify", "templates", "overrides", "constitution-template.md")
+	renderedScaffold := string(renderConstitutionForTest(t, sdlcRoot, nil, resolvedConfig{ProjectType: "greenfield"}))
+	writeTestFile(t, templatePath, renderedScaffold)
 	runner := func(name string, gotArguments []string, gotDirectory string, _ io.Reader, _, _ io.Writer) error {
 		command = name
 		arguments = append([]string(nil), gotArguments...)
 		directory = gotDirectory
+		writeTestFile(t, filepath.Join(projectRoot, ".specify", "memory", "constitution.md"), renderedScaffold)
 		return nil
 	}
-	templatePath := filepath.Join("project", ".specify", "templates", "overrides", "constitution-template.md")
-	projectRoot := filepath.Join("project")
 	options := Options{RunCommand: runner, Input: strings.NewReader(""), Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{}}
 	if err := launchConstitution(resolvedConfig{Harness: "codex", SpecProvider: "openai-codex", SpecModel: "gpt-5.6-sol"}, projectRoot, sdlcRoot, templatePath, options); err != nil {
 		t.Fatal(err)
 	}
 	if command != "codex" || directory != projectRoot || len(arguments) != 3 || arguments[0] != "--model" || arguments[1] != "gpt-5.6-sol" {
 		t.Fatalf("constitution launch = command %q, arguments %#v, directory %q", command, arguments, directory)
+	}
+}
+
+func TestValidateConstitutionCandidateRequiresCompleteSharedGovernance(t *testing.T) {
+	projectRoot := t.TempDir()
+	scaffold := []byte("# Template\n\n## Engineering Standards\n\nFollow the selected standards.\n\n## Specification and Evidence\n\nNo code without a specification.\n\n## Mandatory Independent Audits\n\nRun every audit.\n\n## Project-Specific Principles\n")
+	candidatePath := filepath.Join(projectRoot, ".specify", "memory", "constitution.md")
+	writeTestFile(t, candidatePath, "# Project\n\n## Engineering Standards\n\nFollow the selected standards.\n\n## Specification and Evidence\n\nNo code without a\nspecification.\n\n## Mandatory Independent Audits\n\nRun every audit.\n")
+	if err := validateConstitutionCandidate(projectRoot, scaffold); err != nil {
+		t.Fatalf("valid candidate rejected: %v", err)
+	}
+
+	writeTestFile(t, candidatePath, "# Project\n\n## Engineering Standards\n\nFollow the selected standards.\n\n## Specification and Evidence\n\nA shorter summary.\n\n## Mandatory Independent Audits\n\nRun every audit.\n")
+	if err := validateConstitutionCandidate(projectRoot, scaffold); err == nil || !strings.Contains(err.Error(), "Specification and Evidence") {
+		t.Fatalf("changed specification covenant was not rejected: %v", err)
 	}
 }
 

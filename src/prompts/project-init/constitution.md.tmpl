@@ -1,6 +1,6 @@
 $speckit-constitution
 
-Create an unratified project constitution using the generated template at `{{.TemplatePath}}` as editable scaffolding. It has no authority before ratification, and project-specific proposed clauses may be corrected, removed, or replaced. Retain the generated Engineering Standards and Mandatory Independent Audits sections unless the human explicitly instructs otherwise; they are proposed shared governance, not an immutable baseline.
+Create an unratified project constitution using the generated template at `{{.TemplatePath}}` as editable scaffolding. It has no authority before ratification, and project-specific proposed clauses may be corrected, removed, or replaced. Retain the complete generated Engineering Standards, Specification and Evidence, and Mandatory Independent Audits sections; they are proposed shared governance, not an immutable baseline. Do not summarize, paraphrase, or weaken their clauses.
 
 This is a filtering exercise, not a summary of the project documentation. Read the project documentation as evidence, but do not restate its important requirements.
 
@@ -42,7 +42,7 @@ Would changing this require amending the constitution?
 
 If not, omit it.
 
-Before finalizing, review the entire assembled constitution, including every scaffold clause retained in the draft, against the same constitutional test. Treat the generated Engineering Standards and Mandatory Independent Audits sections as shared governance selected by the SDLC; if either conflicts with verified project needs, record the conflict for the human rather than removing the section autonomously.
+Before finalizing, review the entire assembled constitution, including every scaffold clause retained in the draft, against the same constitutional test. Treat the generated Engineering Standards, Specification and Evidence, and Mandatory Independent Audits sections as shared governance selected by the SDLC; if one conflicts with verified project needs, record the conflict for the human rather than removing or rewriting the section autonomously.
 
 Remove any agent-authored clause that is runtime configuration, a feature requirement, detailed design, a procedure, transient project state, or duplication of an authoritative source. Every retained agent-authored clause must be durable across unrelated features and require a constitutional amendment to change.
 

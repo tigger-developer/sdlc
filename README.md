@@ -125,9 +125,12 @@ The initializer separates deterministic selection from semantic drafting. It:
 - commits only the generated constitution scaffold before invoking an agent,
   without including unrelated staged or working-tree changes;
 - reports only a changed template, with additional variance detail under
-  `VERBOSE=1`; and
+  `VERBOSE=1`;
 - invokes the selected agent harness to complete only the project-specific
-  parts of the constitution.
+  parts of the constitution; and
+- verifies after the harness exits that the complete generated Engineering
+  Standards, Specification and Evidence, and Mandatory Independent Audits
+  covenants remain present.
 
 The initializer writes only its named SDLC selections into the project `.env`
 and adds that file to `.gitignore`; unrelated existing values are preserved.
@@ -211,11 +214,15 @@ SHA-256. It prepends the block when absent, writes nothing when current, and
 replaces only a stale managed prefix while preserving the ledger body byte for
 byte. A marker outside the managed prefix is reported as an error.
 
-The generated template has no authority before ratification. The candidate
-constitution may correct, remove, or replace any scaffold clause. Ratification
-makes `.specify/memory/constitution.md` the sole governance authority. Its first
-line is the current compact Sync Impact Report; amendments replace that line
-rather than accumulating a separate changelog.
+The generated template has no authority before ratification. The candidate may
+correct, remove, or replace project-specific scaffold clauses. Only the human may
+authorize removal or weakening of the shared Engineering Standards,
+Specification and Evidence, or Mandatory Independent Audits covenant. After the
+harness exits, the initializer accepts changed line wrapping but rejects omitted,
+summarized, or rewritten shared governance. Ratification makes
+`.specify/memory/constitution.md` the sole governance authority. Its first line
+is the current compact Sync Impact Report; amendments replace that line rather
+than accumulating a separate changelog.
 Follow the complete procedures in [`QUICKSTART.md`](QUICKSTART.md).
 
 ## Deliver a feature with Spec Kit

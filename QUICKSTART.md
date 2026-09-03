@@ -64,8 +64,11 @@ When `.specify/` is absent, the initializer:
 6. asks whether another project owns deployment or runtime infrastructure;
 7. records the project selections in an ignored `.env`;
 8. renders `.specify/templates/overrides/constitution-template.md`;
-9. commits only that generated scaffold; and
-10. launches the selected agent to create an unratified project constitution.
+9. commits only that generated scaffold;
+10. launches the selected agent to create an unratified project constitution;
+    and
+11. verifies that the complete generated Engineering Standards, Specification
+    and Evidence, and Mandatory Independent Audits covenants remain present.
 
 Select `HUGO` together with `WEB` for a Hugo site. Select `NODE` whenever
 Node.js is the application runtime or npm-managed dependencies participate in
@@ -93,9 +96,12 @@ to reproduce the constitution, including:
 - any project documentation created for the constitution.
 
 The scaffold has no authority before ratification. Review the complete
-constitution on its own merits and correct or remove any unsuitable scaffold
-clause. Keep the current compact Sync Impact Report as the first line of the
-constitution. Replace it on amendment rather than accumulating report history.
+constitution on its own merits and correct or remove unsuitable project-specific
+clauses. Only the human may authorize removal or weakening of the shared
+Engineering Standards, Specification and Evidence, or Mandatory Independent
+Audits covenant. Keep the current compact Sync Impact Report as the first line
+of the constitution. Replace it on amendment rather than accumulating report
+history.
 
 Keep `.env` and project-local agent runtime directories such as `.agents/`,
 `.claude/`, and `.codex/` untracked. Resolve every ratification TODO, explicitly

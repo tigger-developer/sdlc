@@ -211,13 +211,17 @@ regression evidence, and source precedence. A build made at an exact SDLC
 release tag records that tag;
 other clean versioned builds record their source commit. Modified or unversioned
 builds leave an explicit ratification TODO. The initializer commits only the
-generated scaffold, leaving unrelated
-staged and working-tree changes untouched. The selected agent harness receives
-that template only after deterministic rendering and the isolated Git
-checkpoint. Before ratification, any proposed clause may be corrected, removed,
-or replaced. Ratification makes `.specify/memory/constitution.md` the sole
-governance authority; later amendments use that document directly rather than
-reapplying the initialization template.
+generated scaffold, leaving unrelated staged and working-tree changes
+untouched. The selected agent harness receives that template only after
+deterministic rendering and the isolated Git checkpoint. After the harness
+exits, the initializer verifies that the candidate retains the complete
+Engineering Standards, Specification and Evidence, and Mandatory Independent
+Audits sections from that exact rendered scaffold. Project-specific proposed
+clauses remain editable; only the human may authorize changing shared governance
+before ratification.
+Ratification makes `.specify/memory/constitution.md` the sole governance
+authority; later amendments use that document directly rather than reapplying
+the initialization template.
 
 The current Sync Impact Report is one compact HTML-comment line at the top of
 the constitution. Ratification and amendments replace that line rather than

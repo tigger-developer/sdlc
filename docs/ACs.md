@@ -75,6 +75,11 @@ adapter model.
   manifests.
 - A changed baseline is written atomically before the selected Codex, Claude,
   or Hermes harness receives the constitution-only semantic prompt.
+- After the harness exits, the initializer verifies against the generated
+  scaffold that the complete Engineering Standards, Specification and Evidence,
+  and Mandatory Independent Audits sections remain present. Line wrapping may
+  change; omitted, summarized, or weakened shared governance fails
+  initialization.
 - A brownfield baseline distinguishes the centralized legacy requirement
   authority, the migration disposition and historical context, current design
   authority, and the maintained regression test pack with its supported command

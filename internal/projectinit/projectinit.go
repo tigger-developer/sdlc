@@ -149,6 +149,12 @@ type constitutionTemplateData struct {
 
 var brownfieldMigrationPaths = []string{legacyACDocumentPath}
 
+var requiredConstitutionSections = []string{
+	"## Engineering Standards",
+	"## Specification and Evidence",
+	"## Mandatory Independent Audits",
+}
+
 // Run renders the deterministic constitution scaffold and, when it changes,
 // invokes the selected agent harness for project-specific completion.
 func Run(options Options) error {
@@ -1066,7 +1072,62 @@ func launchConstitution(config resolvedConfig, projectRoot, sdlcRoot, templatePa
 			arguments = append(arguments, "--model", config.SpecModel)
 		}
 	}
-	return options.RunCommand(harness, arguments, projectRoot, options.Input, options.Output, options.ErrorOutput)
+	if err := options.RunCommand(harness, arguments, projectRoot, options.Input, options.Output, options.ErrorOutput); err != nil {
+		return err
+	}
+	scaffold, err := os.ReadFile(templatePath)
+	if err != nil {
+		return fmt.Errorf("reading rendered constitution scaffold %q: %w", templatePath, err)
+	}
+	return validateConstitutionCandidate(projectRoot, scaffold)
+}
+
+func validateConstitutionCandidate(projectRoot string, scaffold []byte) error {
+	candidatePath := filepath.Join(projectRoot, ".specify", "memory", "constitution.md")
+	candidate, err := os.ReadFile(candidatePath)
+	if err != nil {
+		return fmt.Errorf("reading generated constitution %q: %w", candidatePath, err)
+	}
+	for _, heading := range requiredConstitutionSections {
+		required, err := markdownSection(scaffold, heading)
+		if err != nil {
+			return fmt.Errorf("reading required constitution governance: %w", err)
+		}
+		actual, err := markdownSection(candidate, heading)
+		if err != nil {
+			return fmt.Errorf("generated constitution failed shared-governance validation: %w", err)
+		}
+		if !strings.Contains(normalizeMarkdown(actual), normalizeMarkdown(required)) {
+			return fmt.Errorf("generated constitution changed or omitted required shared-governance section %q", heading)
+		}
+	}
+	return nil
+}
+
+func markdownSection(document []byte, heading string) (string, error) {
+	lines := strings.Split(strings.ReplaceAll(string(document), "\r\n", "\n"), "\n")
+	start := -1
+	for index, line := range lines {
+		if strings.TrimSpace(line) == heading {
+			start = index
+			break
+		}
+	}
+	if start < 0 {
+		return "", fmt.Errorf("missing section %q", heading)
+	}
+	end := len(lines)
+	for index := start + 1; index < len(lines); index++ {
+		if strings.HasPrefix(strings.TrimSpace(lines[index]), "## ") {
+			end = index
+			break
+		}
+	}
+	return strings.Join(lines[start:end], "\n"), nil
+}
+
+func normalizeMarkdown(value string) string {
+	return strings.Join(strings.Fields(value), " ")
 }
 
 func renderConstitutionPrompt(layout []byte, templatePath string) (string, error) {

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v2.0.4 - 2026-09-03
+
 Made completed brownfield migration authoritative and unambiguous in generated
 constitutions. The scaffold now treats `docs/ACs.md` as the sole legacy-process
 requirement authority after migration, with the migration index and ticket
@@ -14,6 +16,13 @@ The legacy-ticket migration now refreshes the canonical managed introduction in
 `docs/ACs.md` and rewrites contradictory preamble claims that migration remains
 unfinished or historical tickets retain requirement authority. The ledger stays
 in Markdown and all AC content and metadata are preserved.
+
+Protected the generated Specification and Evidence covenant from autonomous
+summarization or removal alongside the existing standards and audit governance.
+After the constitution harness exits, `sdlc-project-init` now compares the
+candidate with the exact rendered scaffold and fails when the Engineering
+Standards, Specification and Evidence, or Mandatory Independent Audits covenant
+was omitted, summarized, or weakened.
 
 Accepted either `y` or `yes`, case-insensitively, for interactive SDLC
 installation and explicit provider-configuration confirmations.
