@@ -338,10 +338,10 @@ Set the phase-specific harnesses `SDLC_SPEC_HARNESS`, `SDLC_BUILD_HARNESS`, and
 `SDLC_AUDIT_HARNESS` when different tools should perform those phases. Each
 falls back to `SDLC_AGENT_HARNESS`. Set `SDLC_AUDIT_PROVIDER` and
 `SDLC_AUDIT_MODEL` to select the independent auditor for new projects.
-The initializer snapshots those values into the project `.env`. The current
-audit runner always invokes Hermes
-and passes provider and model explicitly. An unset or `hermes` harness value is
-silent; any other value warns and falls back to Hermes.
+The initializer snapshots those values into the project `.env`. Provider fields
+apply only to harnesses that accept explicit provider selection. The audit
+runner passes provider and model to Hermes, but passes model only to Codex or
+Claude.
 
 ## Rerun and update
 

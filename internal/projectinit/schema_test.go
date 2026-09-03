@@ -40,6 +40,20 @@ func TestSchemaRejectsFallbackCycles(t *testing.T) {
 	}
 }
 
+func TestSchemaRequiresEveryProviderFieldToDeclareHarnessUse(t *testing.T) {
+	schema := ConfigSchema{
+		Version:    1,
+		Precedence: []string{"cli", "environment", "project", "user", "fallback"},
+		Fields: []ConfigField{
+			{Key: "PHASE_HARNESS", Flag: "harness", Type: "choice", Choices: []string{"hermes"}},
+			{Key: "PHASE_PROVIDER", Flag: "provider", Type: "string"},
+		},
+	}
+	if err := schema.Validate(); err == nil || !strings.Contains(err.Error(), "has no phase harness rule") {
+		t.Fatalf("unscoped provider field was accepted: %v", err)
+	}
+}
+
 func TestResolveConfigUsesDeclaredPrecedenceAndFallback(t *testing.T) {
 	schema := loadTestSchema(t)
 	values := resolveConfigValues(schema,

@@ -22,7 +22,7 @@ type ConfigSchema struct {
 	Version    int           `yaml:"version"`
 	Precedence []string      `yaml:"precedence"`
 	Fields     []ConfigField `yaml:"fields"`
-	Pairs      []FieldPair   `yaml:"pairs"`
+	Phases     []PhaseConfig `yaml:"phases"`
 }
 
 // ConfigField defines one project configuration value.
@@ -46,10 +46,13 @@ type RequiredWhen struct {
 	Values []string `yaml:"values"`
 }
 
-// FieldPair requires two related fields to be configured together.
-type FieldPair struct {
-	Name   string   `yaml:"name"`
-	Fields []string `yaml:"fields"`
+// PhaseConfig relates one phase's harness, provider, and model fields.
+type PhaseConfig struct {
+	Name              string   `yaml:"name"`
+	Harness           string   `yaml:"harness"`
+	Provider          string   `yaml:"provider"`
+	Model             string   `yaml:"model"`
+	ProviderHarnesses []string `yaml:"provider_harnesses"`
 }
 
 // LoadConfigSchema loads and strictly validates the deployed YAML schema.
@@ -171,14 +174,44 @@ func (schema ConfigSchema) Validate() error {
 			}
 		}
 	}
-	for _, pair := range schema.Pairs {
-		if pair.Name == "" || len(pair.Fields) != 2 {
-			return fmt.Errorf("pair %q must name exactly two fields", pair.Name)
+	seenPhases := map[string]bool{}
+	seenProviderFields := map[string]bool{}
+	for _, phase := range schema.Phases {
+		if phase.Name == "" || seenPhases[phase.Name] {
+			return fmt.Errorf("missing or duplicate phase name %q", phase.Name)
 		}
-		for _, key := range pair.Fields {
-			if _, ok := byKey[key]; !ok {
-				return fmt.Errorf("pair %s has unknown field %s", pair.Name, key)
+		seenPhases[phase.Name] = true
+		harness, harnessOK := byKey[phase.Harness]
+		provider, providerOK := byKey[phase.Provider]
+		model, modelOK := byKey[phase.Model]
+		if !harnessOK || harness.Type != "choice" {
+			return fmt.Errorf("phase %s has unknown or non-choice harness field %s", phase.Name, phase.Harness)
+		}
+		if !providerOK || provider.Type != "string" {
+			return fmt.Errorf("phase %s has unknown or non-string provider field %s", phase.Name, phase.Provider)
+		}
+		if !modelOK || model.Type != "string" {
+			return fmt.Errorf("phase %s has unknown or non-string model field %s", phase.Name, phase.Model)
+		}
+		if seenProviderFields[phase.Provider] {
+			return fmt.Errorf("provider field %s belongs to more than one phase", phase.Provider)
+		}
+		seenProviderFields[phase.Provider] = true
+		if len(phase.ProviderHarnesses) == 0 {
+			return fmt.Errorf("phase %s must declare provider_harnesses", phase.Name)
+		}
+		seenHarnesses := map[string]bool{}
+		for _, value := range phase.ProviderHarnesses {
+			canonical, ok := canonicalChoice(harness, value)
+			if !ok || seenHarnesses[canonical] {
+				return fmt.Errorf("phase %s has unknown or duplicate provider harness %q", phase.Name, value)
 			}
+			seenHarnesses[canonical] = true
+		}
+	}
+	for key := range byKey {
+		if strings.HasSuffix(key, "_PROVIDER") && !seenProviderFields[key] {
+			return fmt.Errorf("provider field %s has no phase harness rule", key)
 		}
 	}
 	return nil

@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"reflect"
+	"slices"
 	"strings"
 	"testing"
 
@@ -66,7 +67,7 @@ func TestUserDefaultsLiveUnderCommonAgentsRoot(t *testing.T) {
 	}
 }
 
-func TestValidateConfigUsesSchemaChoicesAndPairs(t *testing.T) {
+func TestValidateConfigUsesSchemaChoicesAndPhaseProviderRules(t *testing.T) {
 	schema := loadTestSchema(t)
 	values := map[string]string{
 		keyAgentHarness: "codex", keySpecHarness: "codex", keyBuildHarness: "codex", keyAuditHarness: "hermes",
@@ -81,6 +82,11 @@ func TestValidateConfigUsesSchemaChoicesAndPairs(t *testing.T) {
 	}
 	if values[keyProjectType] != "brownfield" {
 		t.Fatalf("choice was not canonicalized: %#v", values)
+	}
+	values[keyAuditHarness] = "codex"
+	values[keyAuditProvider] = ""
+	if err := validateConfig(schema, values, nil); err != nil {
+		t.Fatalf("provider was required for a harness that does not accept it: %v", err)
 	}
 	values[keyInfraRole] = "external"
 	if err := validateConfig(schema, values, nil); err == nil || !strings.Contains(err.Error(), keyInfraRole) {
@@ -719,6 +725,41 @@ func TestLaunchConstitutionUsesConfiguredHarness(t *testing.T) {
 	}
 	if command != "codex" || directory != projectRoot || len(arguments) != 3 || arguments[0] != "--model" || arguments[1] != "gpt-5.6-sol" {
 		t.Fatalf("constitution launch = command %q, arguments %#v, directory %q", command, arguments, directory)
+	}
+}
+
+func TestLaunchConstitutionPassesProviderOnlyToSupportingHarness(t *testing.T) {
+	for _, test := range []struct {
+		harness      string
+		wantProvider bool
+	}{
+		{harness: "codex"},
+		{harness: "claude"},
+		{harness: "hermes", wantProvider: true},
+	} {
+		t.Run(test.harness, func(t *testing.T) {
+			sdlcRoot := t.TempDir()
+			installProjectInitResourcesForTest(t, sdlcRoot)
+			projectRoot := t.TempDir()
+			templatePath := filepath.Join(projectRoot, ".specify", "templates", "overrides", "constitution-template.md")
+			renderedScaffold := string(renderConstitutionForTest(t, sdlcRoot, nil, resolvedConfig{ProjectType: "greenfield"}))
+			writeTestFile(t, templatePath, renderedScaffold)
+			var arguments []string
+			runner := func(_ string, gotArguments []string, _ string, _ io.Reader, _, _ io.Writer) error {
+				arguments = append([]string(nil), gotArguments...)
+				writeTestFile(t, filepath.Join(projectRoot, ".specify", "memory", "constitution.md"), renderedScaffold)
+				return nil
+			}
+			options := Options{RunCommand: runner, Input: strings.NewReader(""), Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{}}
+			config := resolvedConfig{SpecHarness: test.harness, SpecProvider: "provider-to-ignore", SpecModel: "model"}
+			if err := launchConstitution(config, projectRoot, sdlcRoot, templatePath, options); err != nil {
+				t.Fatal(err)
+			}
+			hasProvider := slices.Contains(arguments, "--provider") || slices.Contains(arguments, "provider-to-ignore")
+			if hasProvider != test.wantProvider {
+				t.Fatalf("%s arguments = %#v; provider presence = %t", test.harness, arguments, hasProvider)
+			}
+		})
 	}
 }
 

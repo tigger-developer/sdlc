@@ -12,6 +12,7 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -1097,11 +1098,14 @@ func validateConfig(schema ConfigSchema, values map[string]string, technologies 
 			}
 		}
 	}
-	for _, pair := range schema.Pairs {
-		first := strings.TrimSpace(values[pair.Fields[0]])
-		second := strings.TrimSpace(values[pair.Fields[1]])
-		if (first == "") != (second == "") {
-			return fmt.Errorf("%s fields %s and %s must be configured together", pair.Name, pair.Fields[0], pair.Fields[1])
+	for _, phase := range schema.Phases {
+		if !slices.Contains(phase.ProviderHarnesses, values[phase.Harness]) {
+			continue
+		}
+		provider := strings.TrimSpace(values[phase.Provider])
+		model := strings.TrimSpace(values[phase.Model])
+		if (provider == "") != (model == "") {
+			return fmt.Errorf("%s fields %s and %s must be configured together for %s", phase.Name, phase.Provider, phase.Model, values[phase.Harness])
 		}
 	}
 	return nil

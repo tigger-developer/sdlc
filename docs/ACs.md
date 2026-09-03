@@ -68,8 +68,8 @@ adapter model.
   `.env`, then a schema-declared fallback.
 - A YAML schema defines configuration fields, CLI flags, types, choices, prompt
   order, user-default eligibility, persistence, conditional requirements, and
-  provider/model pairs. Fixed unresolved choices use numbered prompts; resolved
-  fields are not prompted.
+  phase provider applicability. Fixed unresolved choices use numbered prompts;
+  resolved fields are not prompted.
 - Bash evaluates user and project `.env` files. Only schema-listed SDLC values
   cross the wrapper boundary; Go does not interpret shell expressions.
 - Specification, build, and audit harnesses independently fall back to the
@@ -237,9 +237,10 @@ adapter model.
 - The runner resolves audit harness, provider, and model from command-line,
   process-environment, project, user, then fallback sources. Audit harness falls
   back to the default harness.
-- An unset or `hermes` harness value invokes Hermes silently. Any other value
-  emits a warning and falls back to Hermes.
-- Hermes receives the configured provider and model explicitly.
+- The configured audit harness is invoked in a fresh context. Hermes receives
+  provider and model explicitly; Codex and Claude receive model only.
+- Every phase-specific `*_PROVIDER` value is ignored when its selected harness
+  does not accept explicit provider selection.
 - Every report names the audit, auditor provider, auditor model, and exact PASS,
   PROVISIONAL, or FAIL verdict. Findings are classified as `[BLOCKING]`,
   `[CONDITION]`, or `[ADVISORY]`.
@@ -248,10 +249,10 @@ adapter model.
   requires at least one blocking finding and permits advisories.
 - Missing or malformed headers, unclassified findings, and verdicts inconsistent
   with their finding classifications are rejected.
-- A report whose audit, provider, or model identity differs from the requested
+- A report whose audit, provider, or model identity differs from the effective
   values is rejected. A structurally valid FAIL is returned to the authoring
   context as evidence rather than treated as runner failure.
-- Hermes display or reasoning text preceding the last exact requested audit
+- Harness display or reasoning text preceding the last exact requested audit
   header is discarded; only the validated report is emitted.
 - Inputs must be regular non-symlink files beneath the project, canonical SDLC,
   or operating-system temporary directory. An exact external authority is
@@ -259,9 +260,9 @@ adapter model.
   directory tree. The child receives a bounded environment and a 15-minute
   runtime budget and hard timeout.
 - Automated regression coverage of `sdlc-audit` injects a fake harness and
-  never invokes Hermes or a hosted model. A live end-to-end audit invocation is
-  a metered one-off test only and must not be included in `make test`, CI,
-  scheduled automation, or another persistent regression target.
+  never invokes an agent harness or hosted model. A live end-to-end audit
+  invocation is a metered one-off test only and must not be included in
+  `make test`, CI, scheduled automation, or another persistent regression target.
 - Effective specification PASS precedes planning; effective design PASS precedes
   tests and tasks; effective test PASS precedes implementation; effective code
   PASS precedes completion or convergence.

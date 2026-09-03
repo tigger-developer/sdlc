@@ -135,10 +135,19 @@ fields:
     allow_user_default: true
     persist: true
 
-pairs:
+phases:
   - name: specification
-    fields: [SDLC_SPEC_PROVIDER, SDLC_SPEC_MODEL]
+    harness: SDLC_SPEC_HARNESS
+    provider: SDLC_SPEC_PROVIDER
+    model: SDLC_SPEC_MODEL
+    provider_harnesses: [hermes]
   - name: build
-    fields: [SDLC_BUILD_PROVIDER, SDLC_BUILD_MODEL]
+    harness: SDLC_BUILD_HARNESS
+    provider: SDLC_BUILD_PROVIDER
+    model: SDLC_BUILD_MODEL
+    provider_harnesses: [hermes]
   - name: audit
-    fields: [SDLC_AUDIT_PROVIDER, SDLC_AUDIT_MODEL]
+    harness: SDLC_AUDIT_HARNESS
+    provider: SDLC_AUDIT_PROVIDER
+    model: SDLC_AUDIT_MODEL
+    provider_harnesses: [hermes]

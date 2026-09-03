@@ -13,7 +13,9 @@ User and project `.env` files are now evaluated by one allowlisted Bash wrapper.
 The Go initializer and audit runner consume only its normalized SDLC fields and
 do not interpret shell expressions. The audit runner now honours process
 environment overrides and falls back from `SDLC_AUDIT_HARNESS` to
-`SDLC_AGENT_HARNESS` before applying its Hermes-only execution policy.
+`SDLC_AGENT_HARNESS`. It invokes the selected Hermes, Codex, or Claude harness.
+Across all phases, provider fields apply only to harnesses that accept explicit
+provider selection; other harnesses ignore them and use their native provider.
 
 Added explicit `none`, `consumer`, and `provider` infrastructure relationships
 to project initialization. Provider constitutions now state responsibility for

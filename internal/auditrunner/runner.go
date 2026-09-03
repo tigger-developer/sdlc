@@ -1,4 +1,4 @@
-// Package auditrunner executes one SDLC audit in a fresh Hermes process.
+// Package auditrunner executes one SDLC audit in a fresh agent process.
 package auditrunner
 
 import (
@@ -30,7 +30,7 @@ var validAudits = map[string]bool{
 	"audit-code":   true,
 }
 
-// RunCommand starts one bounded Hermes process.
+// RunCommand starts one bounded agent process.
 type RunCommand func(ctx context.Context, name string, args []string, cwd string, environment []string, stdin io.Reader, stdout, stderr io.Writer) error
 
 // Options contains the bounded inputs for one independent audit.
@@ -62,8 +62,8 @@ type configuration struct {
 	model    string
 }
 
-// Run constructs a bounded audit prompt, launches fresh Hermes, and prints
-// only a structurally valid verdict from the requested provider and model.
+// Run constructs a bounded audit prompt, launches a fresh audit harness, and
+// prints only a structurally valid verdict from the effective provider and model.
 func Run(options Options) (resultErr error) {
 	options = defaults(options)
 	if !validAudits[options.AuditName] {
@@ -85,10 +85,10 @@ func Run(options Options) (resultErr error) {
 	if err != nil {
 		return err
 	}
-	if config.harness != "" && config.harness != "hermes" {
-		fmt.Fprintf(options.ErrorOutput, "configured audit harness %q is unsupported; using hermes\n", config.harness)
+	config, err = effectiveConfiguration(config)
+	if err != nil {
+		return err
 	}
-	config.harness = "hermes"
 
 	temporaryRoot, err := canonicalDirectory(options.TemporaryRoot)
 	if err != nil {
@@ -111,28 +111,23 @@ func Run(options Options) (resultErr error) {
 		}
 	}()
 
-	args := []string{
-		"chat", "--quiet", "--query-file", "-", "--in", auditDirectory,
-		"--provider", config.provider, "--model", config.model,
-		"--toolsets", "", "--ignore-rules", "--source", "tool",
-		"--run-budget", strconv.FormatInt(int64(options.Timeout/time.Second), 10),
-	}
+	commandName, args := harnessCommand(config, auditDirectory, options.Timeout)
 	ctx, cancel := context.WithTimeout(context.Background(), options.Timeout)
 	defer cancel()
 	var report bytes.Buffer
 	var childDiagnostics bytes.Buffer
-	if err := options.RunCommand(ctx, "hermes", args, auditDirectory, childEnvironment(config, options.LookupEnv), strings.NewReader(prompt), &report, &childDiagnostics); err != nil {
+	if err := options.RunCommand(ctx, commandName, args, auditDirectory, childEnvironment(config, options.LookupEnv), strings.NewReader(prompt), &report, &childDiagnostics); err != nil {
 		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-			return fmt.Errorf("hermes audit exceeded %s timeout", options.Timeout)
+			return fmt.Errorf("%s audit exceeded %s timeout", config.harness, options.Timeout)
 		}
 		diagnostic := strings.TrimSpace(childDiagnostics.String())
 		if len(diagnostic) > 4096 {
 			diagnostic = diagnostic[:4096] + "..."
 		}
 		if diagnostic != "" {
-			return fmt.Errorf("running hermes audit: %w: %s", err, diagnostic)
+			return fmt.Errorf("running %s audit: %w: %s", config.harness, err, diagnostic)
 		}
-		return fmt.Errorf("running hermes audit: %w", err)
+		return fmt.Errorf("running %s audit: %w", config.harness, err)
 	}
 	normalizedReport, err := extractReport(report.String(), options.AuditName)
 	if err != nil {
@@ -256,10 +251,53 @@ func resolveConfiguration(options Options, projectRoot string) (configuration, e
 	if options.Model != "" {
 		config.model = options.Model
 	}
-	if config.provider == "" || config.model == "" {
-		return configuration{}, errors.New("audit configuration requires SDLC_AUDIT_PROVIDER and SDLC_AUDIT_MODEL")
+	if config.model == "" {
+		return configuration{}, errors.New("audit configuration requires SDLC_AUDIT_MODEL")
 	}
 	return config, nil
+}
+
+func effectiveConfiguration(config configuration) (configuration, error) {
+	config.harness = strings.ToLower(strings.TrimSpace(config.harness))
+	if config.harness == "" {
+		config.harness = "hermes"
+	}
+	switch config.harness {
+	case "hermes":
+		if config.provider == "" {
+			return configuration{}, errors.New("Hermes audits require SDLC_AUDIT_PROVIDER")
+		}
+	case "codex":
+		config.provider = "openai-codex"
+	case "claude":
+		config.provider = "anthropic"
+	default:
+		return configuration{}, fmt.Errorf("unsupported audit harness %q", config.harness)
+	}
+	return config, nil
+}
+
+func harnessCommand(config configuration, auditDirectory string, timeout time.Duration) (string, []string) {
+	switch config.harness {
+	case "codex":
+		return "codex", []string{
+			"exec", "--ephemeral", "--ignore-user-config", "--ignore-rules",
+			"--skip-git-repo-check", "--sandbox", "read-only", "--model", config.model, "-",
+		}
+	case "claude":
+		return "claude", []string{
+			"--print", "--output-format", "text", "--model", config.model,
+			"--no-session-persistence", "--safe-mode", "--permission-mode", "dontAsk",
+			"--tools", "",
+		}
+	default:
+		return "hermes", []string{
+			"chat", "--quiet", "--query-file", "-", "--in", auditDirectory,
+			"--provider", config.provider, "--model", config.model,
+			"--toolsets", "", "--ignore-rules", "--source", "tool",
+			"--run-budget", strconv.FormatInt(int64(timeout/time.Second), 10),
+		}
+	}
 }
 
 func buildPrompt(options Options, projectRoot, sdlcRoot string, authorizedRoots []string, config configuration) (string, error) {

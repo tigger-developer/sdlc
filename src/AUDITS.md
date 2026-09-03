@@ -23,15 +23,16 @@ The runner resolves `SDLC_AUDIT_HARNESS`, `SDLC_AUDIT_PROVIDER`, and
 `SDLC_AUDIT_MODEL` in command-line, process-environment, project `.env`, then
 user `.env` order. `SDLC_AUDIT_HARNESS` falls back to `SDLC_AGENT_HARNESS`.
 The two shell files are evaluated by the deployed allowlisted Bash wrapper; the
-runner does not interpret their shell expressions. This release always uses
-Hermes: an unset or `hermes` resolved harness is silent; any other value emits a
-warning and falls back to Hermes. Provider and model are required and passed
-explicitly to Hermes. A harness execution error, timeout, malformed verdict,
-wrong audit name, or reported provider or model that does not match the request
-fails closed. A valid FAIL remains an audit result, not a runner failure.
-Each invocation has a 15-minute runtime budget and hard timeout.
-Hermes reasoning or display text before the last exact audit header is discarded;
-only the validated machine-readable report is returned to the caller.
+runner does not interpret their shell expressions. It invokes the selected
+Hermes, Codex, or Claude harness in a fresh context. Hermes requires and receives
+provider and model explicitly. Codex and Claude ignore `SDLC_AUDIT_PROVIDER`,
+receive only the model, and report their harness-native provider. A harness
+execution error, timeout, malformed verdict, wrong audit name, or reported
+effective provider or model that does not match the request fails closed. A
+valid FAIL remains an audit result, not a runner failure.
+Each invocation has a 15-minute runtime budget and hard timeout. Harness
+reasoning or display text before the last exact audit header is discarded; only
+the validated machine-readable report is returned to the caller.
 
 ## Brownfield source coverage
 

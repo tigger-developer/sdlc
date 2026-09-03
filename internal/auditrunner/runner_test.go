@@ -16,7 +16,7 @@ import (
 
 func TestRunUsesHermesWithProjectProviderAndModelAndBoundedInputs(t *testing.T) {
 	fixture := newFixture(t, "audit-design")
-	mustWrite(t, fixture.userConfig, `SDLC_AUDIT_HARNESS="codex"
+	mustWrite(t, fixture.userConfig, `SDLC_AUDIT_HARNESS="hermes"
 SDLC_AUDIT_PROVIDER="openai-codex"
 SDLC_AUDIT_MODEL="gpt-5.6-luna"
 `)
@@ -81,7 +81,7 @@ SDLC_AUDIT_MODEL="z-ai/glm-5.3"
 	if strings.Contains(invokedPrompt, "MUST NOT LEAK") {
 		t.Error("prompt contains content from an unlisted file")
 	}
-	if diagnostics.String() != "configured audit harness \"codex\" is unsupported; using hermes\n" {
+	if diagnostics.Len() != 0 {
 		t.Fatalf("diagnostics = %q", diagnostics.String())
 	}
 	if output.String() != "AUDIT: audit-design\nAUDITOR_PROVIDER: nous\nAUDITOR_MODEL: z-ai/glm-5.3\nVERDICT: PASS\n" {
@@ -89,7 +89,49 @@ SDLC_AUDIT_MODEL="z-ai/glm-5.3"
 	}
 }
 
-func TestRunUsesHermesSilentlyWhenHarnessIsUnset(t *testing.T) {
+func TestRunUsesCodexAndIgnoresConfiguredProvider(t *testing.T) {
+	fixture := newFixture(t, "audit-design")
+	mustWrite(t, fixture.userConfig, "SDLC_AUDIT_HARNESS=codex\nSDLC_AUDIT_PROVIDER=nous\nSDLC_AUDIT_MODEL=gpt-5.6-luna\n")
+	var invokedArgs []string
+	runner := func(_ context.Context, name string, args []string, _ string, _ []string, _ io.Reader, stdout, _ io.Writer) error {
+		if name != "codex" {
+			return fmt.Errorf("command = %q, want codex", name)
+		}
+		invokedArgs = slices.Clone(args)
+		_, err := io.WriteString(stdout, "AUDIT: audit-design\nAUDITOR_PROVIDER: openai-codex\nAUDITOR_MODEL: gpt-5.6-luna\nVERDICT: PASS\n")
+		return err
+	}
+	if err := Run(fixture.options(runner)); err != nil {
+		t.Fatal(err)
+	}
+	want := []string{"exec", "--ephemeral", "--ignore-user-config", "--ignore-rules", "--skip-git-repo-check", "--sandbox", "read-only", "--model", "gpt-5.6-luna", "-"}
+	if !slices.Equal(invokedArgs, want) || slices.Contains(invokedArgs, "nous") || slices.Contains(invokedArgs, "--provider") {
+		t.Fatalf("Codex args = %#v, want %#v without provider", invokedArgs, want)
+	}
+}
+
+func TestRunUsesClaudeAndIgnoresConfiguredProvider(t *testing.T) {
+	fixture := newFixture(t, "audit-spec")
+	mustWrite(t, fixture.userConfig, "SDLC_AUDIT_HARNESS=claude\nSDLC_AUDIT_PROVIDER=nous\nSDLC_AUDIT_MODEL=sonnet\n")
+	var invokedArgs []string
+	runner := func(_ context.Context, name string, args []string, _ string, _ []string, _ io.Reader, stdout, _ io.Writer) error {
+		if name != "claude" {
+			return fmt.Errorf("command = %q, want claude", name)
+		}
+		invokedArgs = slices.Clone(args)
+		_, err := io.WriteString(stdout, "AUDIT: audit-spec\nAUDITOR_PROVIDER: anthropic\nAUDITOR_MODEL: sonnet\nVERDICT: PASS\n")
+		return err
+	}
+	if err := Run(fixture.options(runner)); err != nil {
+		t.Fatal(err)
+	}
+	want := []string{"--print", "--output-format", "text", "--model", "sonnet", "--no-session-persistence", "--safe-mode", "--permission-mode", "dontAsk", "--tools", ""}
+	if !slices.Equal(invokedArgs, want) || slices.Contains(invokedArgs, "nous") || slices.Contains(invokedArgs, "--provider") {
+		t.Fatalf("Claude args = %#v, want %#v without provider", invokedArgs, want)
+	}
+}
+
+func TestRunUsesHermesWhenHarnessIsUnset(t *testing.T) {
 	fixture := newFixture(t, "audit-spec")
 	mustWrite(t, fixture.userConfig, "SDLC_AUDIT_PROVIDER=openai-codex\nSDLC_AUDIT_MODEL=gpt-5.6-luna\n")
 	var invoked string
@@ -98,17 +140,12 @@ func TestRunUsesHermesSilentlyWhenHarnessIsUnset(t *testing.T) {
 		_, err := io.WriteString(stdout, "AUDIT: audit-spec\nAUDITOR_PROVIDER: openai-codex\nAUDITOR_MODEL: gpt-5.6-luna\nVERDICT: PASS\n")
 		return err
 	}
-	var diagnostics bytes.Buffer
 	options := fixture.options(runner)
-	options.ErrorOutput = &diagnostics
 	if err := Run(options); err != nil {
 		t.Fatalf("Run() error = %v", err)
 	}
 	if invoked != "hermes" {
 		t.Fatalf("command = %q, want hermes", invoked)
-	}
-	if diagnostics.Len() != 0 {
-		t.Fatalf("blank harness emitted diagnostics: %q", diagnostics.String())
 	}
 }
 
@@ -127,6 +164,26 @@ func TestResolveConfigurationUsesEnvironmentBeforeProjectAndAuditHarnessFallsBac
 	}
 	if config.harness != "codex" || config.provider != "environment" || config.model != "environment-model" {
 		t.Fatalf("resolved audit configuration = %#v", config)
+	}
+}
+
+func TestEffectiveConfigurationRequiresProviderOnlyForHermes(t *testing.T) {
+	if _, err := effectiveConfiguration(configuration{harness: "hermes", model: "model"}); err == nil || !strings.Contains(err.Error(), "SDLC_AUDIT_PROVIDER") {
+		t.Fatalf("Hermes without provider error = %v", err)
+	}
+	codex, err := effectiveConfiguration(configuration{harness: "codex", provider: "ignored", model: "model"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if codex.provider != "openai-codex" {
+		t.Fatalf("Codex effective provider = %q", codex.provider)
+	}
+	claude, err := effectiveConfiguration(configuration{harness: "claude", provider: "ignored", model: "model"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if claude.provider != "anthropic" {
+		t.Fatalf("Claude effective provider = %q", claude.provider)
 	}
 }
 

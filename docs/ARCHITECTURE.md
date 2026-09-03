@@ -232,12 +232,13 @@ accepts it only from the process environment, project, command line, or project
 prompt.
 
 `config/project-init.schema.yaml` defines field order, CLI metadata, types,
-choices, prompts, fallbacks, conditional requirements, persistence, and whether
-each field permits a user default. The initializer renders unresolved fixed
-choices as numbered questions. Technology choices remain dynamically derived
-from the deployed technology documents. Phase harnesses fall back independently
-to `SDLC_AGENT_HARNESS`; the specification harness controls Spec Kit integration
-and constitution generation.
+choices, prompts, fallbacks, conditional requirements, persistence, whether
+each field permits a user default, and which harnesses consume provider fields.
+The initializer renders unresolved fixed choices as numbered questions.
+Technology choices remain dynamically derived from the deployed technology
+documents. Phase harnesses fall back independently to `SDLC_AGENT_HARNESS`; the
+specification harness controls Spec Kit integration and constitution generation.
+Provider values are ignored for harnesses without explicit provider selection.
 
 ## Spec Kit composition
 
@@ -316,7 +317,7 @@ duplicative prose design.
 Audit skills are thin adapters to `sdlc-audit`. The runner composes the
 audit-specific prompt, the common audit contract, judged artefact contents, and
 only the exact context files selected by the authoring agent. It starts one
-non-resumed Hermes process in an empty temporary working
+non-resumed harness process in an empty temporary working
 directory, so authoring conversation and project-local instruction discovery
 are not inherited. Every audit emits its name, provider, model, and exact PASS,
 PROVISIONAL, or FAIL verdict. Blocking findings require
@@ -329,9 +330,9 @@ evidence receipt.
 Ordinary context files are restricted to the project, canonical SDLC, and
 operating-system temporary directories. `--external-context FILE` admits only
 the exact named external authority; it grants no directory tree. Automated
-regression tests inject a fake harness. A live Hermes and hosted-model call is a
-metered one-off test and is excluded from `make test`, CI, scheduled automation,
-and persistent regression targets.
+regression tests inject a fake harness. A live harness and hosted-model call is
+a metered one-off test and is excluded from `make test`, CI, scheduled
+automation, and persistent regression targets.
 
 The main authoring context owns convergence within each phase. It remediates
 current-phase blockers and dispatches a fresh auditor for at most five attempts
@@ -367,12 +368,12 @@ instead of dispatching another model audit.
 Verdicts are retained in the active feature's `audits.md`. The shared parser
 fails closed on missing or malformed verdicts, inconsistent finding
 classifications, or an audit, provider, or model identity different from the
-requested configuration. A valid FAIL passes through as a report. Audit
-configuration uses command-line, process-environment, project, user, then
+requested effective configuration. A valid FAIL passes through as a report.
+Audit configuration uses command-line, process-environment, project, user, then
 fallback precedence, and its `.env` files are evaluated by the allowlisted Bash
-wrapper. Hermes is the sole audit harness in this release; another resolved
-harness warns and falls back to Hermes, which receives provider and model
-explicitly. Each child has a
+wrapper. The runner invokes the selected Hermes, Codex, or Claude harness in a
+fresh context. Hermes receives provider and model; Codex and Claude ignore the
+configured provider and receive model only. Each child has a
 minimal environment and a 15-minute runtime budget and hard timeout. Advisory
 skills load context, diagnose, recommend, or summarize.
 

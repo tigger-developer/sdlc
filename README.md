@@ -173,15 +173,14 @@ repository rather than describing it as a consuming application.
 
 `SDLC_SPEC_HARNESS`, `SDLC_BUILD_HARNESS`, and `SDLC_AUDIT_HARNESS` each fall
 back to `SDLC_AGENT_HARNESS` when unset. Specification settings apply to
-constitution, specification, clarification, design, planning, and task-definition
-agent invocations. Build settings apply to implementation and convergence.
-Audit settings select the independent audit harness, provider, and model. The
-current audit runner always uses Hermes: an unset or `hermes` resolved audit
-harness is silent, while another value warns and falls back to Hermes. Provider
-and model are passed explicitly to Hermes. The initializer accepts legacy
-`SDLC_DELIVERY_PROVIDER` and
-`SDLC_DELIVERY_MODEL` values as specification defaults and rewrites project
-snapshots using the new names.
+constitution, specification, clarification, design, planning, and
+task-definition agent invocations. Build settings apply to implementation and
+convergence. Audit settings select the independent audit harness, provider, and
+model. A `*_PROVIDER` value applies only when the corresponding harness accepts
+explicit provider selection; otherwise it is ignored. Hermes receives provider
+and model, while Codex and Claude receive model only. The initializer accepts
+legacy `SDLC_DELIVERY_PROVIDER` and `SDLC_DELIVERY_MODEL` values as specification
+defaults and rewrites project snapshots using the new names.
 
 The infrastructure owner and contract are required only for `consumer` and
 `provider` roles. The public SDLC does not assume any particular infrastructure
@@ -189,10 +188,10 @@ project. Run
 `sdlc-project-init --help` for non-interactive overrides and `--no-launch`.
 
 Field order, flags, prompts, choices, user-default eligibility, persistence,
-fallbacks, conditional requirements, and provider/model pairs are declared in
-`~/.agents/sdlc/config/project-init.schema.yaml`. Adding a technology document
-still requires no schema change; the technology choices are discovered from
-`~/.agents/sdlc/technologies/`.
+fallbacks, conditional requirements, and phase provider applicability are
+declared in `~/.agents/sdlc/config/project-init.schema.yaml`. Adding a technology
+document still requires no schema change; the technology choices are discovered
+from `~/.agents/sdlc/technologies/`.
 
 When the rendered scaffold, brownfield ledger state, and selections are
 already current, the initializer writes nothing, asks nothing, and does not
@@ -260,7 +259,7 @@ active `specs/` feature directory carry the durable state.
 
 An independent audit is the only stage transition that mandates a different
 context. The audit skill invokes `sdlc-audit`, which starts a fresh one-shot
-Hermes process in an empty temporary directory. It embeds the
+configured harness process in an empty temporary directory. It embeds the
 canonical audit contract, the audit-specific prompt, the candidate, and only
 the exact context files named by the authoring agent. No authoring conversation
 or child-agent context is inherited.
@@ -593,10 +592,10 @@ Audits classify material phase blockers as `[BLOCKING]`, exact mechanical
 corrections as `[CONDITION]`, and optional improvements as `[ADVISORY]`. PASS
 permits advisories, PROVISIONAL requires at least one condition, and FAIL
 requires at least one blocking finding. Audits run through `sdlc-audit`, never
-modify the judged artefact, and identify both provider and model in their
-verdict. The runner rejects malformed reports or an identity different from the
-requested configuration. It bounds each invocation to 15 minutes. The shared
-contract is `~/.agents/sdlc/AUDITS.md`.
+modify the judged artefact, and identify the effective provider and model in
+their verdict. The runner rejects malformed reports or an identity different
+from the effective configuration. It bounds each invocation to 15 minutes. The
+shared contract is `~/.agents/sdlc/AUDITS.md`.
 
 Use `--external-context FILE` when an audit needs one exact authority outside
 the project and canonical SDLC directories. This supplies only the named file;
