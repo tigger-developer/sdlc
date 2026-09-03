@@ -111,6 +111,10 @@ adapter model.
   determines only the disposition: closed scope is abandoned and open scope is
   undelivered. Ticket-linked code commits are delivery evidence unless the
   archived record limits or contradicts them.
+- The ledger normally predates migration and is augmented in place. An AC
+  already present is delivery evidence even when its ticket has no recorded
+  test result. Missing ACs are inserted at their correct identifier positions;
+  existing identifiers are never renumbered.
 - The Org index records open defects, defined but undelivered features, any
   unresolved classifications, and a final simple list of delivered tickets.
   Local archive links make this history usable without GitHub.

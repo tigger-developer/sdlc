@@ -142,6 +142,9 @@ delivery evidence, while marked near-complete and live-RT heuristics preserve
 the distinction between observed and inferred evidence. Documentation
 reconciliation groups ACs by product area and consults code only when the
 documented authorities remain ambiguous.
+The normally pre-existing AC ledger is augmented in identifier sequence;
+presence in that ledger is itself delivery evidence when the originating ticket
+omits test results.
 If the supported whole-suite run fails, the skill checkpoints only the verified
 archive and stops before classification or GitHub mutation.
 Targeted corrections and implementation-plan archival join one pre-closure

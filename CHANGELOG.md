@@ -20,6 +20,9 @@ skill minimizes operator questions, batches repository changes, closes every
 legacy issue without comment, and commits the closure result.
 A failed whole-suite run checkpoints only the verified archive and stops before
 classification, reconciliation, or GitHub mutation.
+The normally pre-existing `docs/ACs.md` is augmented in identifier sequence,
+and presence of an AC in that ledger counts as delivery evidence even when its
+ticket lacks recorded test results.
 
 Standardized the Make interface across adopting projects. Added canonical
 contracts for `test`, `vulncheck`, `install`, `sync`, and `deploy`; defined

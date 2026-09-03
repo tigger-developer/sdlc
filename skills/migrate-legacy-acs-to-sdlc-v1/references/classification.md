@@ -10,6 +10,7 @@ history.
 
 | Archived evidence | Classification and action |
 |---|---|
+| AC already exists in `docs/ACs.md` | Delivery evidence even when its archived ticket records no test result. Preserve the AC and reconcile any missing provenance or test relationship. |
 | Ticket-linked code commit, with no explicit reversion, abandonment, or partial-delivery statement | Delivery evidence. Classify the ticket and its ACs as delivered unless stronger archived evidence limits the commit's scope. |
 | Bug-fix ticket without an AC table whose archive or maintained RT proves delivery | Delivered ticket. Add it to the final Org list without inventing an AC. |
 | No delivery evidence remains after applying the evidence rules | Use its snapshot state only now: closed scope is abandoned; open scope is undelivered. Put an open bug in the open-defects section and feature scope in the defined-but-undelivered section with that precise disposition. |
@@ -33,7 +34,8 @@ When reconciling `docs/ACs.md`:
 
 - leave exact complete entries unchanged;
 - complete partial entries in place;
-- add missing implemented ACs with ticket and test traceability;
+- add missing implemented ACs with ticket and test traceability at their correct
+  identifier positions, preserving ledger sequence;
 - retain original test results unless the maintained-RT rule or near-complete
   heuristic applies;
 - mark an assumed test pass and any AC solely dependent on it with the migration

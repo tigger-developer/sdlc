@@ -577,10 +577,13 @@ reviews every maintained regression test, runs or accepts one current passing
 whole-suite result, and builds an RT-to-ticket-to-AC delivery-evidence map. A
 reverse checksum then reconciles implemented ACs into `docs/ACs.md` without
 historical implementation research. Ticket-linked code commits provide further
-delivery evidence. When no delivery evidence remains after the complete pass,
-ticket state determines only the disposition: closed scope is abandoned and
-open scope is undelivered. A failed suite stops the migration after a
-recoverable archive checkpoint and before classification or remote mutation.
+delivery evidence. The normally pre-existing `docs/ACs.md` is augmented in
+identifier sequence, and an AC already present there is itself delivery evidence
+even when its ticket lacks recorded test results. When no delivery evidence
+remains after the complete pass, ticket state determines only the disposition:
+closed scope is abandoned and open scope is undelivered. A failed suite stops
+the migration after a recoverable archive checkpoint and before classification
+or remote mutation.
 
 `docs/ticket-migration.org` then records open defects, abandoned or undelivered
 feature scope, unresolved classifications, and delivered tickets.

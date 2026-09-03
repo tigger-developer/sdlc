@@ -119,6 +119,10 @@ code-commit evidence are retained in the archive. If the suite fails, the skill
 checkpoints only the verified archive and stops before classification,
 reconciliation, or remote mutation.
 
+`docs/ACs.md` is normally an existing ledger. The skill augments it in
+identifier sequence rather than replacing it. An AC already present in the
+ledger is delivery evidence even when its archived ticket omitted test results.
+
 The skill writes `docs/ticket-migration.org` with open defects, abandoned or
 undelivered feature scope, unresolved items, and a final delivered-ticket list.
 A

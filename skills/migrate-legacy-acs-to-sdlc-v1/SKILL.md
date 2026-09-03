@@ -22,7 +22,8 @@ for the targeted staleness pass.
 This is a fast archival and classification pass, not a historical review. It
 produces:
 
-1. an accurate, complete, and current `docs/ACs.md`;
+1. an accurate, complete, and current `docs/ACs.md`, normally produced by
+   augmenting the pre-existing ledger in place;
 2. a lossless ticket snapshot under `docs/archive/migrated-tickets/`;
 3. a concise `docs/ticket-migration.org` migration index;
 4. targeted corrections to stale project documentation;
@@ -69,7 +70,9 @@ material, stop before closure.
 
 ## Build the live-RT delivery map first
 
-1. Index `docs/ACs.md` without renumbering entries.
+1. Index the pre-existing `docs/ACs.md` without renumbering entries. Presence of
+   an AC in this ledger is delivery evidence even when its archived ticket does
+   not record test results.
 2. Review every test definition in the maintained regression harness. Record
    its descriptor, path or test name, AC references, issue references, and
    membership in the supported whole-suite command. Do not infer this inventory
@@ -116,11 +119,12 @@ for operator confirmation.
 
 Read [references/classification.md](references/classification.md) in full and
 classify the archived tickets in ascending number order, using the completed
-live-RT map first. Then apply archived test results, ticket-linked code commits,
-and other explicit evidence. Apply unambiguous AC additions, status corrections,
-supersessions, and traceability repairs directly to `docs/ACs.md`. Preserve
-identifiers, descriptors, wording, relationships, statuses, provenance, and
-supersession lineage.
+live-RT map first. Then apply pre-existing `docs/ACs.md` entries, archived test
+results, ticket-linked code commits, and other explicit evidence. Apply
+unambiguous AC additions, status corrections, supersessions, and traceability
+repairs directly to `docs/ACs.md`. Add missing ACs at their correct identifier
+positions so the ledger remains in sequence. Preserve identifiers, descriptors,
+wording, relationships, statuses, provenance, and supersession lineage.
 
 Treat a code-commit reference recorded on a ticket as delivery evidence unless
 the archived record explicitly says that work was reverted, abandoned, or only
