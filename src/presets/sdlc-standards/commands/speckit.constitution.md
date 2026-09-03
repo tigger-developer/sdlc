@@ -23,6 +23,13 @@ its traceability, and source precedence. Historical work records provide
 rationale and lineage but are not automatically current authority. Tests and
 code are implementation evidence and do not approve requirements.
 
+Preserve the selected infrastructure relationship when project evidence supports
+it. A consumer complies with an external infrastructure contract. A provider
+defines, implements, evolves, and must honour the infrastructure side of the
+contract it publishes. Do not frame an infrastructure provider as a consuming
+application. Record contradictory evidence as an unresolved constitutional
+conflict rather than silently reversing the selected relationship.
+
 Do not copy feature requirements or detailed architecture into the
 constitution, select an additional standard without recording it, or resolve an
 unsupported fact by guessing. Leave unresolved matters explicit.
@@ -36,6 +43,13 @@ Replace the report line when the constitution changes. Do not accumulate reports
 or create a separate changelog. Write only `.specify/memory/constitution.md`.
 Spec Kit owns orchestration; the SDLC supplies engineering standards and
 independent audit requirements.
+
+Only explicit human instruction ratifies a constitution. On initial
+ratification, use `UNRATIFIED -> 1.0.0`, remove the
+`SDLC-GENERATED-SCAFFOLD` comment, confirm the adopted SDLC revision, set the
+ratification and last-revised dates, remove resolved ratification blockers and
+draft-only qualifications, and do not describe pre-ratification revisions as
+amendments.
 
 After the applicable audit PASS, or validation when none applies, present
 approval artefacts with `HTML_PREVIEW_TOOL`; otherwise use an available

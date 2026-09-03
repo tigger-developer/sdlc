@@ -61,7 +61,8 @@ When `.specify/` is absent, the initializer:
 3. installs the `sdlc-standards` preset;
 4. asks whether the project is greenfield or brownfield;
 5. discovers the available technology standards and asks which apply;
-6. asks whether another project owns deployment or runtime infrastructure;
+6. asks whether the project has no infrastructure contract, consumes one owned
+   elsewhere, or provides and implements one;
 7. records the project selections in an ignored `.env`;
 8. renders `.specify/templates/overrides/constitution-template.md`;
 9. commits only that generated scaffold;
@@ -107,6 +108,12 @@ Keep `.env` and project-local agent runtime directories such as `.agents/`,
 `.claude/`, and `.codex/` untracked. Resolve every ratification TODO, explicitly
 ratify the constitution as version 1.0.0, and checkpoint the resulting project
 state before specifying the first feature.
+
+For initial ratification, replace the Sync Impact transition with
+`UNRATIFIED -> 1.0.0`, remove the `SDLC-GENERATED-SCAFFOLD` comment, confirm the
+adopted SDLC revision, set the ratification and last-revised dates, remove
+resolved blockers and draft-only qualifications, and do not describe edits to
+the unratified draft as amendments.
 
 ## Initialize a brownfield project
 
@@ -295,7 +302,7 @@ sdlc-project-init \
     --harness codex \
     --project-type brownfield \
     --technologies GO,WEB \
-    --infra no
+    --infra-role none
 ```
 
 Use `--no-launch` to render and inspect the scaffold without starting an agent.
@@ -313,6 +320,12 @@ existing projects. Project classification is project-only: supply
 `--project-type`, record `SDLC_PROJECT_TYPE` in the project `.env`, or answer the
 initializer prompt. A value in `~/.agents/.env` is ignored. Command-line values
 take precedence. Run `sdlc-project-init --help` for the complete interface.
+
+`SDLC_INFRA_ROLE` accepts `none`, `consumer`, or `provider`. Consumer projects
+comply with an externally owned integration contract. Provider projects define,
+implement, evolve, and honour the infrastructure side of the contract they
+publish. Use `--infra-role` to override the configured default for an
+infrastructure repository.
 
 Set `SDLC_AUDIT_HARNESS`, `SDLC_AUDIT_PROVIDER`, and `SDLC_AUDIT_MODEL` in
 `~/.agents/.env` to select the default independent auditor for new projects.

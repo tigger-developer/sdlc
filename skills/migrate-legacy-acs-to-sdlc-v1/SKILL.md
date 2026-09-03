@@ -104,6 +104,13 @@ project ledger. Keep `docs/ACs.org` valid Org throughout the remaining migration
 and validate it with Pandoc's Org reader after conversion and before every
 repository commit that changes it.
 
+After writing or changing the ledger, cross-check its outline against the
+canonical example in `~/.agents/sdlc/templates/migration/ACs.org`. Every AC MUST
+be a level-three heading containing both its identifier and a useful descriptor,
+for example `*** AC29.1 - Reject an invalid host definition`. An identifier-only
+AC heading fails this structural check. Preserve any additional source detail
+under the canonical nested fields.
+
 If `docs/ACs.org` already exists and `docs/ACs.md` does not, validate it against
 the template and resume. If both exist, stop and report the conflict rather than
 choosing or merging a ledger. If neither exists, initialize an empty
@@ -240,6 +247,13 @@ says migration is unfinished, older criteria still live authoritatively in
 tickets, or ticket bodies and comments remain requirement or AC authorities.
 Preserve document metadata and every substantive source item. A migration note
 may record the completion date or final migrated identifier as history.
+
+Check active project instructions and documentation, including a project-root
+`AGENTS.md` when present, for statements that migration is unfinished, that
+`docs/ACs.md` remains current, or that live or archived tickets remain current
+requirement authorities. Correct unambiguous stale statements in the same
+documentation batch. Record genuinely ambiguous conflicts for the operator; do
+not rewrite archived material.
 
 Match `docs/implementation?plan.md` so either the hyphenated or underscored
 filename is accepted. If exactly one source matches and its same-basename path

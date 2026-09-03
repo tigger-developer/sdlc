@@ -116,7 +116,7 @@ The initializer separates deterministic selection from semantic drafting. It:
 - installs the deployed SDLC preset;
 - asks whether the adopting project is greenfield or brownfield;
 - discovers available standards from `~/.agents/sdlc/technologies/`;
-- asks once which technologies and infrastructure ownership apply;
+- asks once which technologies and infrastructure relationship apply;
 - renders the editable constitution scaffold at
   `.specify/templates/overrides/constitution-template.md`;
 - pins the exact SDLC release tag used to build the initializer, or the source
@@ -152,13 +152,20 @@ SDLC_AUDIT_PROVIDER
 SDLC_AUDIT_MODEL
 SDLC_PROJECT_TYPE
 SDLC_TECHNOLOGIES
-SDLC_INFRA_ENABLED
+SDLC_INFRA_ROLE
 SDLC_INFRA_OWNER
 SDLC_INFRA_CONTRACT
 ```
 
 `SDLC_PROJECT_TYPE` accepts `greenfield` or `brownfield`. Set it in the project
 `.env` or with `--project-type`; a value in `~/.agents/.env` is ignored.
+
+`SDLC_INFRA_ROLE` accepts `none`, `consumer`, or `provider`. A consumer complies
+with a contract owned by another project. A provider defines, implements,
+evolves, and honours the contract it publishes. The legacy
+`SDLC_INFRA_ENABLED=true` and `false` values are normalized to `consumer` and
+`none` respectively. Use `--infra-role provider` for an infrastructure
+repository rather than describing it as a consuming application.
 
 Specification settings apply to constitution, specification, clarification,
 design, planning, and task-definition agent invocations. Build settings apply
@@ -171,8 +178,9 @@ model are passed explicitly to Hermes. The initializer accepts legacy
 `SDLC_DELIVERY_MODEL` values as specification defaults and rewrites project
 snapshots using the new names.
 
-The external owner and contract are optional project inputs. The public SDLC
-does not assume any particular infrastructure project. Run
+The infrastructure owner and contract are required only for `consumer` and
+`provider` roles. The public SDLC does not assume any particular infrastructure
+project. Run
 `sdlc-project-init --help` for non-interactive overrides and `--no-launch`.
 
 When the rendered scaffold, brownfield ledger state, and selections are

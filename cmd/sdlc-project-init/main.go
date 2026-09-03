@@ -35,9 +35,10 @@ func run(arguments []string) error {
 	auditModel := flags.String("audit-model", "", "independent audit model")
 	projectType := flags.String("project-type", "", "project classification: greenfield or brownfield")
 	technologies := flags.String("technologies", "", "comma-separated technology standards")
-	infra := flags.String("infra", "", "external infrastructure ownership: yes or no")
-	infraOwner := flags.String("infra-owner", "", "external infrastructure owner descriptor")
-	infraContract := flags.String("infra-contract", "", "external infrastructure integration-contract path")
+	infraRole := flags.String("infra-role", "", "infrastructure relationship: none, consumer, or provider")
+	infra := flags.String("infra", "", "deprecated external infrastructure ownership: yes or no")
+	infraOwner := flags.String("infra-owner", "", "infrastructure owner descriptor")
+	infraContract := flags.String("infra-contract", "", "infrastructure integration-contract path")
 	noLaunch := flags.Bool("no-launch", false, "render the scaffold without invoking an agent harness")
 	if err := flags.Parse(arguments); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
@@ -50,6 +51,9 @@ func run(arguments []string) error {
 	}
 	var infraEnabled *bool
 	if *infra != "" {
+		if *infraRole != "" {
+			return errors.New("--infra and --infra-role cannot be used together")
+		}
 		value, err := parseYesNo(*infra)
 		if err != nil {
 			return err
@@ -61,7 +65,7 @@ func run(arguments []string) error {
 		Harness: *harness, SpecProvider: *specProvider, SpecModel: *specModel,
 		BuildProvider: *buildProvider, BuildModel: *buildModel,
 		AuditHarness: *auditHarness, AuditProvider: *auditProvider, AuditModel: *auditModel, ProjectType: *projectType, Technologies: splitList(*technologies),
-		InfraEnabled: infraEnabled, InfraOwner: *infraOwner, InfraContract: *infraContract,
+		InfraRole: *infraRole, InfraEnabled: infraEnabled, InfraOwner: *infraOwner, InfraContract: *infraContract,
 		SDLCRevision: sourceRevision(),
 		NoLaunch:     *noLaunch, Input: os.Stdin, Output: os.Stdout, ErrorOutput: os.Stderr,
 	})

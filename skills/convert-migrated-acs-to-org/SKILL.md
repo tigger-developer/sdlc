@@ -66,9 +66,13 @@ Stage the candidate outside the tracked source path until it passes:
 
 1. Pandoc Org parsing;
 2. a field-by-field reconciliation against the source inventory;
-3. identifier, requirement, test, status, provenance, supersession, footnote,
+3. an outline cross-check against the canonical example: every AC is a
+   level-three heading containing both its identifier and a useful descriptor,
+   such as `*** AC29.1 - Reject an invalid host definition`; identifier-only AC
+   headings fail validation;
+4. identifier, requirement, test, status, provenance, supersession, footnote,
    glossary, and note completeness checks; and
-4. a check that instructional template comments and placeholders are absent.
+5. a check that instructional template comments and placeholders are absent.
 
 Counts are supporting evidence only; they do not replace field reconciliation.
 Do not modify the lossless files under `docs/archive/migrated-tickets/`.

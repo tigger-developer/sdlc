@@ -61,13 +61,15 @@ adapter model.
 - The project initializer discovers Markdown technology standards
   alphabetically from `~/.agents/sdlc/technologies/` without a hard-coded
   technology list.
-- Universal specification, coding, testing, application-security,
+- Universal specification, coding, testing, security, independent-audit,
   paired-development, documentation, Git, and entry-point standards are
   included exactly once.
 - CLI values override project `.env` values, which override user SDLC defaults.
-- External infrastructure ownership is optional and, when selected, records an
-  owner descriptor and integration-contract path without assuming a private
-  infrastructure project.
+- Infrastructure relationship is recorded as `none`, `consumer`, or `provider`.
+  Consumer projects comply with an externally owned contract; provider projects
+  define, implement, evolve, and honour the contract they publish. Selected
+  relationships record an owner descriptor and integration-contract path
+  without assuming a private infrastructure project.
 - Rendering is deterministic. When the rendered baseline and selections are
   current, the initializer asks nothing, writes nothing, and launches no agent.
 - The baseline is written as the project `constitution-template` override, not
@@ -80,6 +82,9 @@ adapter model.
   and Mandatory Independent Audits sections remain present. Line wrapping may
   change; omitted, summarized, or weakened shared governance fails
   initialization.
+- Initial ratification uses `UNRATIFIED -> 1.0.0`, removes the generated-scaffold
+  marker and resolved blockers, confirms the adopted SDLC revision, records the
+  ratification and last-revised dates, and removes draft-only qualifications.
 - A brownfield baseline distinguishes the centralized legacy requirement
   authority, the migration disposition and historical context, current design
   authority, and the maintained regression test pack with its supported command
@@ -137,6 +142,12 @@ adapter model.
   present is delivery evidence even when its ticket has no recorded test result.
   Missing ACs are inserted at their correct identifier positions; existing
   identifiers are never renumbered.
+- Every written `docs/ACs.org` is cross-checked against the canonical outline.
+  Each AC uses a level-three heading containing both its identifier and a useful
+  descriptor; identifier-only AC headings fail structural validation.
+- The final documentation reconciliation corrects unambiguous stale migration
+  and authority statements in active project instructions and documentation,
+  including a project-root `AGENTS.md`, while leaving archived material intact.
 - The explicit `convert-migrated-acs-to-org` repair path runs only when the
   ticket archive and completed migration index exist, GitHub reports zero open
   issues, `docs/ACs.md` exists, and `docs/ACs.org` does not. It preserves every

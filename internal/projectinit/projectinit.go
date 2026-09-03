@@ -29,6 +29,7 @@ const (
 	keyAuditProvider       = "SDLC_AUDIT_PROVIDER"
 	keyAuditModel          = "SDLC_AUDIT_MODEL"
 	keyProjectType         = "SDLC_PROJECT_TYPE"
+	keyInfraRole           = "SDLC_INFRA_ROLE"
 	keyInfraEnabled        = "SDLC_INFRA_ENABLED"
 	keyInfraOwner          = "SDLC_INFRA_OWNER"
 	keyInfraContract       = "SDLC_INFRA_CONTRACT"
@@ -55,6 +56,7 @@ var managedKeys = []string{
 	keyAuditProvider,
 	keyAuditModel,
 	keyProjectType,
+	keyInfraRole,
 	keyInfraEnabled,
 	keyInfraOwner,
 	keyInfraContract,
@@ -66,7 +68,8 @@ var universalStandards = []standard{
 	{Path: "ISSUES.md", Subject: "Specification and requirement quality"},
 	{Path: "CODING.md", Subject: "Implementation and design"},
 	{Path: "TESTING.md", Subject: "Testing and evidence"},
-	{Path: "SECURITY.md", Subject: "Application security and vulnerability checking"},
+	{Path: "SECURITY.md", Subject: "Security and vulnerability checking"},
+	{Path: "AUDITS.md", Subject: "Independent audits"},
 	{Path: "PAIRING.md", Subject: "Paired development"},
 	{Path: "DOCUMENTATION.md", Subject: "Documentation"},
 	{Path: "GIT.md", Subject: "Source control"},
@@ -99,6 +102,7 @@ type Options struct {
 	AuditModel     string
 	ProjectType    string
 	Technologies   []string
+	InfraRole      string
 	InfraEnabled   *bool
 	InfraOwner     string
 	InfraContract  string
@@ -121,7 +125,7 @@ type resolvedConfig struct {
 	AuditModel    string
 	ProjectType   string
 	Technologies  []string
-	InfraEnabled  *bool
+	InfraRole     string
 	InfraOwner    string
 	InfraContract string
 	SDLCRevision  string
@@ -144,7 +148,7 @@ type managedBlock struct {
 type constitutionTemplateData struct {
 	Standards              []standard
 	SDLCRevision           string
-	ExternalInfrastructure bool
+	InfrastructureRole     string
 	InfrastructureOwner    string
 	InfrastructureContract string
 	ProjectType            string
@@ -193,7 +197,9 @@ func Run(options Options) error {
 		return err
 	}
 	normalizeLegacyDelivery(userValues)
+	normalizeLegacyInfrastructure(userValues)
 	legacyProjectConfig := normalizeLegacyDelivery(projectValues)
+	legacyProjectConfig = normalizeLegacyInfrastructure(projectValues) || legacyProjectConfig
 	config := resolveConfig(options, userValues, projectValues)
 	configChanged := legacyProjectConfig
 	if config.ProjectType != "" {
@@ -237,16 +243,19 @@ func Run(options Options) error {
 	if err != nil {
 		return err
 	}
-	if config.InfraEnabled == nil {
-		enabled, promptErr := promptYesNo(reader, options.Output, "Does an external project own deployment or runtime infrastructure? [yes/no]: ")
-		if promptErr != nil {
-			return promptErr
+	if config.InfraRole == "" {
+		config.InfraRole, err = promptRequired(reader, options.Output, "Infrastructure relationship (none, consumer, or provider): ")
+		if err != nil {
+			return err
 		}
-		config.InfraEnabled = &enabled
-		projectValues[keyInfraEnabled] = fmt.Sprintf("%t", enabled)
+		config.InfraRole = strings.ToLower(strings.TrimSpace(config.InfraRole))
+		projectValues[keyInfraRole] = config.InfraRole
 		configChanged = true
 	}
-	if *config.InfraEnabled {
+	if err := validateInfrastructureRole(config.InfraRole); err != nil {
+		return err
+	}
+	if config.InfraRole != "none" {
 		if config.InfraOwner == "" {
 			config.InfraOwner, err = promptRequired(reader, options.Output, "Infrastructure owner descriptor: ")
 			if err != nil {
@@ -721,10 +730,7 @@ func resolveConfig(options Options, userValues, projectValues map[string]string)
 		Harness: values[keyAgentHarness], SpecProvider: values[keySpecProvider], SpecModel: values[keySpecModel],
 		BuildProvider: values[keyBuildProvider], BuildModel: values[keyBuildModel],
 		AuditHarness: values[keyAuditHarness], AuditProvider: values[keyAuditProvider], AuditModel: values[keyAuditModel], InfraOwner: values[keyInfraOwner], InfraContract: values[keyInfraContract],
-		ProjectType: strings.ToLower(values[keyProjectType]), Technologies: splitList(values[keyTechnologies]), SDLCRevision: options.SDLCRevision,
-	}
-	if value, ok := parseBool(values[keyInfraEnabled]); ok {
-		config.InfraEnabled = &value
+		ProjectType: strings.ToLower(values[keyProjectType]), Technologies: splitList(values[keyTechnologies]), InfraRole: strings.ToLower(values[keyInfraRole]), SDLCRevision: options.SDLCRevision,
 	}
 	if options.Harness != "" {
 		config.Harness = options.Harness
@@ -757,7 +763,14 @@ func resolveConfig(options Options, userValues, projectValues map[string]string)
 		config.Technologies = options.Technologies
 	}
 	if options.InfraEnabled != nil {
-		config.InfraEnabled = options.InfraEnabled
+		if *options.InfraEnabled {
+			config.InfraRole = "consumer"
+		} else {
+			config.InfraRole = "none"
+		}
+	}
+	if options.InfraRole != "" {
+		config.InfraRole = strings.ToLower(strings.TrimSpace(options.InfraRole))
 	}
 	if options.InfraOwner != "" {
 		config.InfraOwner = options.InfraOwner
@@ -779,14 +792,30 @@ func projectSnapshot(config resolvedConfig) map[string]string {
 		keyAuditProvider: config.AuditProvider,
 		keyAuditModel:    config.AuditModel,
 		keyProjectType:   config.ProjectType,
+		keyInfraRole:     config.InfraRole,
 		keyInfraOwner:    config.InfraOwner,
 		keyInfraContract: config.InfraContract,
 		keyTechnologies:  strings.Join(config.Technologies, ","),
 	}
-	if config.InfraEnabled != nil {
-		values[keyInfraEnabled] = strconv.FormatBool(*config.InfraEnabled)
-	}
 	return values
+}
+
+func normalizeLegacyInfrastructure(values map[string]string) bool {
+	legacy, exists := values[keyInfraEnabled]
+	if !exists {
+		return false
+	}
+	if values[keyInfraRole] == "" {
+		if enabled, ok := parseBool(legacy); ok {
+			if enabled {
+				values[keyInfraRole] = "consumer"
+			} else {
+				values[keyInfraRole] = "none"
+			}
+		}
+	}
+	delete(values, keyInfraEnabled)
+	return true
 }
 
 func normalizeLegacyDelivery(values map[string]string) bool {
@@ -868,7 +897,7 @@ func renderConstitution(layout []byte, sdlcRoot string, technologies []Technolog
 	data := constitutionTemplateData{
 		Standards:              standards,
 		SDLCRevision:           config.SDLCRevision,
-		ExternalInfrastructure: config.InfraEnabled != nil && *config.InfraEnabled,
+		InfrastructureRole:     config.InfraRole,
 		InfrastructureOwner:    config.InfraOwner,
 		InfrastructureContract: config.InfraContract,
 		ProjectType:            config.ProjectType,
@@ -1058,6 +1087,15 @@ func validateProjectType(projectType string) error {
 		return nil
 	default:
 		return fmt.Errorf("unsupported project type %q; use greenfield or brownfield", projectType)
+	}
+}
+
+func validateInfrastructureRole(role string) error {
+	switch strings.ToLower(strings.TrimSpace(role)) {
+	case "none", "consumer", "provider":
+		return nil
+	default:
+		return fmt.Errorf("infrastructure relationship must be none, consumer, or provider, got %q", role)
 	}
 }
 

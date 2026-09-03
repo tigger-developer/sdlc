@@ -32,6 +32,9 @@
 # Mini Org syntax guide:
 # - Headings begin at column one. Use =*= for sections, =**= for product areas or
 #   source groups, =***= for ACs, =****= for AC fields, and =*****= for tests.
+#   Every level-three AC heading includes its identifier and a useful descriptor;
+#   =*** AC29.1= alone is invalid and =*** AC29.1 - Reject an invalid host
+#   definition= is valid.
 # - Use headings, not deeply nested bullets, for foldable information.
 # - Use bullets only for short, flat peer facts within a field.
 # - Links use =[[file:path][descriptive label]]= or =[[URL][descriptive label]]=.

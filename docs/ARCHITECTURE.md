@@ -192,8 +192,8 @@ usable.
 
 The generated template is editable pre-ratification scaffolding. It contains
 the fixed standards proposal, universal standard references, selected
-technology references, an optional external
-infrastructure contract, mandatory independent audits, a fixed specification
+technology references, an optional consumer or provider infrastructure
+contract relationship, mandatory independent audits, a fixed specification
 baseline selected as greenfield or brownfield, and bounded placeholders for
 project-specific principles. The brownfield structure separates current and
 historical requirement authority, historical work context, design authority,

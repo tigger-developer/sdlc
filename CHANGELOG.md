@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+Added explicit `none`, `consumer`, and `provider` infrastructure relationships
+to project initialization. Provider constitutions now state responsibility for
+defining, implementing, evolving, and honouring their published integration
+contract. Restored `AUDITS.md` to the generated universal standards profile and
+generalized the security standard label beyond applications. Constitution
+drafting now includes an explicit first-ratification cleanup checklist.
+
+Legacy-ticket migration now reconciles stale authority statements in active
+project instructions and documentation as well as the AC ledger. Both AC
+migration skills cross-check the generated Org outline against the canonical
+example and reject identifier-only level-three AC headings.
+
 ## v2.0.5 - 2026-09-03
 
 Standardized completed legacy requirement ledgers as `docs/ACs.org`. The

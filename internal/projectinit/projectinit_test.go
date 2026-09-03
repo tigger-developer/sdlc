@@ -86,6 +86,27 @@ func TestProjectTypeMustBeGreenfieldOrBrownfield(t *testing.T) {
 	}
 }
 
+func TestInfrastructureRoleMustBeNoneConsumerOrProvider(t *testing.T) {
+	for _, accepted := range []string{"none", "CONSUMER", "provider"} {
+		if err := validateInfrastructureRole(accepted); err != nil {
+			t.Errorf("validateInfrastructureRole(%q): %v", accepted, err)
+		}
+	}
+	if err := validateInfrastructureRole("external"); err == nil {
+		t.Fatal("unsupported infrastructure role was accepted")
+	}
+}
+
+func TestLegacyInfrastructureSelectionBecomesConsumerRole(t *testing.T) {
+	values := map[string]string{keyInfraEnabled: "true"}
+	if !normalizeLegacyInfrastructure(values) {
+		t.Fatal("legacy infrastructure configuration was not identified")
+	}
+	if values[keyInfraRole] != "consumer" || values[keyInfraEnabled] != "" {
+		t.Fatalf("normalized infrastructure configuration = %#v", values)
+	}
+}
+
 func TestLegacyDeliveryDefaultsBecomeSpecificationDefaults(t *testing.T) {
 	values := map[string]string{
 		legacyDeliveryProvider: "openai-codex",
@@ -116,6 +137,9 @@ func TestRenderConstitutionIncludesUniversalAndSelectedStandardsOnce(t *testing.
 			t.Errorf("%s occurs %d times, want once", item.Path, count)
 		}
 	}
+	if !strings.Contains(text, filepath.Join(root, "AUDITS.md")) {
+		t.Fatal("rendered constitution omitted the independent-audit standard")
+	}
 	if count := strings.Count(text, technologies[0].Path); count != 1 {
 		t.Errorf("selected technology occurs %d times, want once", count)
 	}
@@ -128,13 +152,23 @@ func TestRenderConstitutionIncludesUniversalAndSelectedStandardsOnce(t *testing.
 }
 
 func TestRenderConstitutionIncludesExternalIntegration(t *testing.T) {
-	enabled := true
 	text := string(renderConstitutionForTest(t, "/standards", nil, resolvedConfig{
-		InfraEnabled: &enabled, InfraOwner: "Fleet project", InfraContract: "/fleet/INTEGRATION.md",
+		InfraRole: "consumer", InfraOwner: "Fleet project", InfraContract: "/fleet/INTEGRATION.md",
 	}))
 	for _, expected := range []string{"Fleet project", "/fleet/INTEGRATION.md", "Conflicting historical deployment requirements"} {
 		if !strings.Contains(text, expected) {
 			t.Errorf("rendered constitution omitted %q", expected)
+		}
+	}
+}
+
+func TestRenderConstitutionIncludesInfrastructureProviderResponsibility(t *testing.T) {
+	text := string(renderConstitutionForTest(t, "/standards", nil, resolvedConfig{
+		InfraRole: "provider", InfraOwner: "Fleet authority", InfraContract: "/fleet/INTEGRATION.md",
+	}))
+	for _, expected := range []string{"Infrastructure Contract Authority", "defines, implements, evolves", "MUST honour", "infrastructure-side mechanisms and obligations"} {
+		if !strings.Contains(text, expected) {
+			t.Errorf("rendered provider constitution omitted %q", expected)
 		}
 	}
 }
@@ -541,8 +575,7 @@ func TestRunCommitsCurrentUntrackedScaffoldWithoutLaunching(t *testing.T) {
 	writeTestFile(t, filepath.Join(project, ".specify", "presets", "sdlc-standards", "preset.yml"), "present\n")
 	writeTestFile(t, filepath.Join(root, "technologies", "GO.md"), "# Go\n")
 	writeTestFile(t, filepath.Join(root, "presets", "sdlc-standards", "preset.yml"), "present\n")
-	disabled := false
-	config := resolvedConfig{Harness: "codex", ProjectType: "brownfield", Technologies: []string{"GO"}, InfraEnabled: &disabled}
+	config := resolvedConfig{Harness: "codex", ProjectType: "brownfield", Technologies: []string{"GO"}, InfraRole: "none"}
 	writeTestFile(t, filepath.Join(project, ".env"), strings.Join([]string{
 		`SDLC_AGENT_HARNESS="codex"`,
 		`SDLC_SPEC_PROVIDER=""`,
@@ -554,7 +587,7 @@ func TestRunCommitsCurrentUntrackedScaffoldWithoutLaunching(t *testing.T) {
 		`SDLC_AUDIT_MODEL=""`,
 		`SDLC_PROJECT_TYPE="brownfield"`,
 		`SDLC_TECHNOLOGIES="GO"`,
-		`SDLC_INFRA_ENABLED="false"`,
+		`SDLC_INFRA_ROLE="none"`,
 		`SDLC_INFRA_OWNER=""`,
 		`SDLC_INFRA_CONTRACT=""`,
 		"",
@@ -638,7 +671,7 @@ func TestRunSnapshotsEveryResolvedGlobalDefaultIntoProject(t *testing.T) {
 		`SDLC_AUDIT_MODEL="gpt-5.6-luna"`,
 		`SDLC_PROJECT_TYPE="brownfield"`,
 		`SDLC_TECHNOLOGIES="GO"`,
-		`SDLC_INFRA_ENABLED="true"`,
+		`SDLC_INFRA_ROLE="consumer"`,
 		`SDLC_INFRA_OWNER="Exodan"`,
 		`SDLC_INFRA_CONTRACT="~/code/exodan/deploy/docs/PROJECT-INTEGRATION.md"`,
 		"",

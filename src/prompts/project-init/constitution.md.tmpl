@@ -4,6 +4,8 @@ Create an unratified project constitution using the generated template at `{{.Te
 
 This is a filtering exercise, not a summary of the project documentation. Read the project documentation as evidence, but do not restate its important requirements.
 
+Preserve the generated infrastructure relationship when project evidence supports it. A consumer complies with an external infrastructure contract. A provider defines, implements, evolves, and must honour the infrastructure side of the contract it publishes. Do not frame an infrastructure provider as though it were merely a consuming application. If verified evidence contradicts the selected relationship, record that conflict as a ratification blocker rather than silently reversing it.
+
 Include a project-specific clause only when all of these are true:
 
 1. It applies across unrelated future features.
@@ -35,6 +37,8 @@ Add up to four concise project-specific principles. Zero is valid only when no e
 Make the authority hierarchy concern-specific. The human project owner or explicitly named human governance authority controls ratification, amendments, and deviations. The constitution and selected standards govern engineering and governance. Durable product vision and policy govern project purpose. Approved feature specifications govern observable behaviour. Approved architecture and design govern technical choices within those requirements. Operational, testing, migration, and user documentation govern their respective procedures and evidence. Code and tests record implemented state and evidence; they do not approve requirements. An external integration contract is authoritative only within its named ownership boundary. Do not place undifferentiated project documentation above approved specifications.
 
 The Governance section must name the human ratification and amendment authority, state whether any standards deviation is approved, and require compliance review to report applicable principles, deviations, and unresolved constitutional conflicts. Use a pre-1.0 version for an unratified draft and 1.0.0 for first ratification. After ratification, MAJOR removes or incompatibly redefines governance, MINOR adds or materially expands it, and PATCH clarifies it without changing meaning. List every unresolved ratification blocker; do not call one the sole blocker while another TODO remains.
+
+This operation creates an unratified draft; do not ratify it or remove its scaffold marker without explicit human instruction. On that later initial ratification, replace the Sync Impact transition with `UNRATIFIED -> 1.0.0`, remove the `SDLC-GENERATED-SCAFFOLD` comment, confirm the adopted SDLC revision is the release being ratified, set the ratification and last-revised dates, remove resolved ratification blockers, and remove draft-only qualifications such as "approved by this draft". Do not describe pre-ratification revisions as constitutional amendments.
 
 Before writing, test every proposed clause against this question:
 

@@ -18,10 +18,14 @@ The adopted SDLC revision is `{{.SDLCRevision}}`.
 {{else -}}
 TODO(SDLC_REVISION): Pin the canonical SDLC release or Git revision before ratification.
 {{end}}
-{{if .ExternalInfrastructure -}}
+{{if eq .InfrastructureRole "consumer" -}}
 ## External Infrastructure Ownership
 
 {{.InfrastructureOwner}} owns deployment and runtime infrastructure. This project MUST remain deployable through and comply with `{{.InfrastructureContract}}`. Application semantics remain project-owned; infrastructure mechanisms and obligations remain contract-owned. Conflicting historical deployment requirements MUST be classified against the current contract rather than silently retained.
+{{else if eq .InfrastructureRole "provider" -}}
+## Infrastructure Contract Authority
+
+This project provides infrastructure under the authority of {{.InfrastructureOwner}}. It defines, implements, evolves, and MUST honour the integration contract at `{{.InfrastructureContract}}`. Consuming projects retain the responsibilities assigned to them by that contract; this project owns the infrastructure-side mechanisms and obligations.
 {{end}}
 ## Specification and Evidence
 
