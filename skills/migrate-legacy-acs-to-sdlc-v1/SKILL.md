@@ -68,6 +68,33 @@ is the sole exception: create and archive it exactly once, then add it to the
 manifest. If staging is incomplete or the destination contains conflicting
 material, stop before closure.
 
+## Start the durable migration index
+
+Immediately after verifying and promoting the archive, create
+`docs/ticket-migration.org`. This is both the incremental working record and the
+final migration index. Initialize it with:
+
+1. **Migration state and evidence:** repository identity, snapshot time,
+   manifest link, current phase, completed ticket IDs or ranges, the next
+   unfinished ticket with its descriptor, suite command and result, the
+   RT-to-ticket-to-AC evidence map, active migration assumptions, and closure
+   totals.
+2. **Open defects at migration:** one Org subtree per defect, containing its
+   important current facts, relevant AC text, evidence, and disposition.
+3. **Defined but undelivered features:** one Org subtree per ticket, summarizing
+   its intended outcome and relevant ACs. Mark closed no-evidence scope as
+   abandoned and open no-evidence scope as undelivered. State that any revival
+   or delivery requires a new Spec Kit specification.
+4. **Requires human review:** include only when classification remains
+   unresolved; record the exact uncertainty and available evidence.
+5. **Delivered tickets:** a simple bulleted list of every delivered ticket,
+   including those open at migration but classified as delivered.
+
+Update the document after each completed evidence phase and immediately after
+classifying each ticket. Incremental writes are required; per-ticket commits are
+not. Give every ID a descriptor and link ticket titles to the local archived
+files. Keep complete source text in the archive rather than duplicating it here.
+
 ## Build the live-RT delivery map first
 
 1. Index the pre-existing `docs/ACs.md` without renumbering entries. Presence of
@@ -79,11 +106,11 @@ material, stop before closure.
    solely from `docs/ACs.md`.
 3. Run that whole suite, normally `make test`, at most once. Reuse current
    operator-supplied passing evidence when available.
-4. If the suite fails, record its result, checkpoint only the verified ticket
-   archive when it has already been promoted, and stop. Do not diagnose the
-   failure, classify tickets, change the AC ledger or project documentation,
-   create a baseline issue, close tickets, or rerun individual or historical
-   tests within this skill.
+4. If the suite fails, record its result in `docs/ticket-migration.org`,
+   checkpoint only that index and the verified ticket archive, and stop. Do not
+   diagnose the failure, classify tickets, change the AC ledger or project
+   documentation, create a baseline issue, close tickets, or rerun individual
+   or historical tests within this skill.
 5. Only after a current passing result, build the RT-to-ticket-to-AC evidence
    map.
 
@@ -167,6 +194,11 @@ means undelivered. Record an open bug under open defects. Record feature scope
 under defined but undelivered features with its precise disposition. Do not
 investigate the code merely to rescue the ticket from this classification.
 
+Read one archived ticket at a time. As soon as it is classified, write its
+disposition and evidence to `docs/ticket-migration.org`, update the completed and
+next-ticket fields, then release its raw content before reading the next ticket.
+Do not keep the complete ticket archive in model context.
+
 ## Reconcile project documents
 
 Group the migrated ACs by affected product area, then compare each batch with
@@ -186,28 +218,32 @@ Sanitize changed technical documentation except the lossless ticket snapshots.
 Use proportionate link, format, and traceability checks; never create regression
 tests that grep documentation.
 
-## Write the Org migration index
+## Finalize the Org migration index
 
-Create `docs/ticket-migration.org` with these sections in order:
+Use Org heading levels to nest the detail sections initialized earlier. Original
+GitHub URLs remain in the lossless snapshots. Mark every heuristic-delivered
+ticket with `[fn:migration-heuristic]` and define that footnote once in the Org
+document. Set the migration phase to complete only after reconciliation and
+closure recording finish. The archive is exhaustive; the Org file is the
+concise map a later agent reads first.
 
-1. **Open defects at migration:** one Org subtree per defect, containing its
-   important current facts, relevant AC text, evidence, and disposition.
-2. **Defined but undelivered features:** one Org subtree per ticket, summarizing
-   its intended outcome and relevant ACs. Mark closed no-evidence scope as
-   abandoned and open no-evidence scope as undelivered. State that any revival
-   or delivery requires a new Spec Kit specification.
-3. **Requires human review:** include only when classification remains
-   unresolved; record the exact uncertainty and available evidence.
-4. **Delivered tickets:** a simple bulleted list of every delivered ticket,
-   including those open at migration but classified as delivered.
+## Preserve context continuity
 
-Use Org heading levels to nest the detail sections. Give every ID a descriptor
-and link its title to the local archived ticket file. Original GitHub URLs remain
-in the lossless snapshots. Mark every heuristic-delivered ticket with
-`[fn:migration-heuristic]` and define that footnote once in the Org document.
+Do not initiate or request context compaction merely because the migration is
+batch-oriented or contains many tickets. Ticket count alone is not a reason to
+compact. Never load the complete ticket archive into context at once; use the
+archive as external memory and `docs/ticket-migration.org` as durable working
+state.
 
-Do not duplicate complete ticket text in the index. The archive is exhaustive;
-the Org file is the concise map a later agent reads first.
+Before any agent-initiated compaction that is genuinely necessary, first record
+the current phase, completed ticket IDs or ranges, active assumptions, evidence,
+unresolved items, and next action in `docs/ticket-migration.org`.
+
+If the harness compacts automatically, continue without operator handback.
+Reread this skill, the archive manifest, `docs/ACs.md`, and
+`docs/ticket-migration.org`, then resume from the first unfinished ticket. Do not
+re-fetch tickets, repeat completed analysis, rerun tests, or reconsider recorded
+decisions without contradictory evidence.
 
 ## Commit and close in batches
 

@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+Made `docs/ticket-migration.org` the incremental durable state for legacy-ticket
+migration. The skill creates it immediately after archive verification, records
+each evidence phase and ticket disposition as work progresses, processes one
+archived ticket at a time, and resumes from that record after automatic context
+compaction. It does not initiate compaction merely because the migration is
+batch-oriented or reload the entire ticket corpus after compaction.
+
 ## v2.0.3 - 2026-09-03
 
 Redesigned `migrate-legacy-acs-to-sdlc-v1` as a fast, lossless retirement of the

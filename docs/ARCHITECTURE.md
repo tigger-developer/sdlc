@@ -134,7 +134,8 @@ Before initialization, the explicit
 `migrate-legacy-acs-to-sdlc-v1` skill performs the semantic readiness migration.
 It archives every open and closed issue with comments once under
 `docs/archive/migrated-tickets/`, uses only that local snapshot thereafter, and
-creates `docs/ticket-migration.org` as the concise disposition map. The
+creates `docs/ticket-migration.org` immediately as the incremental progress,
+evidence, and disposition map. The
 maintained regression harness and at most one whole-suite run reconcile
 `docs/ACs.md`. Every maintained RT is reviewed and mapped to tickets and ACs
 before ticket classification begins. Ticket-linked commits provide further
@@ -146,7 +147,10 @@ The normally pre-existing AC ledger is augmented in identifier sequence;
 presence in that ledger is itself delivery evidence when the originating ticket
 omits test results.
 If the supported whole-suite run fails, the skill checkpoints only the verified
-archive and stops before classification or GitHub mutation.
+archive and incremental Org record, then stops before classification or GitHub
+mutation. One-ticket-at-a-time processing treats the archive as external memory;
+automatic compaction resumes from the durable Org record without repeating
+completed work.
 Targeted corrections and implementation-plan archival join one pre-closure
 commit. The skill then closes every issue that was open in the snapshot and
 commits the closure record.

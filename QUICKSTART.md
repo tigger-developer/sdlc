@@ -123,7 +123,9 @@ reconciliation, or remote mutation.
 identifier sequence rather than replacing it. An AC already present in the
 ledger is delivery evidence even when its archived ticket omitted test results.
 
-The skill writes `docs/ticket-migration.org` with open defects, abandoned or
+The skill creates `docs/ticket-migration.org` immediately after verifying the
+archive, then updates it after every evidence phase and ticket classification.
+It records progress, suite evidence, the RT map, open defects, abandoned or
 undelivered feature scope, unresolved items, and a final delivered-ticket list.
 A
 near-complete ticket with only one or two unrecorded UT or OT results is
@@ -136,6 +138,11 @@ baseline ticket. Once the archive, AC ledger, documentation
 corrections, and unchanged implementation-plan archival are committed in a
 batch, the skill closes every remaining legacy issue without comment and
 records the result.
+
+The archive is external memory: the agent reads one ticket at a time rather than
+loading the whole corpus. If its harness compacts automatically, it rereads the
+skill, manifest, AC ledger, and incremental Org record, then resumes from the
+first unfinished ticket without rerunning completed work.
 
 Run the same initializer from the existing project root:
 

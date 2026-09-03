@@ -177,8 +177,9 @@ For a greenfield repository, the initializer offers to run `specify init`, then
 creates the standards profile and unratified constitution. For a brownfield
 repository, first invoke `$migrate-legacy-acs-to-sdlc-v1`. That bounded skill
 archives every ticket and comment in the repository, uses at most one
-whole-suite run, reconciles `docs/ACs.md`, writes `docs/ticket-migration.org`,
-refreshes stale project documentation, and archives
+whole-suite run, reconciles `docs/ACs.md`, builds `docs/ticket-migration.org`
+incrementally as durable working state, refreshes stale project documentation,
+and archives
 `docs/implementation_plan.md`. It performs no ticket-by-ticket code archaeology,
 test reruns, migration comments, or per-ticket commits. After the archive commit
 succeeds, it closes every legacy issue and records the closure result.
@@ -587,6 +588,9 @@ or remote mutation.
 
 `docs/ticket-migration.org` then records open defects, abandoned or undelivered
 feature scope, unresolved classifications, and delivered tickets.
+It is created immediately after archive verification and updated after each
+evidence phase and ticket classification. The agent reads one archived ticket at
+a time and resumes from this durable record after any automatic compaction.
 Reviving abandoned scope requires a new Spec Kit specification. The near-complete
 heuristic automatically treats one or two otherwise-unrecorded UT or OT results
 as assumed passing when every other ticket test passed and no contrary evidence

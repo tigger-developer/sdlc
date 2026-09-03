@@ -86,6 +86,10 @@ adapter model.
   `docs/ticket-migration.org` index, the complete ticket archive, targeted stale
   documentation corrections, and unchanged archival of
   `docs/implementation_plan.md` when present.
+- It creates `docs/ticket-migration.org` immediately after archive verification
+  and updates it after each evidence phase and ticket classification. This
+  durable state records the suite result, RT map, completed tickets, next ticket,
+  assumptions, dispositions, and closure result.
 - It runs the supported whole-suite command at most once and never reruns or
   diagnoses historical individual tests. A maintained regression test plus a
   current passing suite may correct a legacy pending or unverified status.
