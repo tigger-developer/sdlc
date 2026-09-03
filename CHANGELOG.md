@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v2.0.6 - 2026-09-03
+
 Moved project-initializer configuration metadata into a strictly validated YAML
 schema. Fixed choices now use deterministic numbered prompts, while resolved
 fields skip prompting. Added separate specification, build, and audit harnesses,
