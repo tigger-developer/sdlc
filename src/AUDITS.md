@@ -19,11 +19,13 @@ operator an intermediary in routine revision cycles.
 - Record the audit name, provider, model, artefact revision, verdict, findings,
   and any superseding attempt in the active feature's `audits.md`.
 
-The runner reads `SDLC_AUDIT_HARNESS`, `SDLC_AUDIT_PROVIDER`, and
-`SDLC_AUDIT_MODEL` from user defaults in `~/.agents/.env`, then applies values
-from the ignored project `.env` with project precedence. This release always
-uses Hermes: an unset or `hermes` harness value is silent; any other value emits
-a warning and falls back to Hermes. Provider and model are required and passed
+The runner resolves `SDLC_AUDIT_HARNESS`, `SDLC_AUDIT_PROVIDER`, and
+`SDLC_AUDIT_MODEL` in command-line, process-environment, project `.env`, then
+user `.env` order. `SDLC_AUDIT_HARNESS` falls back to `SDLC_AGENT_HARNESS`.
+The two shell files are evaluated by the deployed allowlisted Bash wrapper; the
+runner does not interpret their shell expressions. This release always uses
+Hermes: an unset or `hermes` resolved harness is silent; any other value emits a
+warning and falls back to Hermes. Provider and model are required and passed
 explicitly to Hermes. A harness execution error, timeout, malformed verdict,
 wrong audit name, or reported provider or model that does not match the request
 fails closed. A valid FAIL remains an audit result, not a runner failure.

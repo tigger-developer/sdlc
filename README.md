@@ -136,15 +136,19 @@ The initializer writes only its named SDLC selections into the project `.env`
 and adds that file to `.gitignore`; unrelated existing values are preserved.
 User defaults come from `~/.agents/.env`. Every resolved default is copied into
 a new project's `.env`, producing a stable project snapshot. Later changes to
-the user defaults affect new projects, not existing snapshots. Command-line
-values override project values, which override user defaults. Project
-classification is deliberately project-only and is never read as a user
-default. Supported keys are:
+the user defaults affect new projects, not existing snapshots. Precedence is
+command line, process environment, project `.env`, user `.env`, then a declared
+field fallback. Project classification is deliberately project-only and is
+never read as a user default. The shell files are evaluated by the deployed
+Bash wrapper, which returns only allowlisted SDLC fields to the Go programs.
+Supported keys are:
 
 ```text
 SDLC_AGENT_HARNESS
+SDLC_SPEC_HARNESS
 SDLC_SPEC_PROVIDER
 SDLC_SPEC_MODEL
+SDLC_BUILD_HARNESS
 SDLC_BUILD_PROVIDER
 SDLC_BUILD_MODEL
 SDLC_AUDIT_HARNESS
@@ -167,13 +171,14 @@ evolves, and honours the contract it publishes. The legacy
 `none` respectively. Use `--infra-role provider` for an infrastructure
 repository rather than describing it as a consuming application.
 
-Specification settings apply to constitution, specification, clarification,
-design, planning, and task-definition agent invocations. Build settings apply
-to implementation and convergence. Audit settings select the independent
-audit harness, provider, and model. This release always uses Hermes: an unset
-or `hermes` harness value is silent, while another value warns and falls back
-to Hermes. Project `.env` values override `~/.agents/.env`, and provider and
-model are passed explicitly to Hermes. The initializer accepts legacy
+`SDLC_SPEC_HARNESS`, `SDLC_BUILD_HARNESS`, and `SDLC_AUDIT_HARNESS` each fall
+back to `SDLC_AGENT_HARNESS` when unset. Specification settings apply to
+constitution, specification, clarification, design, planning, and task-definition
+agent invocations. Build settings apply to implementation and convergence.
+Audit settings select the independent audit harness, provider, and model. The
+current audit runner always uses Hermes: an unset or `hermes` resolved audit
+harness is silent, while another value warns and falls back to Hermes. Provider
+and model are passed explicitly to Hermes. The initializer accepts legacy
 `SDLC_DELIVERY_PROVIDER` and
 `SDLC_DELIVERY_MODEL` values as specification defaults and rewrites project
 snapshots using the new names.
@@ -182,6 +187,12 @@ The infrastructure owner and contract are required only for `consumer` and
 `provider` roles. The public SDLC does not assume any particular infrastructure
 project. Run
 `sdlc-project-init --help` for non-interactive overrides and `--no-launch`.
+
+Field order, flags, prompts, choices, user-default eligibility, persistence,
+fallbacks, conditional requirements, and provider/model pairs are declared in
+`~/.agents/sdlc/config/project-init.schema.yaml`. Adding a technology document
+still requires no schema change; the technology choices are discovered from
+`~/.agents/sdlc/technologies/`.
 
 When the rendered scaffold, brownfield ledger state, and selections are
 already current, the initializer writes nothing, asks nothing, and does not

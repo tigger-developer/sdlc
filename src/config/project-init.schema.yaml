@@ -1,0 +1,144 @@
+version: 1
+
+precedence:
+  - cli
+  - environment
+  - project
+  - user
+  - fallback
+
+fields:
+  - key: SDLC_AGENT_HARNESS
+    flag: harness
+    help: Default agent harness
+    type: choice
+    choices: [codex, claude, hermes]
+    prompt: "Select default agent harness:"
+    allow_user_default: true
+    persist: true
+
+  - key: SDLC_SPEC_HARNESS
+    flag: spec-harness
+    help: Constitution, specification, and design agent harness
+    type: choice
+    choices: [codex, claude, hermes]
+    fallback: SDLC_AGENT_HARNESS
+    allow_user_default: true
+    persist: true
+
+  - key: SDLC_SPEC_PROVIDER
+    flag: spec-provider
+    help: Constitution, specification, and design model provider
+    type: string
+    allow_user_default: true
+    persist: true
+
+  - key: SDLC_SPEC_MODEL
+    flag: spec-model
+    help: Constitution, specification, and design model
+    type: string
+    allow_user_default: true
+    persist: true
+
+  - key: SDLC_BUILD_HARNESS
+    flag: build-harness
+    help: Implementation agent harness
+    type: choice
+    choices: [codex, claude, hermes]
+    fallback: SDLC_AGENT_HARNESS
+    allow_user_default: true
+    persist: true
+
+  - key: SDLC_BUILD_PROVIDER
+    flag: build-provider
+    help: Implementation model provider
+    type: string
+    allow_user_default: true
+    persist: true
+
+  - key: SDLC_BUILD_MODEL
+    flag: build-model
+    help: Implementation model
+    type: string
+    allow_user_default: true
+    persist: true
+
+  - key: SDLC_AUDIT_HARNESS
+    flag: audit-harness
+    help: Independent audit agent harness
+    type: choice
+    choices: [codex, claude, hermes]
+    fallback: SDLC_AGENT_HARNESS
+    allow_user_default: true
+    persist: true
+
+  - key: SDLC_AUDIT_PROVIDER
+    flag: audit-provider
+    help: Independent audit model provider
+    type: string
+    allow_user_default: true
+    persist: true
+
+  - key: SDLC_AUDIT_MODEL
+    flag: audit-model
+    help: Independent audit model
+    type: string
+    allow_user_default: true
+    persist: true
+
+  - key: SDLC_PROJECT_TYPE
+    flag: project-type
+    help: Project classification
+    type: choice
+    choices: [greenfield, brownfield]
+    prompt: "Select project type:"
+    allow_user_default: false
+    persist: true
+
+  - key: SDLC_TECHNOLOGIES
+    flag: technologies
+    help: Comma-separated technology standards
+    type: multi-choice
+    choices_from: technologies
+    prompt: "Select applicable technologies:"
+    allow_user_default: true
+    persist: true
+
+  - key: SDLC_INFRA_ROLE
+    flag: infra-role
+    help: Infrastructure relationship
+    type: choice
+    choices: [none, consumer, provider]
+    prompt: "Select infrastructure role:"
+    allow_user_default: true
+    persist: true
+
+  - key: SDLC_INFRA_OWNER
+    flag: infra-owner
+    help: Infrastructure owner descriptor
+    type: string
+    prompt: "Infrastructure owner descriptor:"
+    required_when:
+      field: SDLC_INFRA_ROLE
+      values: [consumer, provider]
+    allow_user_default: true
+    persist: true
+
+  - key: SDLC_INFRA_CONTRACT
+    flag: infra-contract
+    help: Infrastructure integration-contract path
+    type: string
+    prompt: "Infrastructure integration-contract path:"
+    required_when:
+      field: SDLC_INFRA_ROLE
+      values: [consumer, provider]
+    allow_user_default: true
+    persist: true
+
+pairs:
+  - name: specification
+    fields: [SDLC_SPEC_PROVIDER, SDLC_SPEC_MODEL]
+  - name: build
+    fields: [SDLC_BUILD_PROVIDER, SDLC_BUILD_MODEL]
+  - name: audit
+    fields: [SDLC_AUDIT_PROVIDER, SDLC_AUDIT_MODEL]

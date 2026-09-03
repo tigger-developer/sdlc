@@ -112,6 +112,24 @@ func TestRunUsesHermesSilentlyWhenHarnessIsUnset(t *testing.T) {
 	}
 }
 
+func TestResolveConfigurationUsesEnvironmentBeforeProjectAndAuditHarnessFallsBack(t *testing.T) {
+	fixture := newFixture(t, "audit-spec")
+	mustWrite(t, fixture.userConfig, "SDLC_AGENT_HARNESS=codex\nSDLC_AUDIT_PROVIDER=user\nSDLC_AUDIT_MODEL=user-model\n")
+	mustWrite(t, filepath.Join(fixture.project, ".env"), "SDLC_AUDIT_PROVIDER=project\nSDLC_AUDIT_MODEL=project-model\n")
+	options := defaults(fixture.options(passingRunner("audit-spec", "environment", "environment-model")))
+	options.LookupEnv = mapLookup(map[string]string{
+		"SDLC_AUDIT_PROVIDER": "environment",
+		"SDLC_AUDIT_MODEL":    "environment-model",
+	})
+	config, err := resolveConfiguration(options, fixture.project)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if config.harness != "codex" || config.provider != "environment" || config.model != "environment-model" {
+		t.Fatalf("resolved audit configuration = %#v", config)
+	}
+}
+
 func TestRunAllowsExactExternalContextAndRejectsOtherExternalFiles(t *testing.T) {
 	fixture := newFixture(t, "audit-spec")
 	mustWrite(t, fixture.userConfig, auditEnvironment())
@@ -229,6 +247,11 @@ func newFixture(t *testing.T, auditName string) fixture {
 	temporaryRoot := filepath.Join(t.TempDir(), "audit-temp")
 	mustWrite(t, filepath.Join(sdlcRoot, "prompts", "audits", auditName+".md"), "AUDIT PROMPT")
 	mustWrite(t, filepath.Join(sdlcRoot, "AUDITS.md"), "COMMON VERDICT CONTRACT")
+	loader, err := os.ReadFile(filepath.Join("..", "..", "src", "libexec", "load-sdlc-env.sh"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	mustWrite(t, filepath.Join(sdlcRoot, "libexec", "load-sdlc-env.sh"), string(loader))
 	mustWrite(t, filepath.Join(project, "artifact.md"), "CANDIDATE")
 	if err := os.MkdirAll(temporaryRoot, 0o700); err != nil {
 		t.Fatal(err)

@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+Moved project-initializer configuration metadata into a strictly validated YAML
+schema. Fixed choices now use deterministic numbered prompts, while resolved
+fields skip prompting. Added separate specification, build, and audit harnesses,
+each falling back to the default harness, and made the specification harness
+control Spec Kit integration and constitution generation. Configuration now
+resolves in CLI, process-environment, project, user, then fallback order.
+
+User and project `.env` files are now evaluated by one allowlisted Bash wrapper.
+The Go initializer and audit runner consume only its normalized SDLC fields and
+do not interpret shell expressions. The audit runner now honours process
+environment overrides and falls back from `SDLC_AUDIT_HARNESS` to
+`SDLC_AGENT_HARNESS` before applying its Hermes-only execution policy.
+
 Added explicit `none`, `consumer`, and `provider` infrastructure relationships
 to project initialization. Provider constitutions now state responsibility for
 defining, implementing, evolving, and honouring their published integration

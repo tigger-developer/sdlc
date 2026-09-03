@@ -25,6 +25,12 @@ func newFixture(t *testing.T, providers ...string) fixture {
 	writeFile(t, filepath.Join(f.source, "src", "templates", "project-init", "legacy-acs-header.md"), []byte("# Legacy\n***\n"))
 	writeFile(t, filepath.Join(f.source, "src", "prompts", "project-init", "constitution.md.tmpl"), []byte("Create {{.TemplatePath}}\n"))
 	writeFile(t, filepath.Join(f.source, "src", "prompts", "audits", "audit-code.md"), []byte("Audit code\n"))
+	writeFile(t, filepath.Join(f.source, "src", "config", "project-init.schema.yaml"), []byte("version: 1\n"))
+	envLoader := filepath.Join(f.source, "src", "libexec", "load-sdlc-env.sh")
+	writeFile(t, envLoader, []byte("#!/usr/bin/env bash\n"))
+	if err := os.Chmod(envLoader, 0o755); err != nil {
+		t.Fatal(err)
+	}
 	writeFile(t, filepath.Join(f.source, "README.md"), []byte("# Readme\n"))
 	writeFile(t, filepath.Join(f.source, "CHANGELOG.md"), []byte("# Changelog\n"))
 	writeFile(t, filepath.Join(f.source, "LEARNINGS.md"), []byte("# Learnings\n"))
@@ -69,6 +75,12 @@ func TestInteractiveInstallsOneCanonicalTreeAndProviderAdapters(t *testing.T) {
 	assertFile(t, filepath.Join(f.root, ".agents", "sdlc", "templates", "project-init", "legacy-acs-header.md"), "# Legacy\n***\n")
 	assertFile(t, filepath.Join(f.root, ".agents", "sdlc", "prompts", "project-init", "constitution.md.tmpl"), "Create {{.TemplatePath}}\n")
 	assertFile(t, filepath.Join(f.root, ".agents", "sdlc", "prompts", "audits", "audit-code.md"), "Audit code\n")
+	assertFile(t, filepath.Join(f.root, ".agents", "sdlc", "config", "project-init.schema.yaml"), "version: 1\n")
+	deployedLoader := filepath.Join(f.root, ".agents", "sdlc", "libexec", "load-sdlc-env.sh")
+	assertFile(t, deployedLoader, "#!/usr/bin/env bash\n")
+	if info, err := os.Stat(deployedLoader); err != nil || info.Mode().Perm() != 0o755 {
+		t.Fatalf("deployed environment loader mode = %v, %v; want 0755", info, err)
+	}
 	assertAbsent(t, filepath.Join(f.root, ".agents", "sdlc", "templates", "codex-sdlc.rules.example"))
 	assertAbsent(t, filepath.Join(f.root, ".agents", "sdlc", ".git"))
 	for _, relative := range []string{"src", "README.md", "CHANGELOG.md", "LEARNINGS.md", "cmd", "docs", "internal", "go.mod"} {

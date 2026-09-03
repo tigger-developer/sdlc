@@ -11,6 +11,8 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/tigger-developer/sdlc/internal/configenv"
 )
 
 func TestDiscoverTechnologiesIsAlphabeticalAndAutomatic(t *testing.T) {
@@ -42,13 +44,15 @@ func TestDiscoverTechnologiesIsAlphabeticalAndAutomatic(t *testing.T) {
 }
 
 func TestResolveConfigUsesCLIProjectUserPrecedence(t *testing.T) {
+	schema := loadTestSchema(t)
 	user := map[string]string{keyAgentHarness: "hermes", keyAuditHarness: "hermes", keySpecModel: "user-spec", keyAuditModel: "user-audit", keyProjectType: "brownfield"}
 	project := map[string]string{keyAgentHarness: "claude", keyAuditHarness: "claude", keySpecModel: "project-spec", keyAuditModel: "project-audit", keyProjectType: "greenfield"}
-	got := resolveConfig(Options{Harness: "codex", AuditHarness: "codex", SpecModel: "cli-spec", ProjectType: "brownfield"}, user, project)
+	values := resolveConfigValues(schema, map[string]string{keyAgentHarness: "codex", keyAuditHarness: "codex", keySpecModel: "cli-spec", keyProjectType: "brownfield"}, user, project, nil)
+	got := configFromValues(values, "")
 	if got.Harness != "codex" || got.AuditHarness != "codex" || got.SpecModel != "cli-spec" || got.AuditModel != "project-audit" || got.ProjectType != "brownfield" {
 		t.Fatalf("resolved config = %#v", got)
 	}
-	withoutProjectValue := resolveConfig(Options{}, user, map[string]string{})
+	withoutProjectValue := configFromValues(resolveConfigValues(schema, nil, user, map[string]string{}, nil), "")
 	if withoutProjectValue.ProjectType != "" {
 		t.Fatalf("user project type became a global default: %#v", withoutProjectValue)
 	}
@@ -62,38 +66,25 @@ func TestUserDefaultsLiveUnderCommonAgentsRoot(t *testing.T) {
 	}
 }
 
-func TestProviderAndModelMustBeConfiguredTogether(t *testing.T) {
-	if err := validateProviderModelPairs(resolvedConfig{AuditModel: "fast-model"}); err == nil {
-		t.Fatal("audit model without provider was accepted")
+func TestValidateConfigUsesSchemaChoicesAndPairs(t *testing.T) {
+	schema := loadTestSchema(t)
+	values := map[string]string{
+		keyAgentHarness: "codex", keySpecHarness: "codex", keyBuildHarness: "codex", keyAuditHarness: "hermes",
+		keyProjectType: "BROWNFIELD", keyInfraRole: "none", keyAuditModel: "fast-model",
 	}
-	if err := validateProviderModelPairs(resolvedConfig{
-		SpecProvider: "provider", SpecModel: "spec-model",
-		BuildProvider: "provider", BuildModel: "build-model",
-		AuditProvider: "reviewer", AuditModel: "fast-model",
-	}); err != nil {
+	if err := validateConfig(schema, values, nil); err == nil || !strings.Contains(err.Error(), "audit fields") {
+		t.Fatalf("audit model without provider was accepted: %v", err)
+	}
+	values[keyAuditProvider] = "reviewer"
+	if err := validateConfig(schema, values, nil); err != nil {
 		t.Fatal(err)
 	}
-}
-
-func TestProjectTypeMustBeGreenfieldOrBrownfield(t *testing.T) {
-	for _, accepted := range []string{"greenfield", "BROWNFIELD"} {
-		if err := validateProjectType(accepted); err != nil {
-			t.Errorf("validateProjectType(%q): %v", accepted, err)
-		}
+	if values[keyProjectType] != "brownfield" {
+		t.Fatalf("choice was not canonicalized: %#v", values)
 	}
-	if err := validateProjectType("existing"); err == nil {
-		t.Fatal("unsupported project type was accepted")
-	}
-}
-
-func TestInfrastructureRoleMustBeNoneConsumerOrProvider(t *testing.T) {
-	for _, accepted := range []string{"none", "CONSUMER", "provider"} {
-		if err := validateInfrastructureRole(accepted); err != nil {
-			t.Errorf("validateInfrastructureRole(%q): %v", accepted, err)
-		}
-	}
-	if err := validateInfrastructureRole("external"); err == nil {
-		t.Fatal("unsupported infrastructure role was accepted")
+	values[keyInfraRole] = "external"
+	if err := validateConfig(schema, values, nil); err == nil || !strings.Contains(err.Error(), keyInfraRole) {
+		t.Fatalf("unsupported infrastructure role was accepted: %v", err)
 	}
 }
 
@@ -247,7 +238,6 @@ func TestRunInitializesGreenfieldSpecKitProject(t *testing.T) {
 	installProjectInitResourcesForTest(t, root)
 	writeTestFile(t, filepath.Join(root, "technologies", "GO.md"), "# Go\n")
 	writeTestFile(t, filepath.Join(root, "presets", "sdlc-standards", "preset.yml"), "present\n")
-	disabled := false
 	var commands []string
 	runner := func(name string, arguments []string, directory string, _ io.Reader, output, _ io.Writer) error {
 		commands = append(commands, name+" "+strings.Join(arguments, " "))
@@ -267,13 +257,13 @@ func TestRunInitializesGreenfieldSpecKitProject(t *testing.T) {
 	}
 	options := Options{
 		ProjectRoot: project, SDLCRoot: root, UserConfigPath: filepath.Join(t.TempDir(), ".env"), NoLaunch: true,
-		Harness: "codex", ProjectType: "greenfield", Technologies: []string{"GO"}, InfraEnabled: &disabled, SDLCRevision: "0123456789abcdef",
+		Overrides: map[string]string{keyAgentHarness: "hermes", keySpecHarness: "codex", keyProjectType: "greenfield", keyTechnologies: "GO", keyInfraRole: "none"}, SDLCRevision: "0123456789abcdef",
 		Input: strings.NewReader("yes\n"), Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{}, RunCommand: runner,
 	}
 	if err := Run(options); err != nil {
 		t.Fatal(err)
 	}
-	if len(commands) != 5 || !strings.Contains(commands[0], "specify init") || !strings.Contains(commands[1], "specify preset add") ||
+	if len(commands) != 5 || !strings.Contains(commands[0], "specify init --here --force --non-interactive --integration codex") || !strings.Contains(commands[1], "specify preset add") ||
 		!strings.Contains(commands[2], "git status") || !strings.Contains(commands[3], "git add") || !strings.Contains(commands[4], "git commit --only --quiet") {
 		t.Fatalf("greenfield commands = %#v", commands)
 	}
@@ -298,12 +288,10 @@ func TestRunPreservesBrownfieldProjectAndIsIdempotent(t *testing.T) {
 	writeTestFile(t, filepath.Join(project, ".specify", "presets", "sdlc-standards", "preset.yml"), "present\n")
 	writeTestFile(t, filepath.Join(root, "technologies", "GO.md"), "# Go\n")
 	writeTestFile(t, filepath.Join(root, "presets", "sdlc-standards", "preset.yml"), "present\n")
-	disabled := false
-
 	options := Options{
 		ProjectRoot: project, SDLCRoot: root, UserConfigPath: filepath.Join(t.TempDir(), ".env"), NoLaunch: true,
-		Harness: "codex", ProjectType: "brownfield", Technologies: []string{"GO"}, InfraEnabled: &disabled,
-		Input: strings.NewReader(""), Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{}, RunCommand: cleanGitRunner,
+		Overrides: map[string]string{keyAgentHarness: "codex", keyProjectType: "brownfield", keyTechnologies: "GO", keyInfraRole: "none"},
+		Input:     strings.NewReader(""), Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{}, RunCommand: cleanGitRunner,
 	}
 	if err := Run(options); err != nil {
 		t.Fatal(err)
@@ -315,9 +303,7 @@ func TestRunPreservesBrownfieldProjectAndIsIdempotent(t *testing.T) {
 	}
 	var output bytes.Buffer
 	options.Output = &output
-	options.Harness = ""
-	options.Technologies = nil
-	options.InfraEnabled = nil
+	options.Overrides = nil
 	if err := Run(options); err != nil {
 		t.Fatal(err)
 	}
@@ -611,7 +597,7 @@ func TestRunCommitsCurrentUntrackedScaffoldWithoutLaunching(t *testing.T) {
 	var output bytes.Buffer
 	if err := Run(Options{
 		ProjectRoot: project, SDLCRoot: root, UserConfigPath: filepath.Join(t.TempDir(), ".env"),
-		Input: strings.NewReader(""), Output: &output, ErrorOutput: &bytes.Buffer{}, RunCommand: runner,
+		NoLaunch: true, Input: strings.NewReader(""), Output: &output, ErrorOutput: &bytes.Buffer{}, RunCommand: runner,
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -680,22 +666,18 @@ func TestRunSnapshotsEveryResolvedGlobalDefaultIntoProject(t *testing.T) {
 	var initialOutput bytes.Buffer
 	if err := Run(Options{
 		ProjectRoot: project, SDLCRoot: root, UserConfigPath: userConfig, NoLaunch: true,
-		Input: strings.NewReader("greenfield\n"), Output: &initialOutput, ErrorOutput: &bytes.Buffer{}, RunCommand: cleanGitRunner,
+		Input: strings.NewReader("1\n"), Output: &initialOutput, ErrorOutput: &bytes.Buffer{}, RunCommand: cleanGitRunner,
 	}); err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(initialOutput.String(), "Project type (greenfield or brownfield):") {
+	if !strings.Contains(initialOutput.String(), "Select project type:") {
 		t.Fatalf("user-level project type suppressed the project prompt: %q", initialOutput.String())
 	}
-	got, err := readManagedEnv(filepath.Join(project, ".env"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	want, err := readManagedEnv(userConfig)
-	if err != nil {
-		t.Fatal(err)
-	}
+	got := readManagedEnvForTest(t, root, filepath.Join(project, ".env"))
+	want := readManagedEnvForTest(t, root, userConfig)
 	want[keyProjectType] = "greenfield"
+	want[keySpecHarness] = "codex"
+	want[keyBuildHarness] = "codex"
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("project snapshot = %#v, want global defaults %#v", got, want)
 	}
@@ -708,10 +690,7 @@ func TestRunSnapshotsEveryResolvedGlobalDefaultIntoProject(t *testing.T) {
 	}); err != nil {
 		t.Fatal(err)
 	}
-	afterGlobalChange, err := readManagedEnv(filepath.Join(project, ".env"))
-	if err != nil {
-		t.Fatal(err)
-	}
+	afterGlobalChange := readManagedEnvForTest(t, root, filepath.Join(project, ".env"))
 	if !reflect.DeepEqual(afterGlobalChange, got) || rerunOutput.Len() != 0 {
 		t.Fatalf("global default change altered existing snapshot: values=%#v output=%q", afterGlobalChange, rerunOutput.String())
 	}
@@ -735,7 +714,7 @@ func TestLaunchConstitutionUsesConfiguredHarness(t *testing.T) {
 		return nil
 	}
 	options := Options{RunCommand: runner, Input: strings.NewReader(""), Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{}}
-	if err := launchConstitution(resolvedConfig{Harness: "codex", SpecProvider: "openai-codex", SpecModel: "gpt-5.6-sol"}, projectRoot, sdlcRoot, templatePath, options); err != nil {
+	if err := launchConstitution(resolvedConfig{SpecHarness: "codex", SpecProvider: "openai-codex", SpecModel: "gpt-5.6-sol"}, projectRoot, sdlcRoot, templatePath, options); err != nil {
 		t.Fatal(err)
 	}
 	if command != "codex" || directory != projectRoot || len(arguments) != 3 || arguments[0] != "--model" || arguments[1] != "gpt-5.6-sol" {
@@ -785,16 +764,19 @@ func TestValidateBrownfieldLedgerRequiresOrgAfterTicketMigration(t *testing.T) {
 func TestWriteManagedEnvPreservesUnmanagedValuesAndGitignore(t *testing.T) {
 	directory := t.TempDir()
 	envPath := filepath.Join(directory, ".env")
-	writeTestFile(t, envPath, "PRIVATE_TOKEN=keep\nSDLC_AGENT_HARNESS=claude\nSDLC_DELIVERY_MODEL=legacy-model\n")
-	if err := writeManagedEnv(envPath, map[string]string{keyAgentHarness: "codex", keySpecModel: "spec-model"}); err != nil {
+	writeTestFile(t, envPath, "PRIVATE_TOKEN=keep\n\n# SDLC project configuration\nSDLC_AGENT_HARNESS=claude\nSDLC_DELIVERY_MODEL=legacy-model\n")
+	if err := writeManagedEnv(envPath, map[string]string{keyAgentHarness: "codex", keySpecModel: "spec-model"}, loadTestSchema(t)); err != nil {
 		t.Fatal(err)
 	}
 	contents, err := os.ReadFile(envPath)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(string(contents), "PRIVATE_TOKEN=keep") || !strings.Contains(string(contents), "SDLC_AGENT_HARNESS=\"codex\"") || !strings.Contains(string(contents), "SDLC_SPEC_MODEL=\"spec-model\"") || strings.Contains(string(contents), "SDLC_AGENT_HARNESS=claude") || strings.Contains(string(contents), "SDLC_DELIVERY_MODEL") {
+	if !strings.Contains(string(contents), "PRIVATE_TOKEN=keep") || !strings.Contains(string(contents), "SDLC_AGENT_HARNESS='codex'") || !strings.Contains(string(contents), "SDLC_SPEC_MODEL='spec-model'") || strings.Contains(string(contents), "SDLC_AGENT_HARNESS=claude") || strings.Contains(string(contents), "SDLC_DELIVERY_MODEL") {
 		t.Fatalf("managed environment update was incorrect:\n%s", contents)
+	}
+	if strings.Count(string(contents), "# SDLC project configuration") != 1 {
+		t.Fatalf("managed environment header was duplicated:\n%s", contents)
 	}
 	ignorePath := filepath.Join(directory, ".gitignore")
 	if changed, err := ensureEnvIgnored(ignorePath); err != nil || !changed {
@@ -886,6 +868,8 @@ func managedBlockForTest(t *testing.T) managedBlock {
 func installProjectInitResourcesForTest(t *testing.T, destination string) {
 	t.Helper()
 	for _, relative := range []string{
+		configSchemaPath,
+		environmentLoaderPath,
 		legacyACBlockPath,
 		legacyACContractPath,
 		constitutionLayoutPath,
@@ -894,6 +878,29 @@ func installProjectInitResourcesForTest(t *testing.T, destination string) {
 		contents := mustReadFile(t, filepath.Join("..", "..", "src", filepath.FromSlash(relative)))
 		writeTestFile(t, filepath.Join(destination, filepath.FromSlash(relative)), string(contents))
 	}
+}
+
+func loadTestSchema(t *testing.T) ConfigSchema {
+	t.Helper()
+	schema, err := LoadConfigSchema(filepath.Join("..", "..", "src"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	return schema
+}
+
+func readManagedEnvForTest(t *testing.T, sdlcRoot, path string) map[string]string {
+	t.Helper()
+	schema, err := LoadConfigSchema(sdlcRoot)
+	if err != nil {
+		t.Fatal(err)
+	}
+	keys := append(schema.ManagedKeys(), legacyDeliveryProvider, legacyDeliveryModel, keyInfraEnabled)
+	values, err := configenv.Load(filepath.Join(sdlcRoot, filepath.FromSlash(environmentLoaderPath)), path, keys)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return values
 }
 
 func writeTestFile(t *testing.T, path, contents string) {

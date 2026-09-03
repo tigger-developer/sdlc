@@ -23,8 +23,8 @@ test: lint
 lint:
 	go vet ./...
 	golangci-lint run ./...
-	shellcheck hooks/agent-command-guard.sh
-	shfmt -i 4 -d hooks/agent-command-guard.sh
+	shellcheck hooks/agent-command-guard.sh src/libexec/load-sdlc-env.sh
+	shfmt -i 4 -d hooks/agent-command-guard.sh src/libexec/load-sdlc-env.sh
 
 install: install-cli
 	@$(INSTALLER) $(INSTALL_FLAGS)

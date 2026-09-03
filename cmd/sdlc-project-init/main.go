@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"runtime/debug"
 	"strings"
 
@@ -21,25 +22,24 @@ func main() {
 }
 
 func run(arguments []string) error {
+	configuredRoot, err := bootstrapSDLCRoot(arguments)
+	if err != nil {
+		return err
+	}
+	schema, err := projectinit.LoadConfigSchema(configuredRoot)
+	if err != nil {
+		return err
+	}
 	flags := flag.NewFlagSet("sdlc-project-init", flag.ContinueOnError)
 	project := flags.String("project", ".", "project root")
 	sdlcRoot := flags.String("sdlc-root", "", "canonical SDLC root (default ~/.agents/sdlc)")
 	userConfig := flags.String("user-config", "", "user SDLC environment file")
-	harness := flags.String("harness", "", "agent harness: codex, claude, or hermes")
-	specProvider := flags.String("spec-provider", "", "constitution, specification, and design model provider")
-	specModel := flags.String("spec-model", "", "constitution, specification, and design model")
-	buildProvider := flags.String("build-provider", "", "implementation model provider")
-	buildModel := flags.String("build-model", "", "implementation model")
-	auditHarness := flags.String("audit-harness", "", "independent audit agent harness")
-	auditProvider := flags.String("audit-provider", "", "independent audit model provider")
-	auditModel := flags.String("audit-model", "", "independent audit model")
-	projectType := flags.String("project-type", "", "project classification: greenfield or brownfield")
-	technologies := flags.String("technologies", "", "comma-separated technology standards")
-	infraRole := flags.String("infra-role", "", "infrastructure relationship: none, consumer, or provider")
 	infra := flags.String("infra", "", "deprecated external infrastructure ownership: yes or no")
-	infraOwner := flags.String("infra-owner", "", "infrastructure owner descriptor")
-	infraContract := flags.String("infra-contract", "", "infrastructure integration-contract path")
 	noLaunch := flags.Bool("no-launch", false, "render the scaffold without invoking an agent harness")
+	configured := make(map[string]*string, len(schema.Fields))
+	for _, field := range schema.Fields {
+		configured[field.Key] = flags.String(field.Flag, "", field.Help)
+	}
 	if err := flags.Parse(arguments); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
 			return nil
@@ -49,26 +49,60 @@ func run(arguments []string) error {
 	if flags.NArg() != 0 {
 		return fmt.Errorf("unexpected positional arguments: %v", flags.Args())
 	}
-	var infraEnabled *bool
+	overrides := map[string]string{}
+	for key, value := range configured {
+		if *value != "" {
+			overrides[key] = *value
+		}
+	}
 	if *infra != "" {
-		if *infraRole != "" {
+		if overrides["SDLC_INFRA_ROLE"] != "" {
 			return errors.New("--infra and --infra-role cannot be used together")
 		}
 		value, err := parseYesNo(*infra)
 		if err != nil {
 			return err
 		}
-		infraEnabled = &value
+		if value {
+			overrides["SDLC_INFRA_ROLE"] = "consumer"
+		} else {
+			overrides["SDLC_INFRA_ROLE"] = "none"
+		}
 	}
 	return projectinit.Run(projectinit.Options{
 		ProjectRoot: *project, SDLCRoot: *sdlcRoot, UserConfigPath: *userConfig,
-		Harness: *harness, SpecProvider: *specProvider, SpecModel: *specModel,
-		BuildProvider: *buildProvider, BuildModel: *buildModel,
-		AuditHarness: *auditHarness, AuditProvider: *auditProvider, AuditModel: *auditModel, ProjectType: *projectType, Technologies: splitList(*technologies),
-		InfraRole: *infraRole, InfraEnabled: infraEnabled, InfraOwner: *infraOwner, InfraContract: *infraContract,
+		Overrides:    overrides,
 		SDLCRevision: sourceRevision(),
 		NoLaunch:     *noLaunch, Input: os.Stdin, Output: os.Stdout, ErrorOutput: os.Stderr,
 	})
+}
+
+func bootstrapSDLCRoot(arguments []string) (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("resolving user home: %w", err)
+	}
+	root := filepath.Join(home, ".agents", "sdlc")
+	for index := 0; index < len(arguments); index++ {
+		argument := arguments[index]
+		if argument == "--sdlc-root" || argument == "-sdlc-root" {
+			if index+1 >= len(arguments) {
+				return "", errors.New("--sdlc-root requires a value")
+			}
+			root = arguments[index+1]
+			index++
+			continue
+		}
+		if strings.HasPrefix(argument, "--sdlc-root=") {
+			root = strings.TrimPrefix(argument, "--sdlc-root=")
+		} else if strings.HasPrefix(argument, "-sdlc-root=") {
+			root = strings.TrimPrefix(argument, "-sdlc-root=")
+		}
+	}
+	if root == "" {
+		return "", errors.New("--sdlc-root requires a non-empty value")
+	}
+	return filepath.Abs(root)
 }
 
 func sourceRevision() string {
@@ -107,17 +141,6 @@ func sourceRevisionForBuildInfo(buildInfo *debug.BuildInfo, release string) stri
 		return buildInfo.Main.Version
 	}
 	return ""
-}
-
-func splitList(value string) []string {
-	if strings.TrimSpace(value) == "" {
-		return nil
-	}
-	var result []string
-	for _, item := range strings.Split(value, ",") {
-		result = append(result, strings.TrimSpace(item))
-	}
-	return result
 }
 
 func parseYesNo(value string) (bool, error) {

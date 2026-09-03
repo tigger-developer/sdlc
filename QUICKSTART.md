@@ -56,17 +56,18 @@ sdlc-project-init
 
 When `.specify/` is absent, the initializer:
 
-1. asks whether it may run `specify init`;
-2. asks for the agent integration when no default is configured;
-3. installs the `sdlc-standards` preset;
-4. asks whether the project is greenfield or brownfield;
-5. discovers the available technology standards and asks which apply;
-6. asks whether the project has no infrastructure contract, consumes one owned
+1. resolves configured values and uses numbered prompts for unresolved choices;
+2. asks whether the project is greenfield or brownfield;
+3. discovers the available technology standards and asks which apply;
+4. asks whether the project has no infrastructure contract, consumes one owned
    elsewhere, or provides and implements one;
+5. asks whether it may run `specify init` and uses the specification harness as
+   its agent integration;
+6. installs the `sdlc-standards` preset;
 7. records the project selections in an ignored `.env`;
 8. renders `.specify/templates/overrides/constitution-template.md`;
 9. commits only that generated scaffold;
-10. launches the selected agent to create an unratified project constitution;
+10. launches the specification harness to create an unratified project constitution;
     and
 11. verifies that the complete generated Engineering Standards, Specification
     and Evidence, and Mandatory Independent Audits covenants remain present.
@@ -313,24 +314,32 @@ for commit confirmation:
 sdlc-project-init --no-launch
 ```
 
-The initializer reads user defaults from `~/.agents/.env` and project overrides
-from the ignored project `.env`. Every resolved global default is copied into a
-new project's `.env`; changing the global file later does not silently change
-existing projects. Project classification is project-only: supply
+The initializer evaluates user defaults from `~/.agents/.env` and project
+overrides from the ignored project `.env` through its deployed Bash wrapper.
+Only schema-listed SDLC values are returned to the Go initializer. Every
+resolved global default is copied into a new project's `.env`; changing the
+global file later does not silently change existing projects. Precedence is
+command line, process environment, project `.env`, user `.env`, then a declared
+fallback. Project classification is project-only: supply
 `--project-type`, record `SDLC_PROJECT_TYPE` in the project `.env`, or answer the
 initializer prompt. A value in `~/.agents/.env` is ignored. Command-line values
 take precedence. Run `sdlc-project-init --help` for the complete interface.
 
-`SDLC_INFRA_ROLE` accepts `none`, `consumer`, or `provider`. Consumer projects
+The field definitions live in
+`~/.agents/sdlc/config/project-init.schema.yaml`. Fixed choices are displayed as
+numbered options and are not prompted when already resolved. `SDLC_INFRA_ROLE`
+accepts `none`, `consumer`, or `provider`. Consumer projects
 comply with an externally owned integration contract. Provider projects define,
 implement, evolve, and honour the infrastructure side of the contract they
 publish. Use `--infra-role` to override the configured default for an
 infrastructure repository.
 
-Set `SDLC_AUDIT_HARNESS`, `SDLC_AUDIT_PROVIDER`, and `SDLC_AUDIT_MODEL` in
-`~/.agents/.env` to select the default independent auditor for new projects.
-The initializer snapshots those values into the project `.env`, whose values
-take precedence when the runner executes. This release always invokes Hermes
+Set the phase-specific harnesses `SDLC_SPEC_HARNESS`, `SDLC_BUILD_HARNESS`, and
+`SDLC_AUDIT_HARNESS` when different tools should perform those phases. Each
+falls back to `SDLC_AGENT_HARNESS`. Set `SDLC_AUDIT_PROVIDER` and
+`SDLC_AUDIT_MODEL` to select the independent auditor for new projects.
+The initializer snapshots those values into the project `.env`. The current
+audit runner always invokes Hermes
 and passes provider and model explicitly. An unset or `hermes` harness value is
 silent; any other value warns and falls back to Hermes.
 

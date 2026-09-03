@@ -64,7 +64,17 @@ adapter model.
 - Universal specification, coding, testing, security, independent-audit,
   paired-development, documentation, Git, and entry-point standards are
   included exactly once.
-- CLI values override project `.env` values, which override user SDLC defaults.
+- Configuration precedence is CLI, process environment, project `.env`, user
+  `.env`, then a schema-declared fallback.
+- A YAML schema defines configuration fields, CLI flags, types, choices, prompt
+  order, user-default eligibility, persistence, conditional requirements, and
+  provider/model pairs. Fixed unresolved choices use numbered prompts; resolved
+  fields are not prompted.
+- Bash evaluates user and project `.env` files. Only schema-listed SDLC values
+  cross the wrapper boundary; Go does not interpret shell expressions.
+- Specification, build, and audit harnesses independently fall back to the
+  default agent harness. The specification harness controls Spec Kit integration
+  and constitution generation.
 - Infrastructure relationship is recorded as `none`, `consumer`, or `provider`.
   Consumer projects comply with an externally owned contract; provider projects
   define, implement, evolve, and honour the contract they publish. Selected
@@ -224,8 +234,9 @@ adapter model.
 - Each invocation starts a non-resumed harness process in an empty temporary
   directory and embeds only the canonical prompt, judged artefacts, and exact
   context files supplied by the caller.
-- The runner reads audit harness, provider, and model from user defaults, then
-  applies project `.env` values with project precedence.
+- The runner resolves audit harness, provider, and model from command-line,
+  process-environment, project, user, then fallback sources. Audit harness falls
+  back to the default harness.
 - An unset or `hermes` harness value invokes Hermes silently. Any other value
   emits a warning and falls back to Hermes.
 - Hermes receives the configured provider and model explicitly.

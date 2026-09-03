@@ -125,7 +125,7 @@ feature artefact.
 ## Deterministic project initialization
 
 `sdlc-project-init` discovers technology standards from the installed
-`technologies/` directory, resolves command-line, project, and user defaults,
+`technologies/` directory, resolves its schema-defined configuration sources,
 and renders
 `.specify/templates/overrides/constitution-template.md`. This documented Spec
 Kit override is resolved before preset composition, so constitution generation
@@ -220,13 +220,24 @@ template is an initialization artefact and may be removed after first
 ratification; Git retains its provenance.
 
 User defaults live in the user-owned `~/.agents/.env`, outside the synchronized
-standards tree. Project `.env` values override those defaults; CLI values
-override both. The initializer reads only its named `SDLC_*` keys and copies
-every resolved value into the ignored project `.env`. The project therefore
+standards tree. Resolution order is CLI, process environment, project `.env`,
+user `.env`, then the field's declared fallback. A deployed Bash wrapper
+evaluates the two shell files and emits only allowlisted SDLC values; Go never
+interprets shell expressions. The initializer copies every resolved value into
+the ignored project `.env`. The project therefore
 retains its initialization snapshot when the user defaults later change, and a
 current rerun requires no questions or writes. `SDLC_PROJECT_TYPE` is the sole
 project-only selection: the initializer ignores it in `~/.agents/.env` and
-accepts it only from the project, the command line, or the project prompt.
+accepts it only from the process environment, project, command line, or project
+prompt.
+
+`config/project-init.schema.yaml` defines field order, CLI metadata, types,
+choices, prompts, fallbacks, conditional requirements, persistence, and whether
+each field permits a user default. The initializer renders unresolved fixed
+choices as numbered questions. Technology choices remain dynamically derived
+from the deployed technology documents. Phase harnesses fall back independently
+to `SDLC_AGENT_HARNESS`; the specification harness controls Spec Kit integration
+and constitution generation.
 
 ## Spec Kit composition
 
@@ -356,10 +367,12 @@ instead of dispatching another model audit.
 Verdicts are retained in the active feature's `audits.md`. The shared parser
 fails closed on missing or malformed verdicts, inconsistent finding
 classifications, or an audit, provider, or model identity different from the
-requested configuration. A valid FAIL passes through as a report. Project
-`.env` values override user defaults from `~/.agents/.env`. Hermes is the sole
-audit harness in this release; another configured harness warns and falls back
-to Hermes, which receives provider and model explicitly. Each child has a
+requested configuration. A valid FAIL passes through as a report. Audit
+configuration uses command-line, process-environment, project, user, then
+fallback precedence, and its `.env` files are evaluated by the allowlisted Bash
+wrapper. Hermes is the sole audit harness in this release; another resolved
+harness warns and falls back to Hermes, which receives provider and model
+explicitly. Each child has a
 minimal environment and a 15-minute runtime budget and hard timeout. Advisory
 skills load context, diagnose, recommend, or summarize.
 

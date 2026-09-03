@@ -2,7 +2,6 @@
 package auditrunner
 
 import (
-	"bufio"
 	"bytes"
 	"context"
 	"errors"
@@ -16,6 +15,7 @@ import (
 	"time"
 
 	"github.com/tigger-developer/sdlc/internal/audit"
+	"github.com/tigger-developer/sdlc/internal/configenv"
 )
 
 const (
@@ -51,6 +51,7 @@ type Options struct {
 	ErrorOutput     io.Writer
 	RunCommand      RunCommand
 	LookupEnv       func(string) (string, bool)
+	LoadEnvironment func(string, string, []string) (map[string]string, error)
 	MakeTemp        func(string, string) (string, error)
 	RemoveAll       func(string) error
 }
@@ -186,6 +187,9 @@ func defaults(options Options) Options {
 	if options.LookupEnv == nil {
 		options.LookupEnv = os.LookupEnv
 	}
+	if options.LoadEnvironment == nil {
+		options.LoadEnvironment = configenv.Load
+	}
 	if options.MakeTemp == nil {
 		options.MakeTemp = os.MkdirTemp
 	}
@@ -212,19 +216,37 @@ func defaults(options Options) Options {
 }
 
 func resolveConfiguration(options Options, projectRoot string) (configuration, error) {
-	user, err := readEnvironment(options.UserConfigPath)
+	keys := []string{"SDLC_AGENT_HARNESS", "SDLC_AUDIT_HARNESS", "SDLC_AUDIT_PROVIDER", "SDLC_AUDIT_MODEL"}
+	loader := filepath.Join(options.SDLCRoot, "libexec", "load-sdlc-env.sh")
+	userConfigPath, err := filepath.Abs(options.UserConfigPath)
+	if err != nil {
+		return configuration{}, fmt.Errorf("resolving user configuration path: %w", err)
+	}
+	user, err := options.LoadEnvironment(loader, userConfigPath, keys)
 	if err != nil {
 		return configuration{}, err
 	}
-	project, err := readEnvironment(filepath.Join(projectRoot, ".env"))
+	project, err := options.LoadEnvironment(loader, filepath.Join(projectRoot, ".env"), keys)
 	if err != nil {
 		return configuration{}, err
 	}
-	values := user
+	values := map[string]string{}
+	for key, value := range user {
+		values[key] = value
+	}
 	for key, value := range project {
 		values[key] = value
 	}
-	config := configuration{harness: values["SDLC_AUDIT_HARNESS"], provider: values["SDLC_AUDIT_PROVIDER"], model: values["SDLC_AUDIT_MODEL"]}
+	for _, key := range keys {
+		if value, ok := options.LookupEnv(key); ok {
+			values[key] = value
+		}
+	}
+	harness := values["SDLC_AUDIT_HARNESS"]
+	if harness == "" {
+		harness = values["SDLC_AGENT_HARNESS"]
+	}
+	config := configuration{harness: harness, provider: values["SDLC_AUDIT_PROVIDER"], model: values["SDLC_AUDIT_MODEL"]}
 	if options.Harness != "" {
 		config.harness = options.Harness
 	}
@@ -238,44 +260,6 @@ func resolveConfiguration(options Options, projectRoot string) (configuration, e
 		return configuration{}, errors.New("audit configuration requires SDLC_AUDIT_PROVIDER and SDLC_AUDIT_MODEL")
 	}
 	return config, nil
-}
-
-func readEnvironment(path string) (map[string]string, error) {
-	values := map[string]string{}
-	file, err := os.Open(path)
-	if errors.Is(err, os.ErrNotExist) {
-		return values, nil
-	}
-	if err != nil {
-		return nil, fmt.Errorf("opening configuration %q: %w", path, err)
-	}
-	defer file.Close()
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if line == "" || strings.HasPrefix(line, "#") {
-			continue
-		}
-		key, raw, found := strings.Cut(line, "=")
-		if !found {
-			continue
-		}
-		key = strings.TrimSpace(key)
-		if key != "SDLC_AUDIT_HARNESS" && key != "SDLC_AUDIT_PROVIDER" && key != "SDLC_AUDIT_MODEL" {
-			continue
-		}
-		value := strings.TrimSpace(raw)
-		if unquoted, unquoteErr := strconv.Unquote(value); unquoteErr == nil {
-			value = unquoted
-		} else if len(value) >= 2 && value[0] == '\'' && value[len(value)-1] == '\'' {
-			value = value[1 : len(value)-1]
-		}
-		values[key] = value
-	}
-	if err := scanner.Err(); err != nil {
-		return nil, fmt.Errorf("reading configuration %q: %w", path, err)
-	}
-	return values, nil
 }
 
 func buildPrompt(options Options, projectRoot, sdlcRoot string, authorizedRoots []string, config configuration) (string, error) {

@@ -17,12 +17,16 @@ import (
 	"strings"
 	"text/template"
 	"time"
+
+	"github.com/tigger-developer/sdlc/internal/configenv"
 )
 
 const (
 	keyAgentHarness        = "SDLC_AGENT_HARNESS"
+	keySpecHarness         = "SDLC_SPEC_HARNESS"
 	keySpecProvider        = "SDLC_SPEC_PROVIDER"
 	keySpecModel           = "SDLC_SPEC_MODEL"
+	keyBuildHarness        = "SDLC_BUILD_HARNESS"
 	keyBuildProvider       = "SDLC_BUILD_PROVIDER"
 	keyBuildModel          = "SDLC_BUILD_MODEL"
 	keyAuditHarness        = "SDLC_AUDIT_HARNESS"
@@ -44,24 +48,8 @@ const (
 	migratedACDocumentPath = "docs/ACs.org"
 	ticketMigrationPath    = "docs/ticket-migration.org"
 	ticketManifestPath     = "docs/archive/migrated-tickets/manifest.json"
+	environmentLoaderPath  = "libexec/load-sdlc-env.sh"
 )
-
-var managedKeys = []string{
-	keyAgentHarness,
-	keySpecProvider,
-	keySpecModel,
-	keyBuildProvider,
-	keyBuildModel,
-	keyAuditHarness,
-	keyAuditProvider,
-	keyAuditModel,
-	keyProjectType,
-	keyInfraRole,
-	keyInfraEnabled,
-	keyInfraOwner,
-	keyInfraContract,
-	keyTechnologies,
-}
 
 var universalStandards = []standard{
 	{Path: "MAIN.md", Subject: "Universal engineering behaviour"},
@@ -89,35 +77,26 @@ type Technology struct {
 
 // Options controls one project initialization run.
 type Options struct {
-	ProjectRoot    string
-	SDLCRoot       string
-	UserConfigPath string
-	Harness        string
-	SpecProvider   string
-	SpecModel      string
-	BuildProvider  string
-	BuildModel     string
-	AuditHarness   string
-	AuditProvider  string
-	AuditModel     string
-	ProjectType    string
-	Technologies   []string
-	InfraRole      string
-	InfraEnabled   *bool
-	InfraOwner     string
-	InfraContract  string
-	SDLCRevision   string
-	NoLaunch       bool
-	Input          io.Reader
-	Output         io.Writer
-	ErrorOutput    io.Writer
-	RunCommand     func(string, []string, string, io.Reader, io.Writer, io.Writer) error
+	ProjectRoot     string
+	SDLCRoot        string
+	UserConfigPath  string
+	SDLCRevision    string
+	NoLaunch        bool
+	Input           io.Reader
+	Output          io.Writer
+	ErrorOutput     io.Writer
+	LookupEnv       func(string) (string, bool)
+	Overrides       map[string]string
+	LoadEnvironment func(string, string, []string) (map[string]string, error)
+	RunCommand      func(string, []string, string, io.Reader, io.Writer, io.Writer) error
 }
 
 type resolvedConfig struct {
 	Harness       string
+	SpecHarness   string
 	SpecProvider  string
 	SpecModel     string
+	BuildHarness  string
 	BuildProvider string
 	BuildModel    string
 	AuditHarness  string
@@ -176,6 +155,10 @@ func Run(options Options) error {
 	if options.UserConfigPath == "" {
 		options.UserConfigPath = userDefaultsPath(home)
 	}
+	options.UserConfigPath, err = filepath.Abs(options.UserConfigPath)
+	if err != nil {
+		return fmt.Errorf("resolving user configuration path: %w", err)
+	}
 	options = defaultOptions(options)
 	projectRoot, err := filepath.Abs(options.ProjectRoot)
 	if err != nil {
@@ -186,108 +169,57 @@ func Run(options Options) error {
 		return fmt.Errorf("resolving SDLC root: %w", err)
 	}
 
+	schema, err := LoadConfigSchema(sdlcRoot)
+	if err != nil {
+		return err
+	}
 	reader := bufio.NewReader(options.Input)
 	projectConfigPath := filepath.Join(projectRoot, ".env")
-	userValues, err := readManagedEnv(options.UserConfigPath)
+	loaderPath := filepath.Join(sdlcRoot, filepath.FromSlash(environmentLoaderPath))
+	environmentKeys := append(schema.ManagedKeys(), legacyDeliveryProvider, legacyDeliveryModel, keyInfraEnabled)
+	userValues, err := options.LoadEnvironment(loaderPath, options.UserConfigPath, environmentKeys)
 	if err != nil {
 		return err
 	}
-	projectValues, err := readManagedEnv(projectConfigPath)
+	projectValues, err := options.LoadEnvironment(loaderPath, projectConfigPath, environmentKeys)
 	if err != nil {
 		return err
 	}
+	environmentValues := readManagedProcessEnvironment(schema, options.LookupEnv)
 	normalizeLegacyDelivery(userValues)
 	normalizeLegacyInfrastructure(userValues)
 	legacyProjectConfig := normalizeLegacyDelivery(projectValues)
 	legacyProjectConfig = normalizeLegacyInfrastructure(projectValues) || legacyProjectConfig
-	config := resolveConfig(options, userValues, projectValues)
+	normalizeLegacyDelivery(environmentValues)
+	normalizeLegacyInfrastructure(environmentValues)
+	values := resolveConfigValues(schema, optionsOverrides(options), userValues, projectValues, environmentValues)
+	config := configFromValues(values, options.SDLCRevision)
 	configChanged := legacyProjectConfig
-	if config.ProjectType != "" {
-		if err := validateProjectType(config.ProjectType); err != nil {
-			return err
-		}
+	technologies, err := DiscoverTechnologies(filepath.Join(sdlcRoot, "technologies"))
+	if err != nil {
+		return err
 	}
-
+	prompted, err := completeConfig(schema, values, reader, options.Output, technologies)
+	if err != nil {
+		return err
+	}
+	configChanged = configChanged || prompted
+	config = configFromValues(values, options.SDLCRevision)
+	if err := validateConfig(schema, values, technologies); err != nil {
+		return err
+	}
+	config = configFromValues(values, options.SDLCRevision)
 	if err := ensureSpecKit(projectRoot, &config, reader, options); err != nil {
 		return err
 	}
 	if err := ensurePreset(projectRoot, sdlcRoot, options); err != nil {
 		return err
 	}
-	if config.ProjectType == "" {
-		config.ProjectType, err = promptRequired(reader, options.Output, "Project type (greenfield or brownfield): ")
-		if err != nil {
-			return err
-		}
-		config.ProjectType = strings.ToLower(config.ProjectType)
-		projectValues[keyProjectType] = config.ProjectType
-		configChanged = true
-	}
-	if err := validateProjectType(config.ProjectType); err != nil {
-		return err
-	}
-	technologies, err := DiscoverTechnologies(filepath.Join(sdlcRoot, "technologies"))
-	if err != nil {
-		return err
-	}
-	if len(config.Technologies) == 0 {
-		selected, promptErr := promptTechnologies(reader, options.Output, technologies)
-		if promptErr != nil {
-			return promptErr
-		}
-		config.Technologies = selected
-		projectValues[keyTechnologies] = strings.Join(selected, ",")
-		configChanged = true
-	}
 	selected, err := selectTechnologies(technologies, config.Technologies)
 	if err != nil {
 		return err
 	}
-	if config.InfraRole == "" {
-		config.InfraRole, err = promptRequired(reader, options.Output, "Infrastructure relationship (none, consumer, or provider): ")
-		if err != nil {
-			return err
-		}
-		config.InfraRole = strings.ToLower(strings.TrimSpace(config.InfraRole))
-		projectValues[keyInfraRole] = config.InfraRole
-		configChanged = true
-	}
-	if err := validateInfrastructureRole(config.InfraRole); err != nil {
-		return err
-	}
-	if config.InfraRole != "none" {
-		if config.InfraOwner == "" {
-			config.InfraOwner, err = promptRequired(reader, options.Output, "Infrastructure owner descriptor: ")
-			if err != nil {
-				return err
-			}
-			projectValues[keyInfraOwner] = config.InfraOwner
-			configChanged = true
-		}
-		if config.InfraContract == "" {
-			config.InfraContract, err = promptRequired(reader, options.Output, "Infrastructure integration-contract path: ")
-			if err != nil {
-				return err
-			}
-			projectValues[keyInfraContract] = config.InfraContract
-			configChanged = true
-		}
-	}
-	if config.Harness == "" {
-		config.Harness, err = promptRequired(reader, options.Output, "Agent harness (codex, claude, or hermes): ")
-		if err != nil {
-			return err
-		}
-		projectValues[keyAgentHarness] = config.Harness
-		configChanged = true
-	}
-	if err := validateHarness(config.Harness); err != nil {
-		return err
-	}
-	if err := validateProviderModelPairs(config); err != nil {
-		return err
-	}
-	for key, value := range projectSnapshot(config) {
+	for key, value := range projectSnapshot(schema, values) {
 		if current, exists := projectValues[key]; !exists || current != value {
 			projectValues[key] = value
 			configChanged = true
@@ -314,7 +246,7 @@ func Run(options Options) error {
 	templateChanged := readErr != nil || !bytes.Equal(current, rendered)
 
 	if configChanged {
-		if err := writeManagedEnv(projectConfigPath, projectValues); err != nil {
+		if err := writeManagedEnv(projectConfigPath, projectValues, schema); err != nil {
 			return err
 		}
 		fmt.Fprintf(options.Output, "Updated SDLC project selections: %s\n", projectConfigPath)
@@ -674,6 +606,12 @@ func defaultOptions(options Options) Options {
 	if options.ErrorOutput == nil {
 		options.ErrorOutput = os.Stderr
 	}
+	if options.LookupEnv == nil {
+		options.LookupEnv = os.LookupEnv
+	}
+	if options.LoadEnvironment == nil {
+		options.LoadEnvironment = configenv.Load
+	}
 	if options.RunCommand == nil {
 		options.RunCommand = runCommand
 	}
@@ -716,86 +654,77 @@ func firstHeading(contents []byte, fallback string) string {
 	return fallback
 }
 
-func resolveConfig(options Options, userValues, projectValues map[string]string) resolvedConfig {
+func optionsOverrides(options Options) map[string]string {
 	values := map[string]string{}
-	for key, value := range userValues {
-		if key != keyProjectType {
+	for key, value := range options.Overrides {
+		if strings.TrimSpace(value) != "" {
 			values[key] = value
 		}
 	}
-	for key, value := range projectValues {
-		values[key] = value
-	}
-	config := resolvedConfig{
-		Harness: values[keyAgentHarness], SpecProvider: values[keySpecProvider], SpecModel: values[keySpecModel],
-		BuildProvider: values[keyBuildProvider], BuildModel: values[keyBuildModel],
-		AuditHarness: values[keyAuditHarness], AuditProvider: values[keyAuditProvider], AuditModel: values[keyAuditModel], InfraOwner: values[keyInfraOwner], InfraContract: values[keyInfraContract],
-		ProjectType: strings.ToLower(values[keyProjectType]), Technologies: splitList(values[keyTechnologies]), InfraRole: strings.ToLower(values[keyInfraRole]), SDLCRevision: options.SDLCRevision,
-	}
-	if options.Harness != "" {
-		config.Harness = options.Harness
-	}
-	if options.SpecProvider != "" {
-		config.SpecProvider = options.SpecProvider
-	}
-	if options.SpecModel != "" {
-		config.SpecModel = options.SpecModel
-	}
-	if options.BuildProvider != "" {
-		config.BuildProvider = options.BuildProvider
-	}
-	if options.BuildModel != "" {
-		config.BuildModel = options.BuildModel
-	}
-	if options.AuditHarness != "" {
-		config.AuditHarness = options.AuditHarness
-	}
-	if options.AuditProvider != "" {
-		config.AuditProvider = options.AuditProvider
-	}
-	if options.AuditModel != "" {
-		config.AuditModel = options.AuditModel
-	}
-	if options.ProjectType != "" {
-		config.ProjectType = strings.ToLower(strings.TrimSpace(options.ProjectType))
-	}
-	if len(options.Technologies) != 0 {
-		config.Technologies = options.Technologies
-	}
-	if options.InfraEnabled != nil {
-		if *options.InfraEnabled {
-			config.InfraRole = "consumer"
-		} else {
-			config.InfraRole = "none"
-		}
-	}
-	if options.InfraRole != "" {
-		config.InfraRole = strings.ToLower(strings.TrimSpace(options.InfraRole))
-	}
-	if options.InfraOwner != "" {
-		config.InfraOwner = options.InfraOwner
-	}
-	if options.InfraContract != "" {
-		config.InfraContract = options.InfraContract
-	}
-	return config
+	return values
 }
 
-func projectSnapshot(config resolvedConfig) map[string]string {
-	values := map[string]string{
-		keyAgentHarness:  config.Harness,
-		keySpecProvider:  config.SpecProvider,
-		keySpecModel:     config.SpecModel,
-		keyBuildProvider: config.BuildProvider,
-		keyBuildModel:    config.BuildModel,
-		keyAuditHarness:  config.AuditHarness,
-		keyAuditProvider: config.AuditProvider,
-		keyAuditModel:    config.AuditModel,
-		keyProjectType:   config.ProjectType,
-		keyInfraRole:     config.InfraRole,
-		keyInfraOwner:    config.InfraOwner,
-		keyInfraContract: config.InfraContract,
-		keyTechnologies:  strings.Join(config.Technologies, ","),
+func resolveConfigValues(schema ConfigSchema, cli, user, project, environment map[string]string) map[string]string {
+	sources := map[string]map[string]string{
+		"cli": cli, "environment": environment, "project": project, "user": user,
+	}
+	values := map[string]string{}
+	for _, field := range schema.Fields {
+		for _, sourceName := range schema.Precedence {
+			if sourceName == "fallback" || (sourceName == "user" && !field.AllowUserDefault) {
+				continue
+			}
+			if value := strings.TrimSpace(sources[sourceName][field.Key]); value != "" {
+				values[field.Key] = value
+				break
+			}
+		}
+	}
+	applyFallbacks(schema, values)
+	return values
+}
+
+func applyFallbacks(schema ConfigSchema, values map[string]string) {
+	for range schema.Fields {
+		for _, field := range schema.Fields {
+			if values[field.Key] == "" && field.Fallback != "" && values[field.Fallback] != "" {
+				values[field.Key] = values[field.Fallback]
+			}
+		}
+	}
+}
+
+func configFromValues(values map[string]string, revision string) resolvedConfig {
+	return resolvedConfig{
+		Harness: values[keyAgentHarness], SpecHarness: values[keySpecHarness], SpecProvider: values[keySpecProvider], SpecModel: values[keySpecModel],
+		BuildHarness: values[keyBuildHarness], BuildProvider: values[keyBuildProvider], BuildModel: values[keyBuildModel],
+		AuditHarness: values[keyAuditHarness], AuditProvider: values[keyAuditProvider], AuditModel: values[keyAuditModel],
+		ProjectType: strings.ToLower(values[keyProjectType]), Technologies: splitList(values[keyTechnologies]),
+		InfraRole: strings.ToLower(values[keyInfraRole]), InfraOwner: values[keyInfraOwner], InfraContract: values[keyInfraContract],
+		SDLCRevision: revision,
+	}
+}
+
+func projectSnapshot(schema ConfigSchema, values map[string]string) map[string]string {
+	snapshot := map[string]string{}
+	for _, field := range schema.Fields {
+		if field.Persist && values[field.Key] != "" {
+			snapshot[field.Key] = values[field.Key]
+		}
+	}
+	return snapshot
+}
+
+func readManagedProcessEnvironment(schema ConfigSchema, lookup func(string) (string, bool)) map[string]string {
+	values := map[string]string{}
+	if lookup == nil {
+		return values
+	}
+	keys := append(schema.ManagedKeys(), legacyDeliveryProvider, legacyDeliveryModel, keyInfraEnabled)
+	for _, key := range keys {
+		if value, ok := lookup(key); ok {
+			values[key] = value
+		}
 	}
 	return values
 }
@@ -922,16 +851,13 @@ func ensureSpecKit(projectRoot string, config *resolvedConfig, reader *bufio.Rea
 	if !accepted {
 		return errors.New("Spec Kit initialization declined; no files were changed")
 	}
-	if config.Harness == "" {
-		config.Harness, err = promptRequired(reader, options.Output, "Spec Kit integration (codex, claude, or hermes): ")
+	if config.SpecHarness == "" {
+		config.SpecHarness, err = promptRequired(reader, options.Output, "Spec Kit integration (codex, claude, or hermes): ")
 		if err != nil {
 			return err
 		}
 	}
-	if err := validateHarness(config.Harness); err != nil {
-		return err
-	}
-	arguments := []string{"init", "--here", "--force", "--non-interactive", "--integration", config.Harness, "--script", "sh"}
+	arguments := []string{"init", "--here", "--force", "--non-interactive", "--integration", config.SpecHarness, "--script", "sh"}
 	return options.RunCommand("specify", arguments, projectRoot, options.Input, options.Output, options.ErrorOutput)
 }
 
@@ -1034,17 +960,85 @@ func copyDirectory(source, destination string) error {
 	})
 }
 
-func promptTechnologies(reader *bufio.Reader, output io.Writer, technologies []Technology) ([]string, error) {
-	fmt.Fprintln(output, "Available technology standards:")
-	for _, technology := range technologies {
-		fmt.Fprintf(output, "- %s: %s\n", technology.Name, technology.Title)
+func completeConfig(schema ConfigSchema, values map[string]string, reader *bufio.Reader, output io.Writer, technologies []Technology) (bool, error) {
+	changed := false
+	for _, field := range schema.Fields {
+		if values[field.Key] == "" && field.Fallback != "" {
+			values[field.Key] = values[field.Fallback]
+		}
+		if values[field.Key] != "" || field.Prompt == "" || !conditionApplies(field.RequiredWhen, values) {
+			continue
+		}
+		var value string
+		var err error
+		switch field.Type {
+		case "choice":
+			value, err = promptChoice(reader, output, field.Prompt, field.Choices)
+		case "multi-choice":
+			value, err = promptMultipleChoices(reader, output, field, technologies)
+		case "string":
+			value, err = promptRequired(reader, output, strings.TrimSpace(field.Prompt)+" ")
+		}
+		if err != nil {
+			return false, err
+		}
+		values[field.Key] = value
+		changed = true
 	}
-	fmt.Fprint(output, "Applicable technologies (comma-separated names): ")
+	applyFallbacks(schema, values)
+	return changed, nil
+}
+
+func conditionApplies(condition *RequiredWhen, values map[string]string) bool {
+	if condition == nil {
+		return true
+	}
+	for _, expected := range condition.Values {
+		if strings.EqualFold(values[condition.Field], expected) {
+			return true
+		}
+	}
+	return false
+}
+
+func promptMultipleChoices(reader *bufio.Reader, output io.Writer, field ConfigField, technologies []Technology) (string, error) {
+	choices := append([]string(nil), field.Choices...)
+	titles := map[string]string{}
+	if field.ChoicesFrom == "technologies" {
+		for _, technology := range technologies {
+			choices = append(choices, technology.Name)
+			titles[technology.Name] = technology.Title
+		}
+	}
+	fmt.Fprintln(output, field.Prompt)
+	for index, choice := range choices {
+		if title := titles[choice]; title != "" {
+			fmt.Fprintf(output, "%d. %s: %s\n", index+1, choice, title)
+		} else {
+			fmt.Fprintf(output, "%d. %s\n", index+1, choice)
+		}
+	}
+	fmt.Fprint(output, "Selections (comma-separated numbers; blank for none): ")
 	line, err := reader.ReadString('\n')
 	if err != nil && !errors.Is(err, io.EOF) {
-		return nil, fmt.Errorf("reading technologies: %w", err)
+		return "", fmt.Errorf("reading selections for %s: %w", field.Key, err)
 	}
-	return splitList(line), nil
+	if strings.TrimSpace(line) == "" {
+		return "", nil
+	}
+	seen := map[int]bool{}
+	selected := make([]string, 0)
+	for _, part := range strings.Split(line, ",") {
+		selection, parseErr := strconv.Atoi(strings.TrimSpace(part))
+		if parseErr != nil || selection < 1 || selection > len(choices) {
+			return "", fmt.Errorf("expected comma-separated numbers from 1 to %d, got %q", len(choices), strings.TrimSpace(line))
+		}
+		if !seen[selection] {
+			selected = append(selected, choices[selection-1])
+			seen[selection] = true
+		}
+	}
+	return strings.Join(selected, ","), nil
 }
 
 func promptRequired(reader *bufio.Reader, output io.Writer, prompt string) (string, error) {
@@ -1060,6 +1054,59 @@ func promptRequired(reader *bufio.Reader, output io.Writer, prompt string) (stri
 	return value, nil
 }
 
+func promptChoice(reader *bufio.Reader, output io.Writer, prompt string, choices []string) (string, error) {
+	if len(choices) == 0 {
+		return "", errors.New("at least one choice is required")
+	}
+	fmt.Fprintln(output, prompt)
+	for index, choice := range choices {
+		fmt.Fprintf(output, "%d. %s\n", index+1, choice)
+	}
+	value, err := promptRequired(reader, output, "Selection: ")
+	if err != nil {
+		return "", err
+	}
+	selection, err := strconv.Atoi(value)
+	if err != nil || selection < 1 || selection > len(choices) {
+		return "", fmt.Errorf("expected a number from 1 to %d, got %q", len(choices), value)
+	}
+	return choices[selection-1], nil
+}
+
+func validateConfig(schema ConfigSchema, values map[string]string, technologies []Technology) error {
+	for _, field := range schema.Fields {
+		value := strings.TrimSpace(values[field.Key])
+		if value == "" {
+			if (field.Type == "choice" && field.Prompt != "") || (field.RequiredWhen != nil && conditionApplies(field.RequiredWhen, values)) {
+				return fmt.Errorf("%s is required", field.Key)
+			}
+			continue
+		}
+		switch field.Type {
+		case "choice":
+			canonical, ok := canonicalChoice(field, value)
+			if !ok {
+				return fmt.Errorf("%s must be one of %s, got %q", field.Key, strings.Join(field.Choices, ", "), value)
+			}
+			values[field.Key] = canonical
+		case "multi-choice":
+			if field.ChoicesFrom == "technologies" {
+				if _, err := selectTechnologies(technologies, splitList(value)); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	for _, pair := range schema.Pairs {
+		first := strings.TrimSpace(values[pair.Fields[0]])
+		second := strings.TrimSpace(values[pair.Fields[1]])
+		if (first == "") != (second == "") {
+			return fmt.Errorf("%s fields %s and %s must be configured together", pair.Name, pair.Fields[0], pair.Fields[1])
+		}
+	}
+	return nil
+}
+
 func promptYesNo(reader *bufio.Reader, output io.Writer, prompt string) (bool, error) {
 	value, err := promptRequired(reader, output, prompt)
 	if err != nil {
@@ -1072,46 +1119,6 @@ func promptYesNo(reader *bufio.Reader, output io.Writer, prompt string) (bool, e
 	return parsed, nil
 }
 
-func validateHarness(harness string) error {
-	switch strings.ToLower(strings.TrimSpace(harness)) {
-	case "codex", "claude", "hermes":
-		return nil
-	default:
-		return fmt.Errorf("unsupported agent harness %q; use codex, claude, or hermes", harness)
-	}
-}
-
-func validateProjectType(projectType string) error {
-	switch strings.ToLower(strings.TrimSpace(projectType)) {
-	case "greenfield", "brownfield":
-		return nil
-	default:
-		return fmt.Errorf("unsupported project type %q; use greenfield or brownfield", projectType)
-	}
-}
-
-func validateInfrastructureRole(role string) error {
-	switch strings.ToLower(strings.TrimSpace(role)) {
-	case "none", "consumer", "provider":
-		return nil
-	default:
-		return fmt.Errorf("infrastructure relationship must be none, consumer, or provider, got %q", role)
-	}
-}
-
-func validateProviderModelPairs(config resolvedConfig) error {
-	for _, pair := range []struct{ label, provider, model string }{
-		{label: "specification", provider: config.SpecProvider, model: config.SpecModel},
-		{label: "build", provider: config.BuildProvider, model: config.BuildModel},
-		{label: "audit", provider: config.AuditProvider, model: config.AuditModel},
-	} {
-		if (pair.provider == "") != (pair.model == "") {
-			return fmt.Errorf("%s provider and model must be configured together", pair.label)
-		}
-	}
-	return nil
-}
-
 func launchConstitution(config resolvedConfig, projectRoot, sdlcRoot, templatePath string, options Options) error {
 	promptTemplate, err := readProjectInitResource(sdlcRoot, constitutionPromptPath)
 	if err != nil {
@@ -1121,7 +1128,7 @@ func launchConstitution(config resolvedConfig, projectRoot, sdlcRoot, templatePa
 	if err != nil {
 		return err
 	}
-	harness := strings.ToLower(config.Harness)
+	harness := strings.ToLower(config.SpecHarness)
 	var arguments []string
 	switch harness {
 	case "codex":
@@ -1223,65 +1230,23 @@ func runCommand(name string, arguments []string, directory string, input io.Read
 	return nil
 }
 
-func readManagedEnv(path string) (map[string]string, error) {
-	values := map[string]string{}
-	file, err := os.Open(path)
-	if errors.Is(err, os.ErrNotExist) || path == "" {
-		return values, nil
-	}
-	if err != nil {
-		return nil, fmt.Errorf("reading SDLC configuration %q: %w", path, err)
-	}
-	defer file.Close()
-	allowed := map[string]bool{
-		legacyDeliveryProvider: true,
-		legacyDeliveryModel:    true,
-	}
-	for _, key := range managedKeys {
-		allowed[key] = true
-	}
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if line == "" || strings.HasPrefix(line, "#") {
-			continue
-		}
-		line = strings.TrimSpace(strings.TrimPrefix(line, "export "))
-		key, value, found := strings.Cut(line, "=")
-		key = strings.TrimSpace(key)
-		if found && allowed[key] {
-			value = strings.TrimSpace(value)
-			if strings.HasPrefix(value, "\"") {
-				unquoted, unquoteErr := strconv.Unquote(value)
-				if unquoteErr != nil {
-					return nil, fmt.Errorf("reading SDLC configuration %q: invalid quoted value for %s", path, key)
-				}
-				value = unquoted
-			} else {
-				value = strings.Trim(value, "'")
-			}
-			values[key] = value
-		}
-	}
-	if err := scanner.Err(); err != nil {
-		return nil, fmt.Errorf("reading SDLC configuration %q: %w", path, err)
-	}
-	return values, nil
-}
-
-func writeManagedEnv(path string, values map[string]string) error {
+func writeManagedEnv(path string, values map[string]string, schema ConfigSchema) error {
 	existing, err := os.ReadFile(path)
 	if err != nil && !errors.Is(err, os.ErrNotExist) {
 		return fmt.Errorf("reading project environment %q: %w", path, err)
 	}
 	managed := map[string]bool{}
-	for _, key := range managedKeys {
+	for _, key := range schema.ManagedKeys() {
 		managed[key] = true
 	}
 	managed[legacyDeliveryProvider] = true
 	managed[legacyDeliveryModel] = true
+	managed[keyInfraEnabled] = true
 	var kept []string
 	for _, line := range strings.Split(strings.TrimSuffix(string(existing), "\n"), "\n") {
+		if strings.TrimSpace(line) == "# SDLC project configuration" {
+			continue
+		}
 		trimmed := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(line), "export "))
 		key, _, found := strings.Cut(trimmed, "=")
 		if found && managed[strings.TrimSpace(key)] {
@@ -1295,12 +1260,16 @@ func writeManagedEnv(path string, values map[string]string) error {
 		kept = append(kept, "")
 	}
 	kept = append(kept, "# SDLC project configuration")
-	for _, key := range managedKeys {
-		if value, ok := values[key]; ok {
-			kept = append(kept, key+"="+strconv.Quote(value))
+	for _, field := range schema.Fields {
+		if value, ok := values[field.Key]; ok && field.Persist {
+			kept = append(kept, field.Key+"="+shellQuote(value))
 		}
 	}
 	return writeAtomic(path, []byte(strings.Join(kept, "\n")+"\n"), 0o600)
+}
+
+func shellQuote(value string) string {
+	return "'" + strings.ReplaceAll(value, "'", "'\"'\"'") + "'"
 }
 
 func ensureEnvIgnored(path string) (bool, error) {
