@@ -1,8 +1,7 @@
 ## SDLC standards
 
-The canonical SDLC root is exactly `~/.agents/sdlc`. Never search the
-filesystem to locate it. If `~/.agents/sdlc/MAIN.md` is absent or unreadable,
-report that exact path.
+If `~/.agents/sdlc/MAIN.md` is absent or unreadable, report that exact path;
+never search for another copy.
 
 Read `~/.agents/sdlc/MAIN.md`, `~/.agents/sdlc/AUDITS.md`, and
 `~/.agents/sdlc/ISSUES.md` in full. Apply their defined-specification,
@@ -63,16 +62,9 @@ Give those sections distinct jobs:
 Retain only the repetition needed to connect those views. Do not repeat detailed
 behaviour in narrative merely to fill every section.
 
-Apply the ABC presentation contract in `~/.agents/sdlc/ISSUES.md`. Use ordinary
-Markdown headings. Bold the semantic spine of each statement: the smallest
-words or phrases carrying its distinctive state, action, qualifier, quantity,
-boundary, or outcome. Read in order, the bold fragments must form an accurate
-compressed summary. Do not mechanically bold nouns, context already supplied
-nearby, generic labels, identifiers, modal verbs, or acceptance-scenario
-signposts. Write `GIVEN`, `WHEN`, `THEN`, and `AND` in unbolded capitals on
-separate lines. Prefer bullets to multi-fact prose and keep one primary fact per
-bullet. Do not use emphasis as a substitute for accurate structure or repeat
-content merely to create more visual anchors.
+Apply the ABC presentation and semantic-spine contract in
+`~/.agents/sdlc/ISSUES.md`, including its scan-friendly bullets and unbolded
+acceptance-scenario signposts.
 
 Use the fictional example at
 `~/.agents/sdlc/presets/sdlc-standards/examples/spec-example.md` only to
@@ -101,10 +93,8 @@ After specification and clarification are complete, the specification MUST
 receive `audit-spec` PASS or satisfy a PROVISIONAL receipt under `AUDITS.md`.
 Record the verdict and any receipt in the active feature's `audits.md`.
 Planning MUST NOT begin without a current effective PASS.
-The main authoring context owns convergence under `AUDITS.md`: remediate
-current-phase blockers and dispatch fresh audits without handback, up to five
-total attempts, then request operator sign-off with the required decision and
-assumption summary.
+Converge under the autonomous contract in `AUDITS.md` before requesting
+operator sign-off.
 
 After the applicable audit PASS, or validation when none applies, present
 approval artefacts with `HTML_PREVIEW_TOOL`; otherwise use an available

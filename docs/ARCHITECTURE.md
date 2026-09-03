@@ -40,6 +40,7 @@ sdlc/
 |   |-- SECURITY.md
 |   |-- AUDITS.md
 |   |-- PAIRING.md
+|   |-- EMERGENCY.md
 |   |-- CODING.md
 |   |-- GIT.md
 |   |-- DOCUMENTATION.md
@@ -73,6 +74,7 @@ runtime:
 |-- SECURITY.md
 |-- AUDITS.md
 |-- PAIRING.md
+|-- EMERGENCY.md
 |-- CODING.md
 |-- GIT.md
 |-- DOCUMENTATION.md
@@ -110,6 +112,7 @@ coding task
     +-- application security --> SECURITY.md
     +-- audited phase ---------> AUDITS.md
     +-- paired development ----> PAIRING.md
+    +-- emergency delivery ----> EMERGENCY.md
     +-- implementation --------> CODING.md
     +-- source control --------> GIT.md
     +-- technical docs --------> DOCUMENTATION.md

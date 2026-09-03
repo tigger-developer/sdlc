@@ -79,10 +79,11 @@ Expose the `make vulncheck` contract defined by
 against the committed lockfile. Include dependencies that can alter the build
 artefact, not only packages present at runtime.
 
-The target must not run `npm audit fix`, install packages, update the lockfile,
-or suppress the audit exit code. If registry disclosure of the dependency graph
-is not acceptable, select and document Trivy, OSV-Scanner, or another compatible
-local scanner rather than silently omitting the check.
+Follow the common non-mutating, fail-closed contract: do not run
+`npm audit fix`, install packages, update the lockfile, or suppress the audit
+exit code. If registry disclosure of the dependency graph is not acceptable,
+select and document Trivy, OSV-Scanner, or another compatible local scanner
+rather than omit the check.
 
 ## References
 

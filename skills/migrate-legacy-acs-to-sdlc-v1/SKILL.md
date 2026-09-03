@@ -8,9 +8,8 @@ metadata:
 
 # Retire an SDLC v1 ticket system for Spec Kit
 
-The canonical SDLC root is exactly `~/.agents/sdlc`. Never search the
-filesystem to locate it. If `~/.agents/sdlc/MAIN.md` is absent or unreadable,
-report that exact path.
+If `~/.agents/sdlc/MAIN.md` is absent or unreadable, report that exact path;
+never search for another copy.
 
 Read `~/.agents/sdlc/MAIN.md`, `~/.agents/sdlc/ISSUES.md`,
 `~/.agents/sdlc/TESTING.md`, `~/.agents/sdlc/DOCUMENTATION.md`, and

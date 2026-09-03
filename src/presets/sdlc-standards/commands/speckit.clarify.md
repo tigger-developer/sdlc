@@ -1,8 +1,7 @@
 ## SDLC standards
 
-The canonical SDLC root is exactly `~/.agents/sdlc`. Never search the
-filesystem to locate it. If `~/.agents/sdlc/MAIN.md` is absent or unreadable,
-report that exact path.
+If `~/.agents/sdlc/MAIN.md` is absent or unreadable, report that exact path;
+never search for another copy.
 
 Read `~/.agents/sdlc/MAIN.md`, `~/.agents/sdlc/AUDITS.md`, and
 `~/.agents/sdlc/ISSUES.md` in full. Prioritize ambiguities that can change
@@ -23,10 +22,8 @@ revision-specific history but make it non-current. After clarification is
 complete, run `audit-spec` in a fresh context and record its current verdict
 before planning. A satisfied PROVISIONAL receipt is an effective PASS under
 `AUDITS.md`.
-The main authoring context owns convergence under `AUDITS.md`: remediate
-current-phase blockers and dispatch fresh audits without handback, up to five
-total attempts, then request operator sign-off with the required decision and
-assumption summary.
+Converge under the autonomous contract in `AUDITS.md` before requesting
+operator sign-off.
 
 After the applicable audit PASS, or validation when none applies, present
 approval artefacts with `HTML_PREVIEW_TOOL`; otherwise use an available

@@ -24,6 +24,7 @@ root is exactly `~/.agents/sdlc` for every supported provider.
 | `src/SECURITY.md` | Application vulnerability-checking and exception contract |
 | `src/AUDITS.md` | Independent verdict and autonomous phase-convergence contract |
 | `src/PAIRING.md` | Explicit paired-development and live user-validation contract |
+| `src/EMERGENCY.md` | Exact-token emergency delivery and reconciliation contract |
 | `src/CODING.md` | Cross-language implementation standards |
 | `src/GIT.md` | Source-control and recoverability standards |
 | `src/DOCUMENTATION.md` | Public technical-documentation standards |

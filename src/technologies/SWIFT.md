@@ -133,9 +133,9 @@ Do not update resolved packages implicitly during deployment.
 Deployable Swift applications with Swift Package Manager or CocoaPods
 dependencies must expose the `make vulncheck` contract defined by
 `~/.agents/sdlc/SECURITY.md`. Use Trivy against `Package.resolved`,
-`Podfile.lock`, or the built artefact as appropriate. The target must not update
-packages, rewrite resolved files, download an unpinned scanner, or suppress
-findings.
+`Podfile.lock`, or the built artefact as appropriate. Follow the common
+non-mutating, fail-closed contract: do not update packages, rewrite resolved
+files, download an unpinned scanner, or suppress findings.
 
 ## Interop
 

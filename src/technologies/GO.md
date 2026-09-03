@@ -178,10 +178,10 @@ linters:
 ```
 
 Deployable Go applications must expose the `make vulncheck` contract defined by
-`~/.agents/sdlc/SECURITY.md`, implemented with `govulncheck ./...`. Provision
-the scanner reproducibly outside the target. The target must not install
-`govulncheck`, suppress its exit code, or use JSON/SARIF output modes whose
-documented exit behaviour would conceal findings.
+`~/.agents/sdlc/SECURITY.md`, implemented with `govulncheck ./...`. Follow that
+non-mutating, fail-closed contract and provision the scanner reproducibly
+outside the target. Do not suppress findings through JSON/SARIF output modes
+whose documented exit behaviour would conceal them.
 
 ## Standard Library Preference
 

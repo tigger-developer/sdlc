@@ -8,9 +8,8 @@ metadata:
 
 # Convert a completed migration ledger to Org
 
-The canonical SDLC root is exactly `~/.agents/sdlc`. Never search the
-filesystem to locate it. If `~/.agents/sdlc/MAIN.md` is absent or unreadable,
-report that exact path.
+If `~/.agents/sdlc/MAIN.md` is absent or unreadable, report that exact path;
+never search for another copy.
 
 Read `~/.agents/sdlc/MAIN.md`, `~/.agents/sdlc/ISSUES.md`,
 `~/.agents/sdlc/DOCUMENTATION.md`, `~/.agents/sdlc/GIT.md`, and

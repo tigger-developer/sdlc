@@ -3,9 +3,8 @@ name: diagnose-issue
 description: Diagnose an observed software problem and recommend a fix without making file changes.
 ---
 
-The canonical SDLC root is exactly `~/.agents/sdlc`. Never search the
-filesystem to locate it. If `~/.agents/sdlc/MAIN.md` is absent or unreadable,
-report that exact path.
+If `~/.agents/sdlc/MAIN.md` is absent or unreadable, report that exact path;
+never search for another copy.
 
 Read `~/.agents/sdlc/MAIN.md` and only the standards relevant to the system
 under diagnosis. Do not modify files.

@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+Reduced loaded instruction repetition without weakening entry-point safety.
+Canonical-root bootstraps retain the literal path, no-search rule, and exact
+failure response; Spec Kit commands now defer convergence detail to the
+canonical audit standard they already load. Moved the complete
+operator-only `BYPASS-GATE-7` procedure from universal `MAIN.md` into the routed
+`EMERGENCY.md` standard while retaining its exact-token guard in `MAIN.md`.
+
+Compressed the specification command's duplicate ABC guidance, the shell
+`IFS` rationale, and repeated vulnerability-target wording while preserving a
+concrete shell failure example, stack-specific scanners and inputs, and the
+non-mutating fail-closed security contract.
+
 Added a cross-cutting API technology standard for providers, consumers,
 webhooks, compatibility, lifecycle, observability, contract testing, and common
 antipatterns. Progressive loading now selects it for API and service-integration

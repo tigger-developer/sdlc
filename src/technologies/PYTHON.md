@@ -118,8 +118,9 @@ by `~/.agents/sdlc/SECURITY.md`. Run `pip-audit` through the project-managed
 environment against the committed lock, fully pinned requirements, or an
 equivalent already-resolved environment.
 
-The target must not install packages, invoke an unconstrained dependency
-resolution, apply `--fix`, modify the lock, or suppress the audit exit code.
+Follow the common non-mutating, fail-closed contract: do not install packages,
+resolve unconstrained dependencies, apply `--fix`, modify the lock, or suppress
+the audit exit code.
 Where a private package index is required, use the project's established
 non-interactive authentication boundary without placing credentials in source
 or command output.

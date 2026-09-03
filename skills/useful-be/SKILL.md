@@ -3,10 +3,8 @@ name: useful-be
 description: Load the minimum project and engineering context needed for useful work.
 ---
 
-The canonical SDLC root is exactly `~/.agents/sdlc`. Do not search, enumerate
-directories, traverse mounted volumes, inspect network shares, or use `find`,
-`locate`, Spotlight, or equivalent discovery to resolve it. If
-`~/.agents/sdlc/MAIN.md` is absent or unreadable, report that exact path.
+If `~/.agents/sdlc/MAIN.md` is absent or unreadable, report that exact path;
+never search for another copy.
 
 1. Read `~/.agents/sdlc/MAIN.md` in full.
 2. Read the project's primary README and agent or contributor instructions.

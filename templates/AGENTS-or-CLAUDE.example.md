@@ -15,10 +15,8 @@ provider and add local human preferences separately.
 
 ## Load the standards only for coding work
 
-The canonical SDLC root is exactly `~/.agents/sdlc`. Do not search, enumerate
-directories, traverse mounted volumes, inspect network shares, or use `find`,
-`locate`, Spotlight, or equivalent discovery to resolve it. If
-`~/.agents/sdlc/MAIN.md` is absent or unreadable, report that exact path.
+If `~/.agents/sdlc/MAIN.md` is absent or unreadable, report that exact path;
+never search for another copy.
 
 When handling code, scripts, software configuration, builds, tests, deployment,
 or systems work:
