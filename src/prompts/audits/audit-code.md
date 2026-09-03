@@ -18,6 +18,8 @@ Check:
   current result, kept separate from behavioural regression evidence;
 - canonical Make target names and common variable semantics where the project
   uses Make;
+- for every added or changed CLI executable, the language-neutral CLI contract
+  in `CODING.md`, regardless of implementation language;
 - maintainability and ecosystem idioms;
 - implementation of the approved automated tests without reopening the
   effective test-strategy audit; and

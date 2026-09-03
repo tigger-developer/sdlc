@@ -214,9 +214,11 @@ project may add necessary project-specific variables, but it must document them
 beside the target and must not introduce alternate spellings for these common
 controls.
 
-- Keep help text reviewable as documentation and make `--help` and `--version`
-  available on CLI executables. Provide dry-run behaviour for operations whose
-  effects merit preview.
+- Keep help text reviewable as documentation. Every CLI executable provides
+  equivalent `-h` and `--help` output, plus `--version`. Help and version
+  requests exit successfully without side effects. Invalid invocation,
+  operational failure, stdout, stderr, and dry-run behaviour follow the common
+  CLI contracts in this document.
 - For Homebrew releases, update the formula or cask version, source URL, and
   checksum together. Install or upgrade through Homebrew to validate packaging;
   do not live-patch a package-manager installation.
