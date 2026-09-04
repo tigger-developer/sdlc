@@ -361,6 +361,10 @@ judgement-based change requires a fresh audit.
    within the specification and re-audits under the five-attempt limit. A
    specification or clarification change preserves the earlier PASS as history
    but makes it non-current unless it exactly satisfies a PROVISIONAL condition.
+   At the approval handback, the agent also gives a chat-only **Change digest**:
+   concise Before, After, Changes, Unchanged, Edge cases, Decisions, Evidence,
+   and Next step bullets. The digest is derived from `spec.md`, creates no
+   parallel artefact, and cannot introduce or omit requirements.
    Record every attempt and any condition receipt in the feature's `audits.md`;
    planning requires the current effective PASS and operator sign-off.
 

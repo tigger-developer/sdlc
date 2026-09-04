@@ -100,3 +100,30 @@ After the applicable audit PASS, or validation when none applies, present
 approval artefacts with `HTML_PREVIEW_TOOL`; otherwise use an available
 non-blocking text editor or report the exact paths. Previewing is not approval
 and must not stop the workflow.
+
+In the same approval handback, provide a chat-only **Change digest** derived
+strictly from the current specification:
+
+- **Outcome:** one sentence naming the user or system result.
+- **Before:** short bullets describing the affected current behaviour or
+  greenfield absence.
+- **After:** short bullets describing the required observable behaviour.
+- **Changes:** the precise behaviours, interfaces, data, or constraints that
+  become different.
+- **Unchanged:** important preserved behaviour, compatibility boundaries, and
+  exclusions.
+- **Edge cases:** applicable empty, missing, invalid, minimum, maximum,
+  repetition, concurrency, partial-failure, security, privacy, accessibility,
+  and compatibility cases.
+- **Decisions:** resolved assumptions and any decision still requiring the
+  operator.
+- **Evidence:** the specification path and audit verdict with descriptors.
+- **Next step:** the exact sign-off or clarification required.
+
+Apply the operator's ADHD presentation style: Accurate, Brief, and Clear;
+keyword-first bullets; one principal fact per bullet; sparse bold semantic
+anchors; and a table only when exact mappings cannot be conveyed clearly in a
+list. Do not create a digest file or make the digest a second specification.
+Do not add, reinterpret, or omit requirements in the digest. If preparing it
+reveals a missing edge case, contradiction, or ambiguity, correct the
+specification and restore its effective audit PASS before presenting either.

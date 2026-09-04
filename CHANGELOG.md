@@ -9,6 +9,12 @@ language-wide rules from the browser-focused Web standard, linked the Node and
 Shell standards to the new authority, and documented the expected selections
 for host-application plugins such as Obsidian.
 
+Specification approval handbacks now include a chat-only, ADHD-friendly Change
+digest covering current and required behaviour, precise changes, preserved
+scope, edge cases, decisions, evidence, and the next action. The digest remains
+a presentation of the audited `spec.md`, never a parallel authority; any gap it
+exposes must be corrected and re-audited in the specification first.
+
 ## v2.0.7 - 2026-09-03
 
 Reduced loaded instruction repetition without weakening entry-point safety.

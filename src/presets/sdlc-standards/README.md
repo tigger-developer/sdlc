@@ -14,6 +14,11 @@ demonstrates the complete presentation contract. Spec Kit continues to own
 creation, clarification, planning, task generation, and implementation
 orchestration.
 
+After an effective specification-audit PASS, the specification command also
+presents a chat-only Change digest comparing current and required behaviour,
+including preserved scope, edge cases, decisions, evidence, and the required
+next step. It creates no second specification artefact.
+
 Install this repository with `make install`, which deploys the standards and
 installs the CLI helpers. Then run the project initializer from the adopting
 project:
