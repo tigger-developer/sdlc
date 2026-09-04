@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## v2.0.8 - 2026-09-04
 
 Added an automatically discoverable JavaScript and TypeScript technology
 standard covering strict typing, modules, asynchronous work, input safety,
