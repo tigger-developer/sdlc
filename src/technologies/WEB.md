@@ -1,6 +1,10 @@
 # Web Standards
 
-Standards for HTML, CSS, JavaScript, and the testing/tooling concerns that span them. The general coding standards in `~/.agents/sdlc/CODING.md` apply on top of these.
+Standards for browser-facing HTML, CSS, JavaScript, and the testing and tooling
+concerns that span them. The general coding standards in
+`~/.agents/sdlc/CODING.md` apply on top of these. Projects that own JavaScript
+or TypeScript source also load
+`~/.agents/sdlc/technologies/JAVASCRIPT.md`.
 
 When a Go application serves HTML, CSS, or JavaScript, the server-side patterns in `~/.agents/sdlc/technologies/GO.md` (HTTP server, error handling, timeouts) apply for the server; the standards in this document apply for the response payload.
 
@@ -49,19 +53,18 @@ rules:
 
 - **Performance:** prefer CSS Grid / Flexbox over absolute positioning. Avoid selector nesting deeper than 3 levels. Use CSS custom properties (`--var`) for theme values.
 
-## JavaScript
+## Browser JavaScript and TypeScript
 
-This is the JS minimum. When the stack grows substantive TypeScript work, factor a `CODE/TS.md` and reference it from here.
+The language-wide rules live in
+`~/.agents/sdlc/technologies/JAVASCRIPT.md`. Browser-facing code additionally:
 
-- **ES modules (ESM) only.** No CommonJS in new code.
-- **Never `eval`.** Never `new Function(string)`. Never `setTimeout("string")`.
-- **Strict equality** (`===`/`!==`). Never `==`/`!=` (except `== null` for the null-or-undefined check, which is allowed but should be deliberate).
-- **`async`/`await` over `.then()`** chains. Mix only at module boundaries.
-- **Handle promise rejections.** Every promise either has `.catch()`, is `await`ed inside a `try/catch`, or is intentionally fire-and-forget with a comment justifying it.
-- **No global pollution.** Modules export and import; don't attach to `window`.
-- **No `var`.** `const` by default, `let` only if mutation is necessary.
-- **Strict null/undefined handling.** Optional chaining (`?.`) and nullish coalescing (`??`) where they improve clarity.
-- **Lint:** ESLint with Airbnb base or project standard. Format with Prettier. See Style Baselines table in `~/.agents/sdlc/CODING.md`.
+- uses safe DOM APIs and contextual escaping for externally derived content;
+- preserves semantic HTML, keyboard operation, visible focus, and accessible
+  names when it creates or modifies interface elements;
+- feature-detects optional browser APIs within the project's declared support
+  range; and
+- avoids long synchronous work on the main thread where it would make the
+  interface unresponsive.
 
 ## Build and Test Tooling
 

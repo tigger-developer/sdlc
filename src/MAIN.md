@@ -70,6 +70,7 @@ work. Do not preload the entire library.
 | Technical documentation | `~/.agents/sdlc/DOCUMENTATION.md` |
 | Providing or consuming APIs, webhooks, or service integrations | `~/.agents/sdlc/technologies/API.md` |
 | Go | `~/.agents/sdlc/technologies/GO.md` |
+| JavaScript or TypeScript | `~/.agents/sdlc/technologies/JAVASCRIPT.md` |
 | Python projects | `~/.agents/sdlc/technologies/PYTHON.md` |
 | Shell | `~/.agents/sdlc/technologies/SHELL.md` |
 | Perl | `~/.agents/sdlc/technologies/PERL.md` |

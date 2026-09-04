@@ -129,7 +129,9 @@ Tests must never pass by grepping or otherwise introspecting source code -- see 
 | CLI output -> JSON | `jc` | `jc` | Wrap `ps`/`df`/`mount`/`netstat`/etc. before parsing. |
 | Multi-format | `dasel` | `dasel` | One selector syntax across JSON/YAML/TOML/XML/CSV. |
 
-For HTML, CSS, and JavaScript tooling (htmlq, htmltest, stylelint, eslint) see `~/.agents/sdlc/technologies/WEB.md`.
+For HTML and CSS tooling such as htmlq, htmltest, and stylelint, see
+`~/.agents/sdlc/technologies/WEB.md`. JavaScript and TypeScript linting follows
+`~/.agents/sdlc/technologies/JAVASCRIPT.md`.
 
 ### yq pitfall
 

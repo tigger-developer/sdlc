@@ -6,7 +6,8 @@ considered and why a simpler compiled or static architecture is inadequate.
 Incidental use of npm-managed development tooling does not by itself select
 Node.js as the application runtime.
 
-These standards supplement `~/.agents/sdlc/CODING.md` and, for web interfaces,
+These standards supplement `~/.agents/sdlc/CODING.md` and
+`~/.agents/sdlc/technologies/JAVASCRIPT.md`. Browser interfaces also follow
 `~/.agents/sdlc/technologies/WEB.md`.
 
 ## Runtime and package manager

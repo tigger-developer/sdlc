@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+Added an automatically discoverable JavaScript and TypeScript technology
+standard covering strict typing, modules, asynchronous work, input safety,
+plugin lifecycle, build tooling, testing, and vulnerability checking. Extracted
+language-wide rules from the browser-focused Web standard, linked the Node and
+Shell standards to the new authority, and documented the expected selections
+for host-application plugins such as Obsidian.
+
 ## v2.0.7 - 2026-09-03
 
 Reduced loaded instruction repetition without weakening entry-point safety.

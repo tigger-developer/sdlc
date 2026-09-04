@@ -76,6 +76,10 @@ Select `HUGO` together with `WEB` for a Hugo site. Select `NODE` whenever
 Node.js is the application runtime or npm-managed dependencies participate in
 the build; incidental use of an npm-installed developer tool still brings its
 dependency graph into vulnerability checking when it can affect the artefact.
+Select `JAVASCRIPT` whenever the project owns JavaScript or TypeScript source,
+including a host-application plugin. Add `WEB` for browser-facing HTML, CSS, DOM,
+or accessibility behaviour. An Obsidian plugin normally selects `JAVASCRIPT`
+and `NODE`, plus `WEB` when it owns interface or stylesheet behaviour.
 
 The generated scaffold records an exact SDLC release tag when the initializer
 was built at that tag; other clean versioned builds record their source commit.
