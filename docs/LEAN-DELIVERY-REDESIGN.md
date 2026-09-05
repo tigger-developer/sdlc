@@ -1,6 +1,6 @@
 # Lean Delivery Redesign
 
-Status: Agreed process direction; composite-audit mechanics remain under review.
+Status: Agreed process direction; combined-verdict details remain under review.
 
 ## Objective
 
@@ -126,18 +126,31 @@ the unified specification, preferably in one concise batch for each area.
 
 ## Definition audit
 
-Create `audit-definition` as one operator-visible skill invocation and one fresh,
-isolated auditor context. It applies the existing criteria from:
+Before invoking an independent auditor, the author reviews and corrects the
+unified specification in its existing context against:
 
 - `audit-spec` to the requirements and specification as a whole;
 - `audit-design` to the solution design; and
 - `audit-tests` to the test definitions.
 
-It returns one combined response. All three component judgements must pass for
-the overall definition audit to pass. Findings identify the specialist audit
-that produced them. The author may remediate and rerun the combined audit up to
-five times. An exact provisional correction follows the existing provisional
-receipt contract without consuming another model audit.
+This author preflight uses context already loaded for drafting. It is not an
+independent audit, produces no audit verdict or separate artefact, and does not
+count against the external-attempt limit. Its purpose is to correct avoidable
+problems before paying the context and model cost of independent review.
+
+Create `audit-definition` as one operator-visible skill invocation. Its first
+external attempt starts one fresh, isolated, phase-scoped auditor session and
+applies the same three specialist contracts. It returns one combined response.
+All three component judgements must pass for the overall definition audit to
+pass. Findings identify the specialist audit that produced them.
+
+If the independent audit fails, the author assesses its findings, remediates
+those supported by the specification and authorities, repeats the author
+preflight, and resubmits the complete revised candidate to the same independent
+auditor session. Do not accept an out-of-scope or contradictory finding merely
+because an auditor emitted it. Permit at most five independent attempts. An
+exact provisional correction follows the existing provisional receipt contract
+without consuming another model audit.
 
 After an effective PASS, or after the fifth failed audit, return to the operator
 for a hard decision checkpoint. Return earlier only when remediation requires
@@ -159,17 +172,27 @@ After operator approval:
 
 ## Implementation audit
 
-Create `audit-implementation` as one operator-visible skill invocation and one
-fresh, isolated auditor context. It applies the existing criteria from:
+Before invoking an independent auditor, the author reviews and corrects the
+implemented tests and code in its existing context against:
 
 - `audit-tests` to the implemented tests and their fidelity to the approved test
   definitions; and
 - `audit-code` to the implementation change.
 
-It returns one combined response. Both component judgements must pass for the
-overall implementation audit to pass. Findings identify the specialist audit
-that produced them. The author may remediate and rerun the combined audit up to
-five times under the same provisional and operator-owned-decision boundaries.
+As in the definition phase, this is an author preflight rather than independent
+audit evidence. It produces no separate record and does not consume an external
+attempt.
+
+Create `audit-implementation` as one operator-visible skill invocation. Its
+first external attempt starts a new fresh, isolated, implementation-scoped
+auditor session. It returns one combined response. Both component judgements
+must pass for the overall implementation audit to pass. Findings identify the
+specialist audit that produced them.
+
+After a failure, remediate supported findings, repeat the author preflight, and
+resubmit the complete current test and code candidate to the same implementation
+auditor session. Permit at most five independent attempts under the same
+provisional and operator-owned-decision boundaries.
 
 After an effective PASS, execute and record the approved one-off and user tests.
 Then return to the operator for delivery sign-off. If final validation causes a
@@ -186,16 +209,45 @@ The composite skills must consume the four specialist audit contracts as their
 single sources of truth. They must not copy and independently maintain those
 criteria.
 
+## Auditor session reuse
+
+Use one independent auditor session for the definition phase and a separate one
+for the implementation phase. The first attempt in each phase begins without
+the authoring conversation. Later attempts resume that phase's auditor rather
+than starting again.
+
+On every resumed attempt, provide:
+
+- the complete current candidate;
+- a concise description or diff of the remediation; and
+- any authority newly made relevant by the change.
+
+Do not resend unchanged project authorities merely to reconstruct a new
+conversation. The auditor must reassess the current candidate; its previous
+findings and verdict do not bind the new judgement.
+
+Store session identifiers only as ignored project runtime state, never as
+tracked delivery artefacts. If a session cannot be resumed, start a new isolated
+auditor and supply the complete required context rather than silently treating
+the lost session as a verdict.
+
+Session reuse avoids repeated discovery, file loading, and prompt construction.
+It does not assume that a provider stops processing or charging for retained
+conversation history; provider-side context and caching behaviour remain an
+implementation concern.
+
 ## Delivery shape
 
 ```text
 Clarify
   -> Unified specification
-  -> audit-definition, up to five calls
+  -> Author definition preflight
+  -> audit-definition in one reusable phase session, up to five calls
   -> OPERATOR CHECKPOINT
   -> Write tests
   -> Write code
-  -> audit-implementation, up to five calls
+  -> Author implementation preflight
+  -> audit-implementation in one reusable phase session, up to five calls
   -> One-off and user validation
   -> OPERATOR CHECKPOINT
 ```
