@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v2.0.10 - 2026-09-05
+
 Identifiers are now permanently reserved within their established namespace
 from first assignment. Specification and test creation must allocate sequential
 identifiers above the highest value found across active artefacts, archives, and
