@@ -47,6 +47,13 @@ The unified specification contains:
 - edge cases; and
 - a solution design covering architecture context, high-level design, relevant architectural qualities, and mandatory security impact.
 
+The specification is a context-independent delivery handoff. A new agent must
+be able to deliver it using only the specification, the project profile, its
+named authorities, and the repository. It must not depend on the drafting
+conversation, phrases such as "as discussed", unnamed source material,
+uncaptured operator decisions, or assumed implementation knowledge. Failure of
+this handoff test blocks the definition gate.
+
 Test definitions retain the SDLC v1 classifications:
 
 - `RT`: persistent automated regression test;
@@ -170,6 +177,11 @@ The second global command and its exact contract remain to be confirmed. It is e
 - A Markdown unified-specification template using the operator's ADHD presentation contract, to be opened with `$HTML_PREVIEW_TOOL`.
 - An Org work-ledger template using meaningful nested headings, to be opened in Emacs.
 - Both templates are to be reviewed before repository implementation begins.
+
+The specification template must make context-independent handoff explicit and
+record the delivery objective, relevant starting state, exact authorities,
+constraints, dependencies, resolved decisions, unresolved blockers, and enough
+solution detail for a new agent to begin with the defined tests.
 
 ## Open decisions
 
