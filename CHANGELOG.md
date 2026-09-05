@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## v2.0.9 - 2026-09-05
+
 Specification creation now treats command text as a brief rather than presumed
 complete requirements. It asks one bounded batch of ordinary-prose questions
 when outcome, scope, validation, or material risk remains unresolved, selects a
