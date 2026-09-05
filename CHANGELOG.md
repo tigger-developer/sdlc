@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+Identifiers are now permanently reserved within their established namespace
+from first assignment. Specification and test creation must allocate sequential
+identifiers above the highest value found across active artefacts, archives, and
+version history; deletion, abandonment, retirement, or supersession never makes
+an identifier available again. Specification and test audits reject reuse shown
+by their supplied evidence.
+
 ## v2.0.9 - 2026-09-05
 
 Specification creation now treats command text as a brief rather than presumed

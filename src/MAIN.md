@@ -35,6 +35,10 @@ path.
   deliberate change.
 - Never present a bare identifier to a human. Give every requirement, test,
   ticket, finding, or commit identifier an adjacent short descriptor.
+- Never reuse an identifier. Assignment permanently reserves it within its
+  established namespace, including after deletion, archiving, abandonment,
+  retirement, or supersession. A sequential identifier must advance beyond the
+  highest identifier ever assigned; gaps remain gaps.
 
 ## Common command prohibitions
 

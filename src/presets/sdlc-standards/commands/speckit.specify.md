@@ -74,6 +74,15 @@ an approved current requirement, or a necessary boundary directly implied by
 one of those sources. Unsupported elaboration is a specification defect, not a
 helpful assumption.
 
+Before allocating a sequential feature or specification identifier, inspect
+active and archived specification paths plus reachable version history. Choose
+a number greater than the highest number ever assigned, including abandoned,
+deleted, retired, or superseded specifications. Do not use the lowest currently
+available number or accept an automatically proposed identifier that has
+already appeared. Apply the same permanent-reservation rule to requirements,
+scenarios, success criteria, and every other identifier namespace used in the
+specification.
+
 The resolved SDLC `spec-template` is authoritative for the specification's
 structure. Preserve its opening Specification Summary and following `***`
 section break, Spec Kit-compatible User Scenarios and Testing, Acceptance
@@ -132,6 +141,8 @@ checks:
 - every requirement has an authoritative source and no industry convention,
   common pattern, template placeholder, or test convenience has been promoted
   into an unsupported requirement;
+- no feature, requirement, scenario, success-criterion, or other identifier
+  reuses a value previously assigned within its namespace;
 - every requirement is observable, falsifiable, bounded, and has a descriptor;
 - the bold semantic spine captures the distinctive state, action, qualifier,
   quantity, boundary, and outcome without emphasizing surrounding context;

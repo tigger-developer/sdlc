@@ -42,6 +42,9 @@ Check that:
 - industry conventions, common patterns, template placeholders, speculative
   edge cases, and test conveniences have not been promoted into unsupported
   requirements;
+- no feature, requirement, scenario, success-criterion, or other identifier
+  reuses a value shown by the supplied active, archived, retired, superseded,
+  or historical evidence;
 - ordinary Markdown headings provide structure while each statement's bold
   semantic spine forms an accurate compressed summary of its distinctive state,
   action, qualifier, quantity, boundary, and outcome;

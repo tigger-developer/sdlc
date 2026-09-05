@@ -24,6 +24,8 @@ Check that:
   authorization;
 - no metered or live third-party check is embedded in a persistent regression
   suite or repeatedly triggered automation;
+- no test identifier reuses a value shown by the supplied active, archived,
+  retired, superseded, or historical evidence;
 - every selected one-off and user test has a `PENDING` entry in the active
   feature's `validation.md` containing its descriptor, traceability, expected
   result, procedure or viewing conditions, and an implementation-stage task to

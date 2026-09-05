@@ -25,6 +25,12 @@ regression test coupled to prose wording.
 Map each automated or human check to a described requirement. Give any cited
 requirement or test identifier an adjacent descriptor.
 
+Never reuse a test identifier within its established namespace. A removed,
+abandoned, retired, or superseded test permanently reserves its identifier. For
+sequential identifiers, consult active records, archives, and version history
+and allocate above the highest value ever assigned. Preserve superseded entries
+in `validation.md` rather than recycling them.
+
 ### Regression packs as brownfield evidence
 
 For brownfield specification and design work, inspect the maintained regression

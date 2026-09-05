@@ -182,9 +182,16 @@ configuration, state, or timing.
 
 ## Identifiers and human communication
 
-Identifiers are optional unless the project or tooling requires them. Once a
-published identifier is used for traceability, do not silently reuse or
-renumber it.
+Identifiers are optional unless the project or tooling requires them. Once
+assigned, an identifier is permanently reserved within its established
+namespace. Never reuse or renumber it after deletion, archiving, abandonment,
+retirement, or supersession.
+
+For a sequential namespace, inspect current artefacts, archives, and version
+history before allocating an identifier. Use a value greater than the highest
+value ever assigned, not the lowest currently available value. Preserve gaps.
+Where practical, retain a retired or superseded entry as durable lineage rather
+than deleting it.
 
 Never give a human an identifier without its descriptor. Write, for example,
 `FR-012 - repeated installation is a no-op`, not merely `FR-012`. The same rule
