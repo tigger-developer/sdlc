@@ -135,8 +135,15 @@ Kit override is resolved before preset composition, so constitution generation
 does not require a preset manifest parser. Adding a technology document makes
 it available without changing the initializer.
 
-Before initialization, the explicit
-`migrate-legacy-acs-to-sdlc-v1` skill performs the semantic readiness migration.
+For a brownfield project containing the SDLC v1 `docs/ACs.md` ledger,
+`sdlc-project-init` performs a one-item open-issue probe through `gh` before any
+project mutation. It offers to invoke the explicit
+`migrate-legacy-acs-to-sdlc-v1` skill through the configured audit harness,
+provider where supported, and model. Declining stops initialization. A successful run must close every
+legacy issue and replace the Markdown ledger with `docs/ACs.org` before the
+initializer proceeds. The updater does not enter this migration branch.
+
+The migration skill performs the semantic readiness migration.
 It archives every open and closed issue with comments once under
 `docs/archive/migrated-tickets/`, uses only that local snapshot thereafter, and
 creates `docs/ticket-migration.org` immediately as the incremental progress,
@@ -286,15 +293,24 @@ The composition is intentionally selective:
 | `speckit.converge` | Universal, audit, coding, testing, and selected profile entries |
 | `speckit.taskstoissues` | Universal identifier and source-of-truth rules |
 
-Spec Kit copies the stable adapters into project state and materializes composed
-commands for the active integration. The full command instructions remain only
-under `~/.agents/sdlc/presets/sdlc-standards/commands/` and are read at command
-invocation. A normal `make install` can therefore update their behaviour across
-initialized projects without an inventory, copied prompt refresh, or symlink.
-A structural preset change still requires `sdlc-project-init --no-launch` to
-recompose the project skills. The initializer invokes the chosen harness for
-the constitution operation only when the rendered scaffold or project selection
+Spec Kit copies the preset package into project state and materializes composed
+commands for the active integration. Its manifest selects only the stable
+adapters; the authoritative full command instructions are read from
+`~/.agents/sdlc/presets/sdlc-standards/commands/` at command invocation. A normal
+`make install` can therefore update their behaviour across initialized projects
+without an inventory, copied prompt refresh, or symlink.
+A structural preset change still requires `sdlc-project-update` to recompose the
+project skills. The updater uses the initializer engine in forced no-launch mode
+and mechanically advances the constitution's single adopted-SDLC-revision line
+to the deployed binary's release. It refuses an unversioned build or an absent
+or ambiguous revision field and leaves the constitution change for normal
+project review and commit. The initializer invokes the chosen harness for the
+constitution operation only when the rendered scaffold or project selection
 changes after any required brownfield documentation migration.
+
+Spec Kit's preset schema places both command and document contributions in the
+`provides.templates` collection. Each adapter is declared with `type: command`;
+the collection name does not mean that the command body is a document template.
 
 The specification template is likewise read directly from the canonical SDLC
 root. It is not registered for runtime preset composition, avoiding a PyYAML

@@ -12,8 +12,8 @@
 Building or installing from source requires a Go toolchain and `rsync`. The
 installed Go executables do not require a separate Go runtime.
 
-The SDLC installer also installs the `sdlc-install`, `sdlc-project-init`, and
-`sdlc-audit` helpers under `~/.local/bin`.
+The SDLC installer also installs `sdlc-install`, `sdlc-project-init`,
+`sdlc-project-update`, and `sdlc-audit` under `~/.local/bin`.
 
 ```bash
 git clone https://github.com/tigger-developer/sdlc.git ~/code/sdlc
@@ -126,19 +126,37 @@ Start from a recoverable Git checkpoint. Existing unrelated or human-authored
 changes are not an initialization workspace; checkpoint or separate them
 according to the project's normal source-control practice before proceeding.
 
-First invoke `$migrate-legacy-acs-to-sdlc-v1`. It archives every issue and
-comment under `docs/archive/migrated-tickets/`, then works only from that local
-snapshot. Before appending criteria, it losslessly converts the normally
-pre-existing `docs/ACs.md` to the canonical foldable `docs/ACs.org` structure and
-removes the Markdown source. It may run the supported whole-suite command once
-and performs one reverse checksum from every maintained RT to `docs/ACs.org`. Before classifying
-any ticket, it reviews every maintained RT and builds an RT-to-ticket-to-AC
-delivery-evidence map. It does not rerun historical tests or investigate old
-code ticket by ticket. Ticket status, comments, timeline commit references, and
-code-commit evidence are retained in the archive. If the suite fails, the skill
-checkpoints only the verified archive, migration index, and format-only Org
-conversion, then stops before classification, semantic reconciliation, or remote
-mutation.
+Run the initializer from the existing project root:
+
+```bash
+sdlc-project-init
+```
+
+When `docs/ACs.md` identifies an SDLC v1 project, the initializer checks for one
+open GitHub issue through `gh` and offers to invoke
+`$migrate-legacy-acs-to-sdlc-v1` through the selected audit harness, provider
+where supported, and model.
+Accepting provides a one-shot migration and initialization path. Declining stops
+before the initializer changes the project. The migration must close every
+legacy issue and replace `docs/ACs.md` with `docs/ACs.org` before the same
+invocation continues into Spec Kit initialization. `sdlc-project-update` is for
+existing SDLC v2 projects and never offers migration.
+With `--no-launch`, the initializer reports the required migration and stops
+instead of starting an agent.
+
+The migration skill archives every issue and comment under
+`docs/archive/migrated-tickets/`, then works only from that local snapshot.
+Before appending criteria, it losslessly converts the normally pre-existing
+`docs/ACs.md` to the canonical foldable `docs/ACs.org` structure and removes the
+Markdown source. It may run the supported whole-suite command once and performs
+one reverse checksum from every maintained RT to `docs/ACs.org`. Before
+classifying any ticket, it reviews every maintained RT and builds an
+RT-to-ticket-to-AC delivery-evidence map. It does not rerun historical tests or
+investigate old code ticket by ticket. Ticket status, comments, timeline commit
+references, and code-commit evidence are retained in the archive. If the suite
+fails, the skill checkpoints only the verified archive, migration index, and
+format-only Org conversion, then stops before classification, semantic
+reconciliation, or remote mutation.
 
 The Org conversion preserves every requirement, identifier, provenance field,
 status, test relationship, evidence note, supersession, footnote, glossary
@@ -169,13 +187,7 @@ loading the whole corpus. If its harness compacts automatically, it rereads the
 skill, manifest, AC ledger, and incremental Org record, then resumes from the
 first unfinished ticket without rerunning completed work.
 
-Run the same initializer from the existing project root:
-
-```bash
-sdlc-project-init
-```
-
-After authorization, Spec Kit merges its project infrastructure into the
+After successful migration, Spec Kit merges its project infrastructure into the
 existing working tree with its `--here --force` initialization path. The
 initializer then verifies the migrated ledger boundary before constitution
 generation:
@@ -219,9 +231,10 @@ assertions, and checks the affected implementation. The resulting artefact
 states what it preserves, changes, supersedes, and leaves unaffected. Tests and
 code remain implementation evidence rather than requirement approval.
 
-Initialization does not bulk-migrate legacy tickets or acceptance criteria.
-The pre-migration skill leaves undelivered scope untouched. Bring forward only
-the baseline relevant to each new or migrated feature.
+The initializer delegates semantic migration to the explicit skill rather than
+implementing it mechanically. Undelivered scope is recorded in the migration
+index rather than added to the delivered acceptance-criteria ledger. Bring it
+forward only through a later approved Spec Kit feature.
 
 Review and track the same `.specify/` constitution and scaffold files listed in
 the greenfield procedure. Confirm that the generated authority hierarchy gives
@@ -383,11 +396,17 @@ instructions and specification template from `~/.agents/sdlc`. Ordinary
 instruction and template updates take effect immediately after deployment.
 
 Run the following command once for projects initialized before the adapter
-model, or after a structural preset change or changed project selection:
+model, or after a structural preset change:
 
 ```bash
-sdlc-project-init --no-launch
+sdlc-project-update
 ```
 
-This refreshes the installed preset and recomposes project-local skills without
-launching the constitution harness. An unchanged rerun writes nothing.
+This refreshes the installed preset, recomposes project-local skills, and
+updates the constitution's adopted SDLC revision to the deployed release. It
+never launches the constitution harness. Review and commit a changed
+constitution through the project's normal governance. An unchanged rerun writes
+nothing.
+
+Use `sdlc-project-init --no-launch` instead when changing project selections or
+rendering a scaffold without launching an agent.

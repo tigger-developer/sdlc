@@ -3,6 +3,7 @@ package projectinit
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"encoding/json"
 	"errors"
@@ -53,6 +54,8 @@ const (
 	environmentLoaderPath  = "libexec/load-sdlc-env.sh"
 )
 
+const legacyIssueProbeTimeout = 30 * time.Second
+
 var universalStandards = []standard{
 	{Path: "MAIN.md", Subject: "Universal engineering behaviour"},
 	{Path: "ISSUES.md", Subject: "Specification and requirement quality"},
@@ -79,18 +82,21 @@ type Technology struct {
 
 // Options controls one project initialization run.
 type Options struct {
-	ProjectRoot     string
-	SDLCRoot        string
-	UserConfigPath  string
-	SDLCRevision    string
-	NoLaunch        bool
-	Input           io.Reader
-	Output          io.Writer
-	ErrorOutput     io.Writer
-	LookupEnv       func(string) (string, bool)
-	Overrides       map[string]string
-	LoadEnvironment func(string, string, []string) (map[string]string, error)
-	RunCommand      func(string, []string, string, io.Reader, io.Writer, io.Writer) error
+	ProjectRoot                string
+	SDLCRoot                   string
+	UserConfigPath             string
+	SDLCRevision               string
+	NoLaunch                   bool
+	UpdateConstitutionRevision bool
+	OfferLegacyMigration       bool
+	Input                      io.Reader
+	Output                     io.Writer
+	ErrorOutput                io.Writer
+	LookupEnv                  func(string) (string, bool)
+	Overrides                  map[string]string
+	LoadEnvironment            func(string, string, []string) (map[string]string, error)
+	RunCommand                 func(string, []string, string, io.Reader, io.Writer, io.Writer) error
+	RunBoundedCommand          func(string, []string, string, io.Reader, io.Writer, io.Writer, time.Duration) error
 }
 
 type resolvedConfig struct {
@@ -172,6 +178,19 @@ func Run(options Options) error {
 	if err != nil {
 		return fmt.Errorf("resolving SDLC root: %w", err)
 	}
+	var constitutionState constitutionRevisionState
+	if options.UpdateConstitutionRevision {
+		if strings.TrimSpace(options.SDLCRevision) == "" {
+			return errors.New("updating the constitution requires a versioned SDLC build")
+		}
+		if strings.ContainsAny(options.SDLCRevision, "`\r\n") {
+			return fmt.Errorf("invalid SDLC revision %q", options.SDLCRevision)
+		}
+		constitutionState, err = readConstitutionRevision(projectRoot)
+		if err != nil {
+			return err
+		}
+	}
 
 	schema, err := LoadConfigSchema(sdlcRoot)
 	if err != nil {
@@ -214,6 +233,15 @@ func Run(options Options) error {
 		return err
 	}
 	config = configFromValues(values, options.SDLCRevision)
+	if options.OfferLegacyMigration {
+		proceed, err := offerLegacyMigration(config, projectRoot, reader, options)
+		if err != nil {
+			return err
+		}
+		if !proceed {
+			return nil
+		}
+	}
 	if err := ensureSpecKit(projectRoot, &config, reader, options); err != nil {
 		return err
 	}
@@ -299,13 +327,172 @@ func Run(options Options) error {
 	if err := commitConstitutionScaffold(projectRoot, target, options); err != nil {
 		return err
 	}
-	if !templateChanged && !configChanged {
+	constitutionChanged := false
+	if options.UpdateConstitutionRevision {
+		var previous string
+		constitutionChanged, previous, err = updateConstitutionRevision(constitutionState, options.SDLCRevision)
+		if err != nil {
+			return err
+		}
+		if constitutionChanged {
+			fmt.Fprintf(options.Output, "Updated adopted SDLC revision: %s -> %s\n", previous, options.SDLCRevision)
+		}
+	}
+	if !templateChanged && !configChanged && !constitutionChanged {
 		return nil
 	}
 	if options.NoLaunch {
 		return nil
 	}
 	return launchConstitution(config, projectRoot, sdlcRoot, target, options)
+}
+
+type legacyIssueSummary struct {
+	Number int    `json:"number"`
+	Title  string `json:"title"`
+}
+
+func offerLegacyMigration(config resolvedConfig, projectRoot string, reader *bufio.Reader, options Options) (bool, error) {
+	if config.ProjectType != "brownfield" {
+		return true, nil
+	}
+	legacyLedger, err := regularFileExists(filepath.Join(projectRoot, filepath.FromSlash(legacyACDocumentPath)))
+	if err != nil {
+		return false, err
+	}
+	migratedLedger, err := regularFileExists(filepath.Join(projectRoot, filepath.FromSlash(migratedACDocumentPath)))
+	if err != nil {
+		return false, err
+	}
+	if !legacyLedger || migratedLedger {
+		return true, nil
+	}
+	if options.NoLaunch {
+		fmt.Fprintln(options.Output, "SDLC v1 migration is required; --no-launch prevents invoking the migration skill.")
+		return false, nil
+	}
+
+	issues, err := listOpenLegacyIssues(projectRoot, options)
+	if err != nil {
+		return false, fmt.Errorf("checking open GitHub issues before SDLC v1 migration: %w", err)
+	}
+	if len(issues) == 0 {
+		fmt.Fprintln(options.Output, "Detected an SDLC v1 acceptance-criteria ledger; GitHub reports no open issues.")
+	} else {
+		fmt.Fprintf(options.Output, "Detected an SDLC v1 acceptance-criteria ledger and open GitHub issue #%d - %s.\n", issues[0].Number, issues[0].Title)
+	}
+	accepted, err := promptYesNo(reader, options.Output, "Run $migrate-legacy-acs-to-sdlc-v1 before project initialization? [yes/no]: ")
+	if err != nil {
+		return false, err
+	}
+	if !accepted {
+		fmt.Fprintln(options.Output, "Legacy migration declined; project initialization stopped before changes.")
+		return false, nil
+	}
+	prompt := "Invoke $migrate-legacy-acs-to-sdlc-v1 for this project. Complete the skill before returning."
+	if err := runConfiguredHarness(config.AuditHarness, config.AuditProvider, config.AuditModel, prompt, projectRoot, options); err != nil {
+		return false, fmt.Errorf("running legacy-ticket migration skill: %w", err)
+	}
+	remaining, err := listOpenLegacyIssues(projectRoot, options)
+	if err != nil {
+		return false, fmt.Errorf("verifying legacy issue closure: %w", err)
+	}
+	if len(remaining) != 0 {
+		return false, fmt.Errorf("legacy migration left open GitHub issue #%d - %s", remaining[0].Number, remaining[0].Title)
+	}
+	legacyLedger, err = regularFileExists(filepath.Join(projectRoot, filepath.FromSlash(legacyACDocumentPath)))
+	if err != nil {
+		return false, err
+	}
+	migratedLedger, err = regularFileExists(filepath.Join(projectRoot, filepath.FromSlash(migratedACDocumentPath)))
+	if err != nil {
+		return false, err
+	}
+	if legacyLedger || !migratedLedger {
+		return false, fmt.Errorf("legacy migration must replace %s with %s before initialization", legacyACDocumentPath, migratedACDocumentPath)
+	}
+	return true, nil
+}
+
+func listOpenLegacyIssues(projectRoot string, options Options) ([]legacyIssueSummary, error) {
+	var output bytes.Buffer
+	// This is an existence probe, not the migration inventory. The migration
+	// skill owns complete issue and comment pagination; one returned issue proves
+	// that open work remains, while an empty result proves there is none.
+	arguments := []string{"issue", "list", "--state", "open", "--limit", "1", "--json", "number,title"}
+	if err := options.RunBoundedCommand("gh", arguments, projectRoot, strings.NewReader(""), &output, options.ErrorOutput, legacyIssueProbeTimeout); err != nil {
+		return nil, err
+	}
+	var issues []legacyIssueSummary
+	if err := json.Unmarshal(output.Bytes(), &issues); err != nil {
+		return nil, fmt.Errorf("parsing gh issue list output: %w", err)
+	}
+	return issues, nil
+}
+
+type constitutionRevisionState struct {
+	path     string
+	revision string
+	content  []byte
+}
+
+func updateConstitutionRevision(state constitutionRevisionState, revision string) (bool, string, error) {
+	if state.revision == revision {
+		return false, state.revision, nil
+	}
+	current, err := os.ReadFile(state.path)
+	if err != nil {
+		return false, "", fmt.Errorf("rereading project constitution %q: %w", state.path, err)
+	}
+	if !bytes.Equal(current, state.content) {
+		return false, "", fmt.Errorf("project constitution %q changed after validation; refusing to overwrite it", state.path)
+	}
+	lines := strings.Split(string(state.content), "\n")
+	for index, line := range lines {
+		if adoptedRevisionFromLine(line) == state.revision {
+			lines[index] = "The adopted SDLC revision is `" + revision + "`."
+			break
+		}
+	}
+	info, err := os.Stat(state.path)
+	if err != nil {
+		return false, "", fmt.Errorf("inspecting project constitution %q: %w", state.path, err)
+	}
+	if err := writeAtomic(state.path, []byte(strings.Join(lines, "\n")), info.Mode().Perm()); err != nil {
+		return false, "", err
+	}
+	return true, state.revision, nil
+}
+
+func readConstitutionRevision(projectRoot string) (constitutionRevisionState, error) {
+	path := filepath.Join(projectRoot, ".specify", "memory", "constitution.md")
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return constitutionRevisionState{}, fmt.Errorf("reading project constitution %q: %w", path, err)
+	}
+	matchCount := 0
+	revision := ""
+	for _, line := range strings.Split(string(content), "\n") {
+		candidate := adoptedRevisionFromLine(line)
+		if candidate == "" {
+			continue
+		}
+		matchCount++
+		revision = candidate
+	}
+	if matchCount != 1 {
+		return constitutionRevisionState{}, fmt.Errorf("project constitution %q must contain exactly one adopted SDLC revision", path)
+	}
+	return constitutionRevisionState{path: path, revision: revision, content: content}, nil
+}
+
+func adoptedRevisionFromLine(line string) string {
+	const prefix = "The adopted SDLC revision is `"
+	const suffix = "`."
+	if !strings.HasPrefix(line, prefix) || !strings.HasSuffix(line, suffix) {
+		return ""
+	}
+	return strings.TrimSuffix(strings.TrimPrefix(line, prefix), suffix)
 }
 
 func validateBrownfieldLedger(projectRoot string) error {
@@ -627,6 +814,9 @@ func defaultOptions(options Options) Options {
 	if options.RunCommand == nil {
 		options.RunCommand = runCommand
 	}
+	if options.RunBoundedCommand == nil {
+		options.RunBoundedCommand = runCommandWithTimeout
+	}
 	return options
 }
 
@@ -874,26 +1064,57 @@ func ensurePreset(projectRoot, sdlcRoot string, options Options) error {
 	destination := filepath.Join(projectRoot, ".specify", "presets", "sdlc-standards")
 	preset := filepath.Join(destination, "preset.yml")
 	source := filepath.Join(sdlcRoot, "presets", "sdlc-standards")
+	backup := ""
+	cleanupBackup := func() error { return nil }
 	if info, err := os.Stat(preset); err == nil && info.Mode().IsRegular() {
 		equal, compareErr := directoriesEqual(source, destination)
 		if compareErr != nil {
 			return compareErr
 		}
-		if equal {
+		if equal && !options.UpdateConstitutionRevision {
 			return nil
 		}
-		backup := fmt.Sprintf("%s.%d.bak", destination, time.Now().UnixNano())
-		if err := copyDirectory(destination, backup); err != nil {
-			return fmt.Errorf("backing up changed SDLC preset: %w", err)
+		if equal {
+			backupRoot, err := os.MkdirTemp("", "sdlc-preset-backup-")
+			if err != nil {
+				return fmt.Errorf("creating temporary SDLC preset backup: %w", err)
+			}
+			cleanupBackup = func() error { return os.RemoveAll(backupRoot) }
+			backup = filepath.Join(backupRoot, "sdlc-standards")
+		} else {
+			backup = fmt.Sprintf("%s.%d.bak", destination, time.Now().UnixNano())
 		}
-		fmt.Fprintf(options.Output, "Updating changed SDLC preset; previous copy backed up at %s\n", backup)
+		if err := copyDirectory(destination, backup); err != nil {
+			return errors.Join(
+				fmt.Errorf("backing up SDLC preset before recomposition: %w", err),
+				cleanupBackup(),
+			)
+		}
+		if !equal {
+			fmt.Fprintf(options.Output, "Updating changed SDLC preset; previous copy backed up at %s\n", backup)
+		}
 		if err := options.RunCommand("specify", []string{"preset", "remove", "sdlc-standards"}, projectRoot, options.Input, options.Output, options.ErrorOutput); err != nil {
-			return err
+			return errors.Join(err, cleanupBackup())
 		}
 	} else if err != nil && !errors.Is(err, os.ErrNotExist) {
 		return fmt.Errorf("checking SDLC preset: %w", err)
 	}
-	return options.RunCommand("specify", []string{"preset", "add", "--dev", source}, projectRoot, options.Input, options.Output, options.ErrorOutput)
+	if err := options.RunCommand("specify", []string{"preset", "add", "--dev", source}, projectRoot, options.Input, options.Output, options.ErrorOutput); err != nil {
+		if backup == "" {
+			return err
+		}
+		removeErr := os.RemoveAll(destination)
+		restoreErr := copyDirectory(backup, destination)
+		cleanupErr := cleanupBackup()
+		if removeErr != nil || restoreErr != nil || cleanupErr != nil {
+			return errors.Join(err, removeErr, restoreErr, cleanupErr)
+		}
+		return err
+	}
+	if err := cleanupBackup(); err != nil {
+		return fmt.Errorf("removing temporary SDLC preset backup: %w", err)
+	}
+	return nil
 }
 
 func directoriesEqual(source, destination string) (bool, error) {
@@ -1144,29 +1365,7 @@ func launchConstitution(config resolvedConfig, projectRoot, sdlcRoot, templatePa
 	if err != nil {
 		return err
 	}
-	harness := strings.ToLower(config.SpecHarness)
-	var arguments []string
-	switch harness {
-	case "codex":
-		if config.SpecModel != "" {
-			arguments = append(arguments, "--model", config.SpecModel)
-		}
-		arguments = append(arguments, prompt)
-	case "claude":
-		if config.SpecModel != "" {
-			arguments = append(arguments, "--model", config.SpecModel)
-		}
-		arguments = append(arguments, prompt)
-	case "hermes":
-		arguments = []string{"chat", "--query", prompt, "--in", projectRoot}
-		if config.SpecProvider != "" {
-			arguments = append(arguments, "--provider", config.SpecProvider)
-		}
-		if config.SpecModel != "" {
-			arguments = append(arguments, "--model", config.SpecModel)
-		}
-	}
-	if err := options.RunCommand(harness, arguments, projectRoot, options.Input, options.Output, options.ErrorOutput); err != nil {
+	if err := runSpecHarness(config, prompt, projectRoot, options); err != nil {
 		return err
 	}
 	scaffold, err := os.ReadFile(templatePath)
@@ -1174,6 +1373,41 @@ func launchConstitution(config resolvedConfig, projectRoot, sdlcRoot, templatePa
 		return fmt.Errorf("reading rendered constitution scaffold %q: %w", templatePath, err)
 	}
 	return validateConstitutionCandidate(projectRoot, scaffold)
+}
+
+func runSpecHarness(config resolvedConfig, prompt, projectRoot string, options Options) error {
+	return runConfiguredHarness(config.SpecHarness, config.SpecProvider, config.SpecModel, prompt, projectRoot, options)
+}
+
+func runConfiguredHarness(harness, provider, model, prompt, projectRoot string, options Options) error {
+	harness = strings.ToLower(harness)
+	var arguments []string
+	switch harness {
+	case "codex":
+		if model != "" {
+			arguments = append(arguments, "--model", model)
+		}
+		arguments = append(arguments, prompt)
+	case "claude":
+		if model != "" {
+			arguments = append(arguments, "--model", model)
+		}
+		arguments = append(arguments, prompt)
+	case "hermes":
+		arguments = []string{"chat", "--query", prompt, "--in", projectRoot}
+		if provider != "" {
+			arguments = append(arguments, "--provider", provider)
+		}
+		if model != "" {
+			arguments = append(arguments, "--model", model)
+		}
+	default:
+		return fmt.Errorf("unsupported agent harness %q", harness)
+	}
+	if err := options.RunCommand(harness, arguments, projectRoot, options.Input, options.Output, options.ErrorOutput); err != nil {
+		return err
+	}
+	return nil
 }
 
 func validateConstitutionCandidate(projectRoot string, scaffold []byte) error {
@@ -1241,6 +1475,21 @@ func runCommand(name string, arguments []string, directory string, input io.Read
 	command.Dir = directory
 	command.Stdin, command.Stdout, command.Stderr = input, output, errorOutput
 	if err := command.Run(); err != nil {
+		return fmt.Errorf("running %s: %w", name, err)
+	}
+	return nil
+}
+
+func runCommandWithTimeout(name string, arguments []string, directory string, input io.Reader, output, errorOutput io.Writer, timeout time.Duration) error {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	command := exec.CommandContext(ctx, name, arguments...)
+	command.Dir = directory
+	command.Stdin, command.Stdout, command.Stderr = input, output, errorOutput
+	if err := command.Run(); err != nil {
+		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+			return fmt.Errorf("running %s timed out after %s: %w", name, timeout, context.DeadlineExceeded)
+		}
 		return fmt.Errorf("running %s: %w", name, err)
 	}
 	return nil

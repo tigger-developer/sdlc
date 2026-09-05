@@ -2,6 +2,39 @@
 
 ## Unreleased
 
+## v2.1.0 - 2026-09-05
+
+Defined the intended replacement for the four separately approved Spec Kit
+definition phases: one lean unified specification containing the scan-friendly
+summary, requirements, traced test definitions, and concise solution design.
+The proposed workflow uses an author preflight, one combined definition audit,
+one operator checkpoint, TDD implementation, and one combined implementation
+audit. The existing specialist audit contracts remain authoritative while the
+composite audit mechanics are settled and implemented.
+
+Paired development now treats each explicit iteration instruction as its
+working specification and consolidates durable authority and user validation at
+closure without imposing the normal pre-implementation definition gate
+retrospectively. `BYPASS-GATE-7` now records its temporary specification and
+reconciles the verified result into the same durable shape while retaining its
+focused test and code-audit obligations.
+
+Added `sdlc-project-update`, a forced no-launch project refresh command. It
+reinstalls a changed SDLC preset, recomposes project-local Spec Kit skills, and
+idempotently advances the constitution's single adopted SDLC revision to the
+release embedded in the deployed executable. It refuses unversioned builds and
+missing or ambiguous revision fields, and leaves the constitution change for
+project review and commit.
+
+Brownfield initialization now recognizes an SDLC v1 `docs/ACs.md` ledger,
+performs a bounded `gh issue list` probe, and offers to invoke the legacy-ticket
+migration skill through the configured audit harness, provider where supported,
+and model before creating Spec Kit infrastructure. It verifies issue closure
+and the canonical `docs/ACs.org` replacement before continuing.
+`sdlc-project-update` never enters this migration path and refreshes every
+project-local skill adapter so its instructions continue to resolve through the
+canonical `~/.agents/sdlc` root.
+
 ## v2.0.11 - 2026-09-05
 
 Spec Kit command contributions are now stable project-local adapters that read

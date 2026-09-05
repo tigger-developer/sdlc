@@ -218,6 +218,28 @@ both a current code-audit PASS and current passing validation results. If final
 validation exposes a defect, the earlier audit and results remain historical;
 only the changed implementation and materially affected tests are reassessed.
 
+## Audit decision boundaries, not every intermediate document
+
+The initial Spec Kit integration treated specification, clarification, design,
+test definition, and implementation as separate ceremonial transitions. Even a
+small change could accumulate several overlapping artefacts, independent
+contexts, audit loops, and operator handbacks before producing evidence.
+
+The useful decision boundaries are simpler. One unified specification can carry
+the requirements, traced test definitions, and concise solution design needed
+for an implementation decision. Its author should first challenge the whole
+document using the existing specialist criteria, then pay for one independent
+combined definition audit. After operator approval, TDD implementation and its
+tests receive one combined implementation audit. The specialist audits remain
+available, but their criteria need not force separate workflow stages.
+
+Paired and emergency work converge on the same durable authority without
+pretending they followed the normal chronology. Paired work has explicit human
+direction and live validation before each slice; emergency work has an exact
+temporary specification before the fix. Both reconcile the accepted or verified
+result afterwards. Retrospective documentation records authority and evidence;
+it must not invent advance ceremony.
+
 ## Structured data needs structured tools
 
 Text processors are attractive because they are available everywhere and can

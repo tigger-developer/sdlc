@@ -256,6 +256,55 @@ This produces at most ten audit-model calls rather than four independent loops
 of up to five calls. The material reduction comes from one approval artefact and
 two review boundaries, not merely from a lower numerical maximum.
 
+## Paired delivery shape
+
+Paired development retains a specification before every edit without requiring
+a complete advance document. The bounded objective and each explicit operator
+instruction authorize one reviewable slice. The durable unified specification
+is consolidated from the accepted final result at closure:
+
+```text
+Bounded objective
+  -> explicit instruction
+  -> reviewable slice
+  -> objective checks and operator validation
+  -> repeat as directed
+  -> consolidate unified specification and validation record
+  -> focused change-scoped audits
+  -> OPERATOR CHECKPOINT
+```
+
+Do not impose the normal pre-implementation `audit-definition` checkpoint after
+the implementation already exists. Apply the specialist audits according to
+materiality under `~/.agents/sdlc/PAIRING.md` and
+`~/.agents/sdlc/AUDITS.md`. The operator confirms once that the consolidated
+specification and user-test record represent the paired decisions.
+
+## Emergency delivery shape
+
+Emergency delivery begins only with the exact human invocation
+`BYPASS-GATE-7`. Its sufficiently bounded request is the temporary
+specification. It preserves evidence selection and automated TDD, but defers the
+durable unified specification until the immediate fix has been implemented and
+verified:
+
+```text
+Exact invocation and temporary specification
+  -> select evidence
+  -> RED where automated regression applies
+  -> implement bounded fix
+  -> GREEN and immediate verification
+  -> reconcile unified specification, design, and documentation
+  -> audit-code convergence, up to five attempts
+  -> one-off and user validation
+  -> OPERATOR CHECKPOINT
+```
+
+The emergency path does not run `audit-definition` retrospectively. Its durable
+record must truthfully distinguish the temporary authority from the reconciled
+as-built specification. `~/.agents/sdlc/EMERGENCY.md` remains authoritative for
+the exact invocation and exception boundaries.
+
 ## Audit mechanics still to settle
 
 Before implementing the two composite skills and runner support, decide:

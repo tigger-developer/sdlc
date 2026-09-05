@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"runtime/debug"
@@ -15,13 +16,45 @@ import (
 var buildRelease string
 
 func main() {
-	if err := run(os.Args[1:]); err != nil {
-		fmt.Fprintf(os.Stderr, "sdlc-project-init: %v\n", err)
-		os.Exit(1)
+	command := filepath.Base(os.Args[0])
+	if command != "sdlc-project-update" {
+		command = "sdlc-project-init"
+	}
+	if status := commandStatus(command, os.Args[1:], os.Stdin, os.Stdout, os.Stderr); status != 0 {
+		os.Exit(status)
 	}
 }
 
-func run(arguments []string) error {
+type usageError struct {
+	err error
+}
+
+func (e *usageError) Error() string {
+	return e.err.Error()
+}
+
+func commandStatus(command string, arguments []string, input io.Reader, output, errorOutput io.Writer) int {
+	err := runCommand(command, arguments, input, output, errorOutput)
+	if err == nil {
+		return 0
+	}
+	fmt.Fprintf(errorOutput, "%s: %v\n", command, err)
+	var invalid *usageError
+	if errors.As(err, &invalid) {
+		return 2
+	}
+	return 1
+}
+
+func runCommand(command string, arguments []string, input io.Reader, output, errorOutput io.Writer) error {
+	if len(arguments) == 1 && (arguments[0] == "-version" || arguments[0] == "--version") {
+		version := buildRelease
+		if version == "" {
+			version = "devel"
+		}
+		fmt.Fprintf(output, "%s %s\n", command, version)
+		return nil
+	}
 	configuredRoot, err := bootstrapSDLCRoot(arguments)
 	if err != nil {
 		return err
@@ -30,7 +63,18 @@ func run(arguments []string) error {
 	if err != nil {
 		return err
 	}
-	flags := flag.NewFlagSet("sdlc-project-init", flag.ContinueOnError)
+	flags := flag.NewFlagSet(command, flag.ContinueOnError)
+	flags.SetOutput(errorOutput)
+	flags.Usage = func() {
+		fmt.Fprintf(errorOutput, "usage: %s [options]\n", command)
+		if command == "sdlc-project-update" {
+			fmt.Fprintln(errorOutput, "Refresh project SDLC infrastructure and adopted revision without launching an agent.")
+		}
+		fmt.Fprintln(errorOutput, "Options accept one or two leading hyphens (for example, -project or --project).")
+		flags.PrintDefaults()
+		fmt.Fprintln(errorOutput, "  --version")
+		fmt.Fprintln(errorOutput, "    \tprint the command version")
+	}
 	project := flags.String("project", ".", "project root")
 	sdlcRoot := flags.String("sdlc-root", "", "canonical SDLC root (default ~/.agents/sdlc)")
 	userConfig := flags.String("user-config", "", "user SDLC environment file")
@@ -44,10 +88,10 @@ func run(arguments []string) error {
 		if errors.Is(err, flag.ErrHelp) {
 			return nil
 		}
-		return err
+		return &usageError{err: err}
 	}
 	if flags.NArg() != 0 {
-		return fmt.Errorf("unexpected positional arguments: %v", flags.Args())
+		return &usageError{err: fmt.Errorf("unexpected positional arguments: %v", flags.Args())}
 	}
 	overrides := map[string]string{}
 	for key, value := range configured {
@@ -57,11 +101,11 @@ func run(arguments []string) error {
 	}
 	if *infra != "" {
 		if overrides["SDLC_INFRA_ROLE"] != "" {
-			return errors.New("--infra and --infra-role cannot be used together")
+			return &usageError{err: errors.New("--infra and --infra-role cannot be used together")}
 		}
 		value, err := parseYesNo(*infra)
 		if err != nil {
-			return err
+			return &usageError{err: err}
 		}
 		if value {
 			overrides["SDLC_INFRA_ROLE"] = "consumer"
@@ -71,10 +115,17 @@ func run(arguments []string) error {
 	}
 	return projectinit.Run(projectinit.Options{
 		ProjectRoot: *project, SDLCRoot: *sdlcRoot, UserConfigPath: *userConfig,
-		Overrides:    overrides,
-		SDLCRevision: sourceRevision(),
-		NoLaunch:     *noLaunch, Input: os.Stdin, Output: os.Stdout, ErrorOutput: os.Stderr,
+		Overrides:                  overrides,
+		SDLCRevision:               sourceRevisionForCommand(command),
+		NoLaunch:                   resolveNoLaunch(command, *noLaunch),
+		UpdateConstitutionRevision: command == "sdlc-project-update",
+		OfferLegacyMigration:       command == "sdlc-project-init",
+		Input:                      input, Output: output, ErrorOutput: errorOutput,
 	})
+}
+
+func resolveNoLaunch(command string, requested bool) bool {
+	return requested || command == "sdlc-project-update"
 }
 
 func bootstrapSDLCRoot(arguments []string) (string, error) {
@@ -87,7 +138,7 @@ func bootstrapSDLCRoot(arguments []string) (string, error) {
 		argument := arguments[index]
 		if argument == "--sdlc-root" || argument == "-sdlc-root" {
 			if index+1 >= len(arguments) {
-				return "", errors.New("--sdlc-root requires a value")
+				return "", &usageError{err: errors.New("--sdlc-root requires a value")}
 			}
 			root = arguments[index+1]
 			index++
@@ -100,17 +151,24 @@ func bootstrapSDLCRoot(arguments []string) (string, error) {
 		}
 	}
 	if root == "" {
-		return "", errors.New("--sdlc-root requires a non-empty value")
+		return "", &usageError{err: errors.New("--sdlc-root requires a non-empty value")}
 	}
 	return filepath.Abs(root)
 }
 
-func sourceRevision() string {
+func sourceRevisionForCommand(command string) string {
 	buildInfo, ok := debug.ReadBuildInfo()
 	if !ok {
 		return ""
 	}
-	return sourceRevisionForBuildInfo(buildInfo, buildRelease)
+	return sourceRevisionForCommandBuildInfo(command, buildInfo, buildRelease)
+}
+
+func sourceRevisionForCommandBuildInfo(command string, buildInfo *debug.BuildInfo, release string) string {
+	if command == "sdlc-project-update" && release == "" {
+		return ""
+	}
+	return sourceRevisionForBuildInfo(buildInfo, release)
 }
 
 func sourceRevisionFromBuildInfo(buildInfo *debug.BuildInfo) string {

@@ -66,7 +66,8 @@ make install
 
 The installer:
 
-- installs `sdlc-install`, `sdlc-project-init`, and `sdlc-audit` under
+- installs `sdlc-install`, `sdlc-project-init`, `sdlc-project-update`, and
+  `sdlc-audit` under
   `~/.local/bin`;
 - synchronizes `src/` into `~/.agents/sdlc` and retains the other runtime
   directory names;
@@ -140,8 +141,11 @@ SDLC instructions. Each adapter loads its current command instructions from
 `~/.agents/sdlc/presets/sdlc-standards/commands/` at invocation time. Ordinary
 standards and command updates therefore reach initialized projects after
 `make install`; they do not require project reinitialization. Run
-`sdlc-project-init --no-launch` once in projects initialized before this adapter
-model, and again only when the preset structure or project selections change.
+`sdlc-project-update` once in projects initialized before this adapter model,
+and again after a structural preset change. The updater refreshes the preset,
+never launches an agent, and changes the constitution's adopted SDLC revision
+to the release embedded in the deployed executable. Review and commit that
+constitution change through the project's normal governance.
 
 The specification command reads the canonical SDLC specification template
 directly from `~/.agents/sdlc`. It does not use Spec Kit's preset template
@@ -227,10 +231,18 @@ it checkpoints that file without relaunching the agent.
 
 For a greenfield repository, the initializer offers to run `specify init`, then
 creates the standards profile and unratified constitution. For a brownfield
-repository, first invoke `$migrate-legacy-acs-to-sdlc-v1`. That bounded skill
-archives every ticket and comment in the repository, losslessly converts the
-pre-existing `docs/ACs.md` to the canonical foldable `docs/ACs.org` before
-appending criteria, uses at most one whole-suite run, and builds
+repository, a pre-existing `docs/ACs.md` identifies the SDLC v1 migration path.
+Before creating Spec Kit files, the initializer performs a one-item open-issue
+probe through `gh` and offers to invoke `$migrate-legacy-acs-to-sdlc-v1` through
+the selected audit harness, provider where supported, and model. Declining stops initialization before any
+project change. The migration must leave zero open issues, replace `docs/ACs.md`
+with `docs/ACs.org`, and return successfully before initialization continues.
+`sdlc-project-update` never performs this probe or offer.
+
+The bounded migration skill archives every ticket and comment in the
+repository, losslessly converts the pre-existing `docs/ACs.md` to the canonical
+foldable `docs/ACs.org` before appending criteria, uses at most one whole-suite
+run, and builds
 `docs/ticket-migration.org` incrementally as durable working state. It refreshes
 stale project documentation and archives the single file matching
 `docs/implementation?plan.md`, preserving its basename. It performs no

@@ -3,15 +3,18 @@ package projectinit
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"slices"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/tigger-developer/sdlc/internal/configenv"
 )
@@ -207,6 +210,329 @@ func TestRenderConstitutionPinsSDLCRevision(t *testing.T) {
 	if !strings.Contains(unresolved, "TODO(SDLC_REVISION)") {
 		t.Fatalf("unversioned constitution omitted the revision TODO:\n%s", unresolved)
 	}
+}
+
+func TestUpdateConstitutionRevision(t *testing.T) {
+	projectRoot := t.TempDir()
+	constitutionPath := filepath.Join(projectRoot, ".specify", "memory", "constitution.md")
+	writeTestFile(t, constitutionPath, "# Project Constitution\n\nThe adopted SDLC revision is `v2.0.11`.\n")
+
+	state, err := readConstitutionRevision(projectRoot)
+	if err != nil {
+		t.Fatalf("readConstitutionRevision() error = %v", err)
+	}
+	changed, previous, err := updateConstitutionRevision(state, "v2.0.12")
+	if err != nil {
+		t.Fatalf("updateConstitutionRevision() error = %v", err)
+	}
+	if !changed || previous != "v2.0.11" {
+		t.Fatalf("updateConstitutionRevision() = changed %t, previous %q", changed, previous)
+	}
+	updated, err := os.ReadFile(constitutionPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(updated), "The adopted SDLC revision is `v2.0.12`.") {
+		t.Fatalf("updated constitution = %q", updated)
+	}
+
+	state, err = readConstitutionRevision(projectRoot)
+	if err != nil {
+		t.Fatalf("idempotent readConstitutionRevision() error = %v", err)
+	}
+	changed, previous, err = updateConstitutionRevision(state, "v2.0.12")
+	if err != nil {
+		t.Fatalf("idempotent updateConstitutionRevision() error = %v", err)
+	}
+	if changed || previous != "v2.0.12" {
+		t.Fatalf("idempotent updateConstitutionRevision() = changed %t, previous %q", changed, previous)
+	}
+}
+
+func TestUpdateConstitutionRevisionRejectsAmbiguousField(t *testing.T) {
+	projectRoot := t.TempDir()
+	constitutionPath := filepath.Join(projectRoot, ".specify", "memory", "constitution.md")
+	writeTestFile(t, constitutionPath, "The adopted SDLC revision is `v2.0.10`.\nThe adopted SDLC revision is `v2.0.11`.\n")
+
+	if _, err := readConstitutionRevision(projectRoot); err == nil || !strings.Contains(err.Error(), "exactly one") {
+		t.Fatalf("ambiguous revision field error = %v", err)
+	}
+}
+
+func TestUpdateConstitutionRevisionRejectsConcurrentChange(t *testing.T) {
+	projectRoot := t.TempDir()
+	constitutionPath := filepath.Join(projectRoot, ".specify", "memory", "constitution.md")
+	original := "# Project Constitution\n\nThe adopted SDLC revision is `v2.0.11`.\n"
+	writeTestFile(t, constitutionPath, original)
+
+	state, err := readConstitutionRevision(projectRoot)
+	if err != nil {
+		t.Fatalf("readConstitutionRevision() error = %v", err)
+	}
+	humanEdit := original + "\nOperator edit made while the updater was running.\n"
+	writeTestFile(t, constitutionPath, humanEdit)
+
+	if _, _, err := updateConstitutionRevision(state, "v2.0.12"); err == nil || !strings.Contains(err.Error(), "changed after validation") {
+		t.Fatalf("concurrent revision update error = %v", err)
+	}
+	current, err := os.ReadFile(constitutionPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(current) != humanEdit {
+		t.Fatalf("concurrent operator edit was overwritten:\n%s", current)
+	}
+}
+
+func TestProjectUpdatePreflightRejectsRevisionFieldBeforeMutation(t *testing.T) {
+	tests := []struct {
+		name         string
+		constitution string
+	}{
+		{name: "missing field", constitution: "# Project Constitution\n"},
+		{name: "duplicate field", constitution: "The adopted SDLC revision is `v2.0.10`.\nThe adopted SDLC revision is `v2.0.11`.\n"},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			projectRoot := t.TempDir()
+			writeTestFile(t, filepath.Join(projectRoot, ".specify", "memory", "constitution.md"), test.constitution)
+			writeTestFile(t, filepath.Join(projectRoot, ".specify", "presets", "sdlc-standards", "preset.yml"), "operator preset\n")
+			writeTestFile(t, filepath.Join(projectRoot, ".specify", "templates", "overrides", "constitution-template.md"), "operator scaffold\n")
+			before := snapshotProjectFiles(t, projectRoot)
+			commandCalled := false
+
+			err := Run(Options{
+				ProjectRoot: projectRoot, SDLCRoot: filepath.Join(t.TempDir(), "missing-sdlc"),
+				UserConfigPath: filepath.Join(t.TempDir(), ".env"), SDLCRevision: "v2.0.12",
+				NoLaunch: true, UpdateConstitutionRevision: true,
+				Input: strings.NewReader(""), Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{},
+				RunCommand: func(string, []string, string, io.Reader, io.Writer, io.Writer) error {
+					commandCalled = true
+					return nil
+				},
+			})
+			if err == nil || !strings.Contains(err.Error(), "exactly one") {
+				t.Fatalf("Run() preflight error = %v", err)
+			}
+			if commandCalled {
+				t.Fatal("Run() invoked a command before rejecting the constitution")
+			}
+			if after := snapshotProjectFiles(t, projectRoot); !reflect.DeepEqual(after, before) {
+				t.Fatalf("project changed before refusal:\nbefore: %#v\nafter:  %#v", before, after)
+			}
+		})
+	}
+}
+
+func TestOfferLegacyMigrationLaunchesSkillAndRequiresIssueClosure(t *testing.T) {
+	projectRoot := t.TempDir()
+	writeTestFile(t, filepath.Join(projectRoot, "docs", "ACs.md"), "# Acceptance criteria\n")
+	var commands []string
+	ghCalls := 0
+	runner := func(name string, arguments []string, directory string, _ io.Reader, output, _ io.Writer) error {
+		commands = append(commands, name)
+		if directory != projectRoot {
+			t.Fatalf("command directory = %q, want %q", directory, projectRoot)
+		}
+		switch name {
+		case "gh":
+			wantArguments := []string{"issue", "list", "--state", "open", "--limit", "1", "--json", "number,title"}
+			if !reflect.DeepEqual(arguments, wantArguments) {
+				t.Fatalf("gh arguments = %#v, want %#v", arguments, wantArguments)
+			}
+			ghCalls++
+			if ghCalls == 1 {
+				fmt.Fprint(output, `[{"number":17,"title":"Legacy export support"}]`)
+			} else {
+				fmt.Fprint(output, `[]`)
+			}
+		case "hermes":
+			joined := strings.Join(arguments, " ")
+			if !strings.Contains(joined, "$migrate-legacy-acs-to-sdlc-v1") {
+				t.Fatalf("migration prompt = %q", joined)
+			}
+			if !slices.Contains(arguments, "gpt-5.6-luna") {
+				t.Fatalf("migration arguments omit configured model: %#v", arguments)
+			}
+			if !slices.Contains(arguments, "nous") {
+				t.Fatalf("migration arguments omit configured provider: %#v", arguments)
+			}
+			if err := os.Rename(filepath.Join(projectRoot, "docs", "ACs.md"), filepath.Join(projectRoot, "docs", "ACs.org")); err != nil {
+				t.Fatal(err)
+			}
+		default:
+			t.Fatalf("unexpected command %q", name)
+		}
+		return nil
+	}
+	boundedRunner := func(name string, arguments []string, directory string, input io.Reader, output, errorOutput io.Writer, timeout time.Duration) error {
+		if timeout != legacyIssueProbeTimeout {
+			t.Fatalf("probe timeout = %s, want %s", timeout, legacyIssueProbeTimeout)
+		}
+		return runner(name, arguments, directory, input, output, errorOutput)
+	}
+	var output bytes.Buffer
+	proceed, err := offerLegacyMigration(
+		resolvedConfig{ProjectType: "brownfield", AuditHarness: "hermes", AuditProvider: "nous", AuditModel: "gpt-5.6-luna"},
+		projectRoot,
+		bufio.NewReader(strings.NewReader("yes\n")),
+		Options{RunCommand: runner, RunBoundedCommand: boundedRunner, Input: strings.NewReader(""), Output: &output, ErrorOutput: &bytes.Buffer{}},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !proceed {
+		t.Fatal("migration did not permit initialization to continue")
+	}
+	if !reflect.DeepEqual(commands, []string{"gh", "hermes", "gh"}) {
+		t.Fatalf("commands = %#v", commands)
+	}
+	if !strings.Contains(output.String(), "#17 - Legacy export support") {
+		t.Fatalf("migration offer omitted described issue: %q", output.String())
+	}
+}
+
+func TestEnsurePresetForUpdateRecomposesCurrentPreset(t *testing.T) {
+	project := t.TempDir()
+	root := t.TempDir()
+	source := filepath.Join(root, "presets", "sdlc-standards")
+	destination := filepath.Join(project, ".specify", "presets", "sdlc-standards")
+	writeTestFile(t, filepath.Join(source, "preset.yml"), "version: 2\n")
+	writeTestFile(t, filepath.Join(destination, "preset.yml"), "version: 2\n")
+	var calls []string
+	runner := func(_ string, arguments []string, _ string, _ io.Reader, _, _ io.Writer) error {
+		calls = append(calls, arguments[1])
+		if arguments[1] == "remove" {
+			return os.RemoveAll(destination)
+		}
+		return copyDirectory(source, destination)
+	}
+	if err := ensurePreset(project, root, Options{UpdateConstitutionRevision: true, Output: &bytes.Buffer{}, RunCommand: runner}); err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(calls, []string{"remove", "add"}) {
+		t.Fatalf("preset refresh calls = %#v", calls)
+	}
+}
+
+func TestEnsurePresetRestoresPriorCopyWhenRecompositionFails(t *testing.T) {
+	project := t.TempDir()
+	root := t.TempDir()
+	source := filepath.Join(root, "presets", "sdlc-standards")
+	destination := filepath.Join(project, ".specify", "presets", "sdlc-standards")
+	writeTestFile(t, filepath.Join(source, "preset.yml"), "version: 2\n")
+	writeTestFile(t, filepath.Join(destination, "preset.yml"), "version: 1\n")
+	runner := func(_ string, arguments []string, _ string, _ io.Reader, _, _ io.Writer) error {
+		if arguments[1] == "remove" {
+			return os.RemoveAll(destination)
+		}
+		return errors.New("recomposition failed")
+	}
+	err := ensurePreset(project, root, Options{UpdateConstitutionRevision: true, Output: &bytes.Buffer{}, RunCommand: runner})
+	if err == nil || !strings.Contains(err.Error(), "recomposition failed") {
+		t.Fatalf("ensurePreset() error = %v", err)
+	}
+	contents, readErr := os.ReadFile(filepath.Join(destination, "preset.yml"))
+	if readErr != nil || string(contents) != "version: 1\n" {
+		t.Fatalf("restored preset = %q, %v", contents, readErr)
+	}
+}
+
+func TestRunCommandWithTimeoutTerminatesChild(t *testing.T) {
+	t.Setenv("SDLC_TEST_BLOCK_CHILD", "1")
+	err := runCommandWithTimeout(
+		os.Args[0],
+		[]string{"-test.run=TestBlockingCommandHelper"},
+		t.TempDir(),
+		strings.NewReader(""),
+		&bytes.Buffer{},
+		&bytes.Buffer{},
+		20*time.Millisecond,
+	)
+	if err == nil || !strings.Contains(err.Error(), "timed out after") {
+		t.Fatalf("runCommandWithTimeout() error = %v", err)
+	}
+}
+
+func TestBlockingCommandHelper(t *testing.T) {
+	if os.Getenv("SDLC_TEST_BLOCK_CHILD") != "1" {
+		return
+	}
+	for {
+		runtime.Gosched()
+	}
+}
+
+func TestOfferLegacyMigrationSkipsProjectWithoutV1Ledger(t *testing.T) {
+	commandCalled := false
+	proceed, err := offerLegacyMigration(
+		resolvedConfig{ProjectType: "brownfield", SpecHarness: "codex"},
+		t.TempDir(),
+		bufio.NewReader(strings.NewReader("")),
+		Options{RunCommand: func(string, []string, string, io.Reader, io.Writer, io.Writer) error {
+			commandCalled = true
+			return nil
+		}, Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{}},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !proceed || commandCalled {
+		t.Fatalf("proceed = %t, commandCalled = %t", proceed, commandCalled)
+	}
+}
+
+func TestOfferLegacyMigrationDoesNotLaunchUnderNoLaunch(t *testing.T) {
+	projectRoot := t.TempDir()
+	writeTestFile(t, filepath.Join(projectRoot, "docs", "ACs.md"), "# Acceptance criteria\n")
+	commandCalled := false
+	var output bytes.Buffer
+	proceed, err := offerLegacyMigration(
+		resolvedConfig{ProjectType: "brownfield", SpecHarness: "codex"},
+		projectRoot,
+		bufio.NewReader(strings.NewReader("yes\n")),
+		Options{NoLaunch: true, RunCommand: func(string, []string, string, io.Reader, io.Writer, io.Writer) error {
+			commandCalled = true
+			return nil
+		}, Output: &output, ErrorOutput: &bytes.Buffer{}},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if proceed || commandCalled {
+		t.Fatalf("proceed = %t, commandCalled = %t", proceed, commandCalled)
+	}
+	if !strings.Contains(output.String(), "--no-launch prevents") {
+		t.Fatalf("output = %q", output.String())
+	}
+}
+
+func snapshotProjectFiles(t *testing.T, root string) map[string]string {
+	t.Helper()
+	files := make(map[string]string)
+	err := filepath.Walk(root, func(path string, info os.FileInfo, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		if !info.Mode().IsRegular() {
+			return nil
+		}
+		relative, err := filepath.Rel(root, path)
+		if err != nil {
+			return err
+		}
+		content, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		files[relative] = string(content)
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return files
 }
 
 func TestRenderConstitutionOmitsAuditRuntimeAndIncludesGovernance(t *testing.T) {
