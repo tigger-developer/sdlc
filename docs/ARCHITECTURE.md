@@ -266,7 +266,10 @@ The deployed preset lives at
 than replacing them:
 
 - `sdlc-project-init` supplies the editable constitution scaffold;
-- command preambles load the relevant canonical standards; and
+- project-local command adapters load the current command instructions from the
+  canonical SDLC root;
+- those command instructions progressively load the relevant canonical
+  standards; and
 - Spec Kit's lower-priority core command remains responsible for its normal
   operation.
 
@@ -283,10 +286,20 @@ The composition is intentionally selective:
 | `speckit.converge` | Universal, audit, coding, testing, and selected profile entries |
 | `speckit.taskstoissues` | Universal identifier and source-of-truth rules |
 
-Spec Kit copies preset material into project state and materializes composed
-commands for the active integration. The initializer invokes the chosen harness
-for the constitution operation only when the rendered scaffold or project
-selection changes after any required brownfield documentation migration.
+Spec Kit copies the stable adapters into project state and materializes composed
+commands for the active integration. The full command instructions remain only
+under `~/.agents/sdlc/presets/sdlc-standards/commands/` and are read at command
+invocation. A normal `make install` can therefore update their behaviour across
+initialized projects without an inventory, copied prompt refresh, or symlink.
+A structural preset change still requires `sdlc-project-init --no-launch` to
+recompose the project skills. The initializer invokes the chosen harness for
+the constitution operation only when the rendered scaffold or project selection
+changes after any required brownfield documentation migration.
+
+The specification template is likewise read directly from the canonical SDLC
+root. It is not registered for runtime preset composition, avoiding a PyYAML
+dependency during `$speckit-specify` while keeping the template current after
+deployment.
 
 The `--integration` selected during `specify init` controls the project-local
 agent adapter. It does not launch an agent and does not change the provider-

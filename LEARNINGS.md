@@ -42,6 +42,24 @@ The resulting loading model has three layers:
 This is progressive disclosure without duplication. The shared document remains
 authoritative; project artefacts record the selection and local decisions.
 
+## Copy stable adapters, not evolving instructions
+
+Spec Kit materializes project-local skills, so placing full SDLC command
+instructions in a preset creates stale copies in every initialized project.
+Maintaining a project inventory or provider-dependent symlinks would add another
+deployment problem.
+
+The preset now contributes only a small, stable adapter for each command. The
+adapter reads the corresponding full instruction file from the exact canonical
+SDLC root at invocation time and refuses filesystem discovery when it is absent.
+Ordinary instruction and specification-template changes then propagate through
+`make install`; project initialization is needed only to install a changed
+adapter shape or other structural project material.
+
+The same boundary removes runtime specification-template composition. The
+specification command reads the canonical template directly, so an optional
+preset parser dependency cannot block ordinary specification work.
+
 ## A specification is the coding boundary
 
 "A question is not an instruction" prevents an agent from turning discussion

@@ -135,6 +135,18 @@ The initializer separates deterministic selection from semantic drafting. It:
   Standards, Specification and Evidence, and Mandatory Independent Audits
   covenants remain present.
 
+Project-local Spec Kit skills contain small, stable adapters rather than copied
+SDLC instructions. Each adapter loads its current command instructions from
+`~/.agents/sdlc/presets/sdlc-standards/commands/` at invocation time. Ordinary
+standards and command updates therefore reach initialized projects after
+`make install`; they do not require project reinitialization. Run
+`sdlc-project-init --no-launch` once in projects initialized before this adapter
+model, and again only when the preset structure or project selections change.
+
+The specification command reads the canonical SDLC specification template
+directly from `~/.agents/sdlc`. It does not use Spec Kit's preset template
+composition and therefore does not require PyYAML.
+
 The initializer writes only explicit project selections into the project
 `.env` and adds that file to `.gitignore`; unrelated existing values are
 preserved. User defaults remain in `~/.agents/.env` and apply wherever the

@@ -83,11 +83,14 @@ already appeared. Apply the same permanent-reservation rule to requirements,
 scenarios, success criteria, and every other identifier namespace used in the
 specification.
 
-The resolved SDLC `spec-template` is authoritative for the specification's
-structure. Preserve its opening Specification Summary and following `***`
-section break, Spec Kit-compatible User Scenarios and Testing, Acceptance
-Scenarios, Requirements, Success Criteria, Assumptions, and optional Key
-Entities sections. Preserve Scope and, for brownfield work, Existing Baseline.
+Read
+`~/.agents/sdlc/presets/sdlc-standards/templates/spec-template.md` in full and
+use it directly as the authoritative specification structure. Do not invoke
+Spec Kit's preset template resolver for this template. Preserve its opening
+Specification Summary and following `***` section break, Spec Kit-compatible
+User Scenarios and Testing, Acceptance Scenarios, Requirements, Success
+Criteria, Assumptions, and optional Key Entities sections. Preserve Scope and,
+for brownfield work, Existing Baseline.
 
 Write the detailed specification first, then derive the opening Specification
 Summary from that current text. Preserve the exact Outcome, Before, After,

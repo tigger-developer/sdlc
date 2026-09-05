@@ -372,13 +372,22 @@ project `.env` or supply a command-line override. A changed standards selection
 regenerates and checkpoints the scaffold before relaunching the constitution
 workflow. Review and checkpoint the resulting constitution change.
 
-After updating the SDLC staging clone, redeploy and rerun initialization so the
-project records the new adopted revision:
+After updating the SDLC staging clone, redeploy it:
 
 ```bash
 make install
 ```
 
+Existing project skills use small adapters that load the current command
+instructions and specification template from `~/.agents/sdlc`. Ordinary
+instruction and template updates take effect immediately after deployment.
+
+Run the following command once for projects initialized before the adapter
+model, or after a structural preset change or changed project selection:
+
 ```bash
-sdlc-project-init
+sdlc-project-init --no-launch
 ```
+
+This refreshes the installed preset and recomposes project-local skills without
+launching the constitution harness. An unchanged rerun writes nothing.

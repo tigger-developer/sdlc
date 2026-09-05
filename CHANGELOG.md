@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## v2.0.11 - 2026-09-05
+
+Spec Kit command contributions are now stable project-local adapters that read
+the current full instructions from the canonical `~/.agents/sdlc` root. Once an
+existing project refreshes its preset, ordinary command changes propagate with
+`make install` without reinitialization, project inventories, or symlinks.
+
+The specification command now reads the canonical SDLC specification template
+directly. Removing that template from runtime preset composition avoids the
+PyYAML resolver failure during `$speckit-specify`.
+
 ## v2.0.10 - 2026-09-05
 
 Identifiers are now permanently reserved within their established namespace
