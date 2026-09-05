@@ -1,5 +1,39 @@
 # Feature Specification: [FEATURE NAME]
 
+## Specification Summary
+
+<!--
+This is the opening section of the specification. It is a concise presentation
+of the detailed specification below, not a second authority. Preserve every
+label in this order. Use short, keyword-anchored bullets with one principal fact
+per bullet. The summary must not introduce, reinterpret, contradict, or omit a
+material requirement, boundary, decision, or edge case.
+-->
+
+- **Outcome:** [One sentence naming the user or system result.]
+- **Before:**
+  - [Affected current behaviour, or the relevant capability absent in a
+    greenfield project.]
+- **After:**
+  - [Required observable behaviour.]
+- **Changes:**
+  - [Precise behaviour, interface, data, or constraint that becomes different.]
+- **Unchanged:**
+  - [Important preserved behaviour, compatibility boundary, or exclusion.]
+- **Edge cases:**
+  - [Applicable empty, missing, invalid, limit, repetition, concurrency,
+    partial-failure, security, privacy, accessibility, or compatibility case.]
+- **Decisions:**
+  - [Resolved assumption or decision; identify any unresolved decision.]
+- **Evidence:**
+  - [Requirement and baseline sources supporting this summary. Refer to the
+    feature's `audits.md`; do not copy a mutable audit verdict here.]
+- **Next step:**
+  - [Clarification required, or what operator sign-off on this specification
+    permits.]
+
+***
+
 Feature branch: `[FEATURE BRANCH]`
 
 Created: [DATE]

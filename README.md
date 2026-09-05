@@ -339,8 +339,14 @@ judgement-based change requires a fresh audit.
    template keeps user stories brief, gives acceptance scenarios the concrete
    behavioural detail, expresses authoritative rules as functional
    requirements, and reserves success criteria for feature-level measurements.
-   Scan-friendly bullets and a bold semantic spine provide visual anchors. In a
-   brownfield project, the SDLC overlay first requires a context pass across the
+   Its opening Specification Summary gives a scan-friendly Before and After
+   comparison with precise changes, preserved scope, edge cases, decisions,
+   evidence, and the next step. An exact `***` section break separates the
+   summary from the detailed specification. The specification audit verifies
+   that the summary accurately represents that detail without adding,
+   contradicting, or materially omitting anything. Scan-friendly bullets and a
+   bold semantic spine provide visual anchors. In a brownfield project, the SDLC
+   overlay first requires a context pass across the
    relevant requirement and design authorities, historical work records,
    maintained regression tests and traceability, and affected implementation.
    The specification records what the bounded delta preserves, changes,
@@ -361,10 +367,6 @@ judgement-based change requires a fresh audit.
    within the specification and re-audits under the five-attempt limit. A
    specification or clarification change preserves the earlier PASS as history
    but makes it non-current unless it exactly satisfies a PROVISIONAL condition.
-   At the approval handback, the agent also gives a chat-only **Change digest**:
-   concise Before, After, Changes, Unchanged, Edge cases, Decisions, Evidence,
-   and Next step bullets. The digest is derived from `spec.md`, creates no
-   parallel artefact, and cannot introduce or omit requirements.
    Record every attempt and any condition receipt in the feature's `audits.md`;
    planning requires the current effective PASS and operator sign-off.
 

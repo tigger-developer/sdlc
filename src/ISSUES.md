@@ -103,6 +103,32 @@ restatements of the same behaviour. Length follows the complexity of the
 change; brevity must not remove a material case, constraint, or source
 relationship.
 
+## Specification summary
+
+Every Spec Kit specification begins with a `Specification Summary`, followed by
+an exact `***` Markdown section break before metadata and detailed sections. It
+uses these labels in order:
+
+- **Outcome:** the user or system result in one sentence.
+- **Before:** the affected current behaviour or relevant greenfield absence.
+- **After:** the required observable behaviour.
+- **Changes:** precise behaviour, interface, data, or constraint differences.
+- **Unchanged:** preserved behaviour, compatibility boundaries, and exclusions.
+- **Edge cases:** applicable empty, missing, invalid, limit, repetition,
+  concurrency, partial-failure, security, privacy, accessibility, and
+  compatibility behaviour.
+- **Decisions:** resolved assumptions and any unresolved decision.
+- **Evidence:** requirement and baseline sources plus a reference to the
+  feature's external `audits.md`; never a copied mutable verdict.
+- **Next step:** clarification still required or what operator sign-off permits.
+
+Use short, keyword-anchored bullets with one principal fact per bullet. Draft
+the detailed specification first and derive the summary from it. The summary is
+a presentation layer within the same artefact, not a separate authority. It
+must introduce no requirement or interpretation absent below the section break,
+contradict none, and omit no material change, unchanged boundary, decision, or
+applicable edge case. A mismatch is a blocking specification-audit finding.
+
 ## Acceptance criteria
 
 Acceptance criteria describe required system states, not test procedures.

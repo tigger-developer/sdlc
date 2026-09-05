@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+Moved the specification Change digest from an unreliable chat-only handback
+into the opening `Specification Summary` of every `spec.md`. The fixed
+ADHD-friendly structure records Outcome, Before, After, Changes, Unchanged, Edge
+cases, Decisions, Evidence, and Next step, followed by an exact `***` section
+break. Specification creation and clarification keep it synchronized; the
+independent specification audit blocks additions, contradictions, and material
+omissions against the detailed specification.
+
 ## v2.0.8 - 2026-09-04
 
 Added an automatically discoverable JavaScript and TypeScript technology

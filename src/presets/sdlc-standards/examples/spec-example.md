@@ -1,5 +1,41 @@
 # Feature Specification: Scheduled Report Delivery
 
+## Specification Summary
+
+- **Outcome:** An account owner **receives scheduled reports**, while an
+  operator can **retry an execution** without duplicate output.
+- **Before:**
+  - Reports are generated **manually** using the existing renderer.
+  - No scheduled generation or recipient delivery behaviour is defined.
+- **After:**
+  - Each successful scheduled **run** stores **one archived report**.
+  - Configured recipients receive **one notification** per successful run.
+  - Retrying the **same execution identifier** creates **no duplicate report or
+    notification**.
+- **Changes:**
+  - A report schedule declares an **output format** and optional **recipients**.
+  - An **invalid output format** prevents the schedule being saved and identifies
+    the invalid value.
+- **Unchanged:**
+  - The existing report **renderer**, manual generation, account authorization,
+    and retention policy remain unchanged.
+- **Edge cases:**
+  - An **empty recipient list** disables delivery but still archives the report.
+  - A **delivery failure** leaves the generated report available in the archive.
+  - A repeated execution produces no duplicate report or notification.
+- **Decisions:**
+  - The existing renderer is assumed to support every accepted output format.
+  - Recipient authorization and contact validation remain governed by existing
+    account policy.
+- **Evidence:**
+  - This is a fictional example with no project authority; a real specification
+    cites its requirement and baseline sources and refers to its `audits.md`.
+- **Next step:**
+  - Operator sign-off on this example specification would permit planning, not
+    implementation.
+
+***
+
 Feature branch: `001-scheduled-report-delivery`
 
 Created: 2030-01-01

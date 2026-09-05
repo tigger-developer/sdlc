@@ -15,6 +15,16 @@ bounds the change.
 Check that:
 
 - the user or system outcome is explicit;
+- the opening section is the Specification Summary, retains Outcome, Before,
+  After, Changes, Unchanged, Edge cases, Decisions, Evidence, and Next step in
+  that order, and is followed by an exact `***` section break;
+- every summary statement is supported by the detailed specification, no
+  summary statement contradicts or reinterprets it, and no material behaviour,
+  change, unchanged boundary, decision, or applicable edge case is omitted;
+- the summary's Before and After states make the behavioural delta clear, its
+  Evidence points to durable sources and the external audit record rather than
+  copying a verdict, and its Next step accurately states the remaining
+  clarification or effect of operator sign-off;
 - every section, paragraph, and bullet satisfies the Accurate, Brief, and Clear
   presentation contract in `ISSUES.md`;
 - each Spec Kit section performs its distinct job: user stories briefly establish
