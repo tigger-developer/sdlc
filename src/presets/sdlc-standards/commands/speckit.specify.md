@@ -39,6 +39,41 @@ or test-oracle requirements merely to fill the core template. If a material
 baseline source is missing, conflicting, or unresolved, make that clarification
 explicit rather than guessing.
 
+Treat the text supplied with `$speckit-specify` as a feature brief, not
+necessarily as a complete specification. Before drafting, establish from that
+brief and the verified project authorities:
+
+- the observable outcome and affected user or system;
+- the scope, exclusions, and important behaviour that must remain unchanged;
+  and
+- the credible validation path and any material security, data, migration,
+  external-service, compatibility, cost, or irreversible-operation risk.
+
+If any of those cannot be established, ask one batch of no more than three
+short questions in ordinary prose. Do not use a multiple-choice interface, ask
+anything already answered by the brief or project evidence, or presume that a
+one-line brief is complete merely because it is grammatical. After the answers
+are sufficient, draft without another handback. Industry conventions and
+common patterns may identify a question; they MUST NOT become requirements
+without authority.
+
+Select one feature profile and record it in the specification:
+
+- **Compact:** one bounded outcome with no material change to data or schema,
+  security or trust, an external contract, compatibility, an irreversible
+  operation, or multiple independently deliverable stories.
+- **Full:** any feature outside the Compact boundary.
+
+Both profiles use the same canonical template. A Compact specification keeps
+one brief user story and only the scenarios, requirements, edge cases,
+assumptions, and success criteria needed to define that outcome. A Full
+specification adds detail only where the feature and evidence require it.
+
+Every requirement must be traceable to the operator's brief or clarification,
+an approved current requirement, or a necessary boundary directly implied by
+one of those sources. Unsupported elaboration is a specification defect, not a
+helpful assumption.
+
 The resolved SDLC `spec-template` is authoritative for the specification's
 structure. Preserve its opening Specification Summary and following `***`
 section break, Spec Kit-compatible User Scenarios and Testing, Acceptance
@@ -93,6 +128,10 @@ checks:
   repetition;
 - user stories remain brief while acceptance scenarios carry concrete
   behavioural examples;
+- the recorded Compact or Full profile is proportionate to the feature;
+- every requirement has an authoritative source and no industry convention,
+  common pattern, template placeholder, or test convenience has been promoted
+  into an unsupported requirement;
 - every requirement is observable, falsifiable, bounded, and has a descriptor;
 - the bold semantic spine captures the distinctive state, action, qualifier,
   quantity, boundary, and outcome without emphasizing surrounding context;

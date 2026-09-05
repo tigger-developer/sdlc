@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+Specification creation now treats command text as a brief rather than presumed
+complete requirements. It asks one bounded batch of ordinary-prose questions
+when outcome, scope, validation, or material risk remains unresolved, selects a
+Compact or Full feature profile, and rejects requirements without operator or
+approved-source authority. The specification audit now checks both omissions
+and unsupported elaboration.
+
+Testing standards now distinguish verified third-party contract doubles from
+invented simulations, accept human validation where it is the only credible
+evidence, and require live-service one-off tests to declare authorization,
+effects, call and retry limits, timeout, cost, cleanup, and stop conditions.
+The test audit enforces those boundaries without admitting metered checks into
+persistent regression automation.
+
 Added schema-driven `SDLC_BRANCH_STRATEGY` configuration with `current` and
 `feature` choices. Global defaults remain in `~/.agents/.env` and apply wherever
 a project has no override. Generated constitutions expose the resolved policy

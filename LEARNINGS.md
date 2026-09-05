@@ -137,6 +137,37 @@ implementation. Recording what the change preserves, changes, supersedes, and
 leaves unaffected makes that investigation reviewable without copying the
 existing system into every feature artefact.
 
+## Better input prevents ceremonial audit loops
+
+Spec Kit accepts the text supplied with its specification command as the
+feature description and encourages informed assumptions where detail is
+missing. That works for a mature brief, but a short operator request can become
+an overgrown specification containing plausible rather than authorized
+requirements. A rigorous audit then spends several iterations correcting
+precision the author invented instead of omissions in the requested outcome.
+
+The answer is not a weaker audit. Specification creation now treats command
+text as a brief and asks one bounded batch of ordinary-prose questions when the
+outcome, boundary, validation path, or material risk is unresolved. Every
+requirement must derive from operator input, an approved requirement, or a
+necessary boundary directly implied by one of them. Industry convention may
+prompt a question; it cannot silently become product scope.
+
+One template supports two feature profiles. Compact specifications define one
+bounded outcome without manufacturing sections or edge cases. Full
+specifications carry the detail justified by multiple outcomes or material
+data, security, external-contract, compatibility, or irreversible-operation
+risk. The profile belongs to the feature rather than the size or age of the
+project.
+
+Test evidence follows the same credibility rule. Human validation is stronger
+than an automated imitation for visual, ergonomic, editorial, and operational
+judgement. A third-party double proves only the project's handling of a known
+contract; it does not prove undocumented or live provider behaviour. Live
+checks are bounded one-off tests with explicit authority, effects, call and
+retry limits, timeout, cost, cleanup, and stop conditions. This retains strict
+audits while preventing false confidence and uncontrolled external activity.
+
 ## Behaviour is not source text
 
 Persistent tests must exercise an observable boundary. A grep proving that a

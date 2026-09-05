@@ -196,6 +196,31 @@ that cannot be produced safely. A double must model the contract that matters;
 do not mock the function under test or merely assert that internal calls
 occurred.
 
+### External services and human evidence
+
+Test deterministic behaviour owned by the project with automated regression
+tests where that evidence is meaningful. A fake or stub for a third-party
+service must implement only the relevant part of a published, versioned, or
+otherwise verified contract. It proves the project's handling of that contract;
+it does not prove the live service behaves as simulated.
+
+Do not invent simulations of undocumented third-party behaviour. Where the
+only credible evidence requires the live service or human judgement, specify a
+bounded one-off or user test instead of manufacturing automation.
+
+Run a live third-party check paired with the operator or under explicit
+authorization for the defined one-off test. Before execution, record:
+
+- the endpoint, operation, and permitted data;
+- whether the check reads or writes external state;
+- the maximum calls and retries, timeout, and stop conditions;
+- any monetary exposure; and
+- required cleanup.
+
+One authorization covers only those recorded bounds. Do not poll, broaden the
+operation, or repeat it beyond them. Metered checks remain prohibited from
+persistent regression suites and repeatedly triggered automation.
+
 ## Coverage and quality
 
 Coverage reports locate unexercised code; they do not prove useful assertions.

@@ -40,7 +40,9 @@ Created: [DATE]
 
 Status: Draft
 
-Input: [OPERATOR REQUEST]
+Input: [OPERATOR BRIEF AND MATERIAL CLARIFICATIONS]
+
+Profile: [Compact or Full]
 
 <!--
 Follow the ABC presentation contract in ~/.agents/sdlc/ISSUES.md. Use ordinary
@@ -56,6 +58,12 @@ The complete fictional presentation example is at:
 ~/.agents/sdlc/presets/sdlc-standards/examples/spec-example.md
 Use it only to understand structure and presentation. Never copy its
 requirements, terminology, or behaviour into a project specification.
+
+Use Compact for one bounded outcome without material data or schema, security
+or trust, external-contract, compatibility, irreversible-operation, or
+multiple-story concerns. Use Full otherwise. Both profiles retain the same
+required Spec Kit structure; Compact fills it minimally and removes unused
+optional sections.
 -->
 
 ## Scope
@@ -103,7 +111,11 @@ Independent Test: [State one independently observable outcome, not a test proced
 State the authoritative generalized rules demonstrated by the scenarios. Give
 every identifier a descriptor. Each requirement must be observable, falsifiable,
 bounded, and free of implementation or test detail unless the mechanism is part
-of the public contract.
+of the public contract. Each requirement must come from the operator brief or a
+material clarification, an approved current requirement, or a necessary
+boundary directly implied by one of those sources. Do not convert industry
+conventions, common patterns, template placeholders, or test conveniences into
+requirements.
 -->
 
 - FR-001 - [DESCRIPTIVE REQUIREMENT TITLE]: [State one behavioural rule.]

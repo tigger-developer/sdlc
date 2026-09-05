@@ -33,6 +33,15 @@ Check that:
   measure overall feature success;
 - repetition is limited to what connects those views, without verbose narrative
   restating detailed behaviour;
+- the recorded Compact or Full profile is proportionate to the feature, with a
+  Compact specification limited to one bounded outcome and a Full
+  specification justified by material complexity or risk;
+- every requirement is supported by the operator brief or clarification, an
+  approved current requirement, or a necessary boundary directly implied by
+  one of those sources;
+- industry conventions, common patterns, template placeholders, speculative
+  edge cases, and test conveniences have not been promoted into unsupported
+  requirements;
 - ordinary Markdown headings provide structure while each statement's bold
   semantic spine forms an accurate compressed summary of its distinctive state,
   action, qualifier, quantity, boundary, and outcome;
