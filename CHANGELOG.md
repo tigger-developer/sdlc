@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+Added schema-driven `SDLC_BRANCH_STRATEGY` configuration with `current` and
+`feature` choices. Global defaults remain in `~/.agents/.env` and apply wherever
+a project has no override. Generated constitutions expose the resolved policy
+without requiring agents to read protected `.env` files.
+
+Staged Spec Kit phase commands now load the Git synchronization contract, pull
+at entry, and pull then push committed phase artefacts after effective audit
+PASS. Feature branches are published through an existing remote;
+synchronization may be tracked asynchronously without turning transient network
+failure into a false audit failure or idle handback.
+
+Audit invocations now resolve `SDLC_AUDIT_TIMEOUT` from process, project, or
+user configuration and accept a one-run `--timeout` override. The default hard
+process timeout and Hermes run budget are reduced from fifteen to five minutes.
+
 Moved the specification Change digest from an unreliable chat-only handback
 into the opening `Specification Summary` of every `spec.md`. The fixed
 ADHD-friendly structure records Outcome, Before, After, Changes, Unchanged, Edge

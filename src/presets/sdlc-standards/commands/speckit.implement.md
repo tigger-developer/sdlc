@@ -3,8 +3,8 @@
 If `~/.agents/sdlc/MAIN.md` is absent or unreadable, report that exact path;
 never search for another copy.
 
-Read `~/.agents/sdlc/MAIN.md`, `~/.agents/sdlc/AUDITS.md`, and the standards
-selected by the constitution that apply to the current tasks. Do not preload
+Read `~/.agents/sdlc/MAIN.md`, `~/.agents/sdlc/AUDITS.md`,
+`~/.agents/sdlc/GIT.md`, and the standards selected by the constitution that apply to the current tasks. Do not preload
 unselected technology or domain documents. Implement only defined specification
 behaviour, preserve human edits, and report verification precisely.
 

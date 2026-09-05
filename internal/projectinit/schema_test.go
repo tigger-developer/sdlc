@@ -2,8 +2,10 @@ package projectinit
 
 import (
 	"bufio"
+	"io"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -73,6 +75,39 @@ func TestResolveConfigUsesDeclaredPrecedenceAndFallback(t *testing.T) {
 	}
 }
 
+func TestResolveConfigUsesDeclaredLiteralDefault(t *testing.T) {
+	schema := ConfigSchema{
+		Version:    1,
+		Precedence: []string{"cli", "environment", "project", "user", "fallback"},
+		Fields: []ConfigField{{
+			Key: "STRATEGY", Flag: "strategy", Type: "choice",
+			Choices: []string{"current", "feature"}, Default: "current",
+		}},
+	}
+	if err := schema.Validate(); err != nil {
+		t.Fatal(err)
+	}
+	values := resolveConfigValues(schema, nil, nil, nil, nil)
+	if values["STRATEGY"] != "current" {
+		t.Fatalf("literal default = %q, want current", values["STRATEGY"])
+	}
+}
+
+func TestSchemaValidatesDurationDefaults(t *testing.T) {
+	for _, value := range []string{"eventually", "500ms", "1500ms"} {
+		t.Run(value, func(t *testing.T) {
+			schema := ConfigSchema{
+				Version:    1,
+				Precedence: []string{"cli", "environment", "project", "user", "fallback"},
+				Fields:     []ConfigField{{Key: "TIMEOUT", Flag: "timeout", Type: "duration", Default: value}},
+			}
+			if err := schema.Validate(); err == nil || !strings.Contains(err.Error(), "whole-second duration") {
+				t.Fatalf("duration default %q error = %v", value, err)
+			}
+		})
+	}
+}
+
 func TestCompleteConfigUsesNumberedChoicePrompts(t *testing.T) {
 	schema := ConfigSchema{
 		Version:    1,
@@ -81,11 +116,11 @@ func TestCompleteConfigUsesNumberedChoicePrompts(t *testing.T) {
 	}
 	values := map[string]string{}
 	var output strings.Builder
-	changed, err := completeConfig(schema, values, bufioReader("2\n"), &output, nil)
+	prompted, err := completeConfig(schema, values, bufioReader("2\n"), &output, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !changed || values["ROLE"] != "consumer" {
+	if !prompted["ROLE"] || values["ROLE"] != "consumer" {
 		t.Fatalf("choice result = %#v", values)
 	}
 	for _, expected := range []string{"Select role:", "1. none", "2. consumer", "3. provider"} {
@@ -103,12 +138,34 @@ func TestCompleteConfigSkipsResolvedFields(t *testing.T) {
 	}
 	values := map[string]string{"ROLE": "provider"}
 	var output strings.Builder
-	changed, err := completeConfig(schema, values, bufioReader(""), &output, nil)
+	prompted, err := completeConfig(schema, values, bufioReader(""), &output, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if changed || output.Len() != 0 {
-		t.Fatalf("resolved field prompted or changed: changed=%t output=%q", changed, output.String())
+	if len(prompted) != 0 || output.Len() != 0 {
+		t.Fatalf("resolved field prompted: prompted=%v output=%q", prompted, output.String())
+	}
+}
+
+func TestCompleteConfigDistinguishesPromptAnswersFromFallbacks(t *testing.T) {
+	schema := ConfigSchema{
+		Version:    1,
+		Precedence: []string{"cli", "environment", "project", "user", "fallback"},
+		Fields: []ConfigField{
+			{Key: "HARNESS", Flag: "harness", Type: "choice", Choices: []string{"codex", "hermes"}, Prompt: "Select harness:"},
+			{Key: "AUDIT_HARNESS", Flag: "audit-harness", Type: "choice", Choices: []string{"codex", "hermes"}, Fallback: "HARNESS"},
+		},
+	}
+	values := map[string]string{}
+	prompted, err := completeConfig(schema, values, bufioReader("1\n"), io.Discard, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(prompted, map[string]bool{"HARNESS": true}) {
+		t.Fatalf("prompted fields = %#v", prompted)
+	}
+	if values["AUDIT_HARNESS"] != "codex" {
+		t.Fatalf("fallback harness = %q", values["AUDIT_HARNESS"])
 	}
 }
 

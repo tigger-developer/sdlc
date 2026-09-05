@@ -4,7 +4,7 @@ If `~/.agents/sdlc/MAIN.md` is absent or unreadable, report that exact path;
 never search for another copy.
 
 Read `~/.agents/sdlc/MAIN.md`, `~/.agents/sdlc/AUDITS.md`,
-`~/.agents/sdlc/TESTING.md`, `~/.agents/sdlc/SECURITY.md`, and
+`~/.agents/sdlc/GIT.md`, `~/.agents/sdlc/TESTING.md`, `~/.agents/sdlc/SECURITY.md`, and
 `~/.agents/sdlc/DOCUMENTATION.md` in full, plus the standards selected by the
 constitution that affect the tasks. Ensure the task set covers specification
 evidence, error and boundary behaviour, documentation, migration, security, and

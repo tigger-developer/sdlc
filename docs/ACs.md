@@ -66,6 +66,13 @@ adapter model.
   included exactly once.
 - Configuration precedence is CLI, process environment, project `.env`, user
   `.env`, then a schema-declared fallback.
+- User and schema defaults remain outside the project and continue to resolve
+  dynamically. The initializer persists only existing project values, explicit
+  command-line or process-environment selections, and answers to unresolved
+  project prompts.
+- `SDLC_BRANCH_STRATEGY` accepts `current` or `feature`, permits a user default,
+  and defaults to `current`. A user or schema default remains outside the
+  project; only an explicit project selection persists into its `.env`.
 - A YAML schema defines configuration fields, CLI flags, types, choices, prompt
   order, user-default eligibility, persistence, conditional requirements, and
   phase provider applicability. Fixed unresolved choices use numbered prompts;
@@ -82,6 +89,9 @@ adapter model.
   without assuming a private infrastructure project.
 - Rendering is deterministic. When the rendered baseline and selections are
   current, the initializer asks nothing, writes nothing, and launches no agent.
+- The generated constitution records the resolved branch strategy and requires
+  the Git standard's phase-boundary synchronization contract without exposing
+  or requiring agents to read the project `.env`.
 - The baseline is written as the project `constitution-template` override, not
   over Spec Kit's core fallback template, and resolves without parsing preset
   manifests.
@@ -175,6 +185,29 @@ adapter model.
   no `docs/ACs.md`; migration artefacts without the Org ledger, or both formats
   together, stop initialization with an actionable diagnostic.
 
+## Staged phase synchronization
+
+- Staged Spec Kit work treats specification and clarification, plan and design,
+  test design and tasks, and implementation through convergence as four phase
+  boundaries.
+- Each corresponding Spec Kit command fragment loads `AUDITS.md` and `GIT.md`;
+  those prompt contracts apply the synchronization behaviour without a
+  repository-independent Git automation program.
+- Each phase pulls its active branch through the configured upstream and pull
+  strategy before changing phase artefacts.
+- After effective audit PASS, the agent commits coherent phase artefacts, pulls
+  again, and pushes every committed phase checkpoint.
+- `current` strategy retains the operator-selected branch. `feature` strategy
+  uses and publishes one branch per feature through an existing remote without
+  imposing a base-branch name.
+- A push may overlap independent non-Git work only while its result remains
+  tracked and is collected before another Git operation or handback.
+- A transient synchronization failure is reported and retried without
+  invalidating the audit result. Ambiguous divergence blocks advancement and is
+  never hidden through stashing, force, or history rewriting.
+- Phase synchronization never invokes `make sync` or stages unrelated worktree
+  content.
+
 ## Application vulnerability checking
 
 - Every deployable application exposes a repository-owned `make vulncheck`
@@ -257,8 +290,10 @@ adapter model.
 - Inputs must be regular non-symlink files beneath the project, canonical SDLC,
   or operating-system temporary directory. An exact external authority is
   supplied separately with `--external-context FILE`; it does not authorize a
-  directory tree. The child receives a bounded environment and a 15-minute
-  runtime budget and hard timeout.
+  directory tree. The child receives a bounded environment. Its runtime budget
+  and hard process timeout use `SDLC_AUDIT_TIMEOUT`, resolved through the normal
+  audit precedence, as a whole-second duration with a minimum of one second, a
+  five-minute default, and a per-invocation `--timeout` override.
 - Automated regression coverage of `sdlc-audit` injects a fake harness and
   never invokes an agent harness or hosted model. A live end-to-end audit
   invocation is a metered one-off test only and must not be included in

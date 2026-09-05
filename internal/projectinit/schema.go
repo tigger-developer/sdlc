@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 
 	"gopkg.in/yaml.v3"
 )
@@ -35,6 +36,7 @@ type ConfigField struct {
 	ChoicesFrom      string        `yaml:"choices_from"`
 	Prompt           string        `yaml:"prompt"`
 	Fallback         string        `yaml:"fallback"`
+	Default          string        `yaml:"default"`
 	RequiredWhen     *RequiredWhen `yaml:"required_when"`
 	AllowUserDefault bool          `yaml:"allow_user_default"`
 	Persist          bool          `yaml:"persist"`
@@ -119,9 +121,9 @@ func (schema ConfigSchema) Validate() error {
 		}
 		seenFlags[field.Flag] = true
 		switch field.Type {
-		case "string":
+		case "string", "duration":
 			if len(field.Choices) != 0 || field.ChoicesFrom != "" {
-				return fmt.Errorf("string field %s cannot define choices", field.Key)
+				return fmt.Errorf("%s field %s cannot define choices", field.Type, field.Key)
 			}
 		case "choice":
 			if len(field.Choices) == 0 || field.ChoicesFrom != "" {
@@ -147,6 +149,9 @@ func (schema ConfigSchema) Validate() error {
 		}
 	}
 	for _, field := range schema.Fields {
+		if field.Fallback != "" && field.Default != "" {
+			return fmt.Errorf("field %s cannot define both fallback and default", field.Key)
+		}
 		if field.Fallback != "" {
 			if _, ok := byKey[field.Fallback]; !ok {
 				return fmt.Errorf("field %s has unknown fallback %s", field.Key, field.Fallback)
@@ -157,6 +162,16 @@ func (schema ConfigSchema) Validate() error {
 					return fmt.Errorf("fallback cycle includes %s", key)
 				}
 				seen[key] = true
+			}
+		}
+		if field.Default != "" && field.Type == "choice" {
+			if _, ok := canonicalChoice(field, field.Default); !ok {
+				return fmt.Errorf("field %s has unknown default %q", field.Key, field.Default)
+			}
+		}
+		if field.Default != "" && field.Type == "duration" {
+			if err := validateWholeSecondDuration(field.Key, field.Default); err != nil {
+				return err
 			}
 		}
 		if field.RequiredWhen != nil {
@@ -233,4 +248,12 @@ func canonicalChoice(field ConfigField, value string) (string, bool) {
 		}
 	}
 	return "", false
+}
+
+func validateWholeSecondDuration(key, value string) error {
+	duration, err := time.ParseDuration(strings.TrimSpace(value))
+	if err != nil || duration < time.Second || duration%time.Second != 0 {
+		return fmt.Errorf("%s must be a whole-second duration of at least one second, got %q", key, value)
+	}
+	return nil
 }

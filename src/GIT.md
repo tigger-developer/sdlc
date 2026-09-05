@@ -38,6 +38,53 @@ Do not rely on commit-message keywords to close work automatically unless the
 project explicitly adopts that behaviour. A merged change and a verified
 outcome are separate facts.
 
+## Staged phase synchronization
+
+`SDLC_BRANCH_STRATEGY` selects the project workflow:
+
+- `current` keeps delivery on the operator-selected branch; and
+- `feature` uses one published branch per Spec Kit feature.
+
+The initializer resolves this value from command line, process environment,
+project `.env`, user `~/.agents/.env`, then the schema default. The project
+constitution records the resolved strategy so agents need not read `.env`.
+
+Staged Spec Kit delivery has four synchronized phases: specification and
+clarification; plan and design; test design and tasks; and implementation,
+verification, and convergence.
+
+At the start of each phase:
+
+1. Inspect the repository and working tree.
+2. Pull the active branch through its configured upstream and pull strategy
+   before changing that phase's artefacts.
+3. Under `feature`, pull the configured base branch before creating a new
+   feature branch. After creation, synchronize the feature branch itself.
+
+At the end of each phase, after its artefacts have an effective audit PASS and
+are committed:
+
+1. Pull the active branch through its configured upstream and pull strategy.
+2. Push every committed phase checkpoint to that upstream.
+
+Selecting `feature` authorizes creation and first publication of the feature
+branch through an existing configured remote. It does not authorize creating or
+changing a remote, guessing a base branch, or rewriting history. Follow the
+project's established branch naming and integration policy.
+
+A push may run asynchronously while independent non-Git work continues, but it
+must remain tracked and only one synchronization operation may be in flight.
+Collect its result before another Git operation or operator handback. A
+transient synchronization failure does not invalidate a local audit PASS or
+require idle waiting: record it, continue safe independent work, and retry at
+the next boundary. A divergence that makes the phase baseline or resulting
+history ambiguous is a blocker; never hide it through stashing, force, or
+history rewriting.
+
+When no upstream exists, report the exact missing relationship. Do not invent a
+remote. Phase synchronization operates on coherent commits and must not stage
+unrelated worktree content.
+
 ## Make synchronization
 
 For a project that uses Make, `make sync` is the canonical operator-facing
@@ -62,6 +109,10 @@ authorized synchronization and the agent can preserve every unrelated or
 human-authored change. An operator invocation is the decision to include the
 current worktree; the target must not try to outsmart that decision by filtering
 or rewriting it.
+
+Do not use `make sync` as the staged phase-synchronization mechanism. Phase
+synchronization acts only on already committed phase work; `make sync` is an
+explicit operator decision to stage the whole worktree.
 
 ## Branches and history
 

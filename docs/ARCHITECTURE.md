@@ -196,7 +196,8 @@ usable.
 The generated template is editable pre-ratification scaffolding. It contains
 the fixed standards proposal, universal standard references, selected
 technology references, an optional consumer or provider infrastructure
-contract relationship, mandatory independent audits, a fixed specification
+contract relationship, the resolved branch strategy, mandatory independent
+audits, a fixed specification
 baseline selected as greenfield or brownfield, and bounded placeholders for
 project-specific principles. The brownfield structure separates current and
 historical requirement authority, historical work context, design authority,
@@ -226,10 +227,11 @@ User defaults live in the user-owned `~/.agents/.env`, outside the synchronized
 standards tree. Resolution order is CLI, process environment, project `.env`,
 user `.env`, then the field's declared fallback. A deployed Bash wrapper
 evaluates the two shell files and emits only allowlisted SDLC values; Go never
-interprets shell expressions. The initializer copies every resolved value into
-the ignored project `.env`. The project therefore
-retains its initialization snapshot when the user defaults later change, and a
-current rerun requires no questions or writes. `SDLC_PROJECT_TYPE` is the sole
+interprets shell expressions. The initializer persists only explicit project
+selections from the command line, process environment, existing project
+configuration, or unresolved project prompts. User defaults and schema defaults
+remain outside the project and continue to apply wherever it has no override.
+`SDLC_PROJECT_TYPE` is the sole
 project-only selection: the initializer ignores it in `~/.agents/.env` and
 accepts it only from the process environment, project, command line, or project
 prompt.
@@ -242,6 +244,20 @@ Technology choices remain dynamically derived from the deployed technology
 documents. Phase harnesses fall back independently to `SDLC_AGENT_HARNESS`; the
 specification harness controls Spec Kit integration and constitution generation.
 Provider values are ignored for harnesses without explicit provider selection.
+`SDLC_BRANCH_STRATEGY` is a user-defaultable, project-overridable choice between
+the operator-selected current branch and one published branch per feature. Its
+resolved value is rendered into the constitution because `.env` remains a
+protected configuration source rather than an agent-readable policy document.
+
+At runtime, the corresponding Spec Kit command fragments load `AUDITS.md` and
+`GIT.md`. `AUDITS.md` identifies the four staged phase boundaries and `GIT.md`
+owns their synchronization mechanics. This prompt integration keeps repository
+policy visible to the acting agent instead of embedding Git decisions in a
+repository-independent program. A phase starts with a pull. An effective audit
+PASS is followed by a coherent commit, pull, and push before handback or
+automatic advancement. The push may overlap independent work but is tracked
+until its result is collected; `make sync` remains a separate operator-only
+whole-worktree action.
 
 ## Spec Kit composition
 
@@ -377,8 +393,11 @@ fallback precedence, and its `.env` files are evaluated by the allowlisted Bash
 wrapper. The runner invokes the selected Hermes, Codex, or Claude harness in a
 fresh context. Hermes receives provider and model; Codex and Claude ignore the
 configured provider and receive model only. Each child has a
-minimal environment and a 15-minute runtime budget and hard timeout. Advisory
-skills load context, diagnose, recommend, or summarize.
+minimal environment. `SDLC_AUDIT_TIMEOUT` supplies its runtime budget and hard
+process timeout through the normal audit precedence; it must be a whole-second
+duration of at least one second, an unset value defaults to five minutes, and
+`--timeout` overrides one invocation. Advisory skills load
+context, diagnose, recommend, or summarize.
 
 The standards-only model removes the previous SDLC commands and its drafting
 and design workflow skills. The installer has a bounded retirement list for

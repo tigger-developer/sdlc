@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
 
 	"github.com/tigger-developer/sdlc/internal/auditrunner"
 )
@@ -69,11 +70,20 @@ func parseOptionsTo(arguments []string, output io.Writer) (auditrunner.Options, 
 	flags.StringVar(&options.Harness, "harness", "", "override audit harness")
 	flags.StringVar(&options.Provider, "provider", "", "override provider for harnesses that accept one")
 	flags.StringVar(&options.Model, "model", "", "override audit model")
+	flags.DurationVar(&options.Timeout, "timeout", 0, "override audit timeout with a whole-second duration (for example 4m)")
 	flags.Var((*repeatedFlag)(&options.Artifacts), "artifact", "artefact to audit; repeat for multiple files")
 	flags.Var((*repeatedFlag)(&options.Context), "context", "authorized context file; repeat for multiple files")
 	flags.Var((*repeatedFlag)(&options.ExternalContext), "external-context", "exact external context file; repeat for multiple files")
 	if err := flags.Parse(arguments[1:]); err != nil {
 		return auditrunner.Options{}, err
+	}
+	flags.Visit(func(selected *flag.Flag) {
+		if selected.Name == "timeout" {
+			options.TimeoutSet = true
+		}
+	})
+	if options.TimeoutSet && (options.Timeout < time.Second || options.Timeout%time.Second != 0) {
+		return auditrunner.Options{}, errors.New("--timeout must be a whole-second duration of at least one second")
 	}
 	if flags.NArg() != 0 {
 		return auditrunner.Options{}, fmt.Errorf("unexpected positional arguments: %v", flags.Args())
@@ -97,4 +107,5 @@ func printUsage(output io.Writer) {
 	fmt.Fprintln(output, "  --harness NAME      override audit harness: codex, claude, or hermes")
 	fmt.Fprintln(output, "  --provider NAME     override provider for harnesses that accept one")
 	fmt.Fprintln(output, "  --model NAME        override audit model")
+	fmt.Fprintf(output, "  --timeout DURATION  override audit timeout with a whole-second duration (default %s)\n", 5*time.Minute)
 }

@@ -151,19 +151,56 @@ func TestRunUsesHermesWhenHarnessIsUnset(t *testing.T) {
 
 func TestResolveConfigurationUsesEnvironmentBeforeProjectAndAuditHarnessFallsBack(t *testing.T) {
 	fixture := newFixture(t, "audit-spec")
-	mustWrite(t, fixture.userConfig, "SDLC_AGENT_HARNESS=codex\nSDLC_AUDIT_PROVIDER=user\nSDLC_AUDIT_MODEL=user-model\n")
-	mustWrite(t, filepath.Join(fixture.project, ".env"), "SDLC_AUDIT_PROVIDER=project\nSDLC_AUDIT_MODEL=project-model\n")
+	mustWrite(t, fixture.userConfig, "SDLC_AGENT_HARNESS=codex\nSDLC_AUDIT_PROVIDER=user\nSDLC_AUDIT_MODEL=user-model\nSDLC_AUDIT_TIMEOUT=4m\n")
+	mustWrite(t, filepath.Join(fixture.project, ".env"), "SDLC_AUDIT_PROVIDER=project\nSDLC_AUDIT_MODEL=project-model\nSDLC_AUDIT_TIMEOUT=3m\n")
 	options := defaults(fixture.options(passingRunner("audit-spec", "environment", "environment-model")))
+	options.Timeout = 0
 	options.LookupEnv = mapLookup(map[string]string{
 		"SDLC_AUDIT_PROVIDER": "environment",
 		"SDLC_AUDIT_MODEL":    "environment-model",
+		"SDLC_AUDIT_TIMEOUT":  "2m",
 	})
 	config, err := resolveConfiguration(options, fixture.project)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if config.harness != "codex" || config.provider != "environment" || config.model != "environment-model" {
+	if config.harness != "codex" || config.provider != "environment" || config.model != "environment-model" || config.timeout != 2*time.Minute {
 		t.Fatalf("resolved audit configuration = %#v", config)
+	}
+}
+
+func TestResolveConfigurationUsesFiveMinuteDefaultAndRejectsInvalidTimeout(t *testing.T) {
+	fixture := newFixture(t, "audit-spec")
+	mustWrite(t, fixture.userConfig, auditEnvironment())
+	options := defaults(fixture.options(passingRunner("audit-spec", "openai-codex", "gpt-5.6-luna")))
+	options.Timeout = 0
+	config, err := resolveConfiguration(options, fixture.project)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if config.timeout != 5*time.Minute {
+		t.Fatalf("default timeout = %s, want 5m", config.timeout)
+	}
+
+	mustWrite(t, filepath.Join(fixture.project, ".env"), "SDLC_AUDIT_TIMEOUT=eventually\n")
+	override := options
+	override.Timeout = 4 * time.Minute
+	override.TimeoutSet = true
+	config, err = resolveConfiguration(override, fixture.project)
+	if err != nil {
+		t.Fatalf("valid CLI timeout did not override invalid project value: %v", err)
+	}
+	if config.timeout != 4*time.Minute {
+		t.Fatalf("CLI timeout = %s, want 4m", config.timeout)
+	}
+	if _, err := resolveConfiguration(options, fixture.project); err == nil || !strings.Contains(err.Error(), "SDLC_AUDIT_TIMEOUT") {
+		t.Fatalf("invalid timeout error = %v", err)
+	}
+	for _, value := range []string{"500ms", "1500ms"} {
+		mustWrite(t, filepath.Join(fixture.project, ".env"), "SDLC_AUDIT_TIMEOUT="+value+"\n")
+		if _, err := resolveConfiguration(options, fixture.project); err == nil || !strings.Contains(err.Error(), "whole-second duration") {
+			t.Fatalf("fractional timeout %q error = %v", value, err)
+		}
 	}
 }
 

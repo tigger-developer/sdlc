@@ -305,6 +305,7 @@ Project or automation inputs may be supplied explicitly:
 ```bash
 sdlc-project-init \
     --harness codex \
+    --branch-strategy current \
     --project-type brownfield \
     --technologies GO,WEB \
     --infra-role none
@@ -320,14 +321,20 @@ sdlc-project-init --no-launch
 
 The initializer evaluates user defaults from `~/.agents/.env` and project
 overrides from the ignored project `.env` through its deployed Bash wrapper.
-Only schema-listed SDLC values are returned to the Go initializer. Every
-resolved global default is copied into a new project's `.env`; changing the
-global file later does not silently change existing projects. Precedence is
-command line, process environment, project `.env`, user `.env`, then a declared
-fallback. Project classification is project-only: supply
+Only schema-listed SDLC values are returned to the Go initializer. User
+defaults remain global and apply wherever a project has no explicit override.
+Precedence is command line, process environment, project `.env`, user `.env`,
+then a declared fallback. Project classification is project-only: supply
 `--project-type`, record `SDLC_PROJECT_TYPE` in the project `.env`, or answer the
 initializer prompt. A value in `~/.agents/.env` is ignored. Command-line values
 take precedence. Run `sdlc-project-init --help` for the complete interface.
+
+`SDLC_BRANCH_STRATEGY` accepts `current` or `feature` and defaults to `current`.
+Set it in `~/.agents/.env` as the global default or in a project `.env` to
+override that default. Staged specification, design, test, and implementation
+phases pull at entry, then pull and push their committed artefacts after
+effective audit PASS. Feature strategy publishes the feature branch through the
+existing configured remote; current strategy does not change branches.
 
 The field definitions live in
 `~/.agents/sdlc/config/project-init.schema.yaml`. Fixed choices are displayed as
@@ -342,8 +349,12 @@ Set the phase-specific harnesses `SDLC_SPEC_HARNESS`, `SDLC_BUILD_HARNESS`, and
 `SDLC_AUDIT_HARNESS` when different tools should perform those phases. Each
 falls back to `SDLC_AGENT_HARNESS`. Set `SDLC_AUDIT_PROVIDER` and
 `SDLC_AUDIT_MODEL` to select the independent auditor for new projects.
-The initializer snapshots those values into the project `.env`. Provider fields
-apply only to harnesses that accept explicit provider selection. The audit
+Set `SDLC_AUDIT_TIMEOUT` to a whole-second duration of at least one second,
+such as `4m`; it defaults to `5m`, and `sdlc-audit --timeout` overrides it for
+one invocation.
+Set a project override only when that project must differ from the current
+global value. Provider fields apply only to harnesses that accept explicit
+provider selection. The audit
 runner passes provider and model to Hermes, but passes model only to Codex or
 Claude.
 

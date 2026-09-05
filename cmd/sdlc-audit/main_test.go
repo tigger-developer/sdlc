@@ -6,6 +6,7 @@ import (
 	"slices"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/tigger-developer/sdlc/internal/auditrunner"
 )
@@ -19,11 +20,12 @@ func TestParseOptionsCollectsBoundedInputsAndOverrides(t *testing.T) {
 		"--external-context", "/opt/contracts/integration.md",
 		"--provider", "openai-codex",
 		"--model", "gpt-5.6-luna",
+		"--timeout", "4m",
 	})
 	if err != nil {
 		t.Fatalf("parseOptions() error = %v", err)
 	}
-	if options.AuditName != "audit-design" || options.Provider != "openai-codex" || options.Model != "gpt-5.6-luna" {
+	if options.AuditName != "audit-design" || options.Provider != "openai-codex" || options.Model != "gpt-5.6-luna" || options.Timeout != 4*time.Minute || !options.TimeoutSet {
 		t.Fatalf("unexpected options: %#v", options)
 	}
 	if !slices.Equal(options.Artifacts, []string{"specs/001/plan.md", "specs/001/data-model.md"}) {
@@ -34,12 +36,22 @@ func TestParseOptionsCollectsBoundedInputsAndOverrides(t *testing.T) {
 	}
 }
 
+func TestParseOptionsRejectsUnsupportedTimeouts(t *testing.T) {
+	for _, value := range []string{"0", "-1s", "500ms", "1500ms"} {
+		t.Run(value, func(t *testing.T) {
+			if _, err := parseOptions([]string{"audit-code", "--artifact", "change.diff", "--timeout", value}); err == nil || !strings.Contains(err.Error(), "whole-second duration") {
+				t.Fatalf("timeout %q error = %v", value, err)
+			}
+		})
+	}
+}
+
 func TestHelpDocumentsBoundedInputFlags(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	if got := execute([]string{"--help"}, &stdout, &stderr, nil); got != 0 {
 		t.Fatalf("execute() = %d; stderr=%q", got, stderr.String())
 	}
-	for _, flag := range []string{"--artifact", "--context", "--external-context"} {
+	for _, flag := range []string{"--artifact", "--context", "--external-context", "--timeout"} {
 		if !strings.Contains(stdout.String(), flag) {
 			t.Errorf("help does not document %s:\n%s", flag, stdout.String())
 		}

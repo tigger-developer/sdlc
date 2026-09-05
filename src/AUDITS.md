@@ -19,9 +19,10 @@ operator an intermediary in routine revision cycles.
 - Record the audit name, provider, model, artefact revision, verdict, findings,
   and any superseding attempt in the active feature's `audits.md`.
 
-The runner resolves `SDLC_AUDIT_HARNESS`, `SDLC_AUDIT_PROVIDER`, and
-`SDLC_AUDIT_MODEL` in command-line, process-environment, project `.env`, then
-user `.env` order. `SDLC_AUDIT_HARNESS` falls back to `SDLC_AGENT_HARNESS`.
+The runner resolves `SDLC_AUDIT_HARNESS`, `SDLC_AUDIT_PROVIDER`,
+`SDLC_AUDIT_MODEL`, and `SDLC_AUDIT_TIMEOUT` in command-line,
+process-environment, project `.env`, then user `.env` order.
+`SDLC_AUDIT_HARNESS` falls back to `SDLC_AGENT_HARNESS`.
 The two shell files are evaluated by the deployed allowlisted Bash wrapper; the
 runner does not interpret their shell expressions. It invokes the selected
 Hermes, Codex, or Claude harness in a fresh context. Hermes requires and receives
@@ -30,9 +31,13 @@ receive only the model, and report their harness-native provider. A harness
 execution error, timeout, malformed verdict, wrong audit name, or reported
 effective provider or model that does not match the request fails closed. A
 valid FAIL remains an audit result, not a runner failure.
-Each invocation has a 15-minute runtime budget and hard timeout. Harness
-reasoning or display text before the last exact audit header is discarded; only
-the validated machine-readable report is returned to the caller.
+`SDLC_AUDIT_TIMEOUT` accepts a whole-second Go duration of at least one second,
+such as `90s`, `4m`, or `15m`; `--timeout` overrides it. An unset value defaults
+to five minutes. The same duration bounds the child-process context and the
+Hermes run budget.
+Harness reasoning or display text before the last exact audit header is
+discarded; only the validated machine-readable report is returned to the
+caller.
 
 ## Brownfield source coverage
 
@@ -162,6 +167,20 @@ Do not change a signed-off upstream artefact merely to obtain a PASS. When a
 blocking finding belongs upstream, identify the exact proposed correction and
 return it for operator validation. Do not switch auditors merely to seek a more
 favourable verdict.
+
+## Phase synchronization
+
+The four staged phases are specification and clarification; plan and design;
+test design and tasks; and implementation, verification, and convergence.
+Before the first change in each phase, follow the phase-start pull contract in
+`~/.agents/sdlc/GIT.md`.
+
+After the phase reaches effective PASS, commit its coherent artefacts and follow
+the phase-end pull and push contract before handback or automatic advancement
+into another authorized phase. A tracked asynchronous push may overlap
+independent work as defined by `GIT.md`; collect its result before another Git
+operation or handback. Synchronization status is recoverability evidence, not an
+audit verdict, and a transient failure does not erase the phase result.
 
 ## Phase handback
 

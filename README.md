@@ -135,14 +135,14 @@ The initializer separates deterministic selection from semantic drafting. It:
   Standards, Specification and Evidence, and Mandatory Independent Audits
   covenants remain present.
 
-The initializer writes only its named SDLC selections into the project `.env`
-and adds that file to `.gitignore`; unrelated existing values are preserved.
-User defaults come from `~/.agents/.env`. Every resolved default is copied into
-a new project's `.env`, producing a stable project snapshot. Later changes to
-the user defaults affect new projects, not existing snapshots. Precedence is
-command line, process environment, project `.env`, user `.env`, then a declared
-field fallback. Project classification is deliberately project-only and is
-never read as a user default. The shell files are evaluated by the deployed
+The initializer writes only explicit project selections into the project
+`.env` and adds that file to `.gitignore`; unrelated existing values are
+preserved. User defaults remain in `~/.agents/.env` and apply wherever the
+project has no override. Changing a user default therefore changes the next
+resolved value for projects without that override. Precedence is command line,
+process environment, project `.env`, user `.env`, then a declared field
+fallback. Project classification is deliberately project-only and is never
+read as a user default. The shell files are evaluated by the deployed
 Bash wrapper, which returns only allowlisted SDLC fields to the Go programs.
 Supported keys are:
 
@@ -157,6 +157,8 @@ SDLC_BUILD_MODEL
 SDLC_AUDIT_HARNESS
 SDLC_AUDIT_PROVIDER
 SDLC_AUDIT_MODEL
+SDLC_AUDIT_TIMEOUT
+SDLC_BRANCH_STRATEGY
 SDLC_PROJECT_TYPE
 SDLC_TECHNOLOGIES
 SDLC_INFRA_ROLE
@@ -166,6 +168,12 @@ SDLC_INFRA_CONTRACT
 
 `SDLC_PROJECT_TYPE` accepts `greenfield` or `brownfield`. Set it in the project
 `.env` or with `--project-type`; a value in `~/.agents/.env` is ignored.
+
+`SDLC_BRANCH_STRATEGY` accepts `current` or `feature` and defaults to `current`.
+It may be set globally in `~/.agents/.env`; a project `.env` or
+`--branch-strategy` overrides that default. `current` respects the branch already
+selected for that repository. `feature` uses and publishes one branch per Spec
+Kit feature without imposing a global base-branch name.
 
 `SDLC_INFRA_ROLE` accepts `none`, `consumer`, or `provider`. A consumer complies
 with a contract owned by another project. A provider defines, implements,
@@ -183,7 +191,11 @@ model. A `*_PROVIDER` value applies only when the corresponding harness accepts
 explicit provider selection; otherwise it is ignored. Hermes receives provider
 and model, while Codex and Claude receive model only. The initializer accepts
 legacy `SDLC_DELIVERY_PROVIDER` and `SDLC_DELIVERY_MODEL` values as specification
-defaults and rewrites project snapshots using the new names.
+defaults and rewrites explicit project selections using the new names.
+
+`SDLC_AUDIT_TIMEOUT` accepts a whole-second duration of at least one second,
+such as `90s`, `4m`, or `15m`. It defaults to `5m`; `sdlc-audit --timeout`
+overrides it for one invocation.
 
 The infrastructure owner and contract are required only for `consumer` and
 `provider` roles. The public SDLC does not assume any particular infrastructure
@@ -295,6 +307,14 @@ a reason for the agent to stop. The SDLC does not prescribe or install a
 particular preview implementation.
 
 ### Autonomous phase convergence
+
+Staged work synchronizes at four boundaries: specification and clarification;
+plan and design; test design and tasks; and implementation, verification, and
+convergence. Each phase pulls its active branch before changing phase artefacts.
+After effective audit PASS and a coherent commit, it pulls again and pushes the
+committed phase work. A tracked asynchronous push may overlap independent work,
+but its result must be collected before another Git operation or handback. The
+full safety and failure contract is in `GIT.md`.
 
 The main authoring context owns convergence within the current phase. A failed
 audit is not an operator handback when its blocking findings can be remedied in
@@ -608,8 +628,9 @@ permits advisories, PROVISIONAL requires at least one condition, and FAIL
 requires at least one blocking finding. Audits run through `sdlc-audit`, never
 modify the judged artefact, and identify the effective provider and model in
 their verdict. The runner rejects malformed reports or an identity different
-from the effective configuration. It bounds each invocation to 15 minutes. The
-shared contract is `~/.agents/sdlc/AUDITS.md`.
+from the effective configuration. `SDLC_AUDIT_TIMEOUT` bounds both the child
+process and Hermes run budget, with a five-minute default. The shared contract
+is `~/.agents/sdlc/AUDITS.md`.
 
 The advisory skills `useful-be`, `diagnose-issue`, `recommendations-please`,
 and `summarize-issues` load bounded project context, diagnose an observed

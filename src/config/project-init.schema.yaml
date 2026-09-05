@@ -86,6 +86,23 @@ fields:
     allow_user_default: true
     persist: true
 
+  - key: SDLC_AUDIT_TIMEOUT
+    flag: audit-timeout
+    help: Independent audit timeout as a whole-second duration
+    type: duration
+    default: 5m
+    allow_user_default: true
+    persist: true
+
+  - key: SDLC_BRANCH_STRATEGY
+    flag: branch-strategy
+    help: Delivery branch strategy
+    type: choice
+    choices: [current, feature]
+    default: current
+    allow_user_default: true
+    persist: true
+
   - key: SDLC_PROJECT_TYPE
     flag: project-type
     help: Project classification

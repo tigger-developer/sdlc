@@ -3,8 +3,8 @@
 If `~/.agents/sdlc/MAIN.md` is absent or unreadable, report that exact path;
 never search for another copy.
 
-Read `~/.agents/sdlc/MAIN.md`, `~/.agents/sdlc/AUDITS.md`, and
-`~/.agents/sdlc/ISSUES.md` in full. Apply their defined-specification,
+Read `~/.agents/sdlc/MAIN.md`, `~/.agents/sdlc/AUDITS.md`,
+`~/.agents/sdlc/GIT.md`, and `~/.agents/sdlc/ISSUES.md` in full. Apply their defined-specification,
 requirement-quality, acceptance-criteria, traceability, and identifier rules
 throughout this command. Do not put implementation or test procedures into
 requirements.

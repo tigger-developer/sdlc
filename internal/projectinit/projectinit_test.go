@@ -46,15 +46,15 @@ func TestDiscoverTechnologiesIsAlphabeticalAndAutomatic(t *testing.T) {
 
 func TestResolveConfigUsesCLIProjectUserPrecedence(t *testing.T) {
 	schema := loadTestSchema(t)
-	user := map[string]string{keyAgentHarness: "hermes", keyAuditHarness: "hermes", keySpecModel: "user-spec", keyAuditModel: "user-audit", keyProjectType: "brownfield"}
-	project := map[string]string{keyAgentHarness: "claude", keyAuditHarness: "claude", keySpecModel: "project-spec", keyAuditModel: "project-audit", keyProjectType: "greenfield"}
+	user := map[string]string{keyAgentHarness: "hermes", keyAuditHarness: "hermes", keySpecModel: "user-spec", keyAuditModel: "user-audit", keyProjectType: "brownfield", keyBranchStrategy: "feature"}
+	project := map[string]string{keyAgentHarness: "claude", keyAuditHarness: "claude", keySpecModel: "project-spec", keyAuditModel: "project-audit", keyProjectType: "greenfield", keyBranchStrategy: "current"}
 	values := resolveConfigValues(schema, map[string]string{keyAgentHarness: "codex", keyAuditHarness: "codex", keySpecModel: "cli-spec", keyProjectType: "brownfield"}, user, project, nil)
 	got := configFromValues(values, "")
-	if got.Harness != "codex" || got.AuditHarness != "codex" || got.SpecModel != "cli-spec" || got.AuditModel != "project-audit" || got.ProjectType != "brownfield" {
+	if got.Harness != "codex" || got.AuditHarness != "codex" || got.SpecModel != "cli-spec" || got.AuditModel != "project-audit" || got.ProjectType != "brownfield" || got.BranchStrategy != "current" {
 		t.Fatalf("resolved config = %#v", got)
 	}
 	withoutProjectValue := configFromValues(resolveConfigValues(schema, nil, user, map[string]string{}, nil), "")
-	if withoutProjectValue.ProjectType != "" {
+	if withoutProjectValue.ProjectType != "" || withoutProjectValue.BranchStrategy != "feature" {
 		t.Fatalf("user project type became a global default: %#v", withoutProjectValue)
 	}
 }
@@ -145,6 +145,33 @@ func TestRenderConstitutionIncludesUniversalAndSelectedStandardsOnce(t *testing.
 	}
 	if !strings.Contains(text, "**Last Revised**: [LAST_AMENDED_DATE]") || strings.Contains(text, "**Last Amended**") {
 		t.Error("unratified constitution template used amendment terminology")
+	}
+}
+
+func TestRenderConstitutionIncludesResolvedBranchStrategy(t *testing.T) {
+	feature := string(renderConstitutionForTest(t, "/standards", nil, resolvedConfig{BranchStrategy: "feature"}))
+	if !strings.Contains(feature, "**Branch strategy:** `feature`") {
+		t.Fatalf("feature-branch scaffold omitted its strategy:\n%s", feature)
+	}
+
+	current := string(renderConstitutionForTest(t, "/standards", nil, resolvedConfig{BranchStrategy: "current"}))
+	if !strings.Contains(current, "**Branch strategy:** `current`") {
+		t.Fatalf("current-branch scaffold omitted its strategy:\n%s", current)
+	}
+}
+
+func TestValidateConfigRejectsInvalidDurations(t *testing.T) {
+	schema := ConfigSchema{
+		Version:    1,
+		Precedence: []string{"cli", "environment", "project", "user", "fallback"},
+		Fields:     []ConfigField{{Key: "TIMEOUT", Flag: "timeout", Type: "duration"}},
+	}
+	for _, value := range []string{"eventually", "500ms", "1500ms"} {
+		t.Run(value, func(t *testing.T) {
+			if err := validateConfig(schema, map[string]string{"TIMEOUT": value}, nil); err == nil || !strings.Contains(err.Error(), "whole-second duration") {
+				t.Fatalf("duration %q error = %v", value, err)
+			}
+		})
 	}
 }
 
@@ -643,7 +670,7 @@ func TestCommitConstitutionScaffoldCommitsOnlyGeneratedOverride(t *testing.T) {
 	}
 }
 
-func TestRunSnapshotsEveryResolvedGlobalDefaultIntoProject(t *testing.T) {
+func TestRunKeepsUserDefaultsOutsideProjectConfiguration(t *testing.T) {
 	project := t.TempDir()
 	root := t.TempDir()
 	installProjectInitResourcesForTest(t, root)
@@ -661,6 +688,8 @@ func TestRunSnapshotsEveryResolvedGlobalDefaultIntoProject(t *testing.T) {
 		`SDLC_AUDIT_HARNESS="hermes"`,
 		`SDLC_AUDIT_PROVIDER="openai-codex"`,
 		`SDLC_AUDIT_MODEL="gpt-5.6-luna"`,
+		`SDLC_AUDIT_TIMEOUT="4m"`,
+		`SDLC_BRANCH_STRATEGY="feature"`,
 		`SDLC_PROJECT_TYPE="brownfield"`,
 		`SDLC_TECHNOLOGIES="GO"`,
 		`SDLC_INFRA_ROLE="consumer"`,
@@ -680,15 +709,16 @@ func TestRunSnapshotsEveryResolvedGlobalDefaultIntoProject(t *testing.T) {
 		t.Fatalf("user-level project type suppressed the project prompt: %q", initialOutput.String())
 	}
 	got := readManagedEnvForTest(t, root, filepath.Join(project, ".env"))
-	want := readManagedEnvForTest(t, root, userConfig)
-	want[keyProjectType] = "greenfield"
-	want[keySpecHarness] = "codex"
-	want[keyBuildHarness] = "codex"
+	want := map[string]string{keyProjectType: "greenfield"}
 	if !reflect.DeepEqual(got, want) {
-		t.Fatalf("project snapshot = %#v, want global defaults %#v", got, want)
+		t.Fatalf("project configuration = %#v, want project-only values %#v", got, want)
+	}
+	initialTemplate := string(mustReadFile(t, filepath.Join(project, ".specify", "templates", "overrides", "constitution-template.md")))
+	if !strings.Contains(initialTemplate, "**Branch strategy:** `feature`") {
+		t.Fatalf("global branch default was not rendered:\n%s", initialTemplate)
 	}
 
-	writeTestFile(t, userConfig, strings.ReplaceAll(string(mustReadFile(t, userConfig)), "gpt-5.6-sol", "new-global-spec"))
+	writeTestFile(t, userConfig, strings.ReplaceAll(string(mustReadFile(t, userConfig)), `SDLC_BRANCH_STRATEGY="feature"`, `SDLC_BRANCH_STRATEGY="current"`))
 	var rerunOutput bytes.Buffer
 	if err := Run(Options{
 		ProjectRoot: project, SDLCRoot: root, UserConfigPath: userConfig, NoLaunch: true,
@@ -697,8 +727,38 @@ func TestRunSnapshotsEveryResolvedGlobalDefaultIntoProject(t *testing.T) {
 		t.Fatal(err)
 	}
 	afterGlobalChange := readManagedEnvForTest(t, root, filepath.Join(project, ".env"))
-	if !reflect.DeepEqual(afterGlobalChange, got) || rerunOutput.Len() != 0 {
-		t.Fatalf("global default change altered existing snapshot: values=%#v output=%q", afterGlobalChange, rerunOutput.String())
+	if !reflect.DeepEqual(afterGlobalChange, got) {
+		t.Fatalf("global default change altered project configuration: values=%#v", afterGlobalChange)
+	}
+	updatedTemplate := string(mustReadFile(t, filepath.Join(project, ".specify", "templates", "overrides", "constitution-template.md")))
+	if !strings.Contains(updatedTemplate, "**Branch strategy:** `current`") || rerunOutput.Len() == 0 {
+		t.Fatalf("changed global default was not applied: output=%q\n%s", rerunOutput.String(), updatedTemplate)
+	}
+}
+
+func TestRunDoesNotPersistHarnessFallbacksAfterPrompt(t *testing.T) {
+	project := t.TempDir()
+	root := t.TempDir()
+	installProjectInitResourcesForTest(t, root)
+	writeTestFile(t, filepath.Join(root, "technologies", "GO.md"), "# Go\n")
+	writeTestFile(t, filepath.Join(project, ".specify", "presets", "sdlc-standards", "preset.yml"), "present\n")
+	writeTestFile(t, filepath.Join(root, "presets", "sdlc-standards", "preset.yml"), "present\n")
+	projectConfig := filepath.Join(project, ".env")
+	if err := Run(Options{
+		ProjectRoot: project, SDLCRoot: root, UserConfigPath: filepath.Join(t.TempDir(), ".env"), NoLaunch: true,
+		Overrides: map[string]string{keyProjectType: "greenfield", keyTechnologies: "", keyInfraRole: "none"},
+		Input:     strings.NewReader("1\n"), Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{}, RunCommand: cleanGitRunner,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	values := readManagedEnvForTest(t, root, projectConfig)
+	if values[keyAgentHarness] != "codex" {
+		t.Fatalf("prompted agent harness = %q", values[keyAgentHarness])
+	}
+	for _, key := range []string{keySpecHarness, keyBuildHarness, keyAuditHarness, keyBranchStrategy, "SDLC_AUDIT_TIMEOUT"} {
+		if _, exists := values[key]; exists {
+			t.Errorf("fallback-derived %s persisted in project configuration: %#v", key, values)
+		}
 	}
 }
 
@@ -765,16 +825,21 @@ func TestLaunchConstitutionPassesProviderOnlyToSupportingHarness(t *testing.T) {
 
 func TestValidateConstitutionCandidateRequiresCompleteSharedGovernance(t *testing.T) {
 	projectRoot := t.TempDir()
-	scaffold := []byte("# Template\n\n## Engineering Standards\n\nFollow the selected standards.\n\n## Specification and Evidence\n\nNo code without a specification.\n\n## Mandatory Independent Audits\n\nRun every audit.\n\n## Project-Specific Principles\n")
+	scaffold := []byte("# Template\n\n## Engineering Standards\n\nFollow the selected standards.\n\n**Branch strategy:** `feature`\n\n## Specification and Evidence\n\nNo code without a specification.\n\n## Mandatory Independent Audits\n\nRun every audit.\n\n## Project-Specific Principles\n")
 	candidatePath := filepath.Join(projectRoot, ".specify", "memory", "constitution.md")
-	writeTestFile(t, candidatePath, "# Project\n\n## Engineering Standards\n\nFollow the selected standards.\n\n## Specification and Evidence\n\nNo code without a\nspecification.\n\n## Mandatory Independent Audits\n\nRun every audit.\n")
+	writeTestFile(t, candidatePath, "# Project\n\n## Engineering Standards\n\nFollow the selected standards.\n\n**Branch strategy:** `feature`\n\n## Specification and Evidence\n\nNo code without a\nspecification.\n\n## Mandatory Independent Audits\n\nRun every audit.\n")
 	if err := validateConstitutionCandidate(projectRoot, scaffold); err != nil {
 		t.Fatalf("valid candidate rejected: %v", err)
 	}
 
-	writeTestFile(t, candidatePath, "# Project\n\n## Engineering Standards\n\nFollow the selected standards.\n\n## Specification and Evidence\n\nA shorter summary.\n\n## Mandatory Independent Audits\n\nRun every audit.\n")
+	writeTestFile(t, candidatePath, "# Project\n\n## Engineering Standards\n\nFollow the selected standards.\n\n**Branch strategy:** `feature`\n\n## Specification and Evidence\n\nA shorter summary.\n\n## Mandatory Independent Audits\n\nRun every audit.\n")
 	if err := validateConstitutionCandidate(projectRoot, scaffold); err == nil || !strings.Contains(err.Error(), "Specification and Evidence") {
 		t.Fatalf("changed specification covenant was not rejected: %v", err)
+	}
+
+	writeTestFile(t, candidatePath, "# Project\n\n## Engineering Standards\n\nFollow the selected standards.\n\n**Branch strategy:** `current`\n\n## Specification and Evidence\n\nNo code without a specification.\n\n## Mandatory Independent Audits\n\nRun every audit.\n")
+	if err := validateConstitutionCandidate(projectRoot, scaffold); err == nil || !strings.Contains(err.Error(), "Engineering Standards") {
+		t.Fatalf("changed branch strategy was not rejected: %v", err)
 	}
 }
 

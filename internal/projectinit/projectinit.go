@@ -33,6 +33,7 @@ const (
 	keyAuditHarness        = "SDLC_AUDIT_HARNESS"
 	keyAuditProvider       = "SDLC_AUDIT_PROVIDER"
 	keyAuditModel          = "SDLC_AUDIT_MODEL"
+	keyBranchStrategy      = "SDLC_BRANCH_STRATEGY"
 	keyProjectType         = "SDLC_PROJECT_TYPE"
 	keyInfraRole           = "SDLC_INFRA_ROLE"
 	keyInfraEnabled        = "SDLC_INFRA_ENABLED"
@@ -93,22 +94,23 @@ type Options struct {
 }
 
 type resolvedConfig struct {
-	Harness       string
-	SpecHarness   string
-	SpecProvider  string
-	SpecModel     string
-	BuildHarness  string
-	BuildProvider string
-	BuildModel    string
-	AuditHarness  string
-	AuditProvider string
-	AuditModel    string
-	ProjectType   string
-	Technologies  []string
-	InfraRole     string
-	InfraOwner    string
-	InfraContract string
-	SDLCRevision  string
+	Harness        string
+	SpecHarness    string
+	SpecProvider   string
+	SpecModel      string
+	BuildHarness   string
+	BuildProvider  string
+	BuildModel     string
+	AuditHarness   string
+	AuditProvider  string
+	AuditModel     string
+	BranchStrategy string
+	ProjectType    string
+	Technologies   []string
+	InfraRole      string
+	InfraOwner     string
+	InfraContract  string
+	SDLCRevision   string
 }
 
 type managedBlockContract struct {
@@ -131,6 +133,7 @@ type constitutionTemplateData struct {
 	InfrastructureRole     string
 	InfrastructureOwner    string
 	InfrastructureContract string
+	BranchStrategy         string
 	ProjectType            string
 }
 
@@ -193,18 +196,19 @@ func Run(options Options) error {
 	legacyProjectConfig = normalizeLegacyInfrastructure(projectValues) || legacyProjectConfig
 	normalizeLegacyDelivery(environmentValues)
 	normalizeLegacyInfrastructure(environmentValues)
-	values := resolveConfigValues(schema, optionsOverrides(options), userValues, projectValues, environmentValues)
+	cliValues := optionsOverrides(options)
+	values := resolveConfigValues(schema, cliValues, userValues, projectValues, environmentValues)
 	config := configFromValues(values, options.SDLCRevision)
 	configChanged := legacyProjectConfig
 	technologies, err := DiscoverTechnologies(filepath.Join(sdlcRoot, "technologies"))
 	if err != nil {
 		return err
 	}
-	prompted, err := completeConfig(schema, values, reader, options.Output, technologies)
+	promptedFields, err := completeConfig(schema, values, reader, options.Output, technologies)
 	if err != nil {
 		return err
 	}
-	configChanged = configChanged || prompted
+	configChanged = configChanged || len(promptedFields) != 0
 	config = configFromValues(values, options.SDLCRevision)
 	if err := validateConfig(schema, values, technologies); err != nil {
 		return err
@@ -220,9 +224,16 @@ func Run(options Options) error {
 	if err != nil {
 		return err
 	}
-	for key, value := range projectSnapshot(schema, values) {
-		if current, exists := projectValues[key]; !exists || current != value {
-			projectValues[key] = value
+	for _, field := range schema.Fields {
+		_, cliSelection := cliValues[field.Key]
+		_, environmentSelection := environmentValues[field.Key]
+		promptSelection := promptedFields[field.Key]
+		if !field.Persist || (!cliSelection && !environmentSelection && !promptSelection) {
+			continue
+		}
+		value := values[field.Key]
+		if current, exists := projectValues[field.Key]; !exists || current != value {
+			projectValues[field.Key] = value
 			configChanged = true
 		}
 	}
@@ -693,6 +704,11 @@ func applyFallbacks(schema ConfigSchema, values map[string]string) {
 			}
 		}
 	}
+	for _, field := range schema.Fields {
+		if values[field.Key] == "" && field.Default != "" {
+			values[field.Key] = field.Default
+		}
+	}
 }
 
 func configFromValues(values map[string]string, revision string) resolvedConfig {
@@ -700,20 +716,11 @@ func configFromValues(values map[string]string, revision string) resolvedConfig 
 		Harness: values[keyAgentHarness], SpecHarness: values[keySpecHarness], SpecProvider: values[keySpecProvider], SpecModel: values[keySpecModel],
 		BuildHarness: values[keyBuildHarness], BuildProvider: values[keyBuildProvider], BuildModel: values[keyBuildModel],
 		AuditHarness: values[keyAuditHarness], AuditProvider: values[keyAuditProvider], AuditModel: values[keyAuditModel],
-		ProjectType: strings.ToLower(values[keyProjectType]), Technologies: splitList(values[keyTechnologies]),
+		BranchStrategy: strings.ToLower(values[keyBranchStrategy]),
+		ProjectType:    strings.ToLower(values[keyProjectType]), Technologies: splitList(values[keyTechnologies]),
 		InfraRole: strings.ToLower(values[keyInfraRole]), InfraOwner: values[keyInfraOwner], InfraContract: values[keyInfraContract],
 		SDLCRevision: revision,
 	}
-}
-
-func projectSnapshot(schema ConfigSchema, values map[string]string) map[string]string {
-	snapshot := map[string]string{}
-	for _, field := range schema.Fields {
-		if field.Persist && values[field.Key] != "" {
-			snapshot[field.Key] = values[field.Key]
-		}
-	}
-	return snapshot
 }
 
 func readManagedProcessEnvironment(schema ConfigSchema, lookup func(string) (string, bool)) map[string]string {
@@ -830,6 +837,7 @@ func renderConstitution(layout []byte, sdlcRoot string, technologies []Technolog
 		InfrastructureRole:     config.InfraRole,
 		InfrastructureOwner:    config.InfraOwner,
 		InfrastructureContract: config.InfraContract,
+		BranchStrategy:         config.BranchStrategy,
 		ProjectType:            config.ProjectType,
 	}
 	var output bytes.Buffer
@@ -961,8 +969,8 @@ func copyDirectory(source, destination string) error {
 	})
 }
 
-func completeConfig(schema ConfigSchema, values map[string]string, reader *bufio.Reader, output io.Writer, technologies []Technology) (bool, error) {
-	changed := false
+func completeConfig(schema ConfigSchema, values map[string]string, reader *bufio.Reader, output io.Writer, technologies []Technology) (map[string]bool, error) {
+	prompted := map[string]bool{}
 	for _, field := range schema.Fields {
 		if values[field.Key] == "" && field.Fallback != "" {
 			values[field.Key] = values[field.Fallback]
@@ -977,17 +985,17 @@ func completeConfig(schema ConfigSchema, values map[string]string, reader *bufio
 			value, err = promptChoice(reader, output, field.Prompt, field.Choices)
 		case "multi-choice":
 			value, err = promptMultipleChoices(reader, output, field, technologies)
-		case "string":
+		case "string", "duration":
 			value, err = promptRequired(reader, output, strings.TrimSpace(field.Prompt)+" ")
 		}
 		if err != nil {
-			return false, err
+			return nil, err
 		}
 		values[field.Key] = value
-		changed = true
+		prompted[field.Key] = true
 	}
 	applyFallbacks(schema, values)
-	return changed, nil
+	return prompted, nil
 }
 
 func conditionApplies(condition *RequiredWhen, values map[string]string) bool {
@@ -1095,6 +1103,10 @@ func validateConfig(schema ConfigSchema, values map[string]string, technologies 
 				if _, err := selectTechnologies(technologies, splitList(value)); err != nil {
 					return err
 				}
+			}
+		case "duration":
+			if err := validateWholeSecondDuration(field.Key, value); err != nil {
+				return err
 			}
 		}
 	}

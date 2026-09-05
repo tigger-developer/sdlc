@@ -4,7 +4,7 @@ If `~/.agents/sdlc/MAIN.md` is absent or unreadable, report that exact path;
 never search for another copy.
 
 Read `~/.agents/sdlc/MAIN.md`, `~/.agents/sdlc/AUDITS.md`,
-`~/.agents/sdlc/CODING.md`, `~/.agents/sdlc/TESTING.md`, and
+`~/.agents/sdlc/CODING.md`, `~/.agents/sdlc/GIT.md`, `~/.agents/sdlc/TESTING.md`, and
 `~/.agents/sdlc/SECURITY.md` in full, plus the
 constitution's selected standards that apply to the assessment. Distinguish
 verified implementation evidence from remaining tasks and give every cited

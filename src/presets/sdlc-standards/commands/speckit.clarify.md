@@ -3,8 +3,8 @@
 If `~/.agents/sdlc/MAIN.md` is absent or unreadable, report that exact path;
 never search for another copy.
 
-Read `~/.agents/sdlc/MAIN.md`, `~/.agents/sdlc/AUDITS.md`, and
-`~/.agents/sdlc/ISSUES.md` in full. Prioritize ambiguities that can change
+Read `~/.agents/sdlc/MAIN.md`, `~/.agents/sdlc/AUDITS.md`,
+`~/.agents/sdlc/GIT.md`, and `~/.agents/sdlc/ISSUES.md` in full. Prioritize ambiguities that can change
 observable behaviour, scope, architecture, security, persisted data, access,
 compatibility, or irreversible outcomes. Resolve those facts in the
 specification rather than leaving them to implementation.

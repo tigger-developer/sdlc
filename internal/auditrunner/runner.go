@@ -20,7 +20,7 @@ import (
 
 const (
 	maxPromptInputBytes int64 = 2 * 1024 * 1024
-	defaultTimeout            = 15 * time.Minute
+	defaultTimeout            = 5 * time.Minute
 )
 
 var validAudits = map[string]bool{
@@ -47,6 +47,7 @@ type Options struct {
 	Model           string
 	TemporaryRoot   string
 	Timeout         time.Duration
+	TimeoutSet      bool
 	Output          io.Writer
 	ErrorOutput     io.Writer
 	RunCommand      RunCommand
@@ -60,6 +61,7 @@ type configuration struct {
 	harness  string
 	provider string
 	model    string
+	timeout  time.Duration
 }
 
 // Run constructs a bounded audit prompt, launches a fresh audit harness, and
@@ -111,14 +113,14 @@ func Run(options Options) (resultErr error) {
 		}
 	}()
 
-	commandName, args := harnessCommand(config, auditDirectory, options.Timeout)
-	ctx, cancel := context.WithTimeout(context.Background(), options.Timeout)
+	commandName, args := harnessCommand(config, auditDirectory, config.timeout)
+	ctx, cancel := context.WithTimeout(context.Background(), config.timeout)
 	defer cancel()
 	var report bytes.Buffer
 	var childDiagnostics bytes.Buffer
 	if err := options.RunCommand(ctx, commandName, args, auditDirectory, childEnvironment(config, options.LookupEnv), strings.NewReader(prompt), &report, &childDiagnostics); err != nil {
 		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-			return fmt.Errorf("%s audit exceeded %s timeout", config.harness, options.Timeout)
+			return fmt.Errorf("%s audit exceeded %s timeout", config.harness, config.timeout)
 		}
 		diagnostic := strings.TrimSpace(childDiagnostics.String())
 		if len(diagnostic) > 4096 {
@@ -191,9 +193,6 @@ func defaults(options Options) Options {
 	if options.RemoveAll == nil {
 		options.RemoveAll = os.RemoveAll
 	}
-	if options.Timeout <= 0 {
-		options.Timeout = defaultTimeout
-	}
 	if options.TemporaryRoot == "" {
 		options.TemporaryRoot = os.TempDir()
 	}
@@ -211,7 +210,7 @@ func defaults(options Options) Options {
 }
 
 func resolveConfiguration(options Options, projectRoot string) (configuration, error) {
-	keys := []string{"SDLC_AGENT_HARNESS", "SDLC_AUDIT_HARNESS", "SDLC_AUDIT_PROVIDER", "SDLC_AUDIT_MODEL"}
+	keys := []string{"SDLC_AGENT_HARNESS", "SDLC_AUDIT_HARNESS", "SDLC_AUDIT_PROVIDER", "SDLC_AUDIT_MODEL", "SDLC_AUDIT_TIMEOUT"}
 	loader := filepath.Join(options.SDLCRoot, "libexec", "load-sdlc-env.sh")
 	userConfigPath, err := filepath.Abs(options.UserConfigPath)
 	if err != nil {
@@ -241,7 +240,20 @@ func resolveConfiguration(options Options, projectRoot string) (configuration, e
 	if harness == "" {
 		harness = values["SDLC_AGENT_HARNESS"]
 	}
-	config := configuration{harness: harness, provider: values["SDLC_AUDIT_PROVIDER"], model: values["SDLC_AUDIT_MODEL"]}
+	timeout := defaultTimeout
+	if options.TimeoutSet || options.Timeout != 0 {
+		if options.Timeout < time.Second || options.Timeout%time.Second != 0 {
+			return configuration{}, errors.New("--timeout must be a whole-second duration of at least one second")
+		}
+		timeout = options.Timeout
+	} else if configured := strings.TrimSpace(values["SDLC_AUDIT_TIMEOUT"]); configured != "" {
+		parsed, err := time.ParseDuration(configured)
+		if err != nil || parsed < time.Second || parsed%time.Second != 0 {
+			return configuration{}, fmt.Errorf("SDLC_AUDIT_TIMEOUT must be a whole-second duration of at least one second: %q", configured)
+		}
+		timeout = parsed
+	}
+	config := configuration{harness: harness, provider: values["SDLC_AUDIT_PROVIDER"], model: values["SDLC_AUDIT_MODEL"], timeout: timeout}
 	if options.Harness != "" {
 		config.harness = options.Harness
 	}
