@@ -20,7 +20,10 @@ const (
 	obsoleteSpecKitAuthority = "Requirements established or changed through Spec Kit are governed by approved =specs/*/spec.md= artefacts."
 )
 
-var specKitReferencePattern = regexp.MustCompile(`(?i)spec.*kit`)
+var (
+	specKitReferencePattern         = regexp.MustCompile(`(?i)spec.*kit`)
+	obsoleteSpecKitAuthorityPattern = whitespaceFlexibleLiteralPattern(obsoleteSpecKitAuthority)
+)
 
 // LegacyLedgerMerge describes one legacy-ledger consolidation.
 type LegacyLedgerMerge struct {
@@ -220,25 +223,17 @@ func trimBlankEdges(lines []string) []string {
 }
 
 func removeObsoleteSpecKitAuthority(lines []string) []string {
-	var output []string
-	for index := 0; index < len(lines); {
-		if strings.TrimSpace(lines[index]) == "" {
-			output = append(output, lines[index])
-			index++
-			continue
-		}
+	document := strings.Join(lines, "\n")
+	document = obsoleteSpecKitAuthorityPattern.ReplaceAllString(document, "")
+	return strings.Split(document, "\n")
+}
 
-		end := index + 1
-		for end < len(lines) && strings.TrimSpace(lines[end]) != "" {
-			end++
-		}
-		paragraph := strings.Join(strings.Fields(strings.Join(lines[index:end], " ")), " ")
-		if paragraph != obsoleteSpecKitAuthority {
-			output = append(output, lines[index:end]...)
-		}
-		index = end
+func whitespaceFlexibleLiteralPattern(literal string) *regexp.Regexp {
+	words := strings.Fields(literal)
+	for index := range words {
+		words[index] = regexp.QuoteMeta(words[index])
 	}
-	return output
+	return regexp.MustCompile(`[ \t]*` + strings.Join(words, `[[:space:]]+`))
 }
 
 func rejectUnknownSpecKitReferences(lines []string) error {

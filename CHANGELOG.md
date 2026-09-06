@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## v3.0.1 - 2026-09-06
+
+Legacy acceptance-criteria migration now removes the known obsolete Spec Kit
+authority sentence whether it occupies its own paragraph or follows adjacent
+legacy authority text. Other Spec Kit references remain preserved and continue
+to require operator review because their meaning cannot be inferred safely.
+
 ## v3.0.0 - 2026-09-06
 
 ### SDLC v3 redesign

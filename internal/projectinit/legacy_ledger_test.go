@@ -139,6 +139,49 @@ authorities:
 	}
 }
 
+func TestMergeLegacyAcceptanceCriteriaRemovesEmbeddedObsoleteSpecKitAuthority(t *testing.T) {
+	root := t.TempDir()
+	workTemplate, err := os.ReadFile(filepath.Join(testSDLCRoot(t), "templates", "v3", "work.org"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	writeProjectTestFile(t, filepath.Join(root, "docs", "work.org"), string(workTemplate))
+	writeProjectTestFile(t, filepath.Join(root, "docs", "ACs.org"), `#+TITLE: Legacy acceptance criteria
+
+* Ledger authority
+
+This file is the sole authoritative record of requirements established under
+the legacy ticket-led process, including current and superseded requirements,
+provenance, and test traceability. Requirements established or changed through
+Spec Kit are governed by approved =specs/*/spec.md= artefacts.
+
+* Acceptance criteria
+
+** Existing work
+
+*** AC1.1 - Existing requirement
+
+**** Status
+
+HOLDING
+`)
+
+	if _, err := MergeLegacyAcceptanceCriteria(root); err != nil {
+		t.Fatal(err)
+	}
+	work, err := os.ReadFile(filepath.Join(root, "docs", "work.org"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := string(work)
+	if strings.Contains(strings.ToLower(text), "spec kit") {
+		t.Fatalf("consolidated work ledger retained obsolete Spec Kit authority:\n%s", text)
+	}
+	if !strings.Contains(text, "provenance, and test traceability.") {
+		t.Fatalf("consolidated work ledger lost adjacent legacy authority text:\n%s", text)
+	}
+}
+
 func TestMergeLegacyAcceptanceCriteriaRejectsDifferentEmbeddedCopy(t *testing.T) {
 	root := t.TempDir()
 	writeProjectTestFile(t, filepath.Join(root, "docs", "work.org"), legacyLedgerHeading+"\n:PROPERTIES:\n:VISIBILITY: folded\n:END:\n\nDifferent content.\n\n* Migration record\n")

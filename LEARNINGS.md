@@ -479,6 +479,14 @@ project would create stale duplicate state. `.sdlc/project.yaml` records only
 project facts and explicit overrides; projects follow the release installed in
 `~/.agents/sdlc.yaml`.
 
+## Deterministic retirement must tolerate presentation wrapping
+
+A known obsolete sentence may share a paragraph with retained text or wrap
+across different lines. Matching only a standalone paragraph turns harmless
+presentation differences into migration blockers. Remove the exact known text
+with whitespace-tolerant matching, preserve adjacent content, then surface only
+unknown references for human interpretation.
+
 ## Generate the invariant and ask an agent for the evidence
 
 A generic constitution scaffold asks an agent to invent both universal

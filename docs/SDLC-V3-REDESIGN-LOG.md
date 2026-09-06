@@ -603,3 +603,8 @@ without reconstructing the work from conversation history.
 - The later release instruction supersedes the earlier pre-tag checkpoint. The
   release commit must pass the local regression suite, merge into `master`, and
   be published with its annotated tag before handback.
+- The first Superscale migration after `v3.0.0` exposed a formatting-dependent
+  guard: the known obsolete Spec Kit authority sentence followed retained text
+  in the same paragraph. `v3.0.1` makes that exact retirement tolerant of line
+  wrapping and paragraph placement while retaining human review for every
+  genuinely unknown Spec Kit reference.
