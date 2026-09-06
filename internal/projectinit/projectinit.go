@@ -174,12 +174,6 @@ func Run(options Options) error {
 	if err := os.Mkdir(workspace, 0o700); err != nil {
 		return fmt.Errorf("creating temporary initialization workspace %s: %w", workspace, err)
 	}
-	if err := resolvePostMigrationConfiguration(options, schema, technologies, global, legacy, sdlcRoot, projectRoot, workspace, values, explicit); err != nil {
-		return err
-	}
-	if err := writeProjectProfile(projectRoot, options.SDLCRevision, schema, generation); err != nil {
-		return err
-	}
 	if err := writeWorkLedger(sdlcRoot, projectRoot, generation, options.Now()); err != nil {
 		return err
 	}
@@ -187,6 +181,12 @@ func Run(options Options) error {
 		if err := importLegacyWork(projectRoot); err != nil {
 			return err
 		}
+	}
+	if err := resolvePostMigrationConfiguration(options, schema, technologies, global, legacy, sdlcRoot, projectRoot, workspace, values, explicit); err != nil {
+		return err
+	}
+	if err := writeProjectProfile(projectRoot, options.SDLCRevision, schema, generation); err != nil {
+		return err
 	}
 	if len(legacy) != 0 {
 		if err := removeMigratedEnvironment(sdlcRoot, projectRoot, schema); err != nil {

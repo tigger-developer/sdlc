@@ -435,6 +435,13 @@ func TestRunDiscoversAuthorityDocumentsAfterV2Archival(t *testing.T) {
 			if !exists(filepath.Join(project, "docs", "archive", "sdlc-v2", ".specify", "memory", "constitution.md")) {
 				return errors.New("authority discovery ran before archived evidence was available")
 			}
+			work, err := os.ReadFile(filepath.Join(project, "docs", "work.org"))
+			if err != nil {
+				return fmt.Errorf("authority discovery ran before the work ledger was created: %w", err)
+			}
+			if !strings.Contains(string(work), "Archived Spec Kit work") {
+				return errors.New("authority discovery ran before archived v2 work was indexed")
+			}
 			prompt, err := io.ReadAll(input)
 			if err != nil {
 				return err

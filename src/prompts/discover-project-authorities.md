@@ -30,10 +30,19 @@ candidates in full before classifying them.
   `docs/ACs.org` is normally historical requirement authority. Tests and code
   are evidence of implemented behaviour, not approval authority.
 
-Do not classify archived Spec Kit material, old implementation plans, ticket
-archives, source code, or tests as current authority merely because they contain
-useful evidence. Report ambiguity in `warnings`. Use an empty list when the
-project has no credible document for a category. Never invent a document.
+For an SDLC v2 migration, read `docs/work.org` and inspect every archived Spec
+Kit specification it indexes. Include an archived specification as requirement
+authority only when repository evidence records explicit operator approval or
+operator-authorized delivery. An audit PASS, draft status, or eligibility for
+planning is not approval. Keep blocked, conditional, dormant, and unapproved
+specifications out of the authority list; `docs/work.org` retains them for later
+disposition.
+
+Do not classify `docs/work.org`, old implementation plans, ticket archives,
+source code, or tests as requirement authority merely because they contain
+useful evidence. Report ambiguous approval or delivery evidence in `warnings`.
+Use an empty list when the project has no credible document for a category.
+Never invent a document.
 
 ## Output contract
 
