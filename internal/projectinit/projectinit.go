@@ -1199,6 +1199,9 @@ func mergeWorkLedgerScaffold(existing, rendered, migrationBranch string) (string
 		if section.title == "Migration record" {
 			continue
 		}
+		if strings.HasPrefix(section.title, legacyLedgerTitle) && legacyLedgerSection(result) != "" {
+			continue
+		}
 		marker := "* " + section.title + "\n"
 		if strings.Contains(result, marker) {
 			continue

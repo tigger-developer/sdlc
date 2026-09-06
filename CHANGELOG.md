@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## v3.0.3 - 2026-09-06
+
+- Prevent resumed initialization from adding a second legacy acceptance-criteria
+  section when the imported canonical heading has different presentation
+  spacing from the work-ledger template.
+
 ## v3.0.2 - 2026-09-06
 
 - Resume an interrupted `sdlc-project-init` when its current migration branch,

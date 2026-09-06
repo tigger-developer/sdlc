@@ -494,6 +494,13 @@ When the current migration branch, dated archive branch, source generation, and
 original primary branch remain unambiguous, rerun the idempotent migration steps
 in place. Ambiguous state must stop rather than create replacement branches.
 
+## Compare Org sections by identity, not presentation spacing
+
+Alignment spaces before Org tags are presentation. A generator that compares
+the complete heading line can mistake its normalized output for a missing
+section on rerun. Use the stable section title or `CUSTOM_ID` as identity and
+test the render-normalize-render sequence.
+
 ## Generate the invariant and ask an agent for the evidence
 
 A generic constitution scaffold asks an agent to invent both universal

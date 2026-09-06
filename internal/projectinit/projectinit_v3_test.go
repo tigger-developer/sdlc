@@ -984,6 +984,28 @@ func TestInterruptedMigrationReusesExistingBranches(t *testing.T) {
 	}
 }
 
+func TestMergeWorkLedgerScaffoldDoesNotDuplicateNormalizedLegacySection(t *testing.T) {
+	rendered, err := os.ReadFile(filepath.Join(testSDLCRoot(t), "templates", "v3", "work.org"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	existing := strings.Replace(string(rendered),
+		"* Legacy Acceptance Criteria (SDLC v1)                         :legacy:\n",
+		"* Legacy Acceptance Criteria (SDLC v1) :legacy:\n", 1)
+	existing = strings.Replace(existing, legacyLedgerPlaceholder, "** Overview\n\nMigrated requirements.", 1)
+
+	merged, err := mergeWorkLedgerScaffold(existing, string(rendered), "sdlc-v3-migration-2026-09-06")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count := strings.Count(merged, "* "+legacyLedgerTitle); count != 1 {
+		t.Fatalf("legacy section count = %d:\n%s", count, merged)
+	}
+	if strings.Contains(merged, legacyLedgerPlaceholder) {
+		t.Fatalf("merged scaffold restored the legacy placeholder:\n%s", merged)
+	}
+}
+
 func TestChooseTicketMigrationDeclineContinues(t *testing.T) {
 	project := t.TempDir()
 	writeProjectTestFile(t, filepath.Join(project, "docs", "ACs.md"), "# Acceptance criteria\n")

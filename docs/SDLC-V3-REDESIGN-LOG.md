@@ -612,3 +612,7 @@ without reconstructing the work from conversation history.
   `*HOLDING.*` and showed that `.sdlc/.init/` prevented recovery from the
   initializer's own partial migration. `v3.0.2` normalizes that known legacy
   state to `HOLD` and resumes an unambiguous existing migration in place.
+- The resumed Superscale migration then exposed an exact-heading comparison:
+  normalization removed alignment spaces before the `legacy` tag, so scaffold
+  rendering inserted its placeholder section beside the imported section.
+  `v3.0.3` recognizes that section by title rather than presentation spacing.

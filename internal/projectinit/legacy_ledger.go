@@ -284,12 +284,12 @@ func legacyLedgerSection(document string) string {
 	lines := strings.Split(document, "\n")
 	start := -1
 	for index, line := range lines {
+		if start >= 0 && index > start && strings.HasPrefix(line, "* ") {
+			return strings.Join(lines[start:index], "\n") + "\n"
+		}
 		if strings.HasPrefix(line, "* "+legacyLedgerTitle) {
 			start = index
 			continue
-		}
-		if start >= 0 && index > start && strings.HasPrefix(line, "* ") {
-			return strings.Join(lines[start:index], "\n") + "\n"
 		}
 	}
 	if start >= 0 {
