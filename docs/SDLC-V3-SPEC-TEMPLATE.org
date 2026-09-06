@@ -124,6 +124,7 @@ conditions. Every AC links to at least one test definition.
 :END:
 
 #+begin_comment
+Use the test classifications and automated TDD rule resurrected from SDLC v1.
 Classify each test honestly:
 
 - RT is a persistent automated regression test included in the normal suite.

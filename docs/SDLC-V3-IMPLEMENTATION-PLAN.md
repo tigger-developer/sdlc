@@ -83,7 +83,24 @@ discovering scope while editing:
 - [ ] Archive any v2 material retained for historical explanation rather than
   leaving it in active routing.
 
-### 3. Rewrite routing and workflow documents
+### 3. Recover the authoritative SDLC v1 definitions
+
+- [ ] Treat the latest SDLC v1 release tag, currently `v1.0.3`, as the source
+  evidence for concepts deliberately resurrected in v3.
+- [ ] Extract the acceptance-criterion definition and AC/test boundary from
+  `v1.0.3:ISSUES.md`.
+- [ ] Extract RT, UT, and OT classification, automated TDD, real-user boundary,
+  one-off lifecycle, and user-test ownership from `v1.0.3:TESTING.md`.
+- [ ] Review `v1.0.3:MAIN.md` and the relevant v1 skills for paired delivery,
+  emergency delivery, identifier allocation, approval ownership, and useful
+  handoff language.
+- [ ] Write a short provenance map naming each resurrected definition and its
+  v1 source before rewriting the v3 instructions.
+- [ ] Do not restore v1 gate ceremony, ticket workflow, modes, or terminology
+  merely because they occur beside a useful definition. Only the concepts
+  explicitly selected for v3 return.
+
+### 4. Rewrite routing and workflow documents
 
 - [ ] Make `MAIN.md` route only the standards and workflow needed for the
   current activity.
@@ -96,12 +113,14 @@ discovering scope while editing:
   infer or invoke it.
 - [ ] Require every specification to pass the context-independent handoff
   test before definition sign-off.
-- [ ] Preserve RT, UT, and OT test classifications and automated TDD.
+- [ ] Resurrect the SDLC v1 RT, UT, and OT test classifications and its
+  automated TDD rule. Do not present these as inherited from Spec Kit or as new
+  SDLC v3 terminology.
 - [ ] Preserve documentation, Git, security, and technology standards.
 - [ ] Remove v2-only terms such as constitution stages, Spec Kit commands,
   generated plans, tasks, and convergence.
 
-### 4. Create or revise global skills
+### 5. Create or revise global skills
 
 All v3 skills are installed globally under `~/.agents/skills`. Each skill must
 bootstrap from the current global SDLC and must not depend on a project-local
@@ -134,7 +153,7 @@ copy of itself.
 - [ ] Retire `convert-migrated-acs-to-org` once the main migration path
   performs that conversion directly and safely.
 
-### 5. Implement the two gate runners
+### 6. Implement the two gate runners
 
 - [ ] Keep local self-audit in the authoring context. It must not launch a
   script or another agent.
@@ -153,7 +172,7 @@ copy of itself.
 - [ ] Do not embed metered audit invocations in regression tests, CI, builds,
   or scheduled automation.
 
-### 6. Replace project configuration
+### 7. Replace project configuration
 
 - [ ] Use `~/.agents/sdlc.yaml` for non-secret global defaults.
 - [ ] Use `.sdlc/project.yaml` for tracked project facts and explicit local
@@ -225,7 +244,7 @@ migration:
 
 Inherited defaults and empty sections are omitted from project YAML.
 
-### 7. Rewrite `sdlc-project-init`
+### 8. Rewrite `sdlc-project-init`
 
 - [ ] Run exactly once. Refuse when `.sdlc/project.yaml` already exists.
 - [ ] Verify the project is a Git repository and inspect its working tree
@@ -248,7 +267,7 @@ Inherited defaults and empty sections are omitted from project YAML.
 - [ ] Do not launch an agent merely to initialize an empty project.
 - [ ] Do not implement `sdlc-project-update` for v3.
 
-### 8. Migrate SDLC v1 projects
+### 9. Migrate SDLC v1 projects
 
 - [ ] Run the existing fast pre-migration workflow when the operator accepts
   it.
@@ -268,7 +287,7 @@ Inherited defaults and empty sections are omitted from project YAML.
   documentation and evidence cannot resolve a genuine contradiction.
 - [ ] Archive the obsolete implementation plan.
 
-### 9. Migrate SDLC v2 projects
+### 10. Migrate SDLC v2 projects
 
 - [ ] Preserve `.specify/`, constitutions, specifications, plans, tasks,
   audits, and validation records on the archive branch.
@@ -284,7 +303,7 @@ Inherited defaults and empty sections are omitted from project YAML.
 - [ ] Remove active `.specify/` infrastructure and project-local Spec Kit
   skills from the migrated branch.
 
-### 10. Rewrite installation and deployment
+### 11. Rewrite installation and deployment
 
 - [ ] Keep `~/.agents/sdlc` as the canonical installed standards and workflow
   root.
@@ -302,19 +321,33 @@ Inherited defaults and empty sections are omitted from project YAML.
   `y`/`yes` confirmation, and no prompt on an idempotent rerun.
 - [ ] Build and install the public `sdlc-preview` utility.
 
-### 11. Provide document preview
+### 12. Provide document preview
 
 - [ ] Accept one Markdown or Org file.
-- [ ] Render through Pandoc to a temporary HTML file.
+- [ ] Render through Pandoc to a collision-resistant random HTML filename in
+  the source document's directory so document-relative links continue to work.
 - [ ] Open the result in the platform browser without making preview an
   approval gate.
+- [ ] Remove the generated HTML one second after handing it to the browser.
+  Schedule cleanup asynchronously or otherwise ensure deletion cannot happen
+  before the browser has read the file.
+- [ ] Remove stale generated output after failures as well as successful opens.
+- [ ] Never overwrite a pre-existing file when allocating the preview name.
 - [ ] Work on macOS and Linux, and emit a clear unsupported-platform message
   elsewhere.
 - [ ] Report a clear dependency error when Pandoc is unavailable.
 - [ ] Do not depend on the operator's private scripts, YAML, shell functions,
   or templates.
+- [ ] Begin with a basic bundled HTML and CSS template. A higher-quality
+  redistributable community template may replace it later after its licence and
+  provenance have been reviewed.
+- [ ] Add a concise `src/ORGMODE.md` primer and route it only when an agent
+  reads or writes Org artefacts. Cover headings, lists, property drawers,
+  internal and file links, bold text, =verbatim=, ~code~, and source blocks.
+  Explicitly prohibit Markdown backticks in Org even though Pandoc accepts
+  them.
 
-### 12. Update public documentation
+### 13. Update public documentation
 
 - [ ] Rewrite the README and quickstart around v3 rather than Spec Kit.
 - [ ] Document normal, paired, and emergency delivery with concrete command
@@ -326,7 +359,7 @@ Inherited defaults and empty sections are omitted from project YAML.
 - [ ] State clearly that v3 initially supports Codex and OpenAI models only.
 - [ ] Remove the Spec Kit prerequisite and obsolete v2 operational guidance.
 
-### 13. Verify proportionately
+### 14. Verify proportionately
 
 - [ ] Unit-test deterministic schema parsing, precedence, rendering, migration
   classification, identifier allocation, installer planning, and retirement
@@ -452,7 +485,7 @@ v3.0.0 is tagged.
 
 Implementation may begin when:
 
-- the two Org templates are accepted;
+- the two Org templates are accepted, as recorded on 2026-09-06;
 - the identifier namespace is accepted;
 - the v2 archive scope is accepted;
 - the gate skill names and invocation boundary are accepted;

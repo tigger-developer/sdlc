@@ -63,6 +63,23 @@ Test definitions retain the SDLC v1 classifications:
 - `UT`: human user test; and
 - `OT`: bounded one-off test.
 
+These terms and the automated TDD rule are deliberately resurrected from SDLC
+v1. They are not Spec Kit concepts or newly invented SDLC v3 terminology.
+
+## SDLC v1 source recovery
+
+- Recover resurrected definitions from the latest v1 release rather than from
+  memory or their later v2 restatements. The current latest v1 tag is `v1.0.3`.
+- Use `v1.0.3:ISSUES.md` for the original falsifiable-system-state definition
+  of an acceptance criterion and the AC/test boundary.
+- Use `v1.0.3:TESTING.md` for RT, UT, and OT classification, automated TDD,
+  observable user boundaries, one-off lifecycle, and human ownership of user
+  tests.
+- Review `v1.0.3:MAIN.md` and relevant v1 skills for any selected pairing,
+  emergency, identifier, approval, and handoff semantics.
+- Record a concise provenance map while implementing v3. Do not restore the v1
+  process wholesale; recover only the definitions explicitly chosen for v3.
+
 ## Audit topology
 
 Each gate uses no more than two contexts: the authoring context and one external auditor context.
@@ -239,6 +256,17 @@ concrete migration requirement cannot be satisfied safely another way.
 - The viewer accepts Markdown and Org, renders through Pandoc, opens the result
   in the user's browser, and reports a clear dependency error when Pandoc is
   unavailable. Previewing is presentation, not an approval gate.
+- Render to a collision-resistant random HTML filename in the source document's
+  directory so document-relative links continue to resolve. Never overwrite an
+  existing file.
+- Remove the generated HTML one second after opening it, using delayed cleanup
+  that cannot race the browser's initial read. Do not leave stale previews after
+  an open or render failure.
+- Begin with a basic bundled HTML and CSS template. A community template may be
+  adopted later only after its quality, licence, and provenance are reviewed.
+- Add a short Org primer under `src/` and route it only for Org work. It must
+  explain the supported portable subset and require Org =verbatim= or ~code~
+  syntax rather than Markdown backticks, even though Pandoc accepts backticks.
 
 ## Requested design artefacts
 
@@ -248,8 +276,9 @@ concrete migration requirement cannot be satisfied safely another way.
   `docs/SDLC-V3-SPEC-TEMPLATE.org`.
 - The Org work-ledger review candidate is drafted in
   `docs/SDLC-V3-WORK-TEMPLATE.org`.
-- The templates and the decisions explicitly left open in the implementation
-  plan must be reviewed before repository implementation begins.
+- The operator accepted both Org templates on 2026-09-06.
+- The decisions explicitly left open in the implementation plan must be
+  reviewed before repository implementation begins.
 
 The specification template must make context-independent handoff explicit and
 record the delivery objective, relevant starting state, exact authorities,
