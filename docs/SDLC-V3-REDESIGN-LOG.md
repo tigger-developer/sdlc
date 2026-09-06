@@ -220,9 +220,15 @@ an application's own root configuration.
 - For eligible GitHub-backed legacy projects, offer the existing ticket pre-migration skill.
 - Run the appropriate migration or new-project initialization path.
 - Never process dormant incomplete v2 work merely because the project is being migrated.
-- Ask schema-driven project questions, create `.sdlc/project.yaml`, validate and
-  commit the migration, then ask whether to merge it into the original primary
-  branch.
+- Ask schema-driven non-authority questions before migration. After migration,
+  use a saved read-only headless Codex prompt to propose product, architecture,
+  and requirement documents as structured YAML lists. Show descriptors and
+  rationales, let the operator confirm or replace the paths, then create
+  `.sdlc/project.yaml`.
+- Keep the temporary proposal in Git metadata so an interrupted initialization
+  is recognizable, then remove it after successful completion.
+- Validate and commit the migration, then ask whether to merge it into the
+  original primary branch.
 
 ### `sdlc-project-update`
 

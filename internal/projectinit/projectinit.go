@@ -21,6 +21,7 @@ import (
 )
 
 const projectProfilePath = ".sdlc/project.yaml"
+const initializationWorkspaceName = "sdlc-project-init"
 
 var historicalIdentifierPattern = regexp.MustCompile(`(?m)(?:^|[^A-Za-z0-9])(?:W|AC|RT|UT|OT)0*([0-9]+)(?:[.]|\b)|#0*([0-9]+)\b`)
 
@@ -67,13 +68,20 @@ func Run(options Options) error {
 	if err != nil {
 		return fmt.Errorf("resolving SDLC root: %w", err)
 	}
+	if err := ensureGitRepository(options, projectRoot); err != nil {
+		return err
+	}
+	workspace, err := initializationWorkspacePath(options, projectRoot)
+	if err != nil {
+		return err
+	}
+	if exists(workspace) {
+		return fmt.Errorf("previous initialization did not complete; inspect the temporary working directory %s", workspace)
+	}
 	if _, err := os.Stat(filepath.Join(projectRoot, projectProfilePath)); err == nil {
 		return fmt.Errorf("%s already exists; sdlc-project-init runs exactly once", projectProfilePath)
 	} else if !errors.Is(err, os.ErrNotExist) {
 		return fmt.Errorf("checking project profile: %w", err)
-	}
-	if err := ensureGitRepository(options, projectRoot); err != nil {
-		return err
 	}
 	if err := requireCleanWorktree(options, projectRoot); err != nil {
 		return err
@@ -118,6 +126,7 @@ func Run(options Options) error {
 	if err != nil {
 		return err
 	}
+	legacy = normalizeLegacyConfiguration(legacy, options.ErrorOutput)
 	values, explicit, err := resolveConfiguration(options, schema, technologies, global, legacy)
 	if err != nil {
 		return err
@@ -162,9 +171,11 @@ func Run(options Options) error {
 			return err
 		}
 	}
-	if values["SDLC_REQUIREMENT_AUTHORITIES"] == "" && exists(filepath.Join(projectRoot, "docs", "ACs.org")) {
-		values["SDLC_REQUIREMENT_AUTHORITIES"] = "docs/ACs.org"
-		explicit["SDLC_REQUIREMENT_AUTHORITIES"] = true
+	if err := os.Mkdir(workspace, 0o700); err != nil {
+		return fmt.Errorf("creating temporary initialization workspace %s: %w", workspace, err)
+	}
+	if err := resolvePostMigrationConfiguration(options, schema, technologies, global, legacy, sdlcRoot, projectRoot, workspace, values, explicit); err != nil {
+		return err
 	}
 	if err := writeProjectProfile(projectRoot, options.SDLCRevision, schema, generation); err != nil {
 		return err
@@ -200,6 +211,9 @@ func Run(options Options) error {
 		if err := options.RunCommand("git", []string{"merge", "--no-ff", migration}, projectRoot, nil, options.Output, options.ErrorOutput); err != nil {
 			return fmt.Errorf("merging %s: %w", migration, err)
 		}
+	}
+	if err := os.RemoveAll(workspace); err != nil {
+		return fmt.Errorf("removing temporary initialization workspace %s: %w", workspace, err)
 	}
 	return nil
 }
@@ -364,10 +378,12 @@ func removeMigratedEnvironment(sdlcRoot, projectRoot string, schema ConfigSchema
 
 func resolveConfiguration(options Options, schema ConfigSchema, technologies []Technology, global map[string]any, legacy map[string]string) (map[string]string, map[string]bool, error) {
 	reader := options.inputReader
-	legacy = normalizeLegacyConfiguration(legacy, options.ErrorOutput)
 	values := map[string]string{}
 	explicit := map[string]bool{}
 	for _, field := range schema.Fields {
+		if field.Phase == "post-migration" {
+			continue
+		}
 		if !fieldApplies(field, values) {
 			continue
 		}
@@ -711,7 +727,13 @@ func writeProjectProfile(projectRoot, revision string, schema ConfigSchema, gene
 	}
 	for _, field := range schema.Fields {
 		value := generation.values[field.Key]
-		if value == "" || !generation.explicit[field.Key] {
+		if !generation.explicit[field.Key] {
+			continue
+		}
+		if value == "" {
+			if field.Type == "string-list" {
+				setYAMLPath(root, field.Path, []string{})
+			}
 			continue
 		}
 		var stored any = value

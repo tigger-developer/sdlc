@@ -257,7 +257,16 @@ Inherited defaults and empty sections are omitted from project YAML.
 - [X] Create a migration branch from the primary branch.
 - [X] For an eligible GitHub-backed v1 project, offer the ticket-migration
   skill before continuing.
-- [X] Ask schema-driven project questions and write `.sdlc/project.yaml`.
+- [X] Ask schema-driven non-authority project questions before migration.
+- [X] After migration, invoke headless Codex with a saved read-only prompt to
+  propose product, architecture, and requirement authorities as structured
+  YAML lists with descriptors and rationales.
+- [X] Validate proposal paths against repository files, let the operator accept
+  or replace each list, and write the confirmed lists to
+  `.sdlc/project.yaml`.
+- [X] Keep the proposal in a temporary Git-metadata working directory whose
+  presence identifies an interrupted initialization; remove it after successful
+  completion.
 - [X] Create `docs/work.org`; the definition skill creates each specification
   directory only when that work begins.
 - [X] Perform the applicable v1 or v2 migration, or initialize a new project.

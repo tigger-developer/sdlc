@@ -43,6 +43,19 @@ wrong home for SDLC settings. V3 uses readable YAML: global defaults in
 once, then removes those exact keys while preserving unrelated content; agents
 never read `.env`.
 
+## Semantic discovery can remain human-controlled
+
+Configuration code can validate paths and persist lists, but it cannot reliably
+decide whether a README owns product policy or merely introduces a repository.
+Asking the operator to recall every authority path is equally unreliable,
+especially after migration has moved or created documents.
+
+V3 therefore separates semantic proposal from deterministic control. A bounded,
+read-only headless agent analyses repository files only after migration and
+returns structured YAML containing candidate paths, descriptors, and rationales.
+The initializer validates those paths and the operator confirms or replaces each
+list. The model proposes; it never silently grants authority.
+
 ## Migration preserves history without processing dormant work
 
 A production process cannot be replaced by pretending its existing work never

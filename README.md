@@ -43,6 +43,7 @@ confirmation accepts `y` or `yes`.
 | `src/*.md` | Requirements, testing, auditing, coding, Git, documentation, security, paired, emergency, and Org standards |
 | `src/technologies/` | Automatically discoverable technology standards |
 | `src/templates/v3/` | Unified specification, work, audit, validation, and preview templates |
+| `src/prompts/` | Saved prompts used by bounded headless initializer analysis |
 | `skills/` | Globally installed workflow and focused audit skills |
 | `cmd/` and `internal/` | Installer, initializer, and preview implementation |
 
@@ -58,18 +59,21 @@ The initializer:
 
 1. refuses when `.sdlc/project.yaml` already exists;
 2. detects a new project, an SDLC v1 project, or an SDLC v2 Spec Kit project;
-3. asks schema-driven questions about project role, technologies, product,
-   architecture, and requirement authorities, infrastructure ownership, branch
-   strategy, agent settings, and audit timeout;
+3. asks the schema-driven questions needed before migration, including project
+   role, technologies, infrastructure ownership, branch strategy, agent
+   settings, and audit timeout;
 4. creates a dated branch preserving the exact pre-migration state and offers
    to push it;
 5. creates a dedicated v3 migration branch;
 6. offers the legacy-ticket migration for eligible SDLC v1 projects;
 7. archives and removes active Spec Kit artefacts for v2 projects without
    normalizing unfinished work;
-8. creates `.sdlc/project.yaml` and `docs/work.org`;
-9. commits the migration; and
-10. asks whether to merge the migration branch into the original branch.
+8. runs a bounded, read-only headless Codex analysis over repository files and
+   proposes product, architecture, and requirement authorities;
+9. lets the operator confirm or replace each proposed authority list;
+10. creates `.sdlc/project.yaml` and `docs/work.org`;
+11. commits the migration; and
+12. asks whether to merge the migration branch into the original branch.
 
 The first real project migration should be performed with the operator watching.
 See [QUICKSTART.md](QUICKSTART.md) for each migration path.
@@ -89,6 +93,13 @@ When a global value exists, the initializer shows it and lets the operator press
 Enter to inherit it or enter a project override. Inherited global values are not
 copied into the project file. Project identity, technology selection, and
 infrastructure role are always project decisions.
+
+Authority documents are selected after migration so the proposal sees the final
+active and archived document layout. The temporary Codex result includes paths,
+descriptors, and rationales for operator review. Confirmed project authorities
+are stored as YAML lists, including lists containing one or no documents. A
+temporary working directory in the project's Git metadata remains if
+initialization is interrupted and is removed only after successful completion.
 
 Example global configuration:
 

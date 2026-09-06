@@ -34,9 +34,23 @@ sdlc-project-init
 The command creates the archive branch before making changes. Review any push
 and final merge question by branch descriptor, not by an unexplained name.
 
+After any v1 or v2 migration, the initializer runs read-only headless Codex to
+identify likely product, architecture, and requirement authority documents. It
+shows each path with a descriptor and rationale. Press Enter to accept a
+category, enter replacement repository-relative paths separated by commas, or
+enter `-` for an empty list. The confirmed paths are stored as YAML lists in
+`.sdlc/project.yaml`.
+
+If initialization is interrupted during or after authority discovery, its
+temporary working directory remains in the project's Git metadata. A later
+invocation reports that path instead of treating the project as a fresh start.
+
 ### New project
 
 - Select the project role and applicable technology standards.
+- Confirm any existing product, architecture, and requirement authorities
+  proposed by the initializer. Empty authority lists are valid for a genuinely
+  blank project.
 - Record product and architecture documents as they are created.
 - Use `docs/work.org` for defects, ideas, active work, review, and closed work.
 - Start the first change with `$define-change`.

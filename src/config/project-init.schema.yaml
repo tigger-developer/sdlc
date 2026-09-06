@@ -38,7 +38,9 @@ fields:
     flag: product-authorities
     help: Comma-separated product authority paths
     type: string-list
-    prompt: "Product authority paths, separated by commas, or blank for none:"
+    prompt: "Product authority paths"
+    phase: post-migration
+    discovery_category: product
     allow_global: false
 
   - key: SDLC_ARCHITECTURE_AUTHORITIES
@@ -46,7 +48,9 @@ fields:
     flag: architecture-authorities
     help: Comma-separated architecture authority paths
     type: string-list
-    prompt: "Architecture authority paths, separated by commas, or blank for none:"
+    prompt: "Architecture authority paths"
+    phase: post-migration
+    discovery_category: architecture
     allow_global: false
 
   - key: SDLC_REQUIREMENT_AUTHORITIES
@@ -54,7 +58,9 @@ fields:
     flag: requirement-authorities
     help: Comma-separated existing requirement authority paths
     type: string-list
-    prompt: "Existing requirement authority paths, separated by commas, or blank for none:"
+    prompt: "Requirement authority paths"
+    phase: post-migration
+    discovery_category: requirements
     allow_global: false
 
   - key: SDLC_BRANCH_STRATEGY

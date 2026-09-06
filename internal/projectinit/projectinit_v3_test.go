@@ -2,6 +2,7 @@ package projectinit
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -104,6 +105,7 @@ func TestWriteProjectProfileOmitsInheritedGlobalDefaults(t *testing.T) {
 			"SDLC_TECHNOLOGIES":             true,
 			"SDLC_PRODUCT_AUTHORITIES":      true,
 			"SDLC_ARCHITECTURE_AUTHORITIES": true,
+			"SDLC_REQUIREMENT_AUTHORITIES":  true,
 			"SDLC_INFRA_ROLE":               true,
 		},
 		source: "new", base: "master", archive: "sdlc_new_state_2026-09-06",
@@ -125,6 +127,9 @@ func TestWriteProjectProfileOmitsInheritedGlobalDefaults(t *testing.T) {
 	}
 	if !strings.Contains(string(contents), "application") || !strings.Contains(string(contents), "GO") || !strings.Contains(string(contents), "docs/VISION.md") {
 		t.Fatalf("project facts missing:\n%s", contents)
+	}
+	if !strings.Contains(string(contents), "requirements: []") {
+		t.Fatalf("confirmed empty requirement authorities are not a YAML list:\n%s", contents)
 	}
 }
 
@@ -251,7 +256,8 @@ func TestRunInitializesOnceOnMigrationBranch(t *testing.T) {
 		SDLCRevision: "v3-test",
 		Input:        strings.NewReader("\n\n\nn\nn\n"),
 		Output:       &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{},
-		Now: func() time.Time { return time.Date(2026, 9, 6, 0, 0, 0, 0, time.UTC) },
+		RunCommand: localOnlyTestRunner,
+		Now:        func() time.Time { return time.Date(2026, 9, 6, 0, 0, 0, 0, time.UTC) },
 	}
 	if err := Run(options); err != nil {
 		t.Fatal(err)
@@ -277,6 +283,7 @@ func TestRunMigratesV2WithoutRenumberingOrDeletingUnrelatedIntegrations(t *testi
 	runGitTest(t, project, "init")
 	runGitTest(t, project, "config", "user.name", "Test Operator")
 	runGitTest(t, project, "config", "user.email", "operator@example.invalid")
+	writeProjectTestFile(t, filepath.Join(project, "README.md"), "# Project\n")
 	writeProjectTestFile(t, filepath.Join(project, "docs", "ACs.org"), "*** AC130.1 - Existing behaviour\n")
 	writeProjectTestFile(t, filepath.Join(project, ".specify", "memory", "constitution.md"), "legacy constitution\n")
 	writeProjectTestFile(t, filepath.Join(project, "specs", "001-old-feature", "spec.md"), "unfinished feature\n")
@@ -289,7 +296,8 @@ func TestRunMigratesV2WithoutRenumberingOrDeletingUnrelatedIntegrations(t *testi
 		ProjectRoot: project, SDLCRoot: testSDLCRoot(t), Overrides: v3TestOverrides(),
 		SDLCRevision: "v3-test", Input: strings.NewReader("\n\n\nn\nn\n"),
 		Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{},
-		Now: func() time.Time { return time.Date(2026, 9, 6, 0, 0, 0, 0, time.UTC) },
+		RunCommand: localOnlyTestRunner,
+		Now:        func() time.Time { return time.Date(2026, 9, 6, 0, 0, 0, 0, time.UTC) },
 	}
 	if err := Run(options); err != nil {
 		t.Fatal(err)
@@ -322,6 +330,7 @@ func TestRunMigratesV1ThroughTicketSkillBeforeCreatingProfile(t *testing.T) {
 	runGitTest(t, project, "init")
 	runGitTest(t, project, "config", "user.name", "Test Operator")
 	runGitTest(t, project, "config", "user.email", "operator@example.invalid")
+	writeProjectTestFile(t, filepath.Join(project, "README.md"), "# Project\n")
 	writeProjectTestFile(t, filepath.Join(project, "docs", "ACs.md"), "# Acceptance criteria\n\nAC7.1 - Existing result\n")
 	runGitTest(t, project, "add", "-A")
 	runGitTest(t, project, "commit", "-m", "v1 state")
@@ -373,22 +382,158 @@ func TestRunMigratesV1ThroughTicketSkillBeforeCreatingProfile(t *testing.T) {
 	}
 }
 
+func TestRunDiscoversAuthorityDocumentsAfterV2Archival(t *testing.T) {
+	project := t.TempDir()
+	runGitTest(t, project, "init")
+	runGitTest(t, project, "config", "user.name", "Test Operator")
+	runGitTest(t, project, "config", "user.email", "operator@example.invalid")
+	writeProjectTestFile(t, filepath.Join(project, "README.md"), "# Project\n")
+	writeProjectTestFile(t, filepath.Join(project, "docs", "VISION.md"), "# Vision\n")
+	writeProjectTestFile(t, filepath.Join(project, "docs", "architecture.md"), "# Architecture\n")
+	writeProjectTestFile(t, filepath.Join(project, "docs", "requirements.md"), "# Requirements\n")
+	writeProjectTestFile(t, filepath.Join(project, ".specify", "memory", "constitution.md"), "legacy constitution\n")
+	runGitTest(t, project, "add", "-A")
+	runGitTest(t, project, "commit", "-m", "v2 state")
+
+	overrides := v3TestOverrides()
+	delete(overrides, "SDLC_PRODUCT_AUTHORITIES")
+	delete(overrides, "SDLC_ARCHITECTURE_AUTHORITIES")
+	delete(overrides, "SDLC_REQUIREMENT_AUTHORITIES")
+	var discoveryCalls int
+	runner := func(name string, arguments []string, directory string, input io.Reader, output, errorOutput io.Writer) error {
+		if name == "codex" {
+			discoveryCalls++
+			if argumentValue(arguments, "--sandbox") != "read-only" || argumentValue(arguments, "--model") != "gpt-test" || !containsArgument(arguments, "--ephemeral") {
+				return fmt.Errorf("unsafe or misconfigured authority discovery invocation: %v", arguments)
+			}
+			if exists(filepath.Join(project, ".specify")) {
+				return errors.New("authority discovery ran before v2 archival")
+			}
+			if !exists(filepath.Join(project, "docs", "archive", "sdlc-v2", ".specify", "memory", "constitution.md")) {
+				return errors.New("authority discovery ran before archived evidence was available")
+			}
+			prompt, err := io.ReadAll(input)
+			if err != nil {
+				return err
+			}
+			if !strings.Contains(string(prompt), "authorities:") {
+				return fmt.Errorf("unexpected discovery prompt: %s", prompt)
+			}
+			outputPath := argumentValue(arguments, "--output-last-message")
+			if outputPath == "" {
+				return fmt.Errorf("missing authority proposal output path: %v", arguments)
+			}
+			writeProjectTestFile(t, outputPath, `version: 1
+authorities:
+  product:
+    - path: README.md
+      descriptor: Project overview
+      rationale: Defines the product purpose.
+    - path: docs/VISION.md
+      descriptor: Product vision
+      rationale: Defines durable product scope.
+  architecture:
+    - path: docs/architecture.md
+      descriptor: System architecture
+      rationale: Defines technical boundaries.
+  requirements:
+    - path: docs/requirements.md
+      descriptor: Current requirements
+      rationale: Defines existing product requirements.
+warnings: []
+`)
+			return nil
+		}
+		command := exec.Command(name, arguments...)
+		command.Dir = directory
+		command.Stdin = input
+		command.Stdout = output
+		command.Stderr = errorOutput
+		return command.Run()
+	}
+
+	options := Options{
+		ProjectRoot: project, SDLCRoot: testSDLCRoot(t), Overrides: overrides,
+		SDLCRevision: "v3-test", Input: strings.NewReader("n\ndocs/VISION.md,README.md\n\n-\nn\n"),
+		Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{}, RunCommand: runner,
+		Now: func() time.Time { return time.Date(2026, 9, 6, 0, 0, 0, 0, time.UTC) },
+	}
+	if err := Run(options); err != nil {
+		t.Fatal(err)
+	}
+	if discoveryCalls != 1 {
+		t.Fatalf("authority discovery calls = %d, want 1", discoveryCalls)
+	}
+	contents, err := os.ReadFile(filepath.Join(project, projectProfilePath))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{"product:\n        - docs/VISION.md\n        - README.md", "architecture:\n        - docs/architecture.md", "requirements: []"} {
+		if !strings.Contains(string(contents), want) {
+			t.Fatalf("project profile lacks authority list %q:\n%s", want, contents)
+		}
+	}
+	if exists(filepath.Join(project, ".git", "sdlc-project-init")) {
+		t.Fatal("successful initialization left its temporary working directory behind")
+	}
+}
+
+func TestRunReportsInterruptedInitializationWorkspace(t *testing.T) {
+	project := t.TempDir()
+	runGitTest(t, project, "init")
+	runGitTest(t, project, "config", "user.name", "Test Operator")
+	runGitTest(t, project, "config", "user.email", "operator@example.invalid")
+	writeProjectTestFile(t, filepath.Join(project, "README.md"), "# Project\n")
+	runGitTest(t, project, "add", "README.md")
+	runGitTest(t, project, "commit", "-m", "initial")
+	writeProjectTestFile(t, filepath.Join(project, ".git", "sdlc-project-init", "authority-proposal.yaml"), "version: 1\n")
+
+	err := Run(Options{
+		ProjectRoot: project, SDLCRoot: testSDLCRoot(t), Overrides: v3TestOverrides(),
+		Input: strings.NewReader(""), Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{},
+	})
+	if err == nil || !strings.Contains(err.Error(), "previous initialization did not complete") || !strings.Contains(err.Error(), "sdlc-project-init") {
+		t.Fatalf("interrupted initialization error = %v", err)
+	}
+}
+
+func argumentValue(arguments []string, name string) string {
+	for index := 0; index+1 < len(arguments); index++ {
+		if arguments[index] == name {
+			return arguments[index+1]
+		}
+	}
+	return ""
+}
+
+func containsArgument(arguments []string, want string) bool {
+	for _, argument := range arguments {
+		if argument == want {
+			return true
+		}
+	}
+	return false
+}
+
 func v3TestOverrides() map[string]string {
 	return map[string]string{
-		"SDLC_PROJECT_KIND":    "application",
-		"SDLC_TECHNOLOGIES":    "GO",
-		"SDLC_BRANCH_STRATEGY": "current",
-		"SDLC_SPEC_HARNESS":    "codex",
-		"SDLC_SPEC_PROVIDER":   "openai",
-		"SDLC_SPEC_MODEL":      "gpt-test",
-		"SDLC_BUILD_HARNESS":   "codex",
-		"SDLC_BUILD_PROVIDER":  "openai",
-		"SDLC_BUILD_MODEL":     "gpt-test",
-		"SDLC_AUDIT_HARNESS":   "codex",
-		"SDLC_AUDIT_PROVIDER":  "openai",
-		"SDLC_AUDIT_MODEL":     "gpt-test",
-		"SDLC_AUDIT_TIMEOUT":   "5m",
-		"SDLC_INFRA_ROLE":      "none",
+		"SDLC_PROJECT_KIND":             "application",
+		"SDLC_TECHNOLOGIES":             "GO",
+		"SDLC_PRODUCT_AUTHORITIES":      "README.md",
+		"SDLC_ARCHITECTURE_AUTHORITIES": "README.md",
+		"SDLC_REQUIREMENT_AUTHORITIES":  "README.md",
+		"SDLC_BRANCH_STRATEGY":          "current",
+		"SDLC_SPEC_HARNESS":             "codex",
+		"SDLC_SPEC_PROVIDER":            "openai",
+		"SDLC_SPEC_MODEL":               "gpt-test",
+		"SDLC_BUILD_HARNESS":            "codex",
+		"SDLC_BUILD_PROVIDER":           "openai",
+		"SDLC_BUILD_MODEL":              "gpt-test",
+		"SDLC_AUDIT_HARNESS":            "codex",
+		"SDLC_AUDIT_PROVIDER":           "openai",
+		"SDLC_AUDIT_MODEL":              "gpt-test",
+		"SDLC_AUDIT_TIMEOUT":            "5m",
+		"SDLC_INFRA_ROLE":               "none",
 	}
 }
 
@@ -421,4 +566,16 @@ func runGitTest(t *testing.T, directory string, arguments ...string) string {
 		t.Fatalf("git %s: %v\n%s", strings.Join(arguments, " "), err, output)
 	}
 	return string(output)
+}
+
+func localOnlyTestRunner(name string, arguments []string, directory string, input io.Reader, output, errorOutput io.Writer) error {
+	if name == "codex" {
+		return errors.New("regression test attempted to invoke metered Codex")
+	}
+	command := exec.Command(name, arguments...)
+	command.Dir = directory
+	command.Stdin = input
+	command.Stdout = output
+	command.Stderr = errorOutput
+	return command.Run()
 }

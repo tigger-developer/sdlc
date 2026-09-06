@@ -84,6 +84,19 @@ on a dedicated migration branch.
   `docs/archive/sdlc-v2/`, remove it from active workflow, and index it for later
   operator disposition.
 
+Only after that migration does the initializer invoke headless Codex with the
+deployed read-only authority-discovery prompt. The model returns a temporary
+structured YAML proposal containing lists of product, architecture, and
+requirement documents, with descriptors and rationales. The initializer
+validates every proposed or amended path against repository files, requires
+operator confirmation, and writes only the confirmed path lists to the project
+profile.
+
+The proposal lives in a temporary working directory in Git metadata. Its
+presence tells a later invocation that initialization did not complete. The
+directory remains available when initialization fails and is removed after a
+successful initialization and optional merge decision.
+
 The initializer commits the coherent migration and asks whether to merge it into
 the original branch. It never normalizes dormant unfinished work merely because
 the framework changed.
@@ -92,7 +105,9 @@ the framework changed.
 
 `src/config/project-init.schema.yaml` defines field names, YAML paths, flags,
 types, choices, defaults, global-default eligibility, prompts, and historical
-`.env` aliases. Both questions and persistence are derived from this schema.
+`.env` aliases. It also identifies post-migration authority fields and their
+discovery categories. Questions, authority-list persistence, and configuration
+ordering are derived from this schema.
 
 Resolution order is command line, process environment, project YAML, global
 YAML, then schema default. During first initialization no project YAML exists;

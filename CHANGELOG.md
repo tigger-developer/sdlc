@@ -15,7 +15,10 @@ Replaced the Spec Kit delivery dependency with a lean, standalone workflow:
   projects using `.sdlc/project.yaml`, `docs/work.org`, and preserved archive
   branches;
 - YAML global and project configuration in place of SDLC settings in `.env`;
-- schema-driven product, architecture, and requirement authority selection,
+- schema-driven configuration, followed after migration by bounded read-only
+  Codex discovery and operator confirmation of product, architecture, and
+  requirement authority lists;
+- temporary structured YAML handoff and interruption detection in Git metadata,
   external-audit timeout configuration, and one-time removal of migrated SDLC
   keys from `.env` without exposing or changing unrelated values;
 - lossless v2 archival by moving active Spec Kit state out of the live workflow,

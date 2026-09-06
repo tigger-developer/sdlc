@@ -29,19 +29,21 @@ type ConfigSchema struct {
 
 // ConfigField describes one configurable value and its project YAML path.
 type ConfigField struct {
-	Key              string          `yaml:"key"`
-	Path             string          `yaml:"path"`
-	Flag             string          `yaml:"flag"`
-	Help             string          `yaml:"help"`
-	Type             string          `yaml:"type"`
-	Choices          []string        `yaml:"choices"`
-	ChoicesFrom      string          `yaml:"choices_from"`
-	Prompt           string          `yaml:"prompt"`
-	Default          string          `yaml:"default"`
-	AllowGlobal      bool            `yaml:"allow_global"`
-	Required         bool            `yaml:"required"`
-	MigrationAliases []string        `yaml:"migration_aliases"`
-	When             *FieldCondition `yaml:"when"`
+	Key               string          `yaml:"key"`
+	Path              string          `yaml:"path"`
+	Flag              string          `yaml:"flag"`
+	Help              string          `yaml:"help"`
+	Type              string          `yaml:"type"`
+	Choices           []string        `yaml:"choices"`
+	ChoicesFrom       string          `yaml:"choices_from"`
+	Prompt            string          `yaml:"prompt"`
+	Phase             string          `yaml:"phase"`
+	DiscoveryCategory string          `yaml:"discovery_category"`
+	Default           string          `yaml:"default"`
+	AllowGlobal       bool            `yaml:"allow_global"`
+	Required          bool            `yaml:"required"`
+	MigrationAliases  []string        `yaml:"migration_aliases"`
+	When              *FieldCondition `yaml:"when"`
 }
 
 // FieldCondition limits a question to selected values of an earlier field.
@@ -93,6 +95,7 @@ func (schema ConfigSchema) Validate() error {
 	keys := map[string]bool{}
 	paths := map[string]bool{}
 	flags := map[string]bool{}
+	discoveryCategories := map[string]bool{}
 	for _, field := range schema.Fields {
 		if !environmentKeyPattern.MatchString(field.Key) || keys[field.Key] {
 			return fmt.Errorf("invalid or duplicate key %q", field.Key)
@@ -104,6 +107,17 @@ func (schema ConfigSchema) Validate() error {
 			return fmt.Errorf("missing or duplicate flag %q", field.Flag)
 		}
 		keys[field.Key], paths[field.Path], flags[field.Flag] = true, true, true
+		if field.Phase != "" && field.Phase != "post-migration" {
+			return fmt.Errorf("field %s has unsupported phase %q", field.Key, field.Phase)
+		}
+		if field.Phase == "post-migration" {
+			if field.Type != "string-list" || field.DiscoveryCategory == "" || discoveryCategories[field.DiscoveryCategory] {
+				return fmt.Errorf("field %s requires a unique discovery category and string-list type", field.Key)
+			}
+			discoveryCategories[field.DiscoveryCategory] = true
+		} else if field.DiscoveryCategory != "" {
+			return fmt.Errorf("field %s defines discovery_category outside the post-migration phase", field.Key)
+		}
 		switch field.Type {
 		case "string", "string-list", "boolean", "duration":
 			if len(field.Choices) != 0 || field.ChoicesFrom != "" {
