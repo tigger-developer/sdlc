@@ -401,3 +401,12 @@ without reconstructing the work from conversation history.
   audit model remains useful only for classifying archived Spec Kit work by
   disposition so those entries can populate `docs/work.org`; it should not
   select the stable authority documents.
+- Refined deterministic product and architecture discovery to inventory the
+  current project through Git and filter exact case-insensitive basenames for
+  `README`, `VISION`, and `ARCHITECTURE` Markdown or Org documents. Present the
+  exact tracked or untracked paths as operator-selectable candidates. The
+  authority prompt must offer a refresh action that repeats the inventory for
+  the current category without discarding earlier migration work or confirmed
+  answers, allowing the operator to relocate a misplaced authority such as a
+  root-level `ARCHITECTURE.md` into `docs/` before continuing. Do not use the
+  `find` command or inspect `.git` internals.
