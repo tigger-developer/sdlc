@@ -268,6 +268,29 @@ concrete migration requirement cannot be satisfied safely another way.
   explain the supported portable subset and require Org =verbatim= or ~code~
   syntax rather than Markdown backticks, even though Pandoc accepts backticks.
 
+## Org authoring and folding
+
+- Use Org as an outliner, not as Markdown with different punctuation. Headings
+  are meaningful addressable nodes; lists contain subordinate material within
+  a node.
+- Keep the hierarchy shallow enough to navigate. Three or four heading levels
+  are normally sufficient; a deeper structure is a signal to restructure or
+  split the document.
+- Distinguish checkboxes for finite list-item completion from TODO keywords for
+  the lifecycle of a heading.
+- Use tags for cross-cutting classification and properties for structured node
+  attributes. Do not reproduce the heading hierarchy as tags.
+- Use typed blocks according to meaning: source blocks for code, example blocks
+  for literal output, and quote blocks for quoted prose.
+- Use drawers for metadata or secondary supporting material. Do not hide
+  first-class requirements, design decisions, or evidence in a drawer merely to
+  shorten the visible document.
+- Use `#+STARTUP: overview` or `content` for file-wide initial folding. A dense
+  supporting subtree not intended for casual inspection may set
+  `:VISIBILITY: folded` in its property drawer.
+- Folding is a view over the explicit tree, not a substitute for structure.
+  Documents must remain understandable as plain text and rendered HTML.
+
 ## Requested design artefacts
 
 - The implementation handover checklist is drafted in

@@ -342,10 +342,29 @@ Inherited defaults and empty sections are omitted from project YAML.
   redistributable community template may replace it later after its licence and
   provenance have been reviewed.
 - [ ] Add a concise `src/ORGMODE.md` primer and route it only when an agent
-  reads or writes Org artefacts. Cover headings, lists, property drawers,
-  internal and file links, bold text, =verbatim=, ~code~, and source blocks.
-  Explicitly prohibit Markdown backticks in Org even though Pandoc accepts
-  them.
+  reads or writes Org artefacts. It must teach the semantic model rather than
+  merely list punctuation:
+  - headings are addressable nodes in the document hierarchy;
+  - lists are subordinate content within a node;
+  - checkboxes track finite list items, while TODO keywords track a node's
+    lifecycle;
+  - tags express cross-cutting classifications;
+  - properties express structured attributes;
+  - typed blocks distinguish source, literal output, and quotations; and
+  - drawers hold secondary or metadata material, not first-class requirements.
+- [ ] Require meaningful outline hierarchy and folding. Prefer no more than
+  three or four heading levels; restructure or split a document rather than
+  creating a deep star ladder. Use `#+STARTUP: overview` or `content` for the
+  file view. A dense supporting subtree not intended for casual inspection may
+  use `:VISIBILITY: folded`; drawers may hold subordinate detail that should
+  remain available but normally collapsed.
+- [ ] Warn that folding is a view over explicit structure. Required information
+  must remain understandable in plain text and rendered HTML, and must not be
+  hidden merely because it is visually inconvenient.
+- [ ] Cover internal and file links, bold text, =verbatim=, ~code~,
+  description lists, property drawers, named source blocks, example blocks,
+  and quote blocks. Explicitly prohibit Markdown backticks in Org even though
+  Pandoc accepts them.
 
 ### 13. Update public documentation
 
