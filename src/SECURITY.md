@@ -49,6 +49,7 @@ a better fit. Do not add a second scanner merely to produce duplicate findings.
 | Node.js and npm-managed web assets | The selected package manager's audit command |
 | Perl | `cpan-audit` |
 | Swift Package Manager or CocoaPods | Trivy |
+| Rust | `cargo audit` against the committed `Cargo.lock` |
 | Other supported lockfiles or artefacts | Trivy or OSV-Scanner, with the choice recorded |
 
 Scanner commands and thresholds belong in the applicable technology standard
@@ -96,4 +97,5 @@ same target and exception policy rather than creating a second security process.
 - [CPAN Audit](https://metacpan.org/pod/cpan-audit)
 - [Trivy vulnerability scanning](https://trivy.dev/docs/latest/scanner/vulnerability/)
 - [OSV-Scanner](https://google.github.io/osv-scanner/)
+- [RustSec and cargo-audit](https://rustsec.org/)
 - [OWASP vulnerable dependency management](https://cheatsheetseries.owasp.org/cheatsheets/Vulnerable_Dependency_Management_Cheat_Sheet.html)

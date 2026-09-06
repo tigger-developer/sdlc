@@ -33,6 +33,8 @@ Apply these boundaries:
   including browser and plugin code.
 - `NODE` requires material Node.js runtime, package, build, or test tooling; a
   stray lockfile or copied package metadata is insufficient.
+- `RUST` requires maintained Rust product, test, build, packaging, or deployment
+  code; an incidental lockfile or vendored crate is insufficient.
 - `SHELL` requires maintained shell code that implements product, test, build,
   packaging, or deployment behaviour. Make recipes and framework-owned scripts
   alone are insufficient.

@@ -97,6 +97,13 @@ next question. Multi-choice input toggles the named or numbered choices,
 redraws their complete `[x]` state, and requires Enter to confirm. The final
 concise confirmation makes the accepted interpretation visibly auditable.
 
+Added Rust as an automatically discoverable technology standard, covering Cargo
+reproducibility, idiomatic API and ownership design, common architectures,
+async and concurrency discipline, errors, unsafe and FFI boundaries, provider
+SDK isolation, testing, security scanning, established ecosystem libraries, and
+Rust-specific anti-patterns. Rust deployables now use `cargo audit` as their
+preferred `make vulncheck` scanner.
+
 ## v2.1.0 - 2026-09-05
 
 Defined the intended replacement for the four separately approved Spec Kit

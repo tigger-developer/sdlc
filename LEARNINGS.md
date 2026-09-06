@@ -101,6 +101,14 @@ preselected recommendation, not hidden configuration. This helps both
 brownfield projects and scaffolded greenfield projects without pretending that
 an empty repository reveals its intended stack.
 
+Technology standards should distinguish an established ecosystem reach-for from
+an unconditional dependency endorsement. Rust makes that boundary especially
+important: mature crates can provide strong defaults, but features, transitive
+dependencies, minimum compiler versions, security history, and operational
+cost remain project-specific evidence. The standard therefore names common
+choices by concern while retaining the same dependency review required for any
+new library.
+
 ## Migration preserves history without processing dormant work
 
 A production process cannot be replaced by pretending its existing work never
