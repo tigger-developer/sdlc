@@ -82,7 +82,6 @@ var retiredV2SharedPaths = []string{
 	"commands",
 	"skills",
 	filepath.Join("presets", "sdlc-standards"),
-	"prompts",
 	filepath.Join("templates", "project-init"),
 }
 

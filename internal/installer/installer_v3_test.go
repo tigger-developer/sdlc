@@ -13,6 +13,7 @@ func TestV3InteractiveInstallUsesOneGlobalTreeAndRetiresUnsupportedCopies(t *tes
 	source := filepath.Join(root, "source")
 	writeFixtureFile(t, filepath.Join(source, "README.md"), "# SDLC\n")
 	writeFixtureFile(t, filepath.Join(source, "src", "MAIN.md"), "# Lean SDLC\n")
+	writeFixtureFile(t, filepath.Join(source, "src", "prompts", "discover-project-authorities.md"), "Discover project authorities.\n")
 	writeFixtureFile(t, filepath.Join(source, "skills", "audit-code", "SKILL.md"), "---\nname: audit-code\ndescription: Review code.\n---\n")
 	writeFixtureFile(t, filepath.Join(source, "skills", "define-change", "SKILL.md"), "---\nname: define-change\ndescription: Define a change.\n---\n")
 	writeFixtureFile(t, filepath.Join(source, "hooks", "agent-command-guard.sh"), "#!/usr/bin/env bash\n")
