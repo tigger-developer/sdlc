@@ -1,0 +1,141 @@
+#+TITLE: Project Work Ledger
+#+STARTUP: overview
+#+TODO: TODO ACTIVE BLOCKED REVIEW | DONE ABANDONED
+#+OPTIONS: toc:2 num:nil
+
+#+begin_comment
+This is the canonical SDLC v3 work-ledger template.
+
+Use real Org headings and one monotonically increasing project-wide work number.
+Never reuse an identifier, including after abandonment or archival. Put work
+identity, state, priority, provenance, and links here. Put acceptance criteria,
+test definitions, edge cases, and solution design in the linked spec.org.
+#+end_comment
+
+* Open defects
+
+** TODO WNNN - Concise defect descriptor                         :defect:
+:PROPERTIES:
+:CUSTOM_ID: w-nnn
+:TYPE:     defect
+:PRIORITY: [high|normal|low]
+:SOURCE:   [URL or file link]
+:CREATED:  [YYYY-MM-DD]
+:END:
+
+*** Context
+
+- *Observed:* [Concise user-visible or operator-visible failure.]
+- *Expected:* [Concise expected behaviour.]
+- *Impact:* [Who or what is affected.]
+
+*** Sources
+
+- [[file:../path/to/evidence][Descriptive evidence]]
+
+*** Delivery
+
+- *Specification:* Not yet defined.
+- *Notes:* [Only durable triage information.]
+
+* Undelivered features
+
+** TODO WNNN - Concise feature descriptor                        :feature:
+:PROPERTIES:
+:CUSTOM_ID: w-nnn-feature
+:TYPE:     feature
+:PRIORITY: [high|normal|low]
+:SOURCE:   [URL or file link]
+:CREATED:  [YYYY-MM-DD]
+:END:
+
+*** Context
+
+- *Outcome:* [Desired user-visible or operator-visible result.]
+- *Boundary:* [Known scope or ownership boundary.]
+
+*** Sources
+
+- [[file:../path/to/source][Descriptive source]]
+
+*** Delivery
+
+- *Specification:* Not yet defined.
+- *Notes:* [Durable product decision or uncertainty only.]
+
+* Active delivery
+
+** ACTIVE WNNN - Concise change descriptor                       :change:
+:PROPERTIES:
+:CUSTOM_ID: w-nnn-active
+:TYPE:     change
+:PRIORITY: [high|normal|low]
+:STARTED:  [YYYY-MM-DD]
+:END:
+
+- *Specification:* [[file:../specs/NNN-descriptor/spec.org][WNNN - Concise
+  change descriptor]]
+- *Definition gate:* [Pending, PASS with evidence link, or blocked.]
+- *Operator sign-off:* [Pending or dated decision.]
+- *Delivery:* [Not started, TDD RED, implementation, GREEN, or validation.]
+- *Implementation gate:* [Pending, PASS with evidence link, or blocked.]
+- *Next action:* [One concrete next action.]
+
+* Human review
+
+** REVIEW WNNN - Concise change descriptor                       :review:
+:PROPERTIES:
+:CUSTOM_ID: w-nnn-review
+:TYPE:     change
+:END:
+
+- *Specification:* [[file:../specs/NNN-descriptor/spec.org][WNNN - Concise
+  change descriptor]]
+- *Evidence:* [[file:../specs/NNN-descriptor/audits.org][Audit evidence]] and
+  [[file:../specs/NNN-descriptor/validation.org][validation evidence]]
+- *Decision required:* [Exact operator decision, with no unexplained IDs.]
+
+* Closed work
+
+** DONE WNNN - Concise delivered descriptor                      :delivered:
+:PROPERTIES:
+:CUSTOM_ID: w-nnn-done
+:TYPE:     change
+:CLOSED:   [YYYY-MM-DD]
+:END:
+
+- *Specification:* [[file:../specs/NNN-descriptor/spec.org][WNNN - Concise
+  delivered descriptor]]
+- *Result:* [Concise delivered outcome.]
+- *Evidence:* [Descriptive links to audits, validation, and relevant commit.]
+- *Documentation:* [Descriptive links to updated project documents.]
+
+** ABANDONED WNNN - Concise abandoned descriptor                 :abandoned:
+:PROPERTIES:
+:CUSTOM_ID: w-nnn-abandoned
+:TYPE:     [defect|feature|change]
+:CLOSED:   [YYYY-MM-DD]
+:END:
+
+- *Reason:* [Why the work was abandoned without deleting its history.]
+- *Preserved material:* [Descriptive archive or source link.]
+- *Identifier:* Retired permanently; never reuse =WNNN= or its derived IDs.
+
+* Migration record
+
+** DONE SDLC migration - [v1 or v2] to v3                       :migration:
+:PROPERTIES:
+:CUSTOM_ID: sdlc-migration
+:MIGRATED: [YYYY-MM-DD]
+:END:
+
+- *Pre-migration state:* [Dated archive branch and optional origin link.]
+- *Migration branch:* [Branch name.]
+- *Ticket archive:* [[file:archive/migrated-tickets/][Archived ticket corpus]],
+  when applicable.
+- *Historical requirements:* [[file:ACs.org][Legacy acceptance-criteria
+  ledger]], when applicable.
+- *Archived v2 work:* [[file:archive/sdlc-v2/][Archived Spec Kit work]], when
+  applicable.
+- *Assumptions:* [Visible migration heuristics or none.]
+- *Unresolved items:* [Links to the work items created above or none.]

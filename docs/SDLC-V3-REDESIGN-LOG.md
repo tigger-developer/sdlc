@@ -242,9 +242,14 @@ concrete migration requirement cannot be satisfied safely another way.
 
 ## Requested design artefacts
 
-- An Org unified-specification template using the operator's ADHD presentation contract, to be rendered and opened for review.
-- An Org work-ledger template using meaningful nested headings, to be opened in Emacs.
-- Both templates are to be reviewed before repository implementation begins.
+- The implementation handover checklist is drafted in
+  `docs/SDLC-V3-IMPLEMENTATION-PLAN.md`.
+- The Org unified-specification review candidate is drafted in
+  `docs/SDLC-V3-SPEC-TEMPLATE.org`.
+- The Org work-ledger review candidate is drafted in
+  `docs/SDLC-V3-WORK-TEMPLATE.org`.
+- The templates and the decisions explicitly left open in the implementation
+  plan must be reviewed before repository implementation begins.
 
 The specification template must make context-independent handoff explicit and
 record the delivery objective, relevant starting state, exact authorities,

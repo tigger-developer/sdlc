@@ -1,0 +1,266 @@
+#+TITLE: WNNN - Short descriptive title
+#+SUBTITLE: Unified change specification
+#+STARTUP: overview
+#+OPTIONS: toc:2 num:nil
+
+#+begin_comment
+This is the canonical SDLC v3 specification template.
+
+Use a new project-wide work number and never reuse an identifier. Replace every
+instructional placeholder before definition sign-off. Keep the document concise,
+but make it sufficient for a new agent to deliver without the drafting
+conversation. Use Org emphasis sparingly: bold functional nouns, states, values,
+and consequences that support rapid scanning. Do not bold structural words.
+#+end_comment
+
+* Specification Summary
+:PROPERTIES:
+:CUSTOM_ID: summary
+:END:
+
+- *Outcome:* [One sentence describing the user-visible or operator-visible result.]
+- *Before:* [The relevant current behaviour.]
+- *After:* [The required behaviour after delivery.]
+- *Changes:* [Short bullets naming the changed behaviour or interfaces.]
+- *Unchanged:* [Important boundaries and behaviours that remain unchanged.]
+- *Edge cases:* [The material edge cases covered below.]
+- *Decisions:* [Resolved operator decisions that constrain delivery.]
+- *Next step:* Definition gate, then operator sign-off.
+
+The summary above must accurately and completely represent the detailed
+specification below.
+
+-----
+
+* Context
+:PROPERTIES:
+:CUSTOM_ID: context
+:END:
+
+** Problem
+
+[Describe the observed need, defect, or opportunity without proposing a test or
+implementation as the requirement.]
+
+** Outcome
+
+[Describe the measurable system outcome.]
+
+** Scope
+
+*** In scope
+
+- [Included behaviour, interface, data, or documentation.]
+
+*** Out of scope
+
+- [Explicitly excluded adjacent work.]
+
+*** Unchanged
+
+- [Existing behaviour or ownership boundary that must remain intact.]
+
+** Authority and starting point
+
+- *Project profile:* [[file:../../.sdlc/project.yaml][=.sdlc/project.yaml=]]
+- *Product authority:* [Link to the exact document and relevant section.]
+- *Architecture authority:* [Link to the exact document and relevant section.]
+- *Historical requirement or evidence:* [Link only when relevant.]
+- *Current implementation fact:* [Link to the exact file or component when it
+  materially constrains the change.]
+- *External contract:* [Link when another project owns an integration or runtime
+  boundary.]
+
+** Constraints and dependencies
+
+- [Compatibility, privacy, security, operational, or dependency constraint.]
+
+** Decisions
+
+- [Decision already made by the operator, with enough detail to implement.]
+
+** Unresolved blockers
+
+- None.
+
+#+begin_comment
+Do not leave a design preference or product decision in this section for the
+delivery agent to guess. A real unresolved blocker prevents definition sign-off.
+#+end_comment
+
+* Acceptance Criteria
+:PROPERTIES:
+:CUSTOM_ID: acceptance-criteria
+:END:
+
+#+begin_comment
+Each AC describes one falsifiable state of the system. It does not describe a
+test action or implementation mechanism. Prefer the form: "Given [context], the
+system [does, returns, stores, or rejects] X." Split independently falsifiable
+conditions. Every AC links to at least one test definition.
+#+end_comment
+
+** ACNNN.1 - Descriptive outcome
+:PROPERTIES:
+:CUSTOM_ID: ac-nnn-1
+:END:
+
+- *Criterion:* Given [context], the system [required observable state].
+- *Proven by:* [[#rt-nnn-1][RTNNN.1 - Descriptive regression test]]
+
+** ACNNN.2 - Descriptive boundary
+:PROPERTIES:
+:CUSTOM_ID: ac-nnn-2
+:END:
+
+- *Criterion:* Given [boundary condition], the system [required observable
+  state].
+- *Proven by:* [[#ut-nnn-1][UTNNN.1 - Descriptive user validation]] and
+  [[#ot-nnn-1][OTNNN.1 - Descriptive one-off verification]]
+
+* Test Definitions
+:PROPERTIES:
+:CUSTOM_ID: test-definitions
+:END:
+
+#+begin_comment
+Classify each test honestly:
+
+- RT is a persistent automated regression test included in the normal suite.
+- UT is a human user test whose result is recorded, with no artificial test file.
+- OT is a bounded one-off check that is not retained in the regression suite.
+
+Automated RTs follow TDD and must fail for the expected reason before
+implementation. A test must earn its place, exercise the relevant boundary, and
+be defined well enough to reproduce. Do not simulate an undocumented third-party
+system or use source-text greps as behavioural evidence.
+#+end_comment
+
+** RTNNN.1 - Descriptive regression test
+:PROPERTIES:
+:CUSTOM_ID: rt-nnn-1
+:END:
+
+- *Covers:* [[#ac-nnn-1][ACNNN.1 - Descriptive outcome]]
+- *Boundary:* [Public interface or system boundary exercised.]
+- *Setup:* [Only the state required for the test.]
+- *Action:* [One reproducible action.]
+- *Expected:* [Observable result that proves the criterion.]
+- *Retention:* Persistent regression suite under the supported test command.
+
+** UTNNN.1 - Descriptive user validation
+:PROPERTIES:
+:CUSTOM_ID: ut-nnn-1
+:END:
+
+- *Covers:* [[#ac-nnn-2][ACNNN.2 - Descriptive boundary]]
+- *Reviewer:* Operator or named user role.
+- *Procedure:* [Short human validation procedure.]
+- *Expected:* [What the reviewer must observe or decide.]
+- *Record:* Write the dated result to =validation.org=.
+
+** OTNNN.1 - Descriptive one-off verification
+:PROPERTIES:
+:CUSTOM_ID: ot-nnn-1
+:END:
+
+- *Covers:* [[#ac-nnn-2][ACNNN.2 - Descriptive boundary]]
+- *Boundary:* [Live API, deployment, migration, or other bounded target.]
+- *Procedure:* [Exact bounded action or command, if known.]
+- *Expected:* [Observable result.]
+- *Bounds:* [Invocation, data, cost, and cleanup limits.]
+- *Record:* Write the dated result to =validation.org=; do not add this check to
+  automated regression, CI, build, or scheduled execution.
+
+* Edge Cases
+:PROPERTIES:
+:CUSTOM_ID: edge-cases
+:END:
+
+** [Descriptive edge case]
+
+- *Condition:* [Boundary or failure condition.]
+- *Required behaviour:* [Deterministic outcome.]
+- *Covered by:* [[#ac-nnn-2][ACNNN.2 - Descriptive boundary]] and
+  [[#ot-nnn-1][OTNNN.1 - Descriptive one-off verification]]
+
+* Solution Design
+:PROPERTIES:
+:CUSTOM_ID: solution-design
+:END:
+
+#+begin_comment
+Describe enough of the after-state for a new delivery agent to begin with the
+defined tests. Follow the operator's direction, the project architecture, the
+selected standards, and external contracts. Do not expand the design into a
+task list or duplicate stable architecture documents.
+#+end_comment
+
+** Architecture context
+
+- *Relevant components:* [Existing components and responsibilities.]
+- *Ownership boundary:* [What this project owns and what another system owns.]
+- *Existing pattern:* [Pattern to preserve or intentionally replace.]
+
+** High-level design
+
+*** Flow
+
+1. [First material interaction or transformation.]
+2. [Next material interaction or transformation.]
+3. [Result and persistence or output boundary.]
+
+*** Interfaces and configuration
+
+- *Interface:* [After-state contract, function, command, endpoint, schema, or
+  configuration key.]
+- *Compatibility:* [How existing callers, data, or deployments behave.]
+
+*** Data and state
+
+- [State read, written, migrated, retained, or deliberately unchanged.]
+
+*** Failure behaviour
+
+- [Validation, error, retry, atomicity, rollback, and observability behaviour.]
+
+** Architecture impact
+
+*** Security impact
+
+- *Threat boundary:* [Changed or unchanged trust boundary.]
+- *Data and secrets:* [Exposure, minimization, storage, and logging impact.]
+- *Access:* [Authorization and least-privilege impact.]
+- *Conclusion:* [Required mitigation, explicit no-change rationale, or blocker.]
+
+*** Other relevant qualities
+
+- *Reliability:* [Impact or not applicable with reason.]
+- *Performance:* [Impact or not applicable with reason.]
+- *Operability:* [Deployment, rollback, monitoring, or support impact.]
+- *Accessibility:* [Impact or not applicable with reason.]
+- *Portability:* [Impact or not applicable with reason.]
+- *Maintainability:* [Complexity and future-change impact.]
+
+* Delivery Handoff
+:PROPERTIES:
+:CUSTOM_ID: delivery-handoff
+:END:
+
+- *Status:* Draft, definition audit pending.
+- *Required reading:* [Only the exact additional sources needed beyond this
+  specification and =.sdlc/project.yaml=.]
+- *First implementation step:* Write [[#rt-nnn-1][RTNNN.1 - Descriptive
+  regression test]] and observe the expected RED result.
+- *Definition evidence:* [[file:audits.org][=audits.org=]]
+- *Validation evidence:* [[file:validation.org][=validation.org=]] when UT or OT
+  execution occurs.
+- *Documentation impact:* [Files to update, or none with reason.]
+- *Operator sign-off:* Pending.
+
+#+begin_comment
+Before definition sign-off, test the handoff: could a new agent deliver this
+change using only this file, .sdlc/project.yaml, the exact authorities named
+above, and the repository? Phrases such as "as discussed", unnamed documents,
+or hidden decisions fail the gate.
+#+end_comment
