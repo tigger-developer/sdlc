@@ -463,3 +463,7 @@ without reconstructing the work from conversation history.
   blank line, and schema choices and authority candidates use one shared `[x]`
   and `[ ]` renderer. The schema continues to own questions, options, defaults,
   and validation; scalar and multi-select input behaviour remains separate.
+- Replaced the initializer's default per-file Git migration inventory with one
+  concise commit summary. `VERBOSE=1` preserves the complete Git output, and a
+  failed commit replays its captured stdout and stderr before returning the
+  error.

@@ -47,6 +47,10 @@ Standardized initializer prompts with blank-line separation and one shared
 the YAML schema; authority selection retains its separate toggle and rescan
 behaviour.
 
+The initializer now suppresses Git's per-file migration commit inventory by
+default and prints one concise commit summary. `VERBOSE=1` retains the full Git
+output, while commit failures always replay captured diagnostics.
+
 ## v2.1.0 - 2026-09-05
 
 Defined the intended replacement for the four separately approved Spec Kit

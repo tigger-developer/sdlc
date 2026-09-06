@@ -531,6 +531,84 @@ func TestRunInitializesOnceOnMigrationBranch(t *testing.T) {
 	}
 }
 
+func TestCommitMigrationPrintsConciseSummaryByDefault(t *testing.T) {
+	t.Setenv("VERBOSE", "")
+	var output bytes.Buffer
+	var errorOutput bytes.Buffer
+	options := defaultOptions(Options{
+		Output:      &output,
+		ErrorOutput: &errorOutput,
+		RunCommand: func(name string, arguments []string, directory string, input io.Reader, stdout, stderr io.Writer) error {
+			switch {
+			case name == "git" && containsArgument(arguments, "commit"):
+				_, err := io.WriteString(stdout, "[migration abc1234] chore: initialize lean SDLC v3\n rename .specify/old => docs/archive/old (100%)\n")
+				return err
+			case name == "git" && containsArgument(arguments, "show"):
+				_, err := io.WriteString(stdout, "abc1234 chore: initialize lean SDLC v3\n\n 57 files changed, 112 insertions(+)\n")
+				return err
+			default:
+				return fmt.Errorf("unexpected command: %s %v", name, arguments)
+			}
+		},
+	})
+
+	if err := commitMigration(options, t.TempDir()); err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(output.String(), "rename .specify") {
+		t.Fatalf("default output contains Git inventory:\n%s", output.String())
+	}
+	want := "Migration commit: abc1234 chore: initialize lean SDLC v3 | 57 files changed, 112 insertions(+).\n"
+	if output.String() != want {
+		t.Fatalf("summary = %q, want %q", output.String(), want)
+	}
+}
+
+func TestCommitMigrationPreservesFullGitOutputWhenVerbose(t *testing.T) {
+	t.Setenv("VERBOSE", "1")
+	var output bytes.Buffer
+	options := defaultOptions(Options{
+		Output:      &output,
+		ErrorOutput: &bytes.Buffer{},
+		RunCommand: func(name string, arguments []string, directory string, input io.Reader, stdout, stderr io.Writer) error {
+			if name != "git" || !containsArgument(arguments, "commit") {
+				return fmt.Errorf("unexpected command: %s %v", name, arguments)
+			}
+			_, err := io.WriteString(stdout, "[migration abc1234] chore: initialize lean SDLC v3\n rename .specify/old => docs/archive/old (100%)\n")
+			return err
+		},
+	})
+
+	if err := commitMigration(options, t.TempDir()); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(output.String(), "rename .specify/old") {
+		t.Fatalf("verbose output omitted Git inventory:\n%s", output.String())
+	}
+}
+
+func TestCommitMigrationReplaysCapturedFailureDiagnostics(t *testing.T) {
+	t.Setenv("VERBOSE", "")
+	var output bytes.Buffer
+	var errorOutput bytes.Buffer
+	options := defaultOptions(Options{
+		Output:      &output,
+		ErrorOutput: &errorOutput,
+		RunCommand: func(name string, arguments []string, directory string, input io.Reader, stdout, stderr io.Writer) error {
+			_, _ = io.WriteString(stdout, "commit context\n")
+			_, _ = io.WriteString(stderr, "commit rejected\n")
+			return errors.New("exit status 1")
+		},
+	})
+
+	if err := commitMigration(options, t.TempDir()); err == nil {
+		t.Fatal("failed commit returned no error")
+	}
+	if output.String() != "commit context\n" || errorOutput.String() != "commit rejected\n" {
+		t.Fatalf("failure diagnostics = stdout %q, stderr %q", output.String(), errorOutput.String())
+	}
+}
+
 func TestRunMigratesV2WithoutRenumberingOrDeletingUnrelatedIntegrations(t *testing.T) {
 	project := t.TempDir()
 	runGitTest(t, project, "init")

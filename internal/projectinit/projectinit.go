@@ -206,7 +206,7 @@ func Run(options Options) error {
 	if err := options.RunCommand("git", []string{"add", "-A"}, projectRoot, nil, options.Output, options.ErrorOutput); err != nil {
 		return fmt.Errorf("staging migration: %w", err)
 	}
-	if err := options.RunCommand("git", []string{"commit", "-m", "chore: initialize lean SDLC v3"}, projectRoot, nil, options.Output, options.ErrorOutput); err != nil {
+	if err := commitMigration(options, projectRoot); err != nil {
 		return fmt.Errorf("committing migration: %w", err)
 	}
 	fmt.Fprintf(options.Output, "Initialized SDLC v3 on %s.\n", migration)
@@ -330,6 +330,35 @@ func commandOutput(options Options, directory, name string, arguments ...string)
 	var output bytes.Buffer
 	err := options.RunCommand(name, arguments, directory, nil, &output, options.ErrorOutput)
 	return output.String(), err
+}
+
+func commitMigration(options Options, projectRoot string) error {
+	arguments := []string{"commit", "-m", "chore: initialize lean SDLC v3"}
+	if os.Getenv("VERBOSE") == "1" {
+		return options.RunCommand("git", arguments, projectRoot, nil, options.Output, options.ErrorOutput)
+	}
+
+	var commitOutput bytes.Buffer
+	var commitError bytes.Buffer
+	if err := options.RunCommand("git", arguments, projectRoot, nil, &commitOutput, &commitError); err != nil {
+		_, _ = io.Copy(options.Output, &commitOutput)
+		_, _ = io.Copy(options.ErrorOutput, &commitError)
+		return err
+	}
+
+	summary, err := commandOutput(options, projectRoot, "git", "show", "--shortstat", "--format=%h%x20%s", "HEAD")
+	if err != nil || strings.TrimSpace(summary) == "" {
+		fmt.Fprintln(options.Output, "Migration changes committed.")
+		return nil
+	}
+	lines := make([]string, 0, 2)
+	for _, line := range strings.Split(summary, "\n") {
+		if line = strings.TrimSpace(line); line != "" {
+			lines = append(lines, line)
+		}
+	}
+	fmt.Fprintf(options.Output, "Migration commit: %s.\n", strings.Join(lines, " | "))
+	return nil
 }
 
 func ensureGitRepository(options Options, projectRoot string) error {

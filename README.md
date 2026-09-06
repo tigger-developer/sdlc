@@ -76,8 +76,12 @@ The initializer:
 10. for v2 projects with archived specifications, runs one bounded read-only
     classification with the configured audit model and renders the results into
     `docs/work.org`;
-11. creates `.sdlc/project.yaml`, commits the migration; and
+11. creates `.sdlc/project.yaml` and commits the migration with a concise
+    commit summary; and
 12. asks whether to merge the migration branch into the original branch.
+
+Set `VERBOSE=1` to show Git's complete changed-file inventory during the
+migration commit.
 
 The first real project migration should be performed with the operator watching.
 See [QUICKSTART.md](QUICKSTART.md) for each migration path.

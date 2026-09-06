@@ -31,6 +31,10 @@ worktree is clean, then run:
 sdlc-project-init
 ```
 
+The initializer prints a concise migration commit summary. Use
+`VERBOSE=1 sdlc-project-init` only when the complete Git changed-file inventory
+is useful.
+
 The command creates the archive branch before making changes. Review any push
 and final merge question by branch descriptor, not by an unexplained name.
 
