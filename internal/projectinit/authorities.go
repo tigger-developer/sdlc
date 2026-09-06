@@ -81,7 +81,7 @@ func resolvePostMigrationConfiguration(
 		return nil
 	}
 
-	proposalPath, err := runAuthorityDiscovery(options, sdlcRoot, projectRoot, workspace, values["SDLC_SPEC_MODEL"])
+	proposalPath, err := runAuthorityDiscovery(options, sdlcRoot, projectRoot, workspace, values["SDLC_AUDIT_MODEL"])
 	if err != nil {
 		return err
 	}

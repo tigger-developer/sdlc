@@ -386,3 +386,18 @@ without reconstructing the work from conversation history.
   current behaviour: both the discovery prompt and proposal validator exclude
   the work ledger. It conflicts with the operator's expectation that the
   canonical ledger locate current v3 requirements and remains to be corrected.
+- Changed the read-only authority-discovery invocation to use
+  `SDLC_AUDIT_MODEL` rather than `SDLC_SPEC_MODEL`. This bounded classification
+  work should use the configured fast audit model; the default is
+  `gpt-5.6-luna`.
+- Refined authority resolution after the First Folio pilot. The initializer
+  should determine stable authority paths without a model: always include
+  `docs/work.org`; include `docs/ACs.org` when present, otherwise include
+  `docs/ACs.md`; and fail when both AC ledgers exist. Detect `README.md`, the
+  established upper- or lower-case vision path under `docs/`, and established
+  root or `docs/` architecture paths from Git's exact path inventory. Preserve
+  the tracked case, validate every selected file, and ask the operator only
+  when a required authority is missing or genuinely ambiguous. The headless
+  audit model remains useful only for classifying archived Spec Kit work by
+  disposition so those entries can populate `docs/work.org`; it should not
+  select the stable authority documents.

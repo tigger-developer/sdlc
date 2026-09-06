@@ -512,7 +512,7 @@ func TestRunDiscoversAuthorityDocumentsAfterV2Archival(t *testing.T) {
 	runner := func(name string, arguments []string, directory string, input io.Reader, output, errorOutput io.Writer) error {
 		if name == "codex" {
 			discoveryCalls++
-			if argumentValue(arguments, "--sandbox") != "read-only" || argumentValue(arguments, "--model") != overrides["SDLC_SPEC_MODEL"] || !containsArgument(arguments, "--ephemeral") {
+			if argumentValue(arguments, "--sandbox") != "read-only" || argumentValue(arguments, "--model") != overrides["SDLC_AUDIT_MODEL"] || !containsArgument(arguments, "--ephemeral") {
 				return fmt.Errorf("unsafe or misconfigured authority discovery invocation: %v", arguments)
 			}
 			if exists(filepath.Join(project, ".specify")) {
