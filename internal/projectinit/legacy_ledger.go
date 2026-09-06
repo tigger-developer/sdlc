@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -18,6 +19,8 @@ const (
 	legacyLedgerPlaceholder  = "{{LEGACY_ACCEPTANCE_CRITERIA}}"
 	obsoleteSpecKitAuthority = "Requirements established or changed through Spec Kit are governed by approved =specs/*/spec.md= artefacts."
 )
+
+var specKitReferencePattern = regexp.MustCompile(`(?i)spec.*kit`)
 
 // LegacyLedgerMerge describes one legacy-ledger consolidation.
 type LegacyLedgerMerge struct {
@@ -112,6 +115,9 @@ func readRegularFile(path string) ([]byte, error) {
 func renderLegacyLedgerBlock(document string) (string, int, error) {
 	document = strings.ReplaceAll(document, "\r\n", "\n")
 	lines := removeObsoleteSpecKitAuthority(strings.Split(document, "\n"))
+	if err := rejectUnknownSpecKitReferences(lines); err != nil {
+		return "", 0, err
+	}
 	firstHeading := -1
 	sourceDate := ""
 	for index, line := range lines {
@@ -235,6 +241,19 @@ func removeObsoleteSpecKitAuthority(lines []string) []string {
 	return output
 }
 
+func rejectUnknownSpecKitReferences(lines []string) error {
+	var references []string
+	for index, line := range lines {
+		if specKitReferencePattern.MatchString(line) {
+			references = append(references, fmt.Sprintf("line %d: %s", index+1, strings.TrimSpace(line)))
+		}
+	}
+	if len(references) == 0 {
+		return nil
+	}
+	return fmt.Errorf("legacy acceptance-criteria ledger contains unrecognized Spec Kit references; review them before migration:\n%s", strings.Join(references, "\n"))
+}
+
 func mergeLegacyBlock(work, block string) (string, bool, error) {
 	existing := legacyLedgerSection(work)
 	if existing != "" {
@@ -286,6 +305,9 @@ func legacyLedgerSection(document string) string {
 
 func normalizeLegacyLedgerBlock(block string) (string, int, error) {
 	lines := removeObsoleteSpecKitAuthority(strings.Split(strings.ReplaceAll(block, "\r\n", "\n"), "\n"))
+	if err := rejectUnknownSpecKitReferences(lines); err != nil {
+		return "", 0, err
+	}
 	if len(lines) == 0 || !strings.HasPrefix(lines[0], "* "+legacyLedgerTitle) {
 		return "", 0, errors.New("legacy acceptance-criteria subtree has an invalid heading")
 	}

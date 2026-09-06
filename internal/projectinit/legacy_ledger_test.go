@@ -161,6 +161,35 @@ HOLDING
 	}
 }
 
+func TestMergeLegacyAcceptanceCriteriaSurfacesUnknownSpecKitReference(t *testing.T) {
+	root := t.TempDir()
+	writeProjectTestFile(t, filepath.Join(root, "docs", "work.org"), `* Work items
+
+* Migration record
+`)
+	writeProjectTestFile(t, filepath.Join(root, "docs", "ACs.org"), `* Ledger authority
+
+An unusual Spec Kit migration decision remains unresolved.
+
+* Acceptance criteria
+
+** Area
+*** AC1.1 - Existing requirement
+
+**** Status
+
+HOLDING
+`)
+
+	_, err := MergeLegacyAcceptanceCriteria(root)
+	if err == nil || !strings.Contains(err.Error(), "line 3: An unusual Spec Kit migration decision remains unresolved.") {
+		t.Fatalf("unknown Spec Kit reference error = %v", err)
+	}
+	if !exists(filepath.Join(root, "docs", "ACs.org")) {
+		t.Fatal("source ledger was removed despite unresolved Spec Kit reference")
+	}
+}
+
 func TestMergeLegacyAcceptanceCriteriaNormalizesExistingMergedLedger(t *testing.T) {
 	root := t.TempDir()
 	writeProjectTestFile(t, filepath.Join(root, "docs", "work.org"), `#+TITLE: Existing Work

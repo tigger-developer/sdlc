@@ -561,4 +561,6 @@ without reconstructing the work from conversation history.
   generates dependency state.
 - Remove the exact obsolete Spec Kit requirement-authority paragraph while
   importing or normalizing a legacy `ACs.org` subtree. Preserve the current
-  SDLC v3 authority statement and every other legacy paragraph unchanged.
+  SDLC v3 authority statement and every other legacy paragraph unchanged. Scan
+  that bounded subtree for any remaining case-insensitive `spec.*kit` reference;
+  preserve and report unknown matches for operator adjudication.

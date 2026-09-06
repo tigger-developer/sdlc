@@ -100,7 +100,9 @@ concise confirmation makes the accepted interpretation visibly auditable.
 Legacy acceptance-criteria import now removes the exact obsolete v2 statement
 that assigns current requirement authority to Spec Kit Markdown artefacts. The
 normalizer preserves the corresponding SDLC v3 Org authority statement and all
-other legacy content.
+other legacy content. Any other case-insensitive `spec.*kit` match in the
+imported subtree is preserved and reported with its line number for operator
+review instead of being silently reinterpreted.
 
 Added Rust as an automatically discoverable technology standard, covering Cargo
 reproducibility, idiomatic API and ownership design, common architectures,
