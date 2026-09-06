@@ -13,7 +13,7 @@ Exact token and sufficient temporary specification
   -> implement the bounded fix
   -> observe GREEN and run immediate checks
   -> reconcile the durable specification, design, and documentation
-  -> converge audit-code
+  -> pass the combined implementation gate
   -> execute one-off and user tests
   -> operator closure decision
 ```
@@ -54,13 +54,13 @@ implementation and automated verification, reconcile the change into the
 durable unified specification, design, and affected documentation. The durable
 record must state the actual requirements, selected test definitions, and
 concise solution design without inventing advance ceremony. Retain executed
-results in the validation record. Run `audit-code` and remediate blocking
-findings until it has an effective PASS. Then execute and record the required
+results in the validation record. Run the combined implementation gate and
+remediate blocking findings until it has an effective PASS. Then execute and record the required
 one-off and user tests against that audited candidate.
 
 If a one-off or user test exposes a defect and remediation changes code, the
 earlier audit remains evidence for its audited revision but is no longer current
-for completion. Rerun affected automated tests, `audit-code`, and affected
+for completion. Rerun affected automated tests, the implementation gate, and affected
 one-off or user tests. Do not report completion until the current implementation
 has an effective audit PASS and current passing test evidence.
 
@@ -68,7 +68,8 @@ has an effective audit PASS and current passing test evidence.
 
 The exception skips the normal pre-implementation definition artefact and
 definition gate. It does not override
-safety, the common command prohibitions, test-driven development, audit-code,
+safety, the common command prohibitions, test-driven development, the
+implementation gate,
 verification integrity, preservation of human work, documentation accuracy, or
 evidence requirements. It does not authorize unrelated work or scope expansion.
 The closure handback must identify the temporary specification, reconciled

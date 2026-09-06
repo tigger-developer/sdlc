@@ -120,7 +120,7 @@ recorded in `validation.org`. Closure requires a current PASS
 for every required entry; missing, `PENDING`, `FAIL`, or materially stale results
 block closure, not `audit-code`.
 
-The explicit pre-Spec-Kit ticket-migration skill has one historical-record
+The explicit legacy ticket-migration skill has one historical-record
 exception. It may infer delivery when either its near-complete rule has at least
 one recorded pass and leaves at most two unrecorded unit or operator tests, or a
 ticket without recorded passing evidence retains at least one RT in the

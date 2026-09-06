@@ -2,22 +2,20 @@
 
 INSTALLER ?= bin/sdlc-install
 PROJECT_INITIALIZER ?= bin/sdlc-project-init
-PROJECT_UPDATER ?= bin/sdlc-project-update
-AUDIT_RUNNER ?= bin/sdlc-audit
+PREVIEWER ?= bin/sdlc-preview
 INSTALL_FLAGS ?=
 SDLC_RELEASE ?= $(shell git for-each-ref --count=1 --sort=-version:refname --format='%(refname:short)' --points-at=HEAD 'refs/tags/v*')
 PROJECT_INITIALIZER_BUILD_FLAGS :=
-AUDIT_RUNNER_BUILD_FLAGS :=
+PREVIEWER_BUILD_FLAGS :=
 ifneq ($(strip $(SDLC_RELEASE)),)
 PROJECT_INITIALIZER_BUILD_FLAGS += -ldflags "-X main.buildRelease=$(SDLC_RELEASE)"
-AUDIT_RUNNER_BUILD_FLAGS += -ldflags "-X main.buildVersion=$(SDLC_RELEASE)"
+PREVIEWER_BUILD_FLAGS += -ldflags "-X main.buildRelease=$(SDLC_RELEASE)"
 endif
 
 build:
 	go build -o $(INSTALLER) ./cmd/sdlc-install
 	go build $(PROJECT_INITIALIZER_BUILD_FLAGS) -o $(PROJECT_INITIALIZER) ./cmd/sdlc-project-init
-	go build $(PROJECT_INITIALIZER_BUILD_FLAGS) -o $(PROJECT_UPDATER) ./cmd/sdlc-project-init
-	go build $(AUDIT_RUNNER_BUILD_FLAGS) -o $(AUDIT_RUNNER) ./cmd/sdlc-audit
+	go build $(PREVIEWER_BUILD_FLAGS) -o $(PREVIEWER) ./cmd/sdlc-preview
 
 test: lint
 	go test ./...
@@ -33,13 +31,13 @@ install: install-cli
 
 install-cli: build
 	mkdir -p "$(HOME)/.local/bin"
-	ln -sfn "$(CURDIR)/$(INSTALLER)" "$(HOME)/.local/bin/sdlc-install"
-	ln -sfn "$(CURDIR)/$(PROJECT_INITIALIZER)" "$(HOME)/.local/bin/sdlc-project-init"
-	ln -sfn "$(CURDIR)/$(PROJECT_UPDATER)" "$(HOME)/.local/bin/sdlc-project-update"
-	ln -sfn "$(CURDIR)/$(AUDIT_RUNNER)" "$(HOME)/.local/bin/sdlc-audit"
+	@path="$(HOME)/.local/bin/sdlc-project-update"; if [ -e "$$path" ] || [ -L "$$path" ]; then backup="$$path.sdlc-v2-retired"; suffix=2; while [ -e "$$backup" ] || [ -L "$$backup" ]; do backup="$$path.sdlc-v2-retired-$$suffix"; suffix=$$((suffix + 1)); done; mv "$$path" "$$backup"; echo "Retired $$path -> $$backup"; fi
+	@path="$(HOME)/.local/bin/sdlc-audit"; if [ -e "$$path" ] || [ -L "$$path" ]; then backup="$$path.sdlc-v2-retired"; suffix=2; while [ -e "$$backup" ] || [ -L "$$backup" ]; do backup="$$path.sdlc-v2-retired-$$suffix"; suffix=$$((suffix + 1)); done; mv "$$path" "$$backup"; echo "Retired $$path -> $$backup"; fi
+	@target="$(CURDIR)/$(INSTALLER)"; path="$(HOME)/.local/bin/sdlc-install"; if [ ! -L "$$path" ] || [ "$$(readlink "$$path")" != "$$target" ]; then if [ -e "$$path" ] || [ -L "$$path" ]; then backup="$$path.sdlc-retired"; suffix=2; while [ -e "$$backup" ] || [ -L "$$backup" ]; do backup="$$path.sdlc-retired-$$suffix"; suffix=$$((suffix + 1)); done; mv "$$path" "$$backup"; echo "Backed up $$path -> $$backup"; fi; ln -s "$$target" "$$path"; echo "Installed $$path"; fi
+	@target="$(CURDIR)/$(PROJECT_INITIALIZER)"; path="$(HOME)/.local/bin/sdlc-project-init"; if [ ! -L "$$path" ] || [ "$$(readlink "$$path")" != "$$target" ]; then if [ -e "$$path" ] || [ -L "$$path" ]; then backup="$$path.sdlc-retired"; suffix=2; while [ -e "$$backup" ] || [ -L "$$backup" ]; do backup="$$path.sdlc-retired-$$suffix"; suffix=$$((suffix + 1)); done; mv "$$path" "$$backup"; echo "Backed up $$path -> $$backup"; fi; ln -s "$$target" "$$path"; echo "Installed $$path"; fi
+	@target="$(CURDIR)/$(PREVIEWER)"; path="$(HOME)/.local/bin/sdlc-preview"; if [ ! -L "$$path" ] || [ "$$(readlink "$$path")" != "$$target" ]; then if [ -e "$$path" ] || [ -L "$$path" ]; then backup="$$path.sdlc-retired"; suffix=2; while [ -e "$$backup" ] || [ -L "$$backup" ]; do backup="$$path.sdlc-retired-$$suffix"; suffix=$$((suffix + 1)); done; mv "$$path" "$$backup"; echo "Backed up $$path -> $$backup"; fi; ln -s "$$target" "$$path"; echo "Installed $$path"; fi
 
 uninstall:
-	trash "$(HOME)/.local/bin/sdlc-install"
-	trash "$(HOME)/.local/bin/sdlc-project-init"
-	trash "$(HOME)/.local/bin/sdlc-project-update"
-	trash "$(HOME)/.local/bin/sdlc-audit"
+	unlink "$(HOME)/.local/bin/sdlc-install"
+	unlink "$(HOME)/.local/bin/sdlc-project-init"
+	unlink "$(HOME)/.local/bin/sdlc-preview"

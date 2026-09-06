@@ -53,6 +53,13 @@ Each gate therefore spans at most two contexts: its authoring context and one
 retained external auditor context. Do not invoke each focused audit in a new
 context and do not replace an unfavourable auditor.
 
+Use the external-audit timeout resolved from `.sdlc/project.yaml`, then
+`~/.agents/sdlc.yaml`; the default is five minutes. A timeout is a runner
+incident, not an audit finding or PASS. Interrupt the retained auditor when the
+timeout expires and record the incident. Resume that same context only when the
+operator directs a retry; otherwise return the incident for a human decision.
+Never silently create another auditor.
+
 ## Findings and verdicts
 
 Classify findings as:

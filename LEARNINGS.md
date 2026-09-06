@@ -4,6 +4,56 @@ This document records why the public SDLC is structured as a standards library
 and how its harder rules were derived. Normative requirements live under
 [`src/`](src/).
 
+## Lean orchestration is part of correctness
+
+SDLC v2 demonstrated that a standards library can integrate successfully with
+an external specification framework, but the combined process was not usable in
+routine delivery. Small changes accumulated separate specification, plan, task,
+audit, constitution, and migration artefacts. Independent one-shot audits then
+reloaded the same project context repeatedly. High-quality review arrived, but
+delivery was delayed by ceremony, context cost, and remediation loops.
+
+SDLC v3 retains the valuable constraints and removes the duplicate lifecycle:
+
+- one unified specification defines requirements, tests, and solution design;
+- automated tests still precede implementation;
+- focused audits remain distinct criteria, but each human gate combines them;
+- authors review locally before paying for an independent context; and
+- one external auditor context is retained across retries rather than recreated.
+
+The lesson is not that audits or specifications are excessive. A poor first
+definition makes every downstream review expensive, while separate artefacts
+make contradictions easier to introduce. A concise context-independent handoff
+and bounded audit topology improve both safety and throughput.
+
+## Project-local workflow copies do not scale
+
+Spec Kit installed workflow skills into each project. Any framework correction
+then required every initialized repository to be refreshed. Stable global skills
+under `~/.agents/skills`, with standards at the canonical SDLC root, eliminate
+that fleet-wide update problem. Project repositories retain only durable facts,
+work, specifications, audits, and validation evidence.
+
+## Configuration must be safe for agents to read
+
+An application's `.env` may contain secrets and shell expressions. It was the
+wrong home for SDLC settings. V3 uses readable YAML: global defaults in
+`~/.agents/sdlc.yaml` and explicit project facts or overrides in
+`.sdlc/project.yaml`. A shell wrapper imports only allowlisted historical keys
+once, then removes those exact keys while preserving unrelated content; agents
+never read `.env`.
+
+## Migration preserves history without processing dormant work
+
+A production process cannot be replaced by pretending its existing work never
+existed. V3 creates an archive branch before mutation. SDLC v1 projects retain
+their lossless ticket corpus and acceptance-criteria ledger. SDLC v2 projects
+retain their complete Spec Kit state under the archive branch and move active
+artefacts unchanged into a project archive, but incomplete work is not
+normalized until
+the operator deliberately resumes it. This separates lossless preservation from
+unnecessary migration-time ceremony.
+
 ## Separate standards from orchestration
 
 The original framework combined engineering standards with delivery modes,
@@ -330,7 +380,7 @@ trade-offs, security, migration, operability, and testability without imposing
 one architecture method or technology stack. Its portable core draws on
 [ISO/IEC/IEEE 42010 architecture-description concepts](https://www.iso.org/standard/74393.html),
 the [SEI Architecture Tradeoff Analysis Method](https://www.sei.cmu.edu/library/the-architecture-tradeoff-analysis-method/),
-and [OWASP threat-modelling guidance](https://cheatsheetseries.owasp.org/cheatsheets/Threat_Modeling_Cheat_Sheet.html),
+and [OWASP threat-modelling guidance](https://cheatsheetseries.owasp.org/cheatsheets/Threat_Modelling_Cheat_Sheet.html),
 then applies the selected SDLC standards as project-specific constraints.
 
 ## Why the migration used a prototype branch

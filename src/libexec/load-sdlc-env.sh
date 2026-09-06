@@ -2,7 +2,18 @@
 set -eo pipefail
 
 if (($# < 1)); then
-    echo "usage: load-sdlc-env.sh FILE [KEY ...]" >&2
+    echo "usage: load-sdlc-env.sh [--filter] FILE [KEY ...]" >&2
+    exit 2
+fi
+
+mode=load
+if [[ "$1" == "--filter" ]]; then
+    mode=filter
+    shift
+fi
+
+if (($# < 1)); then
+    echo "usage: load-sdlc-env.sh [--filter] FILE [KEY ...]" >&2
     exit 2
 fi
 
@@ -26,6 +37,27 @@ for key in "${requested_keys[@]}"; do
     fi
     unset "$key"
 done
+
+if [[ "$mode" == "filter" ]]; then
+    while IFS= read -r line || [[ -n "$line" ]]; do
+        candidate=${line#"${line%%[![:space:]]*}"}
+        if [[ "$candidate" == export[[:space:]]* ]]; then
+            candidate=${candidate#export}
+            candidate=${candidate#"${candidate%%[![:space:]]*}"}
+        fi
+        managed=false
+        for key in "${requested_keys[@]}"; do
+            if [[ "$candidate" =~ ^${key}[[:space:]]*= ]]; then
+                managed=true
+                break
+            fi
+        done
+        if [[ "$managed" == false ]]; then
+            printf '%s\n' "$line"
+        fi
+    done <"$config_path"
+    exit 0
+fi
 
 # The configuration is intentionally evaluated by Bash so shell expansion and
 # references between variables retain their documented shell semantics.

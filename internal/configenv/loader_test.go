@@ -42,3 +42,24 @@ func TestLoadDoesNotInheritAllowedKeysMissingFromFile(t *testing.T) {
 		t.Fatal("missing file value was inherited from the process environment")
 	}
 }
+
+func TestRemoveKeysPreservesUnrelatedEnvironmentContent(t *testing.T) {
+	directory := t.TempDir()
+	configuration := filepath.Join(directory, ".env")
+	contents := "# application settings\nPRIVATE_TOKEN=secret\nexport SDLC_AUDIT_MODEL=gpt-old\nAPP_MODE=local\n"
+	if err := os.WriteFile(configuration, []byte(contents), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	wrapper := filepath.Join("..", "..", "src", "libexec", "load-sdlc-env.sh")
+	if err := RemoveKeys(wrapper, configuration, []string{"SDLC_AUDIT_MODEL"}); err != nil {
+		t.Fatal(err)
+	}
+	result, err := os.ReadFile(configuration)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := "# application settings\nPRIVATE_TOKEN=secret\nAPP_MODE=local\n"
+	if string(result) != want {
+		t.Fatalf("filtered environment = %q, want %q", result, want)
+	}
+}

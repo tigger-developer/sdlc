@@ -1,761 +1,198 @@
-# Engineering Standards for AI Coding Agents
+# Lean SDLC for Coding Agents
 
-> **Prerequisite:** SDLC v2 requires
-> [GitHub Spec Kit](https://github.com/github/spec-kit) 1.0 or later. Install
-> the `specify` CLI and ensure it is available on `PATH` before installing or
-> initializing this SDLC.
+This public repository provides a standalone, provider-neutral engineering
+standards library and a lean delivery workflow for coding agents. SDLC v3 uses
+one definition artefact and two human gates. It does not require GitHub Spec Kit.
 
-This public repository provides a provider-neutral engineering standards
-library for coding agents. Spec Kit owns staged specification and delivery
-orchestration. This repository supplies the coding, testing, Git,
-documentation, language, and domain standards applied within it, plus a bounded
-paired-development track for work refined through live operator review.
+The first v3 release supports **Codex with OpenAI models** for delivery and
+external audit contexts. The standards themselves are written so additional
+harnesses can be supported later.
 
-The library does not require private agent instructions. Its canonical installed
-root is exactly `~/.agents/sdlc` for every supported provider.
+## Prerequisites
 
-## What is included
+- Go 1.23 or later to build the installer and helper commands.
+- Git for recoverability, migration branches, and delivery checkpoints.
+- Codex for the initial v3 agent workflow.
+- Pandoc for browser previews of Markdown and Org documents.
+- GitHub CLI only when migrating an SDLC v1 project's GitHub tickets.
 
-| Path | Purpose |
-|---|---|
-| `src/MAIN.md` | Compact universal rules and progressive-loading routes |
-| `src/ISSUES.md` | Specification and acceptance-criteria standards |
-| `src/TESTING.md` | Behavioural testing and evidence standards |
-| `src/SECURITY.md` | Application vulnerability-checking and exception contract |
-| `src/AUDITS.md` | Independent verdict and autonomous phase-convergence contract |
-| `src/PAIRING.md` | Explicit paired-development and live user-validation contract |
-| `src/EMERGENCY.md` | Exact-token emergency delivery and reconciliation contract |
-| `src/CODING.md` | Cross-language implementation standards |
-| `src/GIT.md` | Source-control and recoverability standards |
-| `src/DOCUMENTATION.md` | Public technical-documentation standards |
-| `src/technologies/*.md` | Automatically discoverable technology standards |
-| `src/presets/sdlc-standards/` | Spec Kit preset that selects standards progressively |
-| `src/prompts/project-init/` | Constitution-generation prompt resource |
-| `src/prompts/audits/` | Canonical prompts for isolated audit processes |
-| `src/templates/project-init/` | Constitution scaffold and managed brownfield document block |
-| `src/templates/migration/` | Canonical legacy-ticket migration index template |
-| `src/config/project-init.schema.yaml` | Declared project-init fields, prompts, defaults, and persistence |
-| `src/libexec/load-sdlc-env.sh` | Bash wrapper returning only allowlisted SDLC `.env` fields |
-| `skills/` | Findings-only audits and advisory tools |
-| `hooks/` | Provider-integrated command and sensitive-file safeguard |
-| `cmd/` and `internal/` | Installer, project initializer, isolated audit runner, and verdict implementation |
+## Install
 
-Only runtime material from `src/`, `skills/`, and `hooks/` is
-deployed. Repository documentation, installer source, tests, and build metadata
-do not enter the live instruction tree.
-
-## Install the standards
-
-Building or installing from source requires Spec Kit 1.0 or later, a Go
-toolchain, `rsync`, and the tools required by the repository's build targets.
-The installed Go executables do not require a separate Go runtime. The complete
-greenfield and brownfield setup is documented in
-[`QUICKSTART.md`](QUICKSTART.md).
-
-```bash
-git clone https://github.com/tigger-developer/sdlc.git ~/code/sdlc
-```
-
-```bash
-cd ~/code/sdlc
-```
-
-```bash
+```sh
 make install
 ```
 
 The installer:
 
-- installs `sdlc-install`, `sdlc-project-init`, `sdlc-project-update`, and
-  `sdlc-audit` under
-  `~/.local/bin`;
-- synchronizes `src/` into `~/.agents/sdlc` and retains the other runtime
-  directory names;
-- installs common and provider-native skill copies for detected agents where
-  required for discovery;
-- compares source and destination before prompting;
-- lists only missing or differing destinations by default;
-- backs up owned drift before replacement;
-- configures Claude, Codex, Copilot, and Hermes pre-tool safeguards after the
-  same variance review and confirmation;
-- backs up and retires the known command and drafting-skill paths removed by
-  the standards-only model; and
-- performs no deployment prompt or write when every detected destination is
-  current.
+- builds and installs `sdlc-install`, `sdlc-project-init`, and `sdlc-preview`;
+- synchronizes the canonical standards to `~/.agents/sdlc`;
+- installs SDLC skills globally under `~/.agents/skills`;
+- retains Codex as the only supported v3 provider adapter; and
+- retires known public SDLC v1 and v2 commands, skills, prompts, and hooks from
+  Claude, Hermes, and Copilot without removing unrelated provider configuration.
 
-Interactive installation and provider-configuration confirmations accept `y`
-or `yes`, case-insensitively.
+It lists only missing or differing artefacts. An unchanged rerun writes nothing
+and asks no question. Set `VERBOSE=1` to include matching artefacts. Interactive
+confirmation accepts `y` or `yes`.
 
-Set `VERBOSE=1` to include matching destinations in the plan:
+## Repository layout
 
-```bash
-VERBOSE=1 make install
-```
+| Path | Purpose |
+|---|---|
+| `src/MAIN.md` | Universal rules and progressive routing |
+| `src/*.md` | Requirements, testing, auditing, coding, Git, documentation, security, paired, emergency, and Org standards |
+| `src/technologies/` | Automatically discoverable technology standards |
+| `src/templates/v3/` | Unified specification, work, audit, validation, and preview templates |
+| `skills/` | Globally installed workflow and focused audit skills |
+| `cmd/` and `internal/` | Installer, initializer, and preview implementation |
 
-To inspect installer options:
+## Initialize a project once
 
-```bash
-make build
-```
+Run from a clean, named Git branch:
 
-```bash
-bin/sdlc-install --help
-```
-
-Provider-specific homes are adapters, not alternate SDLC roots. Agents must
-load standards from `~/.agents/sdlc` and must never search the filesystem for a
-different copy.
-
-## Initialize a Spec Kit project
-
-Run the initializer from the adopting project:
-
-```bash
+```sh
 sdlc-project-init
 ```
 
-The initializer separates deterministic selection from semantic drafting. It:
+The initializer:
 
-- initializes Spec Kit when authorized and absent;
-- installs the deployed SDLC preset;
-- asks whether the adopting project is greenfield or brownfield;
-- discovers available standards from `~/.agents/sdlc/technologies/`;
-- asks once which technologies and infrastructure relationship apply;
-- renders the editable constitution scaffold at
-  `.specify/templates/overrides/constitution-template.md`;
-- pins the exact SDLC release tag used to build the initializer, or the source
-  commit for another clean versioned build, and leaves an explicit ratification
-  TODO for an unversioned or modified build;
-- commits only the generated constitution scaffold before invoking an agent,
-  without including unrelated staged or working-tree changes;
-- reports only a changed template, with additional variance detail under
-  `VERBOSE=1`;
-- invokes the selected agent harness to complete only the project-specific
-  parts of the constitution; and
-- verifies after the harness exits that the complete generated Engineering
-  Standards, Specification and Evidence, and Mandatory Independent Audits
-  covenants remain present.
+1. refuses when `.sdlc/project.yaml` already exists;
+2. detects a new project, an SDLC v1 project, or an SDLC v2 Spec Kit project;
+3. asks schema-driven questions about project role, technologies, product,
+   architecture, and requirement authorities, infrastructure ownership, branch
+   strategy, agent settings, and audit timeout;
+4. creates a dated branch preserving the exact pre-migration state and offers
+   to push it;
+5. creates a dedicated v3 migration branch;
+6. offers the legacy-ticket migration for eligible SDLC v1 projects;
+7. archives and removes active Spec Kit artefacts for v2 projects without
+   normalizing unfinished work;
+8. creates `.sdlc/project.yaml` and `docs/work.org`;
+9. commits the migration; and
+10. asks whether to merge the migration branch into the original branch.
 
-Project-local Spec Kit skills contain small, stable adapters rather than copied
-SDLC instructions. Each adapter loads its current command instructions from
-`~/.agents/sdlc/presets/sdlc-standards/commands/` at invocation time. Ordinary
-standards and command updates therefore reach initialized projects after
-`make install`; they do not require project reinitialization. Run
-`sdlc-project-update` once in projects initialized before this adapter model,
-and again after a structural preset change. The updater refreshes the preset,
-never launches an agent, and changes the constitution's adopted SDLC revision
-to the release embedded in the deployed executable. Review and commit that
-constitution change through the project's normal governance.
+The first real project migration should be performed with the operator watching.
+See [QUICKSTART.md](QUICKSTART.md) for each migration path.
 
-The specification command reads the canonical SDLC specification template
-directly from `~/.agents/sdlc`. It does not use Spec Kit's preset template
-composition and therefore does not require PyYAML.
+## Configuration
 
-The initializer writes only explicit project selections into the project
-`.env` and adds that file to `.gitignore`; unrelated existing values are
-preserved. User defaults remain in `~/.agents/.env` and apply wherever the
-project has no override. Changing a user default therefore changes the next
-resolved value for projects without that override. Precedence is command line,
-process environment, project `.env`, user `.env`, then a declared field
-fallback. Project classification is deliberately project-only and is never
-read as a user default. The shell files are evaluated by the deployed
-Bash wrapper, which returns only allowlisted SDLC fields to the Go programs.
-Supported keys are:
+Global non-secret defaults live at `~/.agents/sdlc.yaml`. Project facts and
+explicit overrides live in tracked `.sdlc/project.yaml`. Resolution order is:
+
+1. command line;
+2. process environment;
+3. project YAML;
+4. global YAML; and
+5. schema default.
+
+When a global value exists, the initializer shows it and lets the operator press
+Enter to inherit it or enter a project override. Inherited global values are not
+copied into the project file. Project identity, technology selection, and
+infrastructure role are always project decisions.
+
+Example global configuration:
+
+```yaml
+version: 3
+delivery:
+  branch_strategy: current
+  definition:
+    harness: codex
+    provider: openai
+    model: gpt-5.6-sol
+  build:
+    harness: codex
+    provider: openai
+    model: gpt-5.6-terra
+  audit:
+    harness: codex
+    provider: openai
+    model: gpt-5.6-luna
+    timeout: 5m
+infrastructure:
+  owner: Example platform team
+  contract: /absolute/path/to/PROJECT-INTEGRATION.md
+```
+
+The initializer can import only schema-allowlisted historical `SDLC_*` values
+from a project `.env` through its shell wrapper. After the YAML profile is
+written, it removes those exact historical keys while preserving all unrelated
+lines. Agents never read `.env`, and v3 runtime configuration never depends on
+it.
+
+## Lean delivery workflow
+
+### Define
+
+Invoke `$define-change`. It asks only the clarification needed and creates one
+`spec.org` containing:
+
+- context and scope;
+- falsifiable acceptance criteria;
+- RT, UT, and OT test definitions linked to those criteria;
+- edge cases;
+- solution design and architecture impact, with mandatory security analysis;
+  and
+- a context-independent delivery handoff.
+
+Invoke `$audit-definition`. The authoring context applies the specification,
+design, and test audits together for at most five local rounds. Only after local
+PASS does one external Codex context run all three audits. That same context is
+resumed after remediation. The gate never spans more than two contexts.
+
+The operator reviews and signs off the definition before implementation.
+
+### Deliver
+
+Invoke `$deliver-change`. Automated regression tests are written first and must
+show the intended RED result. The agent implements the smallest coherent change
+and returns the suite to GREEN.
+
+Invoke `$audit-implementation`. The authoring context applies the implemented
+test and code audits together for at most five local rounds. One retained
+external Codex context then runs both. After PASS, required OT and UT evidence is
+recorded in `validation.org`, affected documentation is reconciled, and the
+operator decides closure.
+
+Audit results live in `audits.org`. They are evidence for an exact revision, not
+human approval.
+
+## Variant workflows
+
+- `$pair-change` supports explicitly selected live human-agent implementation.
+  The bounded objective and each explicit iteration instruction form the
+  working specification. User validations are first-class evidence and are
+  consolidated into durable artefacts at closure.
+- `$emergency-change` is available only when the operator includes the exact
+  token `BYPASS-GATE-7` in the same request. It uses a bounded temporary
+  specification, preserves TDD where an automated test is justified, runs the
+  implementation gate, then backfills the durable specification, design,
+  validation, and documentation.
+
+## Project artefacts
 
 ```text
-SDLC_AGENT_HARNESS
-SDLC_SPEC_HARNESS
-SDLC_SPEC_PROVIDER
-SDLC_SPEC_MODEL
-SDLC_BUILD_HARNESS
-SDLC_BUILD_PROVIDER
-SDLC_BUILD_MODEL
-SDLC_AUDIT_HARNESS
-SDLC_AUDIT_PROVIDER
-SDLC_AUDIT_MODEL
-SDLC_AUDIT_TIMEOUT
-SDLC_BRANCH_STRATEGY
-SDLC_PROJECT_TYPE
-SDLC_TECHNOLOGIES
-SDLC_INFRA_ROLE
-SDLC_INFRA_OWNER
-SDLC_INFRA_CONTRACT
+.sdlc/project.yaml
+docs/work.org
+specs/NNN-descriptor/spec.org
+specs/NNN-descriptor/audits.org
+specs/NNN-descriptor/validation.org
 ```
 
-`SDLC_PROJECT_TYPE` accepts `greenfield` or `brownfield`. Set it in the project
-`.env` or with `--project-type`; a value in `~/.agents/.env` is ignored.
-
-`SDLC_BRANCH_STRATEGY` accepts `current` or `feature` and defaults to `current`.
-It may be set globally in `~/.agents/.env`; a project `.env` or
-`--branch-strategy` overrides that default. `current` respects the branch already
-selected for that repository. `feature` uses and publishes one branch per Spec
-Kit feature without imposing a global base-branch name.
-
-`SDLC_INFRA_ROLE` accepts `none`, `consumer`, or `provider`. A consumer complies
-with a contract owned by another project. A provider defines, implements,
-evolves, and honours the contract it publishes. The legacy
-`SDLC_INFRA_ENABLED=true` and `false` values are normalized to `consumer` and
-`none` respectively. Use `--infra-role provider` for an infrastructure
-repository rather than describing it as a consuming application.
-
-`SDLC_SPEC_HARNESS`, `SDLC_BUILD_HARNESS`, and `SDLC_AUDIT_HARNESS` each fall
-back to `SDLC_AGENT_HARNESS` when unset. Specification settings apply to
-constitution, specification, clarification, design, planning, and
-task-definition agent invocations. Build settings apply to implementation and
-convergence. Audit settings select the independent audit harness, provider, and
-model. A `*_PROVIDER` value applies only when the corresponding harness accepts
-explicit provider selection; otherwise it is ignored. Hermes receives provider
-and model, while Codex and Claude receive model only. The initializer accepts
-legacy `SDLC_DELIVERY_PROVIDER` and `SDLC_DELIVERY_MODEL` values as specification
-defaults and rewrites explicit project selections using the new names.
-
-`SDLC_AUDIT_TIMEOUT` accepts a whole-second duration of at least one second,
-such as `90s`, `4m`, or `15m`. It defaults to `5m`; `sdlc-audit --timeout`
-overrides it for one invocation.
-
-The infrastructure owner and contract are required only for `consumer` and
-`provider` roles. The public SDLC does not assume any particular infrastructure
-project. Run
-`sdlc-project-init --help` for non-interactive overrides and `--no-launch`.
-
-Field order, flags, prompts, choices, user-default eligibility, persistence,
-fallbacks, conditional requirements, and phase provider applicability are
-declared in `~/.agents/sdlc/config/project-init.schema.yaml`. Adding a technology
-document still requires no schema change; the technology choices are discovered
-from `~/.agents/sdlc/technologies/`.
-
-When the rendered scaffold, brownfield ledger state, and selections are
-already current, the initializer writes nothing, asks nothing, and does not
-relaunch an agent. If the current generated scaffold is untracked or modified,
-it checkpoints that file without relaunching the agent.
-
-For a greenfield repository, the initializer offers to run `specify init`, then
-creates the standards profile and unratified constitution. For a brownfield
-repository, a pre-existing `docs/ACs.md` identifies the SDLC v1 migration path.
-Before creating Spec Kit files, the initializer performs a one-item open-issue
-probe through `gh` and offers to invoke `$migrate-legacy-acs-to-sdlc-v1` through
-the selected audit harness, provider where supported, and model. Declining stops initialization before any
-project change. The migration must leave zero open issues, replace `docs/ACs.md`
-with `docs/ACs.org`, and return successfully before initialization continues.
-`sdlc-project-update` never performs this probe or offer.
-
-The bounded migration skill archives every ticket and comment in the
-repository, losslessly converts the pre-existing `docs/ACs.md` to the canonical
-foldable `docs/ACs.org` before appending criteria, uses at most one whole-suite
-run, and builds
-`docs/ticket-migration.org` incrementally as durable working state. It refreshes
-stale project documentation and archives the single file matching
-`docs/implementation?plan.md`, preserving its basename. It performs no
-ticket-by-ticket code archaeology,
-test reruns, migration comments, or per-ticket commits. After the archive commit
-succeeds, it closes every legacy issue and records the closure result.
-The Org index is initialized from the canonical deployed template. Tickets,
-detail categories, and individual ACs use nested Org headings so the operator
-can fold the report at useful levels. The template also carries its native Org
-syntax guide and Pandoc parse-validation rule.
-
-The AC ledger is initialized from the deployed `ACs.org` template. Its nested
-headings standardize requirement, provenance, status, test, supersession, and
-note records without discarding source information. `docs/ACs.md` is removed by
-the tracked conversion so the project has one legacy-requirement authority.
-
-The initializer preserves the existing project and installs Spec Kit into the
-working tree. A migrated brownfield project must contain `docs/ACs.org` and must
-not retain `docs/ACs.md`. Migration artefacts without the Org ledger, or both
-ledger formats together, produce an actionable error before constitution
-generation. The initializer then generates a proposed `Specification Baseline`
-authority map without copying feature or design detail.
-
-The generated template has no authority before ratification. The candidate may
-correct, remove, or replace project-specific scaffold clauses. Only the human may
-authorize removal or weakening of the shared Engineering Standards,
-Specification and Evidence, or Mandatory Independent Audits covenant. After the
-harness exits, the initializer accepts changed line wrapping but rejects omitted,
-summarized, or rewritten shared governance. Ratification makes
-`.specify/memory/constitution.md` the sole governance authority. Its first line
-is the current compact Sync Impact Report; amendments replace that line rather
-than accumulating a separate changelog.
-Follow the complete procedures in [`QUICKSTART.md`](QUICKSTART.md).
-
-## Deliver a feature with Spec Kit
-
-Spec Kit owns the feature workflow. Its
-[Agentic SDD guide](https://github.com/github/spec-kit/blob/main/docs/reference/agentic-sdd.md)
-defines the upstream command sequence and artefacts. The SDLC preset keeps that
-orchestration and adds progressively loaded engineering standards plus four
-independent audits with bounded autonomous phase convergence.
-
-Spec Kit documentation writes commands as `/speckit.*`. Codex skills mode uses
-the equivalent `$speckit-*` form. The examples below use Codex syntax; use the
-form exposed by the selected agent integration.
-
-### Context model
-
-Use one main authoring context for the feature. It may run specification,
-clarification, planning, task generation, analysis, implementation, and
-convergence. A context hand-off is not an approval gate; the files under the
-active `specs/` feature directory carry the durable state.
-
-An independent audit is the only stage transition that mandates a different
-context. The audit skill invokes `sdlc-audit`, which starts a fresh one-shot
-configured harness process in an empty temporary directory. It embeds the
-canonical audit contract, the audit-specific prompt, the candidate, and only
-the exact context files named by the authoring agent. No authoring conversation
-or child-agent context is inherited.
-
-Apply these rules to the main context:
-
-- **Start fresh for each feature** so unrelated feature history is not carried
-  in.
-- **Reset after unsafe compaction** when the context can no longer account for
-  the current specification, plan, tasks, and audit record.
-- **Consider resetting before a large implementation** when a build-focused
-  context loaded from the approved artefacts would be clearer.
-
-Do not reset the main context merely because the workflow advances from
-`specify` to `clarify`, `plan`, or `tasks`. If a new or compacted context does
-continue the feature, it must read the constitution and the active feature's
-current artefacts and audit record before acting.
-
-### Presenting approval artefacts
-
-Document-producing commands present their current artefacts once they have
-passed the required audit, or after validation when no audit applies. If the
-optional `HTML_PREVIEW_TOOL` environment variable names an executable, the
-command invokes it with the artefact paths. Otherwise it opens the artefacts in
-an available text editor or reports their exact paths when no editor is
-available.
-
-Previewing is an operator convenience. It is not approval, a workflow gate, or
-a reason for the agent to stop. The SDLC does not prescribe or install a
-particular preview implementation.
-
-### Autonomous phase convergence
-
-Staged work synchronizes at four boundaries: specification and clarification;
-plan and design; test design and tasks; and implementation, verification, and
-convergence. Each phase pulls its active branch before changing phase artefacts.
-After effective audit PASS and a coherent commit, it pulls again and pushes the
-committed phase work. A tracked asynchronous push may overlap independent work,
-but its result must be collected before another Git operation or handback. The
-full safety and failure contract is in `GIT.md`.
-
-The main authoring context owns convergence within the current phase. A failed
-audit is not an operator handback when its blocking findings can be remedied in
-the current artefact. The author remediates them, records its decisions and
-assumptions, and dispatches a fresh independent audit. The initial audit counts
-as attempt one; each phase permits at most five attempts.
-
-The author stops earlier when remediation would change a signed-off upstream
-artefact or requires a human-controlled product, scope, security, privacy,
-access, persisted-data, external-contract, or irreversible decision. It must
-not change upstream authority or switch auditors merely to obtain a PASS.
-
-On PASS, or after satisfying a PROVISIONAL verdict's exact conditions, the
-author presents the candidate and requests operator sign-off. The handback
-states the attempt count, decisions and rationale, assumptions or upstream
-changes requiring validation, retained advisories, and any unresolved blockers.
-A fifth FAIL produces the same consolidated handback without phase sign-off.
-
-The operator may sign off the current phase and authorize named consecutive
-phases in one instruction. For example, after design sign-off, "move on to test
-and build" authorizes tasks and test traceability, `audit-tests`, analysis, TDD
-implementation, and `audit-code`. Each audit remains mandatory, but an effective
-PASS advances automatically within the authorized sequence. The agent hands
-back at the end, or earlier for a material decision, scope or upstream change,
-safety boundary, separate external authority, or exhausted audit limit.
-
-A PROVISIONAL verdict avoids another model audit only for exact, mechanical,
-deterministically verifiable corrections that do not affect behaviour,
-architecture, security, privacy, access, persisted data, external contracts, or
-irreversible outcomes. The author records the audited and corrected revisions,
-condition evidence, and effective PASS in `audits.md`. Any additional or
-judgement-based change requires a fresh audit.
-
-### Step-by-step feature workflow
-
-1. **Specify the required behaviour.**
-
-   Invoke `$speckit-specify` with the requested change. Describe observable
-   behaviour, purpose, boundaries, and important failure cases, not the
-   implementation. It creates the feature directory and `spec.md`. In a
-   specification, every segment must be Accurate, Brief, and Clear. The SDLC
-   template keeps user stories brief, gives acceptance scenarios the concrete
-   behavioural detail, expresses authoritative rules as functional
-   requirements, and reserves success criteria for feature-level measurements.
-   Its opening Specification Summary gives a scan-friendly Before and After
-   comparison with precise changes, preserved scope, edge cases, decisions,
-   evidence, and the next step. An exact `***` section break separates the
-   summary from the detailed specification. The specification audit verifies
-   that the summary accurately represents that detail without adding,
-   contradicting, or materially omitting anything. Scan-friendly bullets and a
-   bold semantic spine provide visual anchors. In a brownfield project, the SDLC
-   overlay first requires a context pass across the
-   relevant requirement and design authorities, historical work records,
-   maintained regression tests and traceability, and affected implementation.
-   The specification records what the bounded delta preserves, changes,
-   supersedes, and leaves unaffected rather than restating the existing system.
-
-2. **Clarify material ambiguity.**
-
-   Invoke `$speckit-clarify` before planning. It asks up to five targeted
-   questions and writes the answers into `spec.md`. It may report that no
-   critical ambiguity remains. Repeat it with a focus area when necessary.
-   Clarification is for decisions that affect observable behaviour, scope,
-   security, access, persisted data, or validation. Technical choices belong
-   in planning.
-
-3. **Audit the specification in a fresh context.**
-
-   The main context dispatches `audit-spec`. It remediates blocking findings
-   within the specification and re-audits under the five-attempt limit. A
-   specification or clarification change preserves the earlier PASS as history
-   but makes it non-current unless it exactly satisfies a PROVISIONAL condition.
-   Record every attempt and any condition receipt in the feature's `audits.md`;
-   planning requires the current effective PASS and operator sign-off.
-
-4. **Plan the implementation.**
-
-   Resume the main context and invoke `$speckit-plan`. This is where
-   architecture, technology, interfaces, data structures, migration,
-   compatibility, security, operability, and test architecture are decided.
-   Brownfield planning consults the current design authority, relevant tickets
-   and comments or equivalent work history, regression tests and traceability,
-   and affected code before recording inherited constraints, deliberate
-   changes, superseded decisions, and unaffected boundaries.
-   Depending on the feature, Spec Kit may create `plan.md`, `research.md`,
-   `data-model.md`, `contracts/`, and `quickstart.md`.
-
-5. **Audit the design in a fresh context.**
-
-   The main context dispatches `audit-design`, remediates current-design
-   blockers, and re-audits under the five-attempt limit. It may make reasonable,
-   reversible technical decisions consistent with the signed-off specification
-   and must report them at handback. Test design and task generation require the
-   current effective PASS and operator sign-off.
-
-6. **Optionally generate focused checklists.**
-
-   `$speckit-checklist` creates domain-specific quality checks for the written
-   requirements. It is useful for security, accessibility, privacy, or other
-   areas needing an explicit completeness review. It does not replace an SDLC
-   audit.
-
-7. **Generate tasks and test traceability.**
-
-   Invoke `$speckit-tasks`. It converts the approved specification and design
-   into an ordered `tasks.md`, including the required verification,
-   documentation, migration, and human-validation work. When one-off or user
-   tests are selected, it also creates `validation.md` in the active feature
-   directory with one `PENDING` entry per test.
-
-8. **Audit the tests and tasks in a fresh context.**
-
-   The main context dispatches `audit-tests`, remediates current test-design or
-   traceability blockers, and re-audits under the five-attempt limit.
-   Implementation requires the current effective PASS and operator sign-off.
-
-9. **Analyse cross-artefact consistency.**
-
-   Invoke `$speckit-analyze` after tasks and before implementation. It checks
-   consistency and coverage across the specification, plan, and tasks. Resolve
-   material findings in the authoritative artefact, then rerun any audit that
-   the change invalidated. Analyse does not replace an independent audit.
-
-10. **Implement the approved tasks.**
-
-    Invoke `$speckit-implement`. A small feature may remain in the main context.
-    A large feature may start a fresh build-focused context or be implemented in
-    bounded phases; each context must load the approved artefacts before
-    changing code. Implementation must not change required behaviour silently.
-    Automated tests follow RED/GREEN; one-off and user tests do not.
-    Deployable applications also run their repository-owned `make vulncheck`
-    security gate after the dependency graph and build artefact are current.
-    This gate remains separate from `make test` and behavioural traceability.
-
-11. **Audit the implementation in a fresh context.**
-
-    The main context dispatches `audit-code` after implementation and
-    verification. It remediates implementation blockers and re-audits under the
-    five-attempt limit. The verdict assesses the implementation, not whether
-    final non-automated results have already been recorded.
-
-12. **Validate the audited candidate.**
-
-    After `audit-code` has an effective PASS, execute every selected one-off and
-    user test and record its result in the active feature's `validation.md`. If a
-    result exposes a defect and remediation changes code, rerun affected
-    automated tests, `audit-code`, and affected validation. The earlier audit
-    remains evidence for its revision but is no longer current for completion.
-
-13. **Converge and repeat when necessary.**
-
-    Invoke `$speckit-converge` to assess the implementation against the
-    specification, plan, and tasks. If it appends missing work to `tasks.md`,
-    implement that work, rerun affected verification and `audit-code` in a
-    fresh context, then converge again. Stop only when no work remains and all
-    required audit and validation records are current.
-
-The resulting control flow is:
-
-```text
-main:  specify -> clarify
-fresh: audit-spec -> main remediation -> fresh re-audit, at most 5 attempts
-main:  plan
-fresh: audit-design -> main remediation -> fresh re-audit, at most 5 attempts
-main:  checklist (optional) -> tasks
-fresh: audit-tests -> main remediation -> fresh re-audit, at most 5 attempts
-main:  analyze -> implement -> vulncheck for deployable applications
-fresh: audit-code -> main remediation -> fresh re-audit, at most 5 attempts
-main:  one-off and user tests -> validation.md -> converge
-main:  repeat affected audit and validation when remediation changes code
-```
-
-### Check application vulnerabilities
-
-Every deployable application exposes the stable `make vulncheck` interface
-defined by `~/.agents/sdlc/SECURITY.md`. It uses the scanner selected by the
-applicable technology standards, changes nothing, fails closed when scanning is
-unavailable or incomplete, and blocks on non-exempt findings. Mixed-stack
-projects aggregate every applicable dependency set.
-
-The target is a security gate, not a behavioural regression test, and therefore
-does not belong in `make test`. Deployment systems may invoke it before release;
-projects should also use proportionate periodic scanning because a vulnerability
-can be disclosed after an unchanged version has been deployed. Infrastructure
-owners retain responsibility for host, operating-system, service, container, or
-package-closure controls beyond the application boundary.
-
-### Use the standard Make interface
-
-Projects using Make use the same target names for the same operations:
-`build`, `lint`, `test`, `vulncheck`, `install`, `sync`, and `deploy` where each
-operation applies. `make sync` is deliberately simple: it stages the worktree,
-commits changed content with the short `COMMIT_MESSAGE` subject, then pulls and
-pushes. It does not invent a detailed commit message or add hidden Git policy.
-The default subject is `chore: sync`.
-
-Deployment runs `make test` and `make vulncheck` before the project-specific
-deployment action. An operator may use `SKIP_TESTS=1 make deploy` when the suite
-has already been established, but this does not skip vulnerability checking.
-Use `VERBOSE=1` for full output; normal output remains concise. The complete
-contracts live in `~/.agents/sdlc/CODING.md`, `GIT.md`, `TESTING.md`, and
-`SECURITY.md`.
-
-### Develop interactively with an operator
-
-Paired development is available when the required result must be refined
-through live human review, such as visual and experience-led web work. The
-operator selects it explicitly and provides a bounded session objective. Each
-explicit iteration instruction is the specification for that slice; a question
-is not implementation authority.
-
-The agent implements and verifies one reviewable slice, presents the user-visible
-result, and retains explicit operator validation in a provisional ledger. At
-closure it presents the current validations once and asks whether they may be
-recorded as the user tests for the change. In a Spec Kit feature, the mandatory
-record is the active feature's `validation.md`. It includes the behaviour,
-reviewed revision or state, material viewing conditions, result, human
-authority, and any superseded validation.
-
-Automation is added only when it protects objective, stable behaviour and adds
-evidence beyond the paired validation. The agent must not manufacture source
-greps or synthetic browser tests to imitate a visual judgement the operator has
-already made.
-
-Paired work does not repeat every staged Spec Kit audit. A change-scoped
-`audit-code` runs at closure for new or materially modified code, templates,
-scripts, or non-trivial CSS. Other audits apply only when the change creates the
-corresponding durable specification, design, or test architecture. The complete
-contract is `~/.agents/sdlc/PAIRING.md`.
-
-`$speckit-taskstoissues` is optional. It projects tasks into GitHub issues while
-retaining Spec Kit's task artefacts as the source of truth and applying the
-rule that human-facing identifiers always include descriptors.
-
-For very large features, follow Spec Kit's
-[spec-of-specs guidance](https://github.com/github/spec-kit/blob/main/docs/concepts/spec-of-specs.md)
-instead of forcing an agent to retain an oversized feature in one context.
-
-### Moving from the earlier SDLC
-
-SDLC v2 does not use the former modes, gate ceremonies, approval keywords, or
-ticket lifecycle. Their useful guarantees now live in durable artefacts and
-explicit transitions:
-
-- the constitution replaces preloaded process instructions;
-- `spec.md`, `plan.md`, and `tasks.md` replace conversational scope hand-offs;
-- independent audit PASS records replace approval gates; and
-- Spec Kit commands own progression between stages.
-
-The paired-development track is not a restored agent-wide mode or alternative
-autonomous workflow. It is an explicitly selected, operator-present path for a
-bounded change, with its own closure evidence.
-
-The operator may review, correct, or pause at any stage. No legacy keyword is
-required to continue. `BYPASS-GATE-7` remains only the narrowly defined
-emergency exception described below, not an alternative feature workflow.
-
-The preset adds standards to Spec Kit without replacing its orchestration. The
-shared SDLC documents remain the single source of truth for those standards.
-
-## Emergency exception
-
-Spec Kit is the supported v2 project workflow. Provider or project instructions
-may still direct an agent to read `~/.agents/sdlc/MAIN.md` for an isolated coding
-task, but an equivalent durable project specification is required before code
-is written.
-
-For a small emergency change before project Spec Kit artefacts exist, the human
-may include `BYPASS-GATE-7` in the request. The request then serves as a
-temporary specification only when it states the current behaviour, required
-observable behaviour, precise scope, and important constraints or exclusions.
-The agent may choose routine implementation details but may not invent the
-intended outcome. If those facts are not clear enough to define distinguishing
-evidence, the emergency change is not ready for implementation.
-
-Select every applicable test type: automated regression tests, one-off tests,
-and user tests may be combined. Only automated tests follow TDD and require a
-pre-change failure. Define one-off and user-test evidence before implementation
-where practical, then execute their final verification after `audit-code` has
-an effective PASS. Omitting an automated regression test requires a specific
-justification; urgency, difficulty, or inconvenience is insufficient.
-
-After implementing and verifying the smallest coherent fix, reconcile the
-durable specification, design, and affected documentation, then obtain a
-change-scoped `audit-code` effective PASS and run the selected one-off and user
-tests. A defect-driven code change makes the earlier PASS historical rather than
-current and requires a fresh audit plus repetition of materially affected tests.
-The route skips pre-implementation Spec Kit artefacts and stage audits, not
-applicable testing, code remediation, documentation, or verification. The exact
-keyword must appear in the human request and must never be inferred or invoked
-by an agent.
-
-The public template at
-[`templates/AGENTS-or-CLAUDE.example.md`](templates/AGENTS-or-CLAUDE.example.md)
-shows the minimum standalone integration. Adapt provider discovery filenames and
-locations to current provider documentation.
-
-## Skills and safeguards
-
-The audit skills are findings-only and have a common machine-checkable verdict:
-
-- `audit-spec` challenges requirements and acceptance criteria;
-- `audit-design` challenges boundaries, trade-offs, failure handling, migration,
-  operability, security, and testability;
-- `audit-tests` challenges evidence and coverage; and
-- `audit-code` reviews implementation against the selected standards.
-
-Audits classify material phase blockers as `[BLOCKING]`, exact mechanical
-corrections as `[CONDITION]`, and optional improvements as `[ADVISORY]`. PASS
-permits advisories, PROVISIONAL requires at least one condition, and FAIL
-requires at least one blocking finding. Audits run through `sdlc-audit`, never
-modify the judged artefact, and identify the effective provider and model in
-their verdict. The runner rejects malformed reports or an identity different
-from the effective configuration. `SDLC_AUDIT_TIMEOUT` bounds both the child
-process and Hermes run budget, with a five-minute default. The shared contract
-is `~/.agents/sdlc/AUDITS.md`.
-
-The advisory skills `useful-be`, `diagnose-issue`, `recommendations-please`,
-and `summarize-issues` load bounded project context, diagnose an observed
-problem, recommend a technical decision, and summarize open work against the
-project's specifications; the latter three are findings-only and make no file
-changes.
-
-Use `--external-context FILE` when an audit needs one exact authority outside
-the project and canonical SDLC directories. This supplies only the named file;
-it does not authorize a directory tree. Regression tests of the runner use a
-fake harness. Live hosted-model invocations are metered one-off tests and must
-not be added to `make test`, CI, or another persistent regression target.
-
-The explicit-only `migrate-legacy-acs-to-sdlc-v1` skill retires a brownfield
-project's legacy GitHub issue system before Spec Kit initialization. It archives
-every issue and comment once under `docs/archive/migrated-tickets/`; subsequent
-classification uses only that local source. Before classifying any ticket, it
-reviews every maintained regression test, runs or accepts one current passing
-whole-suite result, and builds an RT-to-ticket-to-AC delivery-evidence map. A
-reverse checksum then reconciles implemented ACs into `docs/ACs.org` without
-historical implementation research. Before that reconciliation, the normally
-pre-existing `docs/ACs.md` is converted losslessly into the canonical Org
-structure and removed. Ticket-linked code commits provide further delivery
-evidence. An AC already present in the converted ledger is itself delivery
-evidence even when its ticket lacks recorded test results. When no delivery
-evidence remains after the complete pass, ticket state determines only the disposition:
-closed scope is abandoned and open scope is undelivered. A failed suite stops
-the migration after a recoverable checkpoint of the archive, index, and
-format-only Org conversion, before classification or remote mutation.
-
-`docs/ticket-migration.org` then records open defects, abandoned or undelivered
-feature scope, unresolved classifications, and delivered tickets.
-It is created immediately after archive verification and updated after each
-evidence phase and ticket classification. The agent reads one archived ticket at
-a time and resumes from this durable record after any automatic compaction.
-Reviving abandoned scope requires a new Spec Kit specification. The near-complete
-heuristic automatically treats one or two otherwise-unrecorded UT or OT results
-as assumed passing when every other ticket test passed and no contrary evidence
-exists. A ticket without recorded passing evidence but with any maintained
-passing RT is likewise assumed delivered in full. ACs supported only by either
-inference and their delivered-list entries carry a footnote distinguishing
-migration inference from observed test evidence. Orphan RTs automatically
-receive AC provenance through one purpose-created baseline ticket.
-After the durable archive commit, every issue that was open at the snapshot is
-closed without comment and the closure outcome is committed. Later agents can
-understand the legacy baseline without depending on GitHub.
-
-The explicit-only `convert-migrated-acs-to-org` skill handles projects that
-finished ticket migration before `docs/ACs.org` became canonical. It requires the
-tracked archive and completed migration record, verifies that GitHub has no open
-issues, converts every ledger field without changing its meaning, updates current
-references, and removes `docs/ACs.md` in the same tracked rename.
-
-Provider-native permissions and the shared pre-tool guard reinforce the common
-prohibitions on `rm`, `sed`, `awk`, and direct `python` or `python3` interpreter
-commands. They also deny native read/search requests and direct shell references
-that name a file whose exact basename is `.env`; `.env.example` and `.env.local`
-remain outside that rule. This is a harness-level guard, not an operating-system
-sandbox: it does not inspect files opened internally by an otherwise permitted
-project command.
-
-The installer merges its Claude and Codex entries with existing settings,
-creates one SDLC-owned Copilot hook file, and updates only the matching Hermes
-hook. Unrelated provider configuration and hooks remain in place. Restart the
-harness after installation and approve or trust the installed hook when the
-provider requires it; an untrusted hook is not an active guard.
-
-Hermes must create `~/.hermes/config.yaml` through its startup configuration
-before the installer can safely amend it. If the Hermes home exists without that
-file, installation stops with a prerequisite diagnostic.
-
-## Updating and rollback
-
-Update the staging clone, inspect the branch, and redeploy:
-
-```bash
-git pull --ff-only
-```
-
-```bash
-make install
-```
-
-Release tags provide stable rollback points. Check out the required release and
-rerun `make install` to redeploy its managed runtime files. Arbitrary
-destination-only files are preserved. The installer recognizes only the known
-commands, skills, root-level technology files, and obsolete constitution
-addendum retired by the v2 migration. It renames them to adjacent
-`<path>.<epoch>.bak` backups and leaves all other destination-only material
-untouched.
-
-## Further reading
-
-- [`QUICKSTART.md`](QUICKSTART.md) covers installation and greenfield and
-  brownfield initialization.
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) describes source, deployment,
-  loading, and Spec Kit composition.
-- [`LEARNINGS.md`](LEARNINGS.md) records the design lessons behind the current
-  standards model.
-- [`CHANGELOG.md`](CHANGELOG.md) records repository changes.
-
-## Licence
-
-Apache License 2.0. See [`LICENSE`](LICENSE).
+Org provides foldable hierarchy and stable internal links without making Emacs
+a dependency. `sdlc-preview FILE` renders Markdown or Org with Pandoc beside the
+source, opens it in the browser, then removes the temporary HTML after one
+second. Read `~/.agents/sdlc/ORGMODE.md` before editing Org artefacts.
+
+## Migration evidence
+
+SDLC v1 ticket migration remains an explicit operator-invoked workflow. It
+creates a lossless local ticket archive, canonical `docs/ACs.org`, and
+`docs/ticket-migration.org`, updates stale project documents, archives the old
+implementation plan, and closes tickets only after durable evidence is
+committed.
+
+SDLC v2 migration preserves `.specify` and existing feature directories under
+`docs/archive/sdlc-v2/`, removes them from the active workflow, and indexes the
+preserved work for later operator disposition. It does not force incomplete work
+through a migration-time definition exercise.

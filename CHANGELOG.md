@@ -2,6 +2,36 @@
 
 ## Unreleased
 
+### SDLC v3 redesign
+
+Replaced the Spec Kit delivery dependency with a lean, standalone workflow:
+
+- one context-independent Org specification containing context, acceptance
+  criteria, traced test definitions, edge cases, and solution design;
+- one combined definition gate and one combined implementation gate, each
+  limited to the authoring context and one retained external Codex context;
+- global workflow skills with no project-local copies;
+- once-only initialization and migration for new, SDLC v1, and SDLC v2
+  projects using `.sdlc/project.yaml`, `docs/work.org`, and preserved archive
+  branches;
+- YAML global and project configuration in place of SDLC settings in `.env`;
+- schema-driven product, architecture, and requirement authority selection,
+  external-audit timeout configuration, and one-time removal of migrated SDLC
+  keys from `.env` without exposing or changing unrelated values;
+- lossless v2 archival by moving active Spec Kit state out of the live workflow,
+  preserving unrelated project integrations, and allocating v3 work IDs above
+  historical work, requirement, test, and ticket numbers;
+- removal of active Spec Kit artefacts and the standalone multi-harness audit
+  runner; and
+- a macOS and Linux Pandoc preview utility for Markdown and Org artefacts whose
+  delayed cleanup accepts only owned generated previews.
+
+Retained the provider-neutral engineering standards, SDLC v1 RT/UT/OT and TDD
+definitions, focused audit criteria, paired development, `BYPASS-GATE-7`, and
+the lossless legacy-ticket migration workflow. The first v3 release supports
+Codex with OpenAI models while unsupported provider copies and hooks are
+retired.
+
 ## v2.1.0 - 2026-09-05
 
 Defined the intended replacement for the four separately approved Spec Kit

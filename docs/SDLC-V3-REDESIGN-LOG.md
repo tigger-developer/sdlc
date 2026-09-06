@@ -1,6 +1,7 @@
 # SDLC v3 Redesign Log
 
-Status: Working design record. This is not an approved specification or implementation authority.
+Status: Accepted design record implemented on the `sdlc-v3` branch. Validation
+and the first paired project migration remain before release tagging.
 
 This document preserves decisions and open questions while the live SDLC is being redesigned. Update it as decisions are made so work can resume after context compaction or in a new agent session.
 
@@ -295,21 +296,24 @@ concrete migration requirement cannot be satisfied safely another way.
 
 - The implementation handover checklist is drafted in
   `docs/SDLC-V3-IMPLEMENTATION-PLAN.md`.
-- The Org unified-specification review candidate is drafted in
-  `docs/SDLC-V3-SPEC-TEMPLATE.org`.
-- The Org work-ledger review candidate is drafted in
-  `docs/SDLC-V3-WORK-TEMPLATE.org`.
+- The accepted unified-specification template is installed from
+  `src/templates/v3/spec.org`.
+- The accepted work-ledger template is installed from
+  `src/templates/v3/work.org`.
 - The operator accepted both Org templates on 2026-09-06.
-- The decisions explicitly left open in the implementation plan must be
-  reviewed before repository implementation begins.
+- The implementation plan records the resolved decisions and remaining release
+  checks.
 
 The specification template must make context-independent handoff explicit and
 record the delivery objective, relevant starting state, exact authorities,
 constraints, dependencies, resolved decisions, unresolved blockers, and enough
 solution detail for a new agent to begin with the defined tests.
 
-## Open decisions
+## Resolved implementation decisions
 
-- Exact local work-item and derived acceptance-criteria/test identifier formats.
-- The treatment and archive location of v2 constitutions and generated Spec Kit infrastructure.
-- The verified Codex mechanism for retaining one external auditor context across gate retries.
+- Use project-wide never-reused `WNNN`, `ACNNN.n`, `RTNNN.n`, `UTNNN.n`, and
+  `OTNNN.n` identifiers.
+- Preserve complete v2 state on the dated archive branch and move active
+  `.specify` and `specs` material unchanged under `docs/archive/sdlc-v2/`.
+- Composite audit skills use one Codex subagent and retain its identity for
+  follow-up reviews; focused audits never spawn separate contexts themselves.

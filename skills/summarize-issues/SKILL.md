@@ -7,8 +7,9 @@ If `~/.agents/sdlc/MAIN.md` is absent or unreadable, report that exact path;
 never search for another copy.
 
 Read `~/.agents/sdlc/MAIN.md` and
-`~/.agents/sdlc/ISSUES.md` in full. Read the project's specifications,
-constitution, architecture, and open-work source without modifying them.
+`~/.agents/sdlc/ISSUES.md` in full. Read the project's `docs/work.org`, active
+specifications, project profile, architecture, and other open-work sources
+without modifying them.
 
 Summarize each open item with its identifier and descriptor, intended outcome,
 dependencies, and verified current state. Then identify missing specification

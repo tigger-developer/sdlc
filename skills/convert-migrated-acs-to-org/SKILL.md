@@ -1,6 +1,6 @@
 ---
 name: convert-migrated-acs-to-org
-description: Losslessly convert a completed legacy-ticket migration from docs/ACs.md to the canonical foldable docs/ACs.org ledger. Invoke only when the operator requests this conversion.
+description: Losslessly convert an SDLC v1 docs/ACs.md ledger to canonical foldable docs/ACs.org during an authorized migration.
 metadata:
   preferred_provider: openai-codex
   preferred_model: gpt-5.6-luna
@@ -17,20 +17,23 @@ Read `~/.agents/sdlc/MAIN.md`, `~/.agents/sdlc/ISSUES.md`,
 
 ## Preconditions
 
-This skill repairs projects whose legacy-ticket migration finished before
-`docs/ACs.org` became canonical. It is a structural conversion, not a new
-migration or requirements review.
+This is a structural conversion, not a requirements review. It handles both a
+direct SDLC v1 ledger and a project whose ticket migration finished before
+`docs/ACs.org` became canonical.
 
-Before writing, require all of the following:
+Always require:
 
 - `docs/ACs.md` is a regular file and `docs/ACs.org` is absent;
-- `docs/archive/migrated-tickets/manifest.json` exists and that directory
-  contains archived numbered ticket documents;
-- `docs/ticket-migration.org` records the migration and closure pass as
-  complete; and
-- the authenticated GitHub interface reports zero open issues for the current
-  repository. Retrieve the complete open set, excluding pull requests; do not
-  trust a displayed first page or an assumed numeric range.
+- the Git working tree permits an isolated conversion; and
+- no current document other than the source ledger claims a conflicting
+  requirements authority.
+
+When `docs/ticket-migration.org` or `docs/archive/migrated-tickets/` exists,
+require both: the manifest and numbered archive are complete, the migration
+index records closure as complete, and the authenticated GitHub interface
+reports zero open issues. Retrieve the complete open set, excluding pull
+requests. When neither migration artefact exists, treat this as a direct v1
+ledger conversion and do not invent a ticket archive or GitHub claim.
 
 If any precondition fails, make no changes. Report the exact failed condition
 and the descriptor of every open issue returned.
@@ -58,8 +61,8 @@ structure and native Org links, verbatim spans, and footnotes.
 The authority section must say that `docs/ACs.org` is the sole authority for
 requirements established under the legacy ticket-led process. Archived tickets,
 comments, and `docs/ticket-migration.org` retain disposition, provenance, and
-rationale only; they are not current requirement or AC authorities. Approved
-Spec Kit feature specifications govern later requirements.
+rationale only; they are not current requirement or AC authorities. Signed-off
+SDLC v3 specifications govern later requirements.
 
 Stage the candidate outside the tracked source path until it passes:
 
@@ -85,7 +88,7 @@ still presents it as the active ledger.
 
 Commit the conversion and reference updates together with the message
 `docs: normalize migrated AC ledger`. Do not change requirements, tests, code,
-ticket state, archived tickets, or Spec Kit feature artefacts.
+ticket state, archived tickets, or active SDLC v3 specifications.
 
 ## Report
 

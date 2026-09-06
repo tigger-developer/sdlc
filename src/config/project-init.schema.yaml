@@ -1,170 +1,200 @@
-version: 1
+version: 3
 
 precedence:
   - cli
   - environment
   - project
-  - user
-  - fallback
+  - global
+  - default
+
+retired_environment_keys:
+  - SDLC_PROJECT_TYPE
+  - SDLC_INFRA_ENABLED
+  - SDLC_REVISION
 
 fields:
-  - key: SDLC_AGENT_HARNESS
-    flag: harness
-    help: Default agent harness
+  - key: SDLC_PROJECT_KIND
+    path: project.kind
+    flag: project-kind
+    help: Project role
     type: choice
-    choices: [codex, claude, hermes]
-    prompt: "Select default agent harness:"
-    allow_user_default: true
-    persist: true
-
-  - key: SDLC_SPEC_HARNESS
-    flag: spec-harness
-    help: Constitution, specification, and design agent harness
-    type: choice
-    choices: [codex, claude, hermes]
-    fallback: SDLC_AGENT_HARNESS
-    allow_user_default: true
-    persist: true
-
-  - key: SDLC_SPEC_PROVIDER
-    flag: spec-provider
-    help: Constitution, specification, and design model provider
-    type: string
-    allow_user_default: true
-    persist: true
-
-  - key: SDLC_SPEC_MODEL
-    flag: spec-model
-    help: Constitution, specification, and design model
-    type: string
-    allow_user_default: true
-    persist: true
-
-  - key: SDLC_BUILD_HARNESS
-    flag: build-harness
-    help: Implementation agent harness
-    type: choice
-    choices: [codex, claude, hermes]
-    fallback: SDLC_AGENT_HARNESS
-    allow_user_default: true
-    persist: true
-
-  - key: SDLC_BUILD_PROVIDER
-    flag: build-provider
-    help: Implementation model provider
-    type: string
-    allow_user_default: true
-    persist: true
-
-  - key: SDLC_BUILD_MODEL
-    flag: build-model
-    help: Implementation model
-    type: string
-    allow_user_default: true
-    persist: true
-
-  - key: SDLC_AUDIT_HARNESS
-    flag: audit-harness
-    help: Independent audit agent harness
-    type: choice
-    choices: [codex, claude, hermes]
-    fallback: SDLC_AGENT_HARNESS
-    allow_user_default: true
-    persist: true
-
-  - key: SDLC_AUDIT_PROVIDER
-    flag: audit-provider
-    help: Independent audit model provider
-    type: string
-    allow_user_default: true
-    persist: true
-
-  - key: SDLC_AUDIT_MODEL
-    flag: audit-model
-    help: Independent audit model
-    type: string
-    allow_user_default: true
-    persist: true
-
-  - key: SDLC_AUDIT_TIMEOUT
-    flag: audit-timeout
-    help: Independent audit timeout as a whole-second duration
-    type: duration
-    default: 5m
-    allow_user_default: true
-    persist: true
-
-  - key: SDLC_BRANCH_STRATEGY
-    flag: branch-strategy
-    help: Delivery branch strategy
-    type: choice
-    choices: [current, feature]
-    default: current
-    allow_user_default: true
-    persist: true
-
-  - key: SDLC_PROJECT_TYPE
-    flag: project-type
-    help: Project classification
-    type: choice
-    choices: [greenfield, brownfield]
-    prompt: "Select project type:"
-    allow_user_default: false
-    persist: true
+    choices: [application, library, website, infrastructure, other]
+    prompt: "Select project role:"
+    allow_global: false
+    required: true
 
   - key: SDLC_TECHNOLOGIES
+    path: standards.technologies
     flag: technologies
     help: Comma-separated technology standards
     type: multi-choice
     choices_from: technologies
-    prompt: "Select applicable technologies:"
-    allow_user_default: true
-    persist: true
+    prompt: "Select applicable technologies by number or name, separated by commas:"
+    allow_global: false
+    required: true
+
+  - key: SDLC_PRODUCT_AUTHORITIES
+    path: authorities.product
+    flag: product-authorities
+    help: Comma-separated product authority paths
+    type: string-list
+    prompt: "Product authority paths, separated by commas, or blank for none:"
+    allow_global: false
+
+  - key: SDLC_ARCHITECTURE_AUTHORITIES
+    path: authorities.architecture
+    flag: architecture-authorities
+    help: Comma-separated architecture authority paths
+    type: string-list
+    prompt: "Architecture authority paths, separated by commas, or blank for none:"
+    allow_global: false
+
+  - key: SDLC_REQUIREMENT_AUTHORITIES
+    path: authorities.requirements
+    flag: requirement-authorities
+    help: Comma-separated existing requirement authority paths
+    type: string-list
+    prompt: "Existing requirement authority paths, separated by commas, or blank for none:"
+    allow_global: false
+
+  - key: SDLC_BRANCH_STRATEGY
+    path: delivery.branch_strategy
+    flag: branch-strategy
+    help: Delivery branch strategy
+    type: choice
+    choices: [current, feature]
+    prompt: "Select delivery branch strategy:"
+    default: current
+    allow_global: true
+
+  - key: SDLC_SPEC_HARNESS
+    path: delivery.definition.harness
+    flag: spec-harness
+    help: Definition agent harness
+    type: choice
+    choices: [codex]
+    prompt: "Select definition harness:"
+    default: codex
+    allow_global: true
+    migration_aliases: [SDLC_AGENT_HARNESS]
+
+  - key: SDLC_SPEC_PROVIDER
+    path: delivery.definition.provider
+    flag: spec-provider
+    help: Definition model provider
+    type: choice
+    choices: [openai]
+    prompt: "Select definition provider:"
+    default: openai
+    allow_global: true
+    migration_aliases: [SDLC_DELIVERY_PROVIDER]
+
+  - key: SDLC_SPEC_MODEL
+    path: delivery.definition.model
+    flag: spec-model
+    help: Definition model
+    type: string
+    prompt: "Definition model:"
+    allow_global: true
+    migration_aliases: [SDLC_DELIVERY_MODEL]
+
+  - key: SDLC_BUILD_HARNESS
+    path: delivery.build.harness
+    flag: build-harness
+    help: Delivery agent harness
+    type: choice
+    choices: [codex]
+    prompt: "Select delivery harness:"
+    default: codex
+    allow_global: true
+    migration_aliases: [SDLC_AGENT_HARNESS]
+
+  - key: SDLC_BUILD_PROVIDER
+    path: delivery.build.provider
+    flag: build-provider
+    help: Delivery model provider
+    type: choice
+    choices: [openai]
+    prompt: "Select delivery provider:"
+    default: openai
+    allow_global: true
+
+  - key: SDLC_BUILD_MODEL
+    path: delivery.build.model
+    flag: build-model
+    help: Delivery model
+    type: string
+    prompt: "Delivery model:"
+    allow_global: true
+
+  - key: SDLC_AUDIT_HARNESS
+    path: delivery.audit.harness
+    flag: audit-harness
+    help: External audit harness
+    type: choice
+    choices: [codex]
+    prompt: "Select external audit harness:"
+    default: codex
+    allow_global: true
+    migration_aliases: [SDLC_AGENT_HARNESS]
+
+  - key: SDLC_AUDIT_PROVIDER
+    path: delivery.audit.provider
+    flag: audit-provider
+    help: External audit model provider
+    type: choice
+    choices: [openai]
+    prompt: "Select external audit provider:"
+    default: openai
+    allow_global: true
+
+  - key: SDLC_AUDIT_MODEL
+    path: delivery.audit.model
+    flag: audit-model
+    help: External audit model
+    type: string
+    prompt: "External audit model:"
+    allow_global: true
+
+  - key: SDLC_AUDIT_TIMEOUT
+    path: delivery.audit.timeout
+    flag: audit-timeout
+    help: External audit timeout, such as 4m or 300s
+    type: duration
+    prompt: "External audit timeout:"
+    default: 5m
+    allow_global: true
 
   - key: SDLC_INFRA_ROLE
+    path: infrastructure.role
     flag: infra-role
     help: Infrastructure relationship
     type: choice
     choices: [none, consumer, provider]
     prompt: "Select infrastructure role:"
-    allow_user_default: true
-    persist: true
+    default: none
+    allow_global: false
+    required: true
 
   - key: SDLC_INFRA_OWNER
+    path: infrastructure.owner
     flag: infra-owner
     help: Infrastructure owner descriptor
     type: string
-    prompt: "Infrastructure owner descriptor:"
-    required_when:
+    prompt: "Infrastructure owner, or blank for none:"
+    allow_global: true
+    migration_aliases: [SDLC_INFRA_PROVIDER]
+    when:
       field: SDLC_INFRA_ROLE
       values: [consumer, provider]
-    allow_user_default: true
-    persist: true
 
   - key: SDLC_INFRA_CONTRACT
+    path: infrastructure.contract
     flag: infra-contract
-    help: Infrastructure integration-contract path
+    help: Infrastructure integration contract
     type: string
-    prompt: "Infrastructure integration-contract path:"
-    required_when:
+    prompt: "Infrastructure contract path, or blank for none:"
+    allow_global: true
+    when:
       field: SDLC_INFRA_ROLE
       values: [consumer, provider]
-    allow_user_default: true
-    persist: true
-
-phases:
-  - name: specification
-    harness: SDLC_SPEC_HARNESS
-    provider: SDLC_SPEC_PROVIDER
-    model: SDLC_SPEC_MODEL
-    provider_harnesses: [hermes]
-  - name: build
-    harness: SDLC_BUILD_HARNESS
-    provider: SDLC_BUILD_PROVIDER
-    model: SDLC_BUILD_MODEL
-    provider_harnesses: [hermes]
-  - name: audit
-    harness: SDLC_AUDIT_HARNESS
-    provider: SDLC_AUDIT_PROVIDER
-    model: SDLC_AUDIT_MODEL
-    provider_harnesses: [hermes]

@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -27,14 +28,13 @@ const (
 type providerDefinition struct {
 	name        string
 	commandPath string
-	skills      bool
 }
 
 var providerDefinitions = []providerDefinition{
-	{name: agentClaude, commandPath: "commands", skills: true},
+	{name: agentClaude, commandPath: "commands"},
 	{name: agentCodex, commandPath: "prompts-commands"},
-	{name: agentCopilot, commandPath: "prompts-commands", skills: true},
-	{name: agentHermes, skills: true},
+	{name: agentCopilot, commandPath: "prompts-commands"},
+	{name: agentHermes},
 }
 
 var retiredCommandFiles = []string{
@@ -55,6 +55,19 @@ var retiredSkillFiles = []string{
 	filepath.Join("draft-issue", "SKILL.md"),
 }
 
+var retiredProviderArtifacts = []string{
+	"audit-code",
+	"audit-design",
+	"audit-spec",
+	"audit-tests",
+	"convert-migrated-acs-to-org",
+	"diagnose-issue",
+	"migrate-legacy-acs-to-sdlc-v1",
+	"recommendations-please",
+	"summarize-issues",
+	"useful-be",
+}
+
 var retiredSharedFiles = []string{
 	"GO.md",
 	"PERL.md",
@@ -65,14 +78,20 @@ var retiredSharedFiles = []string{
 	filepath.Join("presets", "sdlc-standards", "templates", "constitution-addendum.md"),
 }
 
-var claudeDeniedCommands = []string{
-	"Bash(rm:*)",
-	"Bash(sed:*)",
-	"Bash(awk:*)",
-	"Bash(source:*)",
-	"Bash(python:*)",
-	"Bash(python3:*)",
-	"Read(**/.env)",
+var retiredV2SharedPaths = []string{
+	"commands",
+	"skills",
+	filepath.Join("presets", "sdlc-standards"),
+	"prompts",
+	filepath.Join("templates", "project-init"),
+}
+
+var retiredGlobalSkillPaths = []string{
+	"audit-acs",
+	"design-solution",
+	"draft-bug-fix",
+	"draft-design-issue",
+	"draft-issue",
 }
 
 const (
@@ -489,7 +508,6 @@ func planSharedInstallation(source, commonHome string) (installationPlan, error)
 	}{
 		{source: filepath.Join(source, "src"), destination: liveSDLC},
 		{source: filepath.Join(source, "commands"), destination: filepath.Join(liveSDLC, "commands"), optional: true},
-		{source: filepath.Join(source, "skills"), destination: filepath.Join(liveSDLC, "skills")},
 		{source: filepath.Join(source, "hooks"), destination: filepath.Join(liveSDLC, "hooks")},
 		{source: filepath.Join(source, "skills"), destination: filepath.Join(commonHome, "skills")},
 	} {
@@ -505,7 +523,6 @@ func planSharedInstallation(source, commonHome string) (installationPlan, error)
 	}{
 		{filepath.Join(source, "src"), liveSDLC, retiredSharedFiles},
 		{filepath.Join(source, "commands"), filepath.Join(liveSDLC, "commands"), retiredCommandFiles},
-		{filepath.Join(source, "skills"), filepath.Join(liveSDLC, "skills"), retiredSkillFiles},
 		{filepath.Join(source, "skills"), filepath.Join(commonHome, "skills"), retiredSkillFiles},
 	} {
 		retirements, err := planRetiredFiles(retirement.sourceRoot, retirement.destinationRoot, retirement.files)
@@ -514,6 +531,16 @@ func planSharedInstallation(source, commonHome string) (installationPlan, error)
 		}
 		plan.retirements = append(plan.retirements, retirements...)
 	}
+	sharedRetirements, err := planExactRetirements(liveSDLC, retiredV2SharedPaths)
+	if err != nil {
+		return installationPlan{}, err
+	}
+	plan.retirements = append(plan.retirements, sharedRetirements...)
+	retirements, retirementErr := planExactRetirements(filepath.Join(commonHome, "skills"), retiredGlobalSkillPaths)
+	if retirementErr != nil {
+		return installationPlan{}, retirementErr
+	}
+	plan.retirements = append(plan.retirements, retirements...)
 	return plan, nil
 }
 
@@ -538,35 +565,80 @@ func planProviderInstallation(agent, source, agentHome string) (installationPlan
 	if !found {
 		return installationPlan{}, fmt.Errorf("planning unsupported agent %q", agent)
 	}
-	if provider.commandPath != "" {
+	if agent == agentCodex && provider.commandPath != "" {
 		sourceRoot := filepath.Join(source, "commands")
 		destinationRoot := filepath.Join(agentHome, provider.commandPath)
-		commands, planErr := planDirectoryMapping(sourceRoot, destinationRoot, true)
-		if planErr != nil {
-			return installationPlan{}, planErr
-		}
-		plan.syncs = append(plan.syncs, commands...)
 		retirements, planErr := planRetiredFiles(sourceRoot, destinationRoot, retiredCommandFiles)
 		if planErr != nil {
 			return installationPlan{}, planErr
 		}
 		plan.retirements = append(plan.retirements, retirements...)
 	}
-	if provider.skills {
-		sourceRoot := filepath.Join(source, "skills")
-		destinationRoot := filepath.Join(agentHome, "skills")
-		skills, planErr := planDirectoryFiles(sourceRoot, destinationRoot)
+	if agent != agentCodex {
+		paths := append([]string{}, retiredProviderArtifacts...)
+		currentSkills, planErr := sourceDirectoryNames(filepath.Join(source, "skills"))
 		if planErr != nil {
 			return installationPlan{}, planErr
 		}
-		plan.syncs = append(plan.syncs, skills...)
-		retirements, planErr := planRetiredFiles(sourceRoot, destinationRoot, retiredSkillFiles)
+		paths = append(paths, currentSkills...)
+		for _, relative := range retiredSkillFiles {
+			paths = append(paths, filepath.Dir(relative))
+		}
+		retirements, planErr := planExactRetirements(filepath.Join(agentHome, "skills"), paths)
 		if planErr != nil {
 			return installationPlan{}, planErr
 		}
 		plan.retirements = append(plan.retirements, retirements...)
+		if provider.commandPath != "" {
+			commandRetirements, commandErr := planExactRetirements(filepath.Join(agentHome, provider.commandPath), retiredCommandFiles)
+			if commandErr != nil {
+				return installationPlan{}, commandErr
+			}
+			plan.retirements = append(plan.retirements, commandRetirements...)
+		}
+		if agent == agentCopilot {
+			hookRetirements, hookErr := planExactRetirements(agentHome, []string{filepath.Join("hooks", "sdlc-tool-guard.json")})
+			if hookErr != nil {
+				return installationPlan{}, hookErr
+			}
+			plan.retirements = append(plan.retirements, hookRetirements...)
+		}
 	}
 	return plan, nil
+}
+
+func sourceDirectoryNames(root string) ([]string, error) {
+	entries, err := os.ReadDir(root)
+	if err != nil {
+		return nil, fmt.Errorf("reading managed source directories %q: %w", root, err)
+	}
+	var names []string
+	for _, entry := range entries {
+		if entry.IsDir() {
+			names = append(names, entry.Name())
+		}
+	}
+	sort.Strings(names)
+	return names, nil
+}
+
+func planExactRetirements(root string, relativePaths []string) ([]managedRetirement, error) {
+	seen := map[string]bool{}
+	var retirements []managedRetirement
+	for _, relative := range relativePaths {
+		path := filepath.Join(root, relative)
+		if seen[path] {
+			continue
+		}
+		seen[path] = true
+		if _, err := os.Lstat(path); errors.Is(err, os.ErrNotExist) {
+			continue
+		} else if err != nil {
+			return nil, fmt.Errorf("inspecting retired provider artefact %q: %w", path, err)
+		}
+		retirements = append(retirements, managedRetirement{path: path})
+	}
+	return retirements, nil
 }
 
 func sameLexicalPath(left, right string) bool {
@@ -864,16 +936,15 @@ func backupArtifact(output io.Writer, path string, epoch int64) (string, error) 
 func analyseConfiguration(agent, agentHome, source string, output io.Writer) ([]*configurationChange, error) {
 	switch agent {
 	case agentClaude:
-		change, err := analyseClaudeConfiguration(agentHome, output)
+		change, err := analyseClaudeRetirement(agentHome, output)
 		return configurationChanges(change), err
 	case agentCodex:
 		return analyseCodexConfigurations(agentHome, source, output)
 	case agentHermes:
-		change, err := analyseHermesConfiguration(agentHome, source, output)
+		change, err := analyseHermesRetirement(agentHome, output)
 		return configurationChanges(change), err
 	case agentCopilot:
-		change, err := analyseCopilotConfiguration(agentHome, output)
-		return configurationChanges(change), err
+		return nil, nil
 	case agentCustom:
 		fmt.Fprintln(output, "Configuration: custom target; no provider configuration assumptions were made.")
 		return nil, nil
@@ -889,7 +960,7 @@ func configurationChanges(change *configurationChange) []*configurationChange {
 	return []*configurationChange{change}
 }
 
-func analyseClaudeConfiguration(agentHome string, output io.Writer) (*configurationChange, error) {
+func analyseClaudeRetirement(agentHome string, output io.Writer) (*configurationChange, error) {
 	path := filepath.Join(agentHome, "settings.json")
 	settingsSymlink, err := pathIsSymlink(path)
 	if err != nil {
@@ -899,22 +970,18 @@ func analyseClaudeConfiguration(agentHome string, output io.Writer) (*configurat
 	if err != nil {
 		return nil, err
 	}
-	changes, err := normalizeClaudeCommandRules(settings)
+	if len(original) == 0 {
+		return nil, nil
+	}
+	changed, err := removeClaudeToolGuard(settings)
 	if err != nil {
 		return nil, fmt.Errorf("analysing %s: %w", path, err)
 	}
-	if len(changes.addedToDeny) == 0 && len(changes.removedFromAllow) == 0 && !changes.toolGuardChanged {
-		fmt.Fprintln(output, "Configuration: Claude settings already contain the SDLC tool restrictions.")
+	if !changed {
 		return nil, nil
 	}
-	for _, rule := range changes.addedToDeny {
-		fmt.Fprintf(output, "Recommendation: add %s to permissions.deny.\n", rule)
-	}
-	for _, rule := range changes.removedFromAllow {
-		fmt.Fprintf(output, "Recommendation: remove conflicting %s from permissions.allow.\n", rule)
-	}
 	if settingsSymlink {
-		fmt.Fprintf(output, "Configuration: %s is a symlink; no automatic change will replace it. Edit its target manually.\n", path)
+		fmt.Fprintf(output, "Configuration: %s is a symlink; remove its SDLC tool guard manually.\n", path)
 		return nil, nil
 	}
 	candidate, err := json.MarshalIndent(settings, "", "  ")
@@ -923,12 +990,79 @@ func analyseClaudeConfiguration(agentHome string, output io.Writer) (*configurat
 	}
 	candidate = append(candidate, '\n')
 	return &configurationChange{
-		path:        path,
-		beforeLabel: formatClaudeDenyBefore(original),
-		afterLabel:  formatClaudePolicyAfter(changes),
-		contents:    candidate,
-		mode:        mode,
+		path: path, beforeLabel: "existing configuration; unrelated values preserved",
+		afterLabel: "SDLC v1/v2 tool guard removed", contents: candidate, mode: mode,
 	}, nil
+}
+
+func removeClaudeToolGuard(settings map[string]any) (bool, error) {
+	value, exists := settings["hooks"]
+	if !exists {
+		return false, nil
+	}
+	hooks, ok := value.(map[string]any)
+	if !ok {
+		return false, errors.New("hooks must be a JSON object")
+	}
+	value, exists = hooks["PreToolUse"]
+	if !exists {
+		return false, nil
+	}
+	entries, ok := value.([]any)
+	if !ok {
+		return false, errors.New("hooks.PreToolUse must be a JSON array")
+	}
+	changed := false
+	filteredGroups := make([]any, 0, len(entries))
+	for _, item := range entries {
+		group, ok := item.(map[string]any)
+		if !ok {
+			return false, errors.New("hooks.PreToolUse entries must be JSON objects")
+		}
+		handlerValue, ok := group["hooks"].([]any)
+		if !ok {
+			filteredGroups = append(filteredGroups, item)
+			continue
+		}
+		filteredHandlers := make([]any, 0, len(handlerValue))
+		for _, raw := range handlerValue {
+			handler, ok := raw.(map[string]any)
+			command, commandOK := handler["command"].(string)
+			if ok && commandOK && isManagedGuardCommand(command) {
+				changed = true
+				continue
+			}
+			filteredHandlers = append(filteredHandlers, raw)
+		}
+		if len(filteredHandlers) != 0 {
+			group["hooks"] = filteredHandlers
+			filteredGroups = append(filteredGroups, group)
+		}
+	}
+	if !changed {
+		return false, nil
+	}
+	if len(filteredGroups) == 0 {
+		delete(hooks, "PreToolUse")
+	} else {
+		hooks["PreToolUse"] = filteredGroups
+	}
+	if len(hooks) == 0 {
+		delete(settings, "hooks")
+	}
+	return true, nil
+}
+
+func isManagedGuardCommand(command string) bool {
+	command = strings.TrimSpace(command)
+	if command == toolGuardCommand {
+		return true
+	}
+	unquoted := strings.Trim(command, "\"")
+	return strings.HasPrefix(unquoted, "bash ") &&
+		(strings.Contains(unquoted, "/.agents/sdlc/hooks/agent-command-guard.sh") ||
+			strings.Contains(unquoted, "/.hermes/sdlc/hooks/agent-command-guard.sh") ||
+			strings.Contains(unquoted, "/.claude/sdlc/hooks/agent-command-guard.sh"))
 }
 
 func pathIsSymlink(path string) (bool, error) {
@@ -964,115 +1098,6 @@ func readClaudeSettings(path string) (map[string]any, []byte, os.FileMode, error
 	return settings, data, info.Mode().Perm(), nil
 }
 
-type claudePolicyChanges struct {
-	addedToDeny      []string
-	removedFromAllow []string
-	toolGuardChanged bool
-}
-
-func normalizeClaudeCommandRules(settings map[string]any) (claudePolicyChanges, error) {
-	permissions, err := objectField(settings, "permissions")
-	if err != nil {
-		return claudePolicyChanges{}, err
-	}
-	deny, err := stringSliceField(permissions, "deny")
-	if err != nil {
-		return claudePolicyChanges{}, err
-	}
-	allow, err := stringSliceField(permissions, "allow")
-	if err != nil {
-		return claudePolicyChanges{}, err
-	}
-	changes := claudePolicyChanges{
-		addedToDeny:      make([]string, 0, len(claudeDeniedCommands)),
-		removedFromAllow: make([]string, 0, len(claudeDeniedCommands)),
-	}
-	for _, rule := range claudeDeniedCommands {
-		if !containsString(deny, rule) {
-			deny = append(deny, rule)
-			changes.addedToDeny = append(changes.addedToDeny, rule)
-		}
-	}
-	filteredAllow := make([]string, 0, len(allow))
-	for _, rule := range allow {
-		if containsString(claudeDeniedCommands, rule) {
-			changes.removedFromAllow = append(changes.removedFromAllow, rule)
-			continue
-		}
-		filteredAllow = append(filteredAllow, rule)
-	}
-	permissions["deny"] = deny
-	if len(changes.removedFromAllow) != 0 {
-		permissions["allow"] = filteredAllow
-	}
-	settings["permissions"] = permissions
-	toolGuardChanged, err := normalizeClaudeToolGuard(settings)
-	if err != nil {
-		return claudePolicyChanges{}, err
-	}
-	changes.toolGuardChanged = toolGuardChanged
-	return changes, nil
-}
-
-func normalizeClaudeToolGuard(settings map[string]any) (bool, error) {
-	hooks, err := objectField(settings, "hooks")
-	if err != nil {
-		return false, err
-	}
-	value, exists := hooks["PreToolUse"]
-	var entries []any
-	if exists {
-		var ok bool
-		entries, ok = value.([]any)
-		if !ok {
-			return false, errors.New("hooks.PreToolUse must be a JSON array")
-		}
-	}
-	changed := false
-	found := false
-	for _, item := range entries {
-		group, ok := item.(map[string]any)
-		if !ok {
-			return false, errors.New("hooks.PreToolUse entries must be JSON objects")
-		}
-		handlers, ok := group["hooks"].([]any)
-		if !ok {
-			continue
-		}
-		for _, handlerValue := range handlers {
-			handler, ok := handlerValue.(map[string]any)
-			if !ok || handler["command"] != toolGuardCommand {
-				continue
-			}
-			found = true
-			if group["matcher"] != "*" {
-				group["matcher"] = "*"
-				changed = true
-			}
-			if handler["type"] != "command" {
-				handler["type"] = "command"
-				changed = true
-			}
-			if handler["timeout"] != float64(5) {
-				handler["timeout"] = 5
-				changed = true
-			}
-		}
-	}
-	if !found {
-		entries = append(entries, map[string]any{
-			"matcher": "*",
-			"hooks": []any{map[string]any{
-				"type": "command", "command": toolGuardCommand, "timeout": 5,
-			}},
-		})
-		changed = true
-	}
-	hooks["PreToolUse"] = entries
-	settings["hooks"] = hooks
-	return changed, nil
-}
-
 func objectField(parent map[string]any, key string) (map[string]any, error) {
 	value, exists := parent[key]
 	if !exists {
@@ -1083,59 +1108,6 @@ func objectField(parent map[string]any, key string) (map[string]any, error) {
 		return nil, fmt.Errorf("%s must be a JSON object", key)
 	}
 	return object, nil
-}
-
-func stringSliceField(parent map[string]any, key string) ([]string, error) {
-	value, exists := parent[key]
-	if !exists {
-		return nil, nil
-	}
-	items, ok := value.([]any)
-	if !ok {
-		if strings, stringsOK := value.([]string); stringsOK {
-			return strings, nil
-		}
-		return nil, fmt.Errorf("permissions.%s must be a JSON array", key)
-	}
-	result := make([]string, 0, len(items))
-	for _, item := range items {
-		text, ok := item.(string)
-		if !ok {
-			return nil, fmt.Errorf("permissions.%s entries must be strings", key)
-		}
-		result = append(result, text)
-	}
-	return result, nil
-}
-
-func containsString(values []string, want string) bool {
-	for _, value := range values {
-		if value == want {
-			return true
-		}
-	}
-	return false
-}
-
-func formatClaudeDenyBefore(original []byte) string {
-	if len(original) == 0 {
-		return "permissions.deny: absent settings.json"
-	}
-	return "permissions.deny: existing entries preserved; JSON spacing and key order may be normalized"
-}
-
-func formatClaudePolicyAfter(changes claudePolicyChanges) string {
-	parts := make([]string, 0, 3)
-	if len(changes.addedToDeny) != 0 {
-		parts = append(parts, "permissions.deny adds: "+strings.Join(changes.addedToDeny, ", "))
-	}
-	if len(changes.removedFromAllow) != 0 {
-		parts = append(parts, "permissions.allow removes conflicts: "+strings.Join(changes.removedFromAllow, ", "))
-	}
-	if changes.toolGuardChanged {
-		parts = append(parts, "hooks.PreToolUse adds or updates the SDLC tool guard")
-	}
-	return strings.Join(parts, "; ")
 }
 
 type codexConfig struct {
@@ -1321,38 +1293,6 @@ func normalizeCodexToolGuard(root map[string]any) (bool, error) {
 	hooks["PreToolUse"] = entries
 	root["hooks"] = hooks
 	return changed, nil
-}
-
-func analyseCopilotConfiguration(agentHome string, output io.Writer) (*configurationChange, error) {
-	path := filepath.Join(agentHome, "hooks", "sdlc-tool-guard.json")
-	original, mode, exists, err := readOptionalRegularFile(path)
-	if err != nil {
-		return nil, err
-	}
-	candidate, err := json.MarshalIndent(map[string]any{
-		"version": 1,
-		"hooks": map[string]any{
-			"preToolUse": []any{map[string]any{
-				"type": "command", "command": toolGuardCommand, "timeoutSec": 5,
-			}},
-		},
-	}, "", "  ")
-	if err != nil {
-		return nil, err
-	}
-	candidate = append(candidate, '\n')
-	if exists && bytes.Equal(original, candidate) {
-		fmt.Fprintln(output, "Configuration: Copilot hooks already contain the SDLC tool guard.")
-		return nil, nil
-	}
-	before := "managed hook file absent"
-	if exists {
-		before = "managed hook file differs"
-	}
-	return &configurationChange{
-		path: path, beforeLabel: before, afterLabel: "preToolUse invokes the SDLC tool guard",
-		contents: candidate, mode: mode,
-	}, nil
 }
 
 func readOptionalRegularFile(path string) ([]byte, os.FileMode, bool, error) {
