@@ -381,3 +381,8 @@ without reconstructing the work from conversation history.
   `make install`; from another directory,
   `make -C /Users/tigger/code/agents/sdlc install` invokes the same target
   without first changing directory.
+- The resumed First Folio pilot showed that requirement-authority discovery
+  proposes `docs/ACs.org` but omits `docs/work.org`. This is deterministic
+  current behaviour: both the discovery prompt and proposal validator exclude
+  the work ledger. It conflicts with the operator's expectation that the
+  canonical ledger locate current v3 requirements and remains to be corrected.
