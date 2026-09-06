@@ -13,6 +13,14 @@ audit, constitution, and migration artefacts. Independent one-shot audits then
 reloaded the same project context repeatedly. High-quality review arrived, but
 delivery was delayed by ceremony, context cost, and remediation loops.
 
+This was an observed production cost, not merely a preference for fewer
+documents. More than a dozen refinements still left ordinary work running five
+to ten fresh-context audits and taking roughly four times as long for the
+operator to define and deliver. The final case was a small script change,
+comparable to a one-line operator edit, that generated about 1,400 lines of
+artefacts and ran nine audits. Five audits belonged to the test-and-build cycle,
+which ultimately failed its own gate without delivering the change.
+
 SDLC v3 retains the valuable constraints and removes the duplicate lifecycle:
 
 - one unified specification defines requirements, tests, and solution design;
@@ -119,6 +127,32 @@ artefacts unchanged into a project archive, but incomplete work is not
 normalized until
 the operator deliberately resumes it. This separates lossless preservation from
 unnecessary migration-time ceremony.
+
+Initialization and delivery branching solve different problems. Initialization
+always protects the prior state on a dated archive branch and performs the
+migration on a temporary branch. The configured delivery branch strategy
+governs later changes only; it must not weaken or complicate the once-only
+migration boundary.
+
+## Migration readiness is authority convergence
+
+Moving files is not enough to establish a usable migrated project. Readiness
+requires the live repository to have one work and requirement authority, valid
+project authority paths, no active superseded workflow, and an explicit
+classification for preserved unfinished work. Archived material remains
+evidence and provenance; it does not silently retain current authority.
+
+Framework-specific authority text needs the same care as files. Exact known
+obsolete clauses may be removed deterministically during migration. An unknown
+reference must be preserved and surfaced for operator review rather than
+deleted or reinterpreted by pattern matching.
+
+## Historical SDLC v2 learnings
+
+The remaining sections record decisions and observations from SDLC v2. They
+are retained as design history. Where they conflict with the v3 sections above
+or the current normative documents under `src/`, the current v3 material
+governs.
 
 ## Separate standards from orchestration
 

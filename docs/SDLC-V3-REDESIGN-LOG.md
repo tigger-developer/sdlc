@@ -12,6 +12,14 @@ This document preserves decisions and open questions while the live SDLC is bein
 - SDLC v2 is the live production SDLC, not a prototype.
 - The standards library, progressive routing, audits, paired development, emergency delivery, and migration work remain valuable.
 - Spec Kit orchestration introduced excessive artefacts, ceremony, context loading, audit loops, and blocking handbacks.
+- More than a dozen process refinements still left ordinary definition and
+  delivery work running five to ten fresh-context audits, each reloading the
+  project and standards context at real model cost. Operator throughput was
+  roughly four times slower than under the earlier workflow.
+- The final trigger was a small script change, comparable to a one-line operator
+  edit, that produced about 1,400 lines of artefacts and nine audits. Five
+  audits were in its test-and-build delivery cycle, which ended with a failed
+  gate and no delivered change.
 - Removing Spec Kit therefore requires a production migration that preserves active work and history.
 
 ## Agreed direction
@@ -564,3 +572,13 @@ without reconstructing the work from conversation history.
   SDLC v3 authority statement and every other legacy paragraph unchanged. Scan
   that bounded subtree for any remaining case-insensitive `spec.*kit` reference;
   preserve and report unknown matches for operator adjudication.
+- Define migration readiness as authority convergence, not merely file
+  movement: one live work and requirement authority, valid configured authority
+  paths, no active superseded workflow, and explicit classifications for
+  unfinished preserved work.
+- Keep migration branching independent from the configured delivery branch
+  strategy. Initialization always creates the dated archive and temporary
+  migration branches; the configured strategy applies to later delivery work.
+- Prepared the changelog and design learnings for the `v3.0.0` release. The
+  operator required a stop before tagging, so no release tag or push belongs to
+  this checkpoint.

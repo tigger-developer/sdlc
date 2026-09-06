@@ -2,7 +2,21 @@
 
 ## Unreleased
 
+## v3.0.0 - 2026-09-06
+
 ### SDLC v3 redesign
+
+SDLC v3 follows a production failure of the combined v2 and Spec Kit workflow,
+not a speculative framework change. Despite more than a dozen process
+refinements, defining and delivering ordinary work repeatedly required five to
+ten fresh-context audits. Each auditor reloaded the project and engineering
+context, incurring real model cost, while the operator experienced roughly four
+times the earlier definition and delivery time.
+
+The final trigger was a small script change whose implementation was comparable
+to a one-line operator edit. The workflow generated about 1,400 lines of
+artefacts and ran nine audits, including five test-and-build delivery audits,
+before the delivery gate failed without producing a delivered change.
 
 Replaced the Spec Kit delivery dependency with a lean, standalone workflow:
 
@@ -112,6 +126,12 @@ Rust-specific anti-patterns. Rust deployables now use `cargo audit` as their
 preferred `make vulncheck` scanner, with a fail-closed canonical target that
 requires the scanner and committed `Cargo.lock` instead of installing or
 generating either during the gate.
+
+Validated the migration model through the first end-to-end SDLC v2 project
+migration: the pre-migration state remains recoverable, superseded Spec Kit
+state is archived, unfinished work remains explicitly classified rather than
+being forced through delivery, and the live project has one current work and
+requirement authority.
 
 ## v2.1.0 - 2026-09-05
 
