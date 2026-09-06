@@ -100,7 +100,7 @@ fields:
     flag: spec-model
     help: Definition model
     type: string
-    prompt: "Definition model:"
+    prompt: "Which model should definition work use? Press Enter to use the harness default:"
     allow_global: true
     migration_aliases: [SDLC_DELIVERY_MODEL]
 
@@ -130,7 +130,7 @@ fields:
     flag: build-model
     help: Delivery model
     type: string
-    prompt: "Delivery model:"
+    prompt: "Which model should delivery work use? Press Enter to use the harness default:"
     allow_global: true
 
   - key: SDLC_AUDIT_HARNESS
@@ -159,7 +159,7 @@ fields:
     flag: audit-model
     help: External audit model
     type: string
-    prompt: "External audit model:"
+    prompt: "Which model should external audits use? Press Enter to use the harness default:"
     allow_global: true
 
   - key: SDLC_AUDIT_TIMEOUT
