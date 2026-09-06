@@ -24,7 +24,7 @@ that retained agent, record a runner incident, and return it for operator
 direction without treating it as a failed audit or creating a replacement.
 
 On effective PASS, set the specification's definition-gate status to `PASS` and
-its lifecycle state to `AWAITING_SIGNOFF`, then present the specification and
+move its `docs/work.org` item to `REVIEW`, then present the specification and
 audit evidence for operator sign-off. After explicit sign-off, record the
-authority and date and set the lifecycle state to `APPROVED`. Do not begin
+authority and date and move its work item to `ACTIVE`. Do not begin
 implementation without that recorded sign-off.

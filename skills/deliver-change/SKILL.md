@@ -7,10 +7,11 @@ Read `~/.agents/sdlc/MAIN.md`, `TESTING.md`, `CODING.md`, `DOCUMENTATION.md`,
 `GIT.md`, the project profile, selected standards, the signed-off `spec.org`, and
 its current audit evidence.
 
-Admit delivery only when `spec.org` records lifecycle state `APPROVED`, a
-definition-gate `PASS`, explicit operator sign-off, and linked audit evidence
-that remains current. Do not begin by rerunning definition audits. A material
-specification change resets the definition gate and sign-off to `PENDING`.
+Admit delivery only when its item is `ACTIVE` in `docs/work.org` and `spec.org`
+records definition-gate `PASS`, explicit operator sign-off, and linked audit
+evidence that remains current. Do not begin by rerunning definition audits. A
+material specification change resets the definition gate and sign-off to
+`PENDING` and moves the work item to `REVIEW`.
 
 Write every justified automated regression test before production code and
 observe the expected RED result. Implement the smallest coherent solution,

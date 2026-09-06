@@ -214,15 +214,16 @@ func TestLegacyConfigurationDropsUnsupportedProviderModelPair(t *testing.T) {
 
 func TestArchiveSpecKitPreservesFilesAndRemovesActiveCopy(t *testing.T) {
 	root := t.TempDir()
-	writeProjectTestFile(t, filepath.Join(root, ".specify", "specs", "001", "spec.md"), "unfinished\n")
+	writeProjectTestFile(t, filepath.Join(root, ".specify", "memory", "constitution.md"), "legacy constitution\n")
+	writeProjectTestFile(t, filepath.Join(root, "specs", "001", "spec.md"), "# Feature\n\n**Status**: Draft\n\n## Requirements\n\nThe status endpoint remains in scope.\n")
 	writeProjectTestFile(t, filepath.Join(root, ".agents", "skills", "speckit-constitution", "SKILL.md"), "old\n")
 	writeProjectTestFile(t, filepath.Join(root, ".agents", "skills", "project-helper", "SKILL.md"), "keep\n")
 	if _, err := archiveSpecKit(root); err != nil {
 		t.Fatal(err)
 	}
-	archived := filepath.Join(root, "docs", "archive", "sdlc-v2", ".specify", "specs", "001", "spec.md")
+	archived := filepath.Join(root, "docs", "archive", "sdlc-v2", "specs", "001", "spec.md")
 	contents, err := os.ReadFile(archived)
-	if err != nil || string(contents) != "unfinished\n" {
+	if err != nil || string(contents) != "# Feature\n\n**Status**: Draft\n\n## Requirements\n\nThe status endpoint remains in scope.\n" {
 		t.Fatalf("archived content = %q, %v", contents, err)
 	}
 	if exists(filepath.Join(root, ".specify")) || exists(filepath.Join(root, ".agents", "skills", "speckit-constitution")) {
@@ -236,9 +237,44 @@ func TestArchiveSpecKitPreservesFilesAndRemovesActiveCopy(t *testing.T) {
 	}
 }
 
+func TestStripSpecStatusFieldIsLimitedToTopLevelMetadata(t *testing.T) {
+	for _, test := range []struct {
+		name     string
+		input    string
+		expected string
+		changed  bool
+	}{
+		{
+			name:     "plain metadata",
+			input:    "# Feature\n\nStatus: Approved\n\n## Requirements\n\nReturn status: healthy.\n",
+			expected: "# Feature\n\n## Requirements\n\nReturn status: healthy.\n",
+			changed:  true,
+		},
+		{
+			name:     "bold metadata",
+			input:    "# Feature\n\n**Status**: Draft\n\n## Requirements\n",
+			expected: "# Feature\n\n## Requirements\n",
+			changed:  true,
+		},
+		{
+			name:     "requirement text",
+			input:    "# Feature\n\n## Requirements\n\nStatus: available.\n",
+			expected: "# Feature\n\n## Requirements\n\nStatus: available.\n",
+			changed:  false,
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			actual, changed := stripSpecStatusField(test.input)
+			if actual != test.expected || changed != test.changed {
+				t.Fatalf("stripSpecStatusField() = %q, %v; want %q, %v", actual, changed, test.expected, test.changed)
+			}
+		})
+	}
+}
+
 func TestImportLegacyWorkCreatesDescriptorBearingWorkItems(t *testing.T) {
 	root := t.TempDir()
-	writeProjectTestFile(t, filepath.Join(root, "docs", "work.org"), "* Open defects\n\n* Undelivered features\n\n* Human review\n")
+	writeProjectTestFile(t, filepath.Join(root, "docs", "work.org"), "* Work items\n\n* Migration record\n")
 	writeProjectTestFile(t, filepath.Join(root, "docs", "ticket-migration.org"), `* Open defects at migration
 
 ** [[file:archive/migrated-tickets/7.md][#7 - Reject invalid host]]
@@ -266,8 +302,8 @@ Still reproducible.
 	}
 	text := string(contents)
 	for _, want := range []string{
-		"** TODO W007 - Reject invalid host :defect:",
-		"** TODO W012 - Add status page :feature:",
+		"** TODO W007 - Reject invalid host :defect:legacy:",
+		"** TODO W012 - Add status page :feature:legacy:",
 		":PRIORITY: unassigned",
 		":CREATED: unknown",
 		"**** Disposition",
@@ -276,6 +312,17 @@ Still reproducible.
 		if !strings.Contains(text, want) {
 			t.Fatalf("work ledger lacks %q:\n%s", want, text)
 		}
+	}
+	before := string(contents)
+	if err := importLegacyWork(root); err != nil {
+		t.Fatal(err)
+	}
+	after, err := os.ReadFile(filepath.Join(root, "docs", "work.org"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(after) != before {
+		t.Fatalf("repeated legacy work import changed the ledger:\n%s", after)
 	}
 }
 
@@ -298,9 +345,9 @@ func TestWriteWorkLedgerAllocatesMigratedV2WorkAboveHistoricIdentifiers(t *testi
 		t.Fatal(err)
 	}
 	for _, want := range []string{
-		"** REVIEW W131 - Old feature :migration:", ":LEGACY_ID: 001", ":TYPE: migration",
+		"** REVIEW W131 - Old feature :feature:migration:", ":LEGACY_ID: 001",
 		":PRIORITY: unassigned", ":SOURCE: docs/archive/sdlc-v2/specs/001-old-feature/spec.md",
-		":CREATED: unknown", ":DISPOSITION: unresolved", "*Migration evidence:* Approval and delivery are not recorded.",
+		":CREATED: unknown", ":MIGRATION_DISPOSITION: unresolved", "*Migration evidence:* Approval and delivery are not recorded.",
 	} {
 		if !strings.Contains(string(contents), want) {
 			t.Fatalf("work ledger lacks %q:\n%s", want, contents)
@@ -309,37 +356,31 @@ func TestWriteWorkLedgerAllocatesMigratedV2WorkAboveHistoricIdentifiers(t *testi
 	if strings.Contains(string(contents), "* Migrated v2 work requiring disposition") {
 		t.Fatalf("work ledger added a non-template top-level section:\n%s", contents)
 	}
-	template, err := os.ReadFile(filepath.Join(testSDLCRoot(t), "templates", "v3", "work.org"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	preamble := strings.SplitN(string(template), "* Open defects\n", 2)[0]
-	if !strings.HasPrefix(string(contents), preamble+"* Open defects\n") {
+	if !strings.HasPrefix(string(contents), "#+TITLE: Project Work Ledger\n#+STARTUP: overview\n#+TODO: TODO ACTIVE BLOCKED REVIEW | DONE ABANDONED\n#+TYP_TODO: PENDING FAILING SUPERSEDED | HOLD ASSUMED_PASS\n") {
 		t.Fatalf("work ledger did not preserve the canonical template preamble:\n%s", contents)
 	}
-	humanReview := strings.Index(string(contents), "* Human review\n")
-	closedWork := strings.Index(string(contents), "* Closed work\n")
+	workItems := strings.Index(string(contents), "* Work items\n")
+	migrationRecord := strings.Index(string(contents), "* Migration record\n")
 	item := strings.Index(string(contents), "** REVIEW W131 - Old feature")
-	if humanReview < 0 || item < humanReview || closedWork < item {
-		t.Fatalf("unresolved migrated work was not placed under Human review:\n%s", contents)
+	if workItems < 0 || item < workItems || migrationRecord < item {
+		t.Fatalf("unresolved migrated work was not placed under Work items:\n%s", contents)
 	}
 }
 
-func TestMigratedWorkPlacementUsesCanonicalSections(t *testing.T) {
+func TestMigratedWorkStateUsesCanonicalStates(t *testing.T) {
 	tests := []struct {
 		disposition string
 		state       string
-		section     string
 	}{
-		{"delivered", "DONE", "Closed work"},
-		{"approved-undelivered", "TODO", "Undelivered features"},
-		{"abandoned", "ABANDONED", "Closed work"},
-		{"unresolved", "REVIEW", "Human review"},
+		{"delivered", "DONE"},
+		{"approved-undelivered", "TODO"},
+		{"abandoned", "ABANDONED"},
+		{"unresolved", "REVIEW"},
 	}
 	for _, test := range tests {
-		state, section := migratedWorkPlacement(test.disposition)
-		if state != test.state || section != test.section {
-			t.Errorf("placement for %s = %s/%s, want %s/%s", test.disposition, state, section, test.state, test.section)
+		state := migratedWorkState(test.disposition)
+		if state != test.state {
+			t.Errorf("state for %s = %s, want %s", test.disposition, state, test.state)
 		}
 	}
 }
@@ -615,7 +656,7 @@ func TestRunMigratesV2WithoutRenumberingOrDeletingUnrelatedIntegrations(t *testi
 	runGitTest(t, project, "config", "user.name", "Test Operator")
 	runGitTest(t, project, "config", "user.email", "operator@example.invalid")
 	writeProjectTestFile(t, filepath.Join(project, "README.md"), "# Project\n")
-	writeProjectTestFile(t, filepath.Join(project, "docs", "ACs.org"), canonicalLegacyLedger("*** AC130.1 - Existing behaviour\n"))
+	writeProjectTestFile(t, filepath.Join(project, "docs", "ACs.org"), canonicalLegacyLedger("*** AC130.1 - Existing behaviour\n\n**** Status\n\nHOLDING\n"))
 	writeProjectTestFile(t, filepath.Join(project, ".specify", "memory", "constitution.md"), "legacy constitution\n")
 	writeProjectTestFile(t, filepath.Join(project, "specs", "001-old-feature", "spec.md"), "unfinished feature\n")
 	writeProjectTestFile(t, filepath.Join(project, ".agents", "skills", "speckit-plan", "SKILL.md"), "old integration\n")
@@ -700,7 +741,7 @@ func TestRunMigratesV1ThroughTicketSkillBeforeCreatingProfile(t *testing.T) {
 			if !strings.Contains(strings.Join(arguments, " "), "migrate-legacy-acs-to-sdlc-v1") {
 				return fmt.Errorf("unexpected skill invocation: %v", arguments)
 			}
-			writeProjectTestFile(t, filepath.Join(project, "docs", "ACs.org"), canonicalLegacyLedger("*** AC7.1 - Existing result\n"))
+			writeProjectTestFile(t, filepath.Join(project, "docs", "ACs.org"), canonicalLegacyLedger("*** AC7.1 - Existing result\n\n**** Status\n\nHOLDING\n"))
 			writeProjectTestFile(t, filepath.Join(project, "docs", "ticket-migration.org"), "#+TITLE: Ticket Migration\n")
 			if err := os.Remove(filepath.Join(project, "docs", "ACs.md")); err != nil {
 				return err
@@ -735,7 +776,7 @@ func TestRunMigratesV1ThroughTicketSkillBeforeCreatingProfile(t *testing.T) {
 		t.Fatalf("v1 requirement authorities = %q, %v", profile, err)
 	}
 	work, err := os.ReadFile(filepath.Join(project, "docs", "work.org"))
-	if err != nil || !strings.Contains(string(work), "*** AC7.1 - Existing result") {
+	if err != nil || !strings.Contains(string(work), "*** HOLD AC7.1 - Existing result") {
 		t.Fatalf("v1 acceptance criteria missing from work ledger = %q, %v", work, err)
 	}
 	archived := runGitTest(t, project, "show", "sdlc_v1_state_2026-09-06:docs/ACs.md")
@@ -754,8 +795,8 @@ func TestRunClassifiesV2WorkAndResolvesAuthoritiesAfterArchival(t *testing.T) {
 	writeProjectTestFile(t, filepath.Join(project, "docs", "architecture.md"), "# Architecture\n")
 	writeProjectTestFile(t, filepath.Join(project, "docs", "requirements.md"), "# Requirements\n")
 	writeProjectTestFile(t, filepath.Join(project, ".specify", "memory", "constitution.md"), "legacy constitution\n")
-	writeProjectTestFile(t, filepath.Join(project, "specs", "001-delivered-feature", "spec.md"), "# Delivered feature\n")
-	writeProjectTestFile(t, filepath.Join(project, "specs", "002-unresolved-feature", "spec.md"), "# Unresolved feature\n")
+	writeProjectTestFile(t, filepath.Join(project, "specs", "001-delivered-feature", "spec.md"), "# Delivered feature\n\nStatus: Approved\n")
+	writeProjectTestFile(t, filepath.Join(project, "specs", "002-unresolved-feature", "spec.md"), "# Unresolved feature\n\n**Status**: Draft\n")
 	runGitTest(t, project, "add", "-A")
 	runGitTest(t, project, "commit", "-m", "v2 state")
 
@@ -775,6 +816,15 @@ func TestRunClassifiesV2WorkAndResolvesAuthoritiesAfterArchival(t *testing.T) {
 			}
 			if !exists(filepath.Join(project, "docs", "archive", "sdlc-v2", ".specify", "memory", "constitution.md")) {
 				return errors.New("authority discovery ran before archived evidence was available")
+			}
+			for path, status := range map[string]string{
+				"docs/archive/sdlc-v2/specs/001-delivered-feature/spec.md":  "Status: Approved",
+				"docs/archive/sdlc-v2/specs/002-unresolved-feature/spec.md": "**Status**: Draft",
+			} {
+				archived, err := os.ReadFile(filepath.Join(project, filepath.FromSlash(path)))
+				if err != nil || !strings.Contains(string(archived), status) {
+					return fmt.Errorf("classification ran after source status was removed from %s", path)
+				}
 			}
 			work, err := os.ReadFile(filepath.Join(project, "docs", "work.org"))
 			if err != nil {
@@ -849,13 +899,29 @@ warnings: []
 		t.Fatal(err)
 	}
 	for _, want := range []string{
-		"** DONE W001 - Delivered feature :migration:",
-		"** REVIEW W002 - Unresolved feature :migration:",
-		":PRIORITY: P1", ":CREATED: 2026-09-01", ":DISPOSITION: delivered",
+		"** DONE W001 - Delivered feature :feature:migration:",
+		"** REVIEW W002 - Unresolved feature :feature:migration:",
+		":PRIORITY: P1", ":CREATED: 2026-09-01", ":MIGRATION_DISPOSITION: delivered",
 	} {
 		if !strings.Contains(string(work), want) {
 			t.Fatalf("work ledger lacks %q:\n%s", want, work)
 		}
+	}
+	for _, path := range []string{
+		"docs/archive/sdlc-v2/specs/001-delivered-feature/spec.md",
+		"docs/archive/sdlc-v2/specs/002-unresolved-feature/spec.md",
+	} {
+		archived, err := os.ReadFile(filepath.Join(project, filepath.FromSlash(path)))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if strings.Contains(string(archived), "Status:") || strings.Contains(string(archived), "**Status**:") {
+			t.Fatalf("archived migrated specification retained lifecycle status:\n%s", archived)
+		}
+	}
+	archivedSource := runGitTest(t, project, "show", "sdlc_v2_state_2026-09-06:specs/001-delivered-feature/spec.md")
+	if !strings.Contains(archivedSource, "Status: Approved") {
+		t.Fatalf("dated archive branch lost the original Spec Kit status:\n%s", archivedSource)
 	}
 	if exists(initializationWorkspacePath(project)) {
 		t.Fatal("successful initialization left its temporary working directory behind")

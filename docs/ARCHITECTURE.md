@@ -94,7 +94,7 @@ contexts. `define-change` and `deliver-change` own their normal composite gates;
 operator-requested review. The composite workflow owns context creation,
 retention, retry limits, evidence recording, and the human handback.
 
-The work ledger records the specification's lifecycle state. The specification
+The work ledger records the work item's sole lifecycle state. The specification
 records its current definition-gate status and operator sign-off. Detailed
 revision-specific findings remain in `audits.org`. Delivery reads these
 separate authorities and does not repeat the definition gate when entering a
@@ -110,10 +110,13 @@ on a dedicated migration branch.
 - SDLC v1 projects may first run the lossless GitHub-ticket migration. Historical
   requirements are normalized through `docs/ACs.org`, then folded into
   `docs/work.org`; unresolved work enters the same ledger.
-- SDLC v2 projects preserve active Spec Kit material unchanged under
+- SDLC v2 projects preserve active Spec Kit material under
   `docs/archive/sdlc-v2/`, remove it from active workflow, and classify every
   archived specification in `docs/work.org` without adding individual feature
-  specifications to the project authority lists.
+  specifications to the project authority lists. The dated archive branch
+  retains the exact source state; the archived working copy omits the obsolete
+  top-level Status field because `docs/work.org` is now its sole lifecycle
+  authority.
 
 After migration, the initializer derives stable authorities from the bounded
 Git file inventory. It presents Markdown and Org files whose stems contain
@@ -130,9 +133,8 @@ only their feature directories. Its temporary structured YAML classifies each
 specification as delivered, approved but undelivered, abandoned, or unresolved,
 with priority, creation date, and supporting evidence. Audit PASS alone is not
 operator approval. The initializer validates exact coverage, then renders each
-classification beneath the appropriate existing section in the canonical
-`docs/work.org` hierarchy. The agent never selects authority documents or edits
-the ledger.
+classification beneath `Work items` in the canonical `docs/work.org`
+hierarchy. The agent never selects authority documents or edits the ledger.
 
 The proposal lives in the project-owned `.sdlc/.init/` directory. Its presence
 tells a later invocation that initialization did not complete. The directory

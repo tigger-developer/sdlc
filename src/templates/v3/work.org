@@ -61,15 +61,15 @@ provides a durable cross-cutting category that the standard tags cannot express.
 ** Work-item structure
 
 #+begin_example
-** TODO W001 - Concise descriptor :feature:
+** TODO WNNN - Concise descriptor :feature:
 :PROPERTIES:
-:CUSTOM_ID: w-001
+:CUSTOM_ID: w-nnn
 :PRIORITY: P1
 :SOURCE: operator
 :CREATED: YYYY-MM-DD
 :END:
 
-- *Specification:* [[file:../specs/001-concise-descriptor/spec.org][W001 - Concise descriptor]]
+- *Specification:* [[file:../specs/NNN-concise-descriptor/spec.org][WNNN - Concise descriptor]]
 #+end_example
 
 Use =OWNER= and =BRANCH= properties only when concurrent work needs explicit

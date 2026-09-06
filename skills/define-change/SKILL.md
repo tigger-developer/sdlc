@@ -27,8 +27,8 @@ retained external context for the composite independent audit. Do not invoke
 the focused auditors through separate agents or scripts.
 
 On effective PASS, set the specification's definition-gate status to `PASS` and
-its lifecycle state to `AWAITING_SIGNOFF`, preserving the detailed evidence in
+move its `docs/work.org` item to `REVIEW`, preserving the detailed evidence in
 `audits.org`. Open the specification with `sdlc-preview` and return it for
 operator sign-off. Preview is presentation, not a gate. After explicit sign-off,
-record the authority and date in `spec.org` and set its lifecycle state to
-`APPROVED`. Do not implement code.
+record the authority and date in `spec.org` and move its work item to `ACTIVE`.
+Do not implement code.

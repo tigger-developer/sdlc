@@ -62,7 +62,7 @@ authorities.
 
 * Status vocabulary
 
-- *HOLDING:* The requirement remains current and its recorded evidence passes.
+- *HOLD:* The requirement remains current and its recorded evidence passes.
 - *PENDING:* The requirement or some required evidence remains unverified.
 - *FAILING:* Current evidence shows the requirement does not hold.
 - *SUPERSEDED:* A named later requirement replaces or retires it.
@@ -92,7 +92,7 @@ authorities.
 
 **** Status
 
-[HOLDING, PENDING, FAILING, SUPERSEDED, OR ASSUMED PASS, WITH ANY QUALIFICATION]
+[HOLD, PENDING, FAILING, SUPERSEDED, OR ASSUMED PASS, WITH ANY QUALIFICATION]
 
 **** Tests
 

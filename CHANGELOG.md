@@ -25,8 +25,9 @@ Replaced the Spec Kit delivery dependency with a lean, standalone workflow:
   project-owned, Git-ignored `.sdlc/.init/` directory, without using private
   `.git` storage, external-audit timeout configuration, and one-time removal of
   migrated SDLC keys from `.env` without exposing or changing unrelated values;
-- lossless v2 archival by moving active Spec Kit state out of the live workflow,
-  preserving unrelated project integrations, classifying every archived
+- lossless v2 migration by preserving the exact source on the dated archive
+  branch, moving active Spec Kit state out of the live workflow, preserving
+  unrelated project integrations, classifying every archived
   specification through one bounded audit-model pass, rendering the canonical
   work ledger deterministically, and allocating v3 work IDs above historical
   work, requirement, test, and ticket numbers;
@@ -56,8 +57,9 @@ output, while commit failures always replay captured diagnostics.
 
 The primary `define-change` and `deliver-change` skills now own their complete
 local-remediation and retained-external-audit gates. A delivery starts from the
-current audited and operator-approved lifecycle status recorded in `spec.org`;
-it does not rerun definition audits.
+current lifecycle status recorded in `docs/work.org` plus the audited and
+operator-approved definition recorded in `spec.org`; it does not rerun
+definition audits.
 
 Split the ambiguous `audit-tests` skill into `audit-test-definitions` for the
 pre-implementation test strategy and `audit-test-code` for implemented tests and
@@ -74,6 +76,14 @@ structure and records, folds the complete canonical `docs/ACs.org` hierarchy
 beneath `Legacy Acceptance Criteria (SDLC v1)`, then removes the redundant
 ledger. Added the idempotent standalone `sdlc-merge-legacy-acs` command for
 projects initialized before this change.
+
+Standardized `docs/work.org` around one `Work items` section. Its TODO keyword
+is the sole lifecycle state, tags classify work, and properties retain stable
+metadata. Legacy AC status is promoted to the AC headline under an inherited
+`legacy` tag; the duplicate Status field is removed while qualifications remain
+visible. V2 migration removes the obsolete top-level Status field from archived
+Spec Kit specifications after preserving the exact pre-migration state on the
+archive branch.
 
 ## v2.1.0 - 2026-09-05
 

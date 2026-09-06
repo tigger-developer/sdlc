@@ -72,6 +72,14 @@ template, and migration performs narrow structure-aware insertions. A Go Org
 parser may validate the resulting supported subset after the format stabilizes;
 it should not rewrite the whole document merely to insert known nodes.
 
+Migration must honour the same single-source rule. Archived Spec Kit
+specifications retain their definitions and evidence, but their obsolete
+top-level lifecycle Status field is removed after the untouched source has been
+preserved on the dated archive branch. A completed `docs/ACs.org` is different:
+its complete requirement hierarchy is folded into `docs/work.org`, its Status
+field becomes the legacy AC headline state, and the redundant source file is
+removed only after the embedded copy is verified.
+
 ## Semantic discovery can remain human-controlled
 
 Configuration code can validate paths and persist lists, but it cannot reliably

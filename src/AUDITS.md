@@ -40,10 +40,10 @@ named authorities, applicable standards, and focused repository evidence. It
 must test whether a new agent can safely deliver without the drafting
 conversation.
 
-An effective PASS sets `DEFINITION_GATE` in `spec.org` to `PASS` and its
-lifecycle state to `AWAITING_SIGNOFF`. Explicit operator sign-off records the
-authority and date and changes the lifecycle state to `APPROVED`. Detailed
-rounds remain in `audits.org`. Lifecycle-only recording does not invalidate the
+An effective PASS sets `DEFINITION_GATE` in `spec.org` to `PASS` and moves the
+work item in `docs/work.org` to `REVIEW`. Explicit operator sign-off records the
+authority and date and moves the work item to `ACTIVE`. Detailed rounds remain
+in `audits.org`. Lifecycle-only recording does not invalidate the
 audit; any material specification change resets the gate and sign-off to
 `PENDING`.
 
@@ -52,9 +52,10 @@ audit; any material specification change resets the gate and sign-off to
 The delivery context applies `audit-test-code` and `audit-code` together to the
 implemented tests and production code.
 
-Delivery starts only when `spec.org` records `APPROVED`, a current definition
-gate `PASS`, explicit operator sign-off, and linked audit evidence. It does not
-rerun definition audits merely because a delivery context has started.
+Delivery starts only when `docs/work.org` records `ACTIVE` and `spec.org`
+records a current definition gate `PASS`, explicit operator sign-off, and
+linked audit evidence. It does not rerun definition audits merely because a
+delivery context has started.
 
 1. Review locally, remediate, and repeat for at most five local rounds.
 2. Start no external auditor until both local reviews pass.

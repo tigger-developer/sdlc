@@ -527,3 +527,16 @@ without reconstructing the work from conversation history.
   Kit classification. Do not add a Go Org writer to these paths. Consider an
   Org parser later for post-write validation and queries after the supported
   subset and round-trip expectations are stable.
+- Standardize migration output around one `Work items` section. The TODO keyword
+  is the only current lifecycle state; classification tags and stable properties
+  remain independent. Migrated v2 records carry `feature:migration` tags and a
+  `MIGRATION_DISPOSITION` provenance property rather than a duplicate state.
+- Remove the obsolete top-level Status field from the archived working copy of
+  each migrated Spec Kit specification. The dated archive branch retains the
+  exact pre-migration source. Preserve all other archived specification and
+  evidence content.
+- Move each imported legacy AC's disposition from its `Status` field to the AC
+  headline using the declared type-state vocabulary. Normalize historical
+  `HOLDING` to `HOLD`, preserve any qualification under `Status qualification`,
+  and inherit `legacy` from the folded parent subtree. Remove `docs/ACs.org`
+  only after verifying the complete merged subtree.

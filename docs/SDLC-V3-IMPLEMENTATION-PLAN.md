@@ -462,9 +462,9 @@ record. It records:
   `audit-implementation` remain independently invocable composite reviews. The
   focused audits are `audit-spec`, `audit-design`, `audit-test-definitions`,
   `audit-test-code`, and `audit-code`.
-- `spec.org` records lifecycle state, definition-gate status, and operator
-  sign-off. Delivery trusts that current recorded authority rather than
-  beginning with another definition-audit cycle.
+- `docs/work.org` records lifecycle state. `spec.org` records definition-gate
+  status and operator sign-off. Delivery trusts that current recorded authority
+  rather than beginning with another definition-audit cycle.
 - `work.org` carries status, links, and the folded SDLC v1 acceptance-criteria
   ledger; active v3 requirements and design remain in their signed-off specs.
 - Historical `.env` migration is schema-allowlisted and removes only migrated

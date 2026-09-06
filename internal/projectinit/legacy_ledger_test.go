@@ -12,9 +12,17 @@ func TestMergeLegacyAcceptanceCriteriaPreservesWorkAndConsolidatesAuthority(t *t
 	root := t.TempDir()
 	writeProjectTestFile(t, filepath.Join(root, "docs", "work.org"), `#+TITLE: Existing Work
 
-* Open defects
+* Work items
 
 ** TODO W041 - Preserve this work item :defect:
+
+* Legacy Acceptance Criteria (SDLC v1)                         :legacy:
+:PROPERTIES:
+:CUSTOM_ID: legacy-acceptance-criteria
+:VISIBILITY: folded
+:END:
+
+{{LEGACY_ACCEPTANCE_CRITERIA}}
 
 * Migration record
 
@@ -44,6 +52,10 @@ Invalid hosts are rejected.
 **** Provenance
 
 - [[file:archive/migrated-tickets/7.md][#7 - Reject invalid configuration]]
+
+**** Status
+
+*HOLDING:* Current requirement confirmed during migration.
 
 * Migration notes and footnotes
 
@@ -77,9 +89,11 @@ authorities:
 		legacyLedgerHeading,
 		":VISIBILITY: folded",
 		":SOURCE_DATE: 2026-09-03",
-		"** Ledger authority",
+		"** Legacy ledger authority at migration",
 		"** Issue 7 - Reject invalid configuration",
-		"*** AC7.1 - Reject an invalid host definition",
+		"*** HOLD AC7.1 - Reject an invalid host definition",
+		"**** Status qualification",
+		"Current requirement confirmed during migration.",
 		"[[file:archive/migrated-tickets/7.md][#7 - Reject invalid configuration]]",
 		"* Migration record",
 		"[[#legacy-acceptance-criteria][Legacy Acceptance Criteria (SDLC v1)]]",
@@ -87,6 +101,9 @@ authorities:
 		if !strings.Contains(string(work), want) {
 			t.Fatalf("consolidated work ledger lacks %q:\n%s", want, work)
 		}
+	}
+	if strings.Contains(string(work), "**** Status\n") || strings.Contains(string(work), legacyLedgerPlaceholder) {
+		t.Fatalf("consolidated work ledger retained duplicate status or placeholder:\n%s", work)
 	}
 	profile, err := os.ReadFile(filepath.Join(root, projectProfilePath))
 	if err != nil {
@@ -117,6 +134,10 @@ func TestMergeLegacyAcceptanceCriteriaRejectsDifferentEmbeddedCopy(t *testing.T)
 
 ** Area
 *** AC1.1 - Original content
+
+**** Status
+
+HOLDING
 `)
 
 	_, err := MergeLegacyAcceptanceCriteria(root)
@@ -125,6 +146,61 @@ func TestMergeLegacyAcceptanceCriteriaRejectsDifferentEmbeddedCopy(t *testing.T)
 	}
 	if !exists(filepath.Join(root, "docs", "ACs.org")) {
 		t.Fatal("conflicting source ledger was removed")
+	}
+}
+
+func TestMergeLegacyAcceptanceCriteriaNormalizesExistingMergedLedger(t *testing.T) {
+	root := t.TempDir()
+	writeProjectTestFile(t, filepath.Join(root, "docs", "work.org"), `#+TITLE: Existing Work
+
+* Legacy Acceptance Criteria (SDLC v1)
+:PROPERTIES:
+:CUSTOM_ID: legacy-acceptance-criteria
+:VISIBILITY: folded
+:END:
+
+** Ledger authority
+
+Historical authority.
+
+** Status vocabulary
+
+Historical vocabulary.
+
+** Area
+
+*** AC1.1 - Existing requirement
+
+**** Status
+
+HOLDING
+
+* Migration record
+`)
+
+	result, err := MergeLegacyAcceptanceCriteria(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !result.LedgerChanged || result.SourceRemoved {
+		t.Fatalf("normalization result = %#v", result)
+	}
+	contents, err := os.ReadFile(filepath.Join(root, "docs", "work.org"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{
+		legacyLedgerHeading,
+		"** Legacy ledger authority at migration",
+		"** Legacy status vocabulary at migration",
+		"*** HOLD AC1.1 - Existing requirement",
+	} {
+		if !strings.Contains(string(contents), want) {
+			t.Fatalf("normalized ledger lacks %q:\n%s", want, contents)
+		}
+	}
+	if strings.Contains(string(contents), "**** Status\n") {
+		t.Fatalf("normalized ledger retained the duplicate Status field:\n%s", contents)
 	}
 }
 
@@ -149,16 +225,20 @@ func TestWriteWorkLedgerPreservesExistingContent(t *testing.T) {
 	}
 	for _, want := range []string{
 		"#+TITLE: Existing Work",
+		"#+TYP_TODO: PENDING FAILING SUPERSEDED | HOLD ASSUMED_PASS",
+		"#+TAGS: feature defect maintenance migration legacy",
 		"** TODO W009 - Existing defect :defect:",
-		"* Undelivered features",
-		"* Active delivery",
-		"* Human review",
-		"* Closed work",
+		"* Work items",
 		"* Migration record",
 		"- *Migration branch:* sdlc-v3-migration-2026-09-06",
 	} {
 		if !strings.Contains(string(contents), want) {
 			t.Fatalf("amended work ledger lacks %q:\n%s", want, contents)
+		}
+	}
+	for _, absent := range []string{"* Open defects\n", "* Undelivered features\n", "* Active delivery\n", "* Human review\n", "* Closed work\n", legacyLedgerPlaceholder} {
+		if strings.Contains(string(contents), absent) {
+			t.Fatalf("amended work ledger retained obsolete structure %q:\n%s", absent, contents)
 		}
 	}
 }

@@ -198,6 +198,9 @@ func Run(options Options) error {
 		if err := writeWorkLedger(sdlcRoot, projectRoot, generation, options.Now()); err != nil {
 			return err
 		}
+		if err := stripArchivedSpecStatuses(filepath.Join(projectRoot, "docs", "archive", "sdlc-v2"), generation.legacyV2); err != nil {
+			return err
+		}
 	}
 	if err := writeProjectProfile(projectRoot, options.SDLCRevision, schema, generation); err != nil {
 		return err
@@ -803,6 +806,47 @@ func archiveSpecKit(projectRoot string) ([]string, error) {
 	return workItems, nil
 }
 
+func stripArchivedSpecStatuses(archiveRoot string, workItems []string) error {
+	for _, item := range workItems {
+		path := filepath.Join(archiveRoot, "specs", item, "spec.md")
+		contents, err := os.ReadFile(path)
+		if errors.Is(err, os.ErrNotExist) {
+			continue
+		}
+		if err != nil {
+			return fmt.Errorf("reading archived Spec Kit specification %s: %w", item, err)
+		}
+		updated, changed := stripSpecStatusField(string(contents))
+		if !changed {
+			continue
+		}
+		if err := writeAtomic(path, []byte(updated)); err != nil {
+			return fmt.Errorf("removing duplicated lifecycle status from archived Spec Kit specification %s: %w", item, err)
+		}
+	}
+	return nil
+}
+
+func stripSpecStatusField(document string) (string, bool) {
+	lines := strings.Split(document, "\n")
+	for index, line := range lines {
+		if index > 24 || strings.HasPrefix(line, "## ") {
+			break
+		}
+		trimmed := strings.TrimSpace(line)
+		lower := strings.ToLower(trimmed)
+		if !strings.HasPrefix(lower, "status:") && !strings.HasPrefix(lower, "**status**:") {
+			continue
+		}
+		lines = append(lines[:index], lines[index+1:]...)
+		if index < len(lines) && strings.TrimSpace(lines[index]) == "" && index > 0 && strings.TrimSpace(lines[index-1]) == "" {
+			lines = append(lines[:index], lines[index+1:]...)
+		}
+		return strings.Join(lines, "\n"), true
+	}
+	return document, false
+}
+
 func archiveSpecKitEntries(directory, archiveDirectory string) error {
 	entries, err := os.ReadDir(directory)
 	if err != nil {
@@ -916,6 +960,9 @@ func writeWorkLedger(sdlcRoot, projectRoot string, generation projectGeneration,
 	for before, after := range replacements {
 		text = strings.ReplaceAll(text, before, after)
 	}
+	if !exists(filepath.Join(projectRoot, "docs", "ACs.org")) {
+		text = removeEmptyLegacyLedgerSection(text)
+	}
 	directory := filepath.Join(projectRoot, "docs")
 	if err := os.MkdirAll(directory, 0o755); err != nil {
 		return err
@@ -933,7 +980,7 @@ func writeWorkLedger(sdlcRoot, projectRoot string, generation projectGeneration,
 	}
 	if len(generation.migratedV2) != 0 {
 		nextWork := highestHistoricalWorkNumber(projectRoot) + 1
-		sectionEntries := map[string][]string{}
+		var entries []string
 		for _, item := range generation.migratedV2 {
 			if strings.Contains(text, ":SOURCE: "+item.Path+"\n") {
 				continue
@@ -942,34 +989,28 @@ func writeWorkLedger(sdlcRoot, projectRoot string, generation projectGeneration,
 			nextWork++
 			legacyDirectory := filepath.Base(filepath.Dir(filepath.FromSlash(item.Path)))
 			legacyIdentifier, _ := v2WorkIdentity(legacyDirectory)
-			state, section := migratedWorkPlacement(item.Disposition)
+			state := migratedWorkState(item.Disposition)
 			descriptor := strings.NewReplacer("[", "(", "]", ")").Replace(item.Descriptor)
 			var entry strings.Builder
-			fmt.Fprintf(&entry, "** %s %s - %s :migration:\n", state, identifier, descriptor)
+			fmt.Fprintf(&entry, "** %s %s - %s :feature:migration:\n", state, identifier, descriptor)
 			entry.WriteString(":PROPERTIES:\n")
 			fmt.Fprintf(&entry, ":CUSTOM_ID: w-%s\n", strings.ToLower(strings.TrimPrefix(identifier, "W")))
 			fmt.Fprintf(&entry, ":LEGACY_ID: %s\n", legacyIdentifier)
-			entry.WriteString(":TYPE: migration\n")
 			fmt.Fprintf(&entry, ":PRIORITY: %s\n", item.Priority)
 			fmt.Fprintf(&entry, ":SOURCE: %s\n", item.Path)
 			fmt.Fprintf(&entry, ":CREATED: %s\n", item.Created)
-			fmt.Fprintf(&entry, ":DISPOSITION: %s\n", item.Disposition)
+			fmt.Fprintf(&entry, ":MIGRATION_DISPOSITION: %s\n", item.Disposition)
 			entry.WriteString(":END:\n\n")
 			linkPath := strings.TrimPrefix(item.Path, "docs/")
 			fmt.Fprintf(&entry, "- *Specification:* [[file:%s][%s]]\n", linkPath, descriptor)
 			fmt.Fprintf(&entry, "- *Migration evidence:* %s\n", item.Evidence)
-			sectionEntries[section] = append(sectionEntries[section], entry.String())
+			entries = append(entries, entry.String())
 		}
-		for _, section := range []string{"Undelivered features", "Human review", "Closed work"} {
-			entries := sectionEntries[section]
-			if len(entries) == 0 {
-				continue
+		if len(entries) != 0 {
+			text, err = appendToOrgTopLevelSection(text, "Work items", strings.Join(entries, "\n"))
+			if err != nil {
+				return err
 			}
-			marker := "* " + section + "\n"
-			if !strings.Contains(text, marker) {
-				return fmt.Errorf("work ledger template lacks section %q", section)
-			}
-			text = strings.Replace(text, marker, marker+"\n"+strings.Join(entries, "\n")+"\n", 1)
 		}
 	}
 	// #nosec G306 -- this tracked project document is intentionally readable.
@@ -977,7 +1018,14 @@ func writeWorkLedger(sdlcRoot, projectRoot string, generation projectGeneration,
 }
 
 func mergeWorkLedgerScaffold(existing, rendered, migrationBranch string) (string, error) {
-	result := existing
+	result := mergeWorkLedgerPreamble(existing, rendered)
+	if legacy := legacyLedgerSection(result); legacy != "" {
+		normalized, _, err := normalizeLegacyLedgerBlock(legacy)
+		if err != nil {
+			return "", err
+		}
+		result = strings.Replace(result, legacy, normalized, 1)
+	}
 	canonical := splitOrgTopLevelSections(strings.Split(rendered, "\n"))
 	if len(canonical) == 0 {
 		return "", errors.New("canonical work ledger template contains no level-one sections")
@@ -997,6 +1045,11 @@ func mergeWorkLedgerScaffold(existing, rendered, migrationBranch string) (string
 		} else {
 			result = strings.TrimRight(result, "\n") + "\n\n" + addition
 		}
+	}
+	var err error
+	result, err = consolidateStateSections(result)
+	if err != nil {
+		return "", err
 	}
 
 	var migration orgSection
@@ -1020,16 +1073,16 @@ func mergeWorkLedgerScaffold(existing, rendered, migrationBranch string) (string
 	return result, nil
 }
 
-func migratedWorkPlacement(disposition string) (string, string) {
+func migratedWorkState(disposition string) string {
 	switch disposition {
 	case "delivered":
-		return "DONE", "Closed work"
+		return "DONE"
 	case "approved-undelivered":
-		return "TODO", "Undelivered features"
+		return "TODO"
 	case "abandoned":
-		return "ABANDONED", "Closed work"
+		return "ABANDONED"
 	default:
-		return "REVIEW", "Human review"
+		return "REVIEW"
 	}
 }
 
@@ -1050,7 +1103,7 @@ func highestHistoricalWorkNumber(projectRoot string) int {
 		if err != nil {
 			continue
 		}
-		for _, match := range historicalIdentifierPattern.FindAllStringSubmatch(string(contents), -1) {
+		for _, match := range historicalIdentifierPattern.FindAllStringSubmatch(withoutOrgExamples(string(contents)), -1) {
 			value := match[1]
 			if value == "" {
 				value = match[2]
@@ -1062,6 +1115,26 @@ func highestHistoricalWorkNumber(projectRoot string) int {
 		}
 	}
 	return highest
+}
+
+func withoutOrgExamples(document string) string {
+	var output []string
+	ignored := ""
+	for _, line := range strings.Split(document, "\n") {
+		trimmed := strings.ToLower(strings.TrimSpace(line))
+		if ignored == "" && (trimmed == "#+begin_example" || trimmed == "#+begin_comment") {
+			ignored = strings.TrimPrefix(trimmed, "#+begin_")
+			continue
+		}
+		if ignored != "" {
+			if trimmed == "#+end_"+ignored {
+				ignored = ""
+			}
+			continue
+		}
+		output = append(output, line)
+	}
+	return strings.Join(output, "\n")
 }
 
 func importLegacyWork(projectRoot string) error {
@@ -1079,31 +1152,69 @@ func importLegacyWork(projectRoot string) error {
 		return err
 	}
 	type section struct {
-		source, target, state, kind string
+		source, state, tags string
 	}
 	sections := []section{
-		{"Open defects at migration", "Open defects", "TODO", "defect"},
-		{"Defined but undelivered features", "Undelivered features", "TODO", "feature"},
-		{"Requires human review", "Human review", "REVIEW", "review"},
+		{"Open defects at migration", "TODO", "defect:legacy"},
+		{"Defined but undelivered features", "TODO", "feature:legacy"},
+		{"Requires human review", "REVIEW", "legacy:migration"},
 	}
 	result := string(work)
+	var entries []string
 	for _, item := range sections {
 		body := orgTopLevelBody(string(source), item.source)
-		converted, convertErr := convertLegacyTicketHeadings(body, item.state, item.kind)
+		converted, convertErr := convertLegacyTicketHeadings(body, item.state, item.tags)
 		if convertErr != nil {
 			return convertErr
 		}
 		if strings.TrimSpace(converted) == "" {
 			continue
 		}
-		marker := "* " + item.target + "\n"
-		if !strings.Contains(result, marker) {
-			return fmt.Errorf("work ledger lacks section %q", item.target)
+		for _, entry := range splitOrgLevelTwoEntries(converted) {
+			source := workEntryProperty(entry, "SOURCE")
+			if source != "" && strings.Contains(result, ":SOURCE: "+source+"\n") {
+				continue
+			}
+			entries = append(entries, entry)
 		}
-		result = strings.Replace(result, marker, marker+"\n"+converted+"\n", 1)
+	}
+	if len(entries) != 0 {
+		result, err = appendToOrgTopLevelSection(result, "Work items", strings.Join(entries, "\n\n"))
+		if err != nil {
+			return err
+		}
 	}
 	// #nosec G306 -- this tracked project document is intentionally readable.
 	return os.WriteFile(workPath, []byte(result), 0o644)
+}
+
+func splitOrgLevelTwoEntries(document string) []string {
+	lines := strings.Split(strings.TrimSpace(document), "\n")
+	var entries []string
+	start := -1
+	for index, line := range lines {
+		if !strings.HasPrefix(line, "** ") {
+			continue
+		}
+		if start >= 0 {
+			entries = append(entries, strings.TrimSpace(strings.Join(lines[start:index], "\n")))
+		}
+		start = index
+	}
+	if start >= 0 {
+		entries = append(entries, strings.TrimSpace(strings.Join(lines[start:], "\n")))
+	}
+	return entries
+}
+
+func workEntryProperty(entry, name string) string {
+	prefix := ":" + name + ":"
+	for _, line := range strings.Split(entry, "\n") {
+		if strings.HasPrefix(line, prefix) {
+			return strings.TrimSpace(strings.TrimPrefix(line, prefix))
+		}
+	}
+	return ""
 }
 
 func orgTopLevelBody(document, title string) string {
@@ -1124,7 +1235,7 @@ func orgTopLevelBody(document, title string) string {
 	return ""
 }
 
-func convertLegacyTicketHeadings(body, state, kind string) (string, error) {
+func convertLegacyTicketHeadings(body, state, tags string) (string, error) {
 	lines := strings.Split(strings.TrimSpace(body), "\n")
 	var output []string
 	for _, line := range lines {
@@ -1137,10 +1248,9 @@ func convertLegacyTicketHeadings(body, state, kind string) (string, error) {
 				return "", err
 			}
 			output = append(output,
-				fmt.Sprintf("** %s W%03d - %s :%s:", state, number, descriptor, kind),
+				fmt.Sprintf("** %s W%03d - %s :%s:", state, number, descriptor, tags),
 				":PROPERTIES:",
 				fmt.Sprintf(":CUSTOM_ID: w-%03d", number),
-				fmt.Sprintf(":TYPE: %s", kind),
 				":PRIORITY: unassigned",
 				fmt.Sprintf(":SOURCE: %s", source),
 				":CREATED: unknown",

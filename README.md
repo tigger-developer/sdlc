@@ -75,8 +75,8 @@ The initializer:
 9. folds any canonical `docs/ACs.org` into a preserved or newly created
    `docs/work.org`, which becomes the sole requirement authority;
 10. for v2 projects with archived specifications, runs one bounded read-only
-    classification with the configured audit model and renders the results into
-    `docs/work.org`;
+    classification with the configured audit model, removes their obsolete
+    top-level Status fields, and renders their lifecycle into `docs/work.org`;
 11. creates `.sdlc/project.yaml` and commits the migration with a concise
     commit summary; and
 12. asks whether to merge the migration branch into the original branch.
@@ -170,23 +170,25 @@ Invoke `$define-change`. It asks only the clarification needed and creates one
 The same skill applies the specification, design, and test-definition audits,
 remediating for at most five local rounds. Only after local PASS does one
 retained external Codex context run all three audits. On effective PASS,
-`spec.org` records `AWAITING_SIGNOFF`; explicit operator sign-off changes it to
-`APPROVED`. `$audit-definition` remains available for a separately requested
-combined review.
+`spec.org` records the gate PASS and `docs/work.org` moves the item to `REVIEW`;
+explicit operator sign-off records its authority in the specification and moves
+the work item to `ACTIVE`. `$audit-definition` remains available for a
+separately requested combined review.
 
 The operator reviews and signs off the definition before implementation.
 
 ### Deliver
 
-Invoke `$deliver-change`. It admits only a current `APPROVED` specification with
-a definition-gate PASS and recorded operator sign-off; it does not rerun the
-definition audits. Automated regression tests are written first and must show
-the intended RED result. The agent implements the smallest coherent change,
-returns the suite to GREEN, and applies the implemented-test and production-code
-audits locally before one retained external audit context. After PASS, required
-OT and UT evidence is recorded in `validation.org`, affected documentation is
-reconciled, and the operator decides closure. `$audit-implementation` remains
-available for a separately requested combined review.
+Invoke `$deliver-change`. It admits only an `ACTIVE` work item whose
+specification records a definition-gate PASS and operator sign-off; it does not
+rerun the definition audits. Automated regression tests are written first and
+must show the intended RED result. The agent implements the smallest coherent
+change, returns the suite to GREEN, and applies the implemented-test and
+production-code audits locally before one retained external audit context.
+After PASS, required OT and UT evidence is recorded in `validation.org`,
+affected documentation is reconciled, and the operator decides closure.
+`$audit-implementation` remains available for a separately requested combined
+review.
 
 Audit results live in `audits.org`. They are evidence for an exact revision, not
 human approval.
@@ -231,6 +233,9 @@ committed.
 
 `sdlc-project-init` then folds that intermediate ledger into `docs/work.org`
 before importing unresolved legacy work or archived Spec Kit specifications.
+The AC disposition becomes its headline state and the redundant Status field is
+removed. After the embedded copy is verified, the separate `docs/ACs.org` is
+removed.
 For an already initialized v3 project, run `sdlc-merge-legacy-acs` once from the
 project root. A successful rerun is a no-op.
 

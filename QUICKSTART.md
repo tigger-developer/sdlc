@@ -47,8 +47,9 @@ choice. Any canonical legacy AC ledger is folded into it first.
 
 Only an SDLC v2 project with archived Spec Kit specifications starts headless
 Codex. The configured audit model classifies those specifications in one
-bounded read-only pass, and the initializer renders their statuses into
-`docs/work.org`. Projects without archived specifications skip this call.
+bounded read-only pass. The initializer removes their obsolete top-level Status
+fields and renders their lifecycle into `docs/work.org`. Projects without
+archived specifications skip this call.
 
 If initialization is interrupted during or after authority selection, its
 temporary working directory remains at `.sdlc/.init/`. A later invocation
@@ -118,7 +119,7 @@ Review the generated `spec.org` in the browser. It must be sufficient for a new
 agent with no drafting-conversation context. The same skill runs the combined
 specification, design, and test-definition gate locally, then in one retained
 external Codex context. Sign off only after `spec.org` records the resulting
-PASS and awaits operator sign-off.
+PASS and `docs/work.org` places the item in `REVIEW`.
 
 ## 5. Deliver the signed-off change
 
@@ -128,8 +129,8 @@ Invoke:
 $deliver-change
 ```
 
-Delivery requires an `APPROVED` specification with a current definition PASS
-and recorded operator sign-off. It does not rerun definition audits. The
+Delivery requires an `ACTIVE` work item whose specification records a current
+definition PASS and operator sign-off. It does not rerun definition audits. The
 sequence is automated test, RED, implementation, GREEN, then the combined
 implemented-test and code gate. Test definitions classified as OT or UT are
 recorded but do not pretend to be TDD. After PASS, execute them, record results
