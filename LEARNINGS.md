@@ -94,6 +94,22 @@ its complete requirement hierarchy is folded into `docs/work.org`, its Status
 field becomes the legacy AC headline state, and the redundant source file is
 removed only after the embedded copy is verified.
 
+## Deterministic migration needs a bounded semantic fallback
+
+Historical ledgers contain presentation and vocabulary variations that a
+deterministic importer must not guess at. Expanding the parser for each observed
+variant would silently turn uncertain interpretation into policy. Stopping for
+manual repair, however, makes a once-only migration unnecessarily operator
+intensive.
+
+The safe middle ground is one bounded semantic repair. The initializer keeps
+the deterministic importer as the acceptance boundary. Only when that importer
+rejects `docs/ACs.org` does a fresh agent normalize the ledger against the
+canonical template, without touching other project files. The same importer
+then validates the result. A failed or still-invalid repair stops migration and
+preserves the source ledger. This keeps inference visible and constrained while
+making known legacy variance recoverable without hand editing.
+
 ## Semantic discovery can remain human-controlled
 
 Configuration code can validate paths and persist lists, but it cannot reliably

@@ -200,6 +200,9 @@ func Run(options Options) error {
 		return err
 	}
 	if exists(filepath.Join(projectRoot, "docs", "ACs.org")) {
+		if err := repairLegacyLedgerIfRequired(options, sdlcRoot, projectRoot, values["SDLC_AUDIT_MODEL"]); err != nil {
+			return err
+		}
 		merged, mergeErr := MergeLegacyAcceptanceCriteria(projectRoot)
 		if mergeErr != nil {
 			return fmt.Errorf("merging legacy acceptance criteria into docs/work.org: %w", mergeErr)
@@ -907,6 +910,41 @@ func runCodexSkill(options Options, projectRoot, model, prompt string) error {
 	}
 	arguments = append(arguments, prompt)
 	return options.RunCommand("codex", arguments, projectRoot, nil, options.Output, options.ErrorOutput)
+}
+
+func repairLegacyLedgerIfRequired(options Options, sdlcRoot, projectRoot, model string) error {
+	ledgerPath := filepath.Join(projectRoot, "docs", "ACs.org")
+	ledger, err := readRegularFile(ledgerPath)
+	if err != nil {
+		return fmt.Errorf("reading legacy acceptance-criteria ledger: %w", err)
+	}
+	if _, _, validationErr := renderLegacyLedgerBlock(string(ledger)); validationErr == nil {
+		return nil
+	} else {
+		promptPath := filepath.Join(sdlcRoot, "prompts", "normalize-legacy-acs.md")
+		prompt, readErr := os.ReadFile(promptPath)
+		if readErr != nil {
+			return fmt.Errorf("reading legacy-ledger repair prompt: %w", readErr)
+		}
+		fmt.Fprintf(options.Output, "Legacy AC ledger is non-canonical; invoking one repair agent.\n")
+		prompt = append(prompt, []byte("\n\nCanonical template: "+filepath.Join(sdlcRoot, "templates", "migration", "ACs.org")+"\nInitial validation failure: "+validationErr.Error()+"\n")...)
+		arguments := []string{"exec", "--ephemeral", "--sandbox", "workspace-write"}
+		if strings.TrimSpace(model) != "" {
+			arguments = append(arguments, "--model", model)
+		}
+		arguments = append(arguments, "-")
+		if err := options.RunCommand("codex", arguments, projectRoot, bytes.NewReader(prompt), options.Output, options.ErrorOutput); err != nil {
+			return fmt.Errorf("normalizing docs/ACs.org with headless Codex: %w", err)
+		}
+	}
+	repaired, err := readRegularFile(ledgerPath)
+	if err != nil {
+		return fmt.Errorf("reading repaired legacy acceptance-criteria ledger: %w", err)
+	}
+	if _, _, err := renderLegacyLedgerBlock(string(repaired)); err != nil {
+		return fmt.Errorf("repair agent left docs/ACs.org non-canonical: %w", err)
+	}
+	return nil
 }
 
 func archiveSpecKit(projectRoot string) ([]string, error) {

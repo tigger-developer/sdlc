@@ -85,6 +85,9 @@ creating another branch. The initializer records `.init/` in
 - It archives every ticket and comment, creates `docs/ACs.org` and
   `docs/ticket-migration.org`, refreshes stale documentation, archives the old
   implementation plan, commits the evidence, then closes the legacy tickets.
+- If the resulting `docs/ACs.org` cannot be interpreted safely by the canonical
+  importer, initialization invokes one headless Codex repair using the
+  configured audit model. It continues only when the repaired ledger validates.
 - The initializer folds `docs/ACs.org` beneath the initially collapsed `Legacy
   Acceptance Criteria (SDLC v1)` section of `docs/work.org`, removes the
   redundant file, then records unresolved defects and undelivered ideas without

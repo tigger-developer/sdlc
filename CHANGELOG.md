@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## v3.0.4 - 2026-09-06
+
+- When the deterministic legacy-ledger importer cannot safely interpret
+  `docs/ACs.org`, `sdlc-project-init` now invokes one bounded headless Codex
+  repair using the configured audit model. The repair is restricted to the
+  ledger, follows the canonical Org template, and must pass the same importer
+  validation before initialization resumes.
+- A failed, incomplete, or still-invalid repair stops initialization without
+  merging or deleting the source ledger. Canonical ledgers continue without an
+  agent call.
+
 ## v3.0.3 - 2026-09-06
 
 - Prevent resumed initialization from adding a second legacy acceptance-criteria

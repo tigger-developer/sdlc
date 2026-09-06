@@ -616,3 +616,11 @@ without reconstructing the work from conversation history.
   normalization removed alignment spaces before the `legacy` tag, so scaffold
   rendering inserted its placeholder section beside the imported section.
   `v3.0.3` recognizes that section by title rather than presentation spacing.
+- A later migration exposed a legacy ledger whose semantic content could not be
+  normalized safely by adding another status spelling to the parser. The
+  initializer now keeps deterministic parsing as the acceptance boundary and,
+  on rejection, invokes one bounded headless Codex repair using the configured
+  audit model and canonical `ACs.org` template.
+- The repair may change only `docs/ACs.org`. Initialization resumes only after
+  the same importer accepts the result; failure preserves the source and stops
+  before consolidation. Canonical ledgers do not incur an agent call.

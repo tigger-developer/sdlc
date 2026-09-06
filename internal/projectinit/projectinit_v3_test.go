@@ -1006,6 +1006,88 @@ func TestMergeWorkLedgerScaffoldDoesNotDuplicateNormalizedLegacySection(t *testi
 	}
 }
 
+func TestRepairLegacyLedgerInvokesOneBoundedAgentAndRevalidates(t *testing.T) {
+	project := t.TempDir()
+	ledgerPath := filepath.Join(project, "docs", "ACs.org")
+	invalid := canonicalLegacyLedger("*** AC7.1 - Existing result\n\n**** Status\n\n✅ *HOLDING*\n")
+	writeProjectTestFile(t, ledgerPath, invalid)
+
+	var calls int
+	var output bytes.Buffer
+	err := repairLegacyLedgerIfRequired(Options{
+		Output: &output,
+		RunCommand: func(name string, arguments []string, directory string, input io.Reader, stdout, stderr io.Writer) error {
+			calls++
+			if name != "codex" || directory != project {
+				t.Fatalf("repair command = %s in %s", name, directory)
+			}
+			for _, want := range []string{"exec", "--ephemeral", "--sandbox", "workspace-write", "--model", "gpt-5.6-luna", "-"} {
+				if !containsArgument(arguments, want) {
+					t.Fatalf("repair arguments lack %q: %#v", want, arguments)
+				}
+			}
+			prompt, readErr := io.ReadAll(input)
+			if readErr != nil {
+				return readErr
+			}
+			for _, want := range []string{"Normalize only `docs/ACs.org`", "templates/migration/ACs.org", "unrecognized Status"} {
+				if !strings.Contains(string(prompt), want) {
+					t.Fatalf("repair prompt lacks %q:\n%s", want, prompt)
+				}
+			}
+			writeProjectTestFile(t, ledgerPath, canonicalLegacyLedger("*** AC7.1 - Existing result\n\n**** Status\n\nHOLD\n"))
+			return nil
+		},
+	}, testSDLCRoot(t), project, "gpt-5.6-luna")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if calls != 1 {
+		t.Fatalf("repair agent calls = %d", calls)
+	}
+	if !strings.Contains(output.String(), "invoking one repair agent") {
+		t.Fatalf("repair output = %q", output.String())
+	}
+	repaired, readErr := os.ReadFile(ledgerPath)
+	if readErr != nil {
+		t.Fatal(readErr)
+	}
+	if _, _, validationErr := renderLegacyLedgerBlock(string(repaired)); validationErr != nil {
+		t.Fatalf("repaired ledger is invalid: %v", validationErr)
+	}
+}
+
+func TestRepairLegacyLedgerSkipsAgentWhenCanonical(t *testing.T) {
+	project := t.TempDir()
+	writeProjectTestFile(t, filepath.Join(project, "docs", "ACs.org"), canonicalLegacyLedger("*** AC7.1 - Existing result\n\n**** Status\n\nHOLD\n"))
+
+	err := repairLegacyLedgerIfRequired(Options{
+		Output: &bytes.Buffer{},
+		RunCommand: func(name string, arguments []string, directory string, input io.Reader, stdout, stderr io.Writer) error {
+			t.Fatalf("canonical ledger invoked %s", name)
+			return nil
+		},
+	}, testSDLCRoot(t), project, "gpt-5.6-luna")
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestRepairLegacyLedgerFailsClosedAfterInvalidRepair(t *testing.T) {
+	project := t.TempDir()
+	writeProjectTestFile(t, filepath.Join(project, "docs", "ACs.org"), canonicalLegacyLedger("*** AC7.1 - Existing result\n\n**** Status\n\n✅ *HOLDING*\n"))
+
+	err := repairLegacyLedgerIfRequired(Options{
+		Output: &bytes.Buffer{},
+		RunCommand: func(name string, arguments []string, directory string, input io.Reader, stdout, stderr io.Writer) error {
+			return nil
+		},
+	}, testSDLCRoot(t), project, "gpt-5.6-luna")
+	if err == nil || !strings.Contains(err.Error(), "left docs/ACs.org non-canonical") {
+		t.Fatalf("invalid repair error = %v", err)
+	}
+}
+
 func TestChooseTicketMigrationDeclineContinues(t *testing.T) {
 	project := t.TempDir()
 	writeProjectTestFile(t, filepath.Join(project, "docs", "ACs.md"), "# Acceptance criteria\n")

@@ -252,11 +252,16 @@ archives the old
 implementation plan, and closes tickets only after durable evidence is
 committed.
 
-`sdlc-project-init` then folds that intermediate ledger into `docs/work.org`
-before importing unresolved legacy work or archived Spec Kit specifications.
-The AC disposition becomes its headline state and the redundant Status field is
-removed. After the embedded copy is verified, the separate `docs/ACs.org` is
-removed.
+`sdlc-project-init` then validates that intermediate ledger against the
+canonical Org structure and folds it into `docs/work.org` before importing
+unresolved legacy work or archived Spec Kit specifications. If deterministic
+validation cannot safely interpret the ledger, the initializer invokes one
+headless Codex repair using the configured audit model and validates the result
+before continuing. An unsuccessful repair stops initialization without merging
+or deleting the source. The AC disposition becomes its headline state and the
+redundant Status field is removed. After the embedded copy is verified, the
+separate `docs/ACs.org` is removed.
+
 For an already initialized v3 project, run `sdlc-merge-legacy-acs` once from the
 project root. A successful rerun is a no-op.
 
