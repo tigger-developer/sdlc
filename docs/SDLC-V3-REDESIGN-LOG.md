@@ -550,3 +550,7 @@ without reconstructing the work from conversation history.
   with scaffolding. Exclude archives, generated output, vendored dependencies,
   provider or framework artefacts, and incidental tooling. A truly blank
   project produces no inferred selection and still requires an operator choice.
+- Make schema-driven multi-choice input a visible confirmation loop. A number
+  or name toggles that choice, the complete `[x]` state is redrawn, and Enter
+  confirms it. After validation, print the concise resolved selection before
+  the next question.

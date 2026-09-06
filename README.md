@@ -117,7 +117,9 @@ A genuinely blank project has no inferred stack and requires a manual choice.
 Every interactive question begins on a separate line. Schema choices and
 document authorities share the same `[x]` and `[ ]` presentation; configuration
 questions select one value, while authority questions permit toggling and
-rescanning.
+rescanning. After validation, each schema response prints the resolved value;
+multi-choice questions redraw their complete state after each numbered or named
+toggle and require Enter to confirm it.
 
 Product and architecture authorities are selected after migration from the
 project's bounded Git file inventory. The chooser finds Markdown and Org files

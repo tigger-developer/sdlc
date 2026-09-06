@@ -507,15 +507,20 @@ func resolveConfiguration(options Options, schema ConfigSchema, technologies []T
 			valueSource = "assessment"
 			renderTechnologyAssessment(options.Output, *technologyAssessment)
 		}
+		prompted := false
 		if field.Prompt != "" && !isExplicit {
 			selected, changed, err := promptField(reader, options.Output, field, value, valueSource, technologies)
 			if err != nil {
 				return nil, nil, err
 			}
 			value, isExplicit = selected, changed
+			prompted = true
 		}
 		if err := field.ValidateValue(value, technologies); err != nil {
 			return nil, nil, fmt.Errorf("%s: %w", field.Key, err)
+		}
+		if prompted {
+			renderResolvedSelection(options.Output, field, value)
 		}
 		if value != "" {
 			values[field.Key] = value
@@ -619,7 +624,14 @@ func promptField(reader *bufio.Reader, output io.Writer, field ConfigField, inhe
 			label = "Recommended"
 			action = "accept"
 		}
-		fmt.Fprintf(output, "%s: %s. Press Enter to %s, or enter a project value.\n", label, inherited, action)
+		if field.Type == "multi-choice" {
+			fmt.Fprintf(output, "%s: %s.\n", label, inherited)
+		} else {
+			fmt.Fprintf(output, "%s: %s. Press Enter to %s, or enter a project value.\n", label, inherited, action)
+		}
+	}
+	if field.Type == "multi-choice" {
+		return promptMultiChoice(reader, output, field, choices, selected)
 	}
 	fmt.Fprint(output, "Selection: ")
 	line, err := reader.ReadString('\n')
@@ -637,20 +649,55 @@ func promptField(reader *bufio.Reader, output io.Writer, field ConfigField, inhe
 			}
 		}
 	}
-	if field.Type == "multi-choice" {
-		var selected []string
-		for _, item := range splitCSV(line) {
-			matched := item
-			for index, choice := range choices {
-				if item == fmt.Sprint(index+1) {
-					matched = choice
-				}
-			}
-			selected = append(selected, matched)
-		}
-		return strings.Join(selected, ","), true, nil
-	}
 	return line, true, nil
+}
+
+func promptMultiChoice(reader *bufio.Reader, output io.Writer, field ConfigField, choices []string, selected map[string]bool) (string, bool, error) {
+	changed := false
+	for {
+		fmt.Fprintln(output, "Press Enter to confirm, or enter numbers or names to toggle.")
+		fmt.Fprint(output, "Selection: ")
+		line, err := reader.ReadString('\n')
+		if err != nil && !errors.Is(err, io.EOF) {
+			return "", false, fmt.Errorf("reading %s: %w", field.Key, err)
+		}
+		line = strings.TrimSpace(line)
+		if line == "" {
+			return selectedChoices(choices, selected), changed, nil
+		}
+		for _, item := range splitCSV(line) {
+			choice, ok := resolveChoice(item, choices)
+			if !ok {
+				return "", false, fmt.Errorf("reading %s: unknown selection %q", field.Key, item)
+			}
+			selected[choice] = !selected[choice]
+			changed = true
+		}
+		displayChoices := make([]promptChoice, 0, len(choices))
+		for _, choice := range choices {
+			displayChoices = append(displayChoices, promptChoice{Label: choice, Selected: selected[choice]})
+		}
+		renderPromptChoices(output, "Current selection:", displayChoices)
+	}
+}
+
+func resolveChoice(value string, choices []string) (string, bool) {
+	for index, choice := range choices {
+		if value == choice || value == fmt.Sprint(index+1) {
+			return choice, true
+		}
+	}
+	return "", false
+}
+
+func selectedChoices(choices []string, selected map[string]bool) string {
+	values := make([]string, 0, len(choices))
+	for _, choice := range choices {
+		if selected[choice] {
+			values = append(values, choice)
+		}
+	}
+	return strings.Join(values, ",")
 }
 
 func renderPromptChoices(output io.Writer, prompt string, choices []promptChoice) {
@@ -662,6 +709,23 @@ func renderPromptChoices(output io.Writer, prompt string, choices []promptChoice
 		}
 		fmt.Fprintf(output, "[%s] %d. %s\n", mark, index+1, choice.Label)
 	}
+}
+
+func renderResolvedSelection(output io.Writer, field ConfigField, value string) {
+	if value == "" {
+		fmt.Fprintln(output, "Selected: [none]")
+		return
+	}
+	if field.Type != "choice" && field.Type != "multi-choice" {
+		fmt.Fprintf(output, "Selected: %s\n", value)
+		return
+	}
+	selected := splitCSV(value)
+	marked := make([]string, 0, len(selected))
+	for _, item := range selected {
+		marked = append(marked, "[x] "+item)
+	}
+	fmt.Fprintf(output, "Selected: %s\n", strings.Join(marked, ", "))
 }
 
 func yamlPathString(root map[string]any, path string) (string, bool) {

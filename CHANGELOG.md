@@ -92,6 +92,11 @@ vendored, framework, and incidental files, and presents its evidence-backed
 choices as operator-editable defaults. Blank projects and unavailable model
 runs fall back to the required manual selection.
 
+Every schema-driven response now prints its validated resolved value before the
+next question. Multi-choice input toggles the named or numbered choices,
+redraws their complete `[x]` state, and requires Enter to confirm. The final
+concise confirmation makes the accepted interpretation visibly auditable.
+
 ## v2.1.0 - 2026-09-05
 
 Defined the intended replacement for the four separately approved Spec Kit

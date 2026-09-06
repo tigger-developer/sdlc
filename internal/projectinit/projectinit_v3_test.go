@@ -107,6 +107,14 @@ func TestPromptFieldUsesSharedSelectedChoiceLayout(t *testing.T) {
 	}
 }
 
+func TestResolvedSchemaSelectionIsConfirmedVisually(t *testing.T) {
+	var output bytes.Buffer
+	renderResolvedSelection(&output, ConfigField{Type: "multi-choice"}, "GO,SWIFT")
+	if output.String() != "Selected: [x] GO, [x] SWIFT\n" {
+		t.Fatalf("selection confirmation = %q", output.String())
+	}
+}
+
 func TestSpecificationTemplateInternalLinksResolve(t *testing.T) {
 	t.Parallel()
 

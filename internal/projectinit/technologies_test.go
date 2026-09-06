@@ -129,7 +129,7 @@ func TestTechnologyAssessmentUsesSchemaOrder(t *testing.T) {
 func TestTechnologyRecommendationUsesExistingSchemaPrompt(t *testing.T) {
 	var output bytes.Buffer
 	value, explicit, err := promptField(
-		bufio.NewReader(strings.NewReader("\n")),
+		bufio.NewReader(strings.NewReader("2\n\n")),
 		&output,
 		ConfigField{
 			Key:         "SDLC_TECHNOLOGIES",
@@ -144,10 +144,10 @@ func TestTechnologyRecommendationUsesExistingSchemaPrompt(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if value != "GO,WEB" || explicit {
+	if value != "GO" || !explicit {
 		t.Fatalf("selection = %q, explicit = %v", value, explicit)
 	}
-	want := "\nSelect applicable technologies:\n[x] 1. GO\n[x] 2. WEB\nRecommended: GO,WEB. Press Enter to accept, or enter a project value.\nSelection: "
+	want := "\nSelect applicable technologies:\n[x] 1. GO\n[x] 2. WEB\nRecommended: GO,WEB.\nPress Enter to confirm, or enter numbers or names to toggle.\nSelection: \nCurrent selection:\n[x] 1. GO\n[ ] 2. WEB\nPress Enter to confirm, or enter numbers or names to toggle.\nSelection: "
 	if output.String() != want {
 		t.Fatalf("prompt output = %q, want %q", output.String(), want)
 	}
