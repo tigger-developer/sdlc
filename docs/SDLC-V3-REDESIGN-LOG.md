@@ -18,6 +18,9 @@ This document preserves decisions and open questions while the live SDLC is bein
 - SDLC v3 begins with Codex as its only supported agent harness and OpenAI models as its only supported models.
 - Keep the standards provider-neutral so additional harnesses can be supported later without rewriting engineering rules.
 - Retain progressive loading through the canonical SDLC root and project-selected technology and domain standards.
+- Install SDLC skills globally. Do not copy skill implementations into projects.
+- Do not create `sdlc-project-update` for v3. Its only established purpose was
+  refreshing project-local Spec Kit skills, and global skills remove that need.
 
 ## Standard delivery workflow
 
@@ -109,41 +112,66 @@ The intended lean shape is:
 ```text
 .sdlc/project.yaml
 docs/work.org
-specs/NNN-descriptor/spec.md
-specs/NNN-descriptor/audits.md
-specs/NNN-descriptor/validation.md
+specs/NNN-descriptor/spec.org
+specs/NNN-descriptor/audits.org
+specs/NNN-descriptor/validation.org
 ```
 
-- `project.yaml` is a proposed tracked, non-secret SDLC profile, not an existing convention.
+- `.sdlc/project.yaml` is the tracked, non-secret project SDLC profile.
 - `work.org` is the proposed local work ledger and must use proper Org heading hierarchy for folding.
-- `spec.md` is the single definition and approval artefact.
-- `audits.md` preserves revision-specific audit evidence outside the audited specification.
-- `validation.md` is required only when execution evidence must be recorded, especially for one-off and user tests.
+- `spec.org` is the single definition and approval artefact.
+- `audits.org` preserves revision-specific audit evidence outside the audited specification.
+- `validation.org` is required only when execution evidence must be recorded, especially for one-off and user tests.
 - Separate Spec Kit plans, tasks, checklists, and generated metadata are not part of the proposed workflow.
 
-The exact project path for `project.yaml` remains to be confirmed. `.sdlc/project.yaml` is the current candidate because it names both the purpose and filename without colliding with an application's own root configuration.
+Use a deliberately small, portable Org subset: headings, ordinary and
+description lists, property drawers, `CUSTOM_ID`, internal and file links,
+verbatim text, and source blocks. Do not use Babel execution, macros, dynamic
+blocks, generated agenda machinery, or executable Emacs configuration. Keep
+TODO states in `work.org`; the specification is an authority document rather
+than a task list.
+
+Give every acceptance criterion and test definition a stable `CUSTOM_ID`.
+Acceptance criteria link to the tests that prove them, and tests link back to
+the criteria they cover. This bidirectional traceability must remain readable as
+plain text and navigable in Emacs or a rendered document.
+
+Use `.sdlc/project.yaml` so the purpose remains explicit without colliding with
+an application's own root configuration.
 
 ## Configuration direction
 
 - Replace SDLC configuration currently persisted in project `.env` files with YAML that agents may safely read.
-- Use a global non-secret configuration file, currently proposed as `~/.agents/sdlc.yaml`.
-- Allow a tracked project `project.yaml` to override global defaults.
+- Use `~/.agents/sdlc.yaml` for global non-secret defaults.
+- Use tracked `.sdlc/project.yaml` for project facts and project-local overrides.
+- When a global value exists, show it in the initializer and offer a
+  project-local alternative. An empty response inherits the global value and
+  does not copy it into the project file.
 - Provide a deterministic migration from existing SDLC-managed `.env` keys to YAML without exposing or parsing unrelated project secrets.
 - Do not require agents to read `.env`.
 - Keep secrets out of both YAML files.
-- Define the schema and precedence before implementation.
+- Resolve command-line, process-environment, project, global, then schema-default
+  values in that order. Persist project facts and explicit project overrides,
+  not inherited global defaults.
+- Drive questions, types, choices, defaults, validation, and persistence from a
+  deterministic schema rather than hard-coded prompts.
 
 ## Migration requirements
 
 ### From SDLC v2 with Spec Kit
 
 - Do not normalize every unfinished feature during project migration.
-- Preserve incomplete Spec Kit work unchanged until the operator deliberately resumes that work.
+- Remove Spec Kit from the active project, including `.specify` infrastructure
+  and project-local Spec Kit skills.
+- Preserve incomplete Spec Kit work unchanged as archived migration evidence and
+  index it in `work.org`; do not normalize it until the operator deliberately
+  resumes that work.
 - When a work item is resumed, convert its relevant specification, plan, task, audit, and validation material into the lean unified specification without changing its identifier or losing history.
 - Preserve existing effective audit and operator-approval evidence where it maps cleanly to the new gates.
 - Treat the constitution as migration evidence, not mandatory continuing ceremony.
 - Extract genuine project-wide invariants and ownership boundaries into the new project profile or existing authoritative documentation.
-- Archive superseded Spec Kit machinery only through an explicit, recoverable migration step.
+- Preserve the complete pre-migration repository state on its dated archive
+  branch before removing superseded Spec Kit artefacts from the migrated branch.
 
 ### From SDLC v1
 
@@ -163,18 +191,58 @@ The exact project path for `project.yaml` remains to be confirmed. `.sdlc/projec
 
 ### `sdlc-project-init`
 
-- Detect a new, SDLC v1, or SDLC v2 project.
+- Run exactly once for a project. The presence of `.sdlc/project.yaml` means the
+  project is initialized and prevents repeated migration.
+- Identify the primary branch, create a dated branch preserving the exact SDLC
+  v1 or v2 state, and ask whether to push that branch to `origin`.
+- Create a migration branch from the primary branch and detect a new, SDLC v1,
+  or SDLC v2 project.
 - For eligible GitHub-backed legacy projects, offer the existing ticket pre-migration skill.
 - Run the appropriate migration or new-project initialization path.
 - Never process dormant incomplete v2 work merely because the project is being migrated.
+- Ask schema-driven project questions, create `.sdlc/project.yaml`, validate and
+  commit the migration, then ask whether to merge it into the original primary
+  branch.
 
-### Project update command
+### `sdlc-project-update`
 
-The second global command and its exact contract remain to be confirmed. It is expected to update SDLC project configuration and bootstrap material without re-running migration.
+Park this command. Global skills and standards must update without rewriting
+every initialized project. Add a project-update command only if a future
+concrete migration requirement cannot be satisfied safely another way.
+
+## Global skill installation and unsupported harness cleanup
+
+- `make install` installs the supported SDLC skills once under the global
+  canonical root `~/.agents/skills`. Project initialization records
+  configuration and creates project artefacts, but it does not copy skills.
+- The first v3 installation removes every public SDLC-managed v1 and v2
+  artefact from Claude, Hermes, and Copilot because those harnesses are
+  temporarily unsupported. Their provider directories must contain no SDLC
+  commands, hooks, prompts, or skills after cleanup, and v3 installs nothing
+  there until support for that harness is explicitly restored.
+- Cleanup uses an explicit inventory of SDLC-owned paths. It must not remove
+  provider configuration or personal artefacts owned by the separate agents
+  project.
+- Codex is the only v3 delivery harness in the first release. Later provider
+  support requires an explicit compatibility design and validation.
+
+## Document preview
+
+- Org is the canonical v3 specification format because it provides foldable
+  hierarchy, stable internal links, properties, and bidirectional AC-to-test
+  navigation.
+- Pandoc support makes Org specifications viewable as high-quality HTML without
+  requiring Emacs.
+- Include a public, cross-platform `sdlc-preview` utility derived from the useful
+  behaviour of the operator's private `htmlpreview` tool without inheriting its
+  private configuration or dependencies.
+- The viewer accepts Markdown and Org, renders through Pandoc, opens the result
+  in the user's browser, and reports a clear dependency error when Pandoc is
+  unavailable. Previewing is presentation, not an approval gate.
 
 ## Requested design artefacts
 
-- A Markdown unified-specification template using the operator's ADHD presentation contract, to be opened with `$HTML_PREVIEW_TOOL`.
+- An Org unified-specification template using the operator's ADHD presentation contract, to be rendered and opened for review.
 - An Org work-ledger template using meaningful nested headings, to be opened in Emacs.
 - Both templates are to be reviewed before repository implementation begins.
 
@@ -185,9 +253,6 @@ solution detail for a new agent to begin with the defined tests.
 
 ## Open decisions
 
-- Final project path and schema for `project.yaml`.
-- Exact global-to-project YAML precedence, including command-line and process-environment overrides.
 - Exact local work-item and derived acceptance-criteria/test identifier formats.
 - The treatment and archive location of v2 constitutions and generated Spec Kit infrastructure.
-- The second global command's name and scope.
 - The verified Codex mechanism for retaining one external auditor context across gate retries.
