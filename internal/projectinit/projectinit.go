@@ -47,14 +47,15 @@ type Options struct {
 }
 
 type projectGeneration struct {
-	values    map[string]string
-	explicit  map[string]bool
-	source    string
-	base      string
-	archive   string
-	migration string
-	date      string
-	legacyV2  []string
+	values     map[string]string
+	explicit   map[string]bool
+	source     string
+	base       string
+	archive    string
+	migration  string
+	date       string
+	legacyV2   []string
+	migratedV2 []migratedWorkCandidate
 }
 
 // Run initializes or migrates one project to SDLC v3.
@@ -182,8 +183,13 @@ func Run(options Options) error {
 			return err
 		}
 	}
-	if err := resolvePostMigrationConfiguration(options, schema, technologies, global, legacy, sdlcRoot, projectRoot, workspace, values, explicit); err != nil {
+	if err := resolvePostMigrationConfiguration(options, schema, technologies, global, legacy, sdlcRoot, projectRoot, workspace, values, explicit, &generation); err != nil {
 		return err
+	}
+	if source == "v2" {
+		if err := writeWorkLedger(sdlcRoot, projectRoot, generation, options.Now()); err != nil {
+			return err
+		}
 	}
 	if err := writeProjectProfile(projectRoot, options.SDLCRevision, schema, generation); err != nil {
 		return err
@@ -792,23 +798,43 @@ func writeWorkLedger(sdlcRoot, projectRoot string, generation projectGeneration,
 	for before, after := range replacements {
 		text = strings.ReplaceAll(text, before, after)
 	}
-	if len(generation.legacyV2) != 0 {
+	if len(generation.migratedV2) != 0 {
 		nextWork := highestHistoricalWorkNumber(projectRoot) + 1
-		var migrated strings.Builder
-		migrated.WriteString("\n* Migrated v2 work requiring disposition\n\n")
-		for _, item := range generation.legacyV2 {
+		sectionEntries := map[string][]string{}
+		for _, item := range generation.migratedV2 {
 			identifier := fmt.Sprintf("W%03d", nextWork)
 			nextWork++
-			legacyIdentifier, descriptor := v2WorkIdentity(item)
-			fmt.Fprintf(&migrated, "** REVIEW %s - %s :migration:\n\n", identifier, descriptor)
-			migrated.WriteString(":PROPERTIES:\n")
-			fmt.Fprintf(&migrated, ":CUSTOM_ID: w-%s\n", strings.ToLower(strings.TrimPrefix(identifier, "W")))
-			fmt.Fprintf(&migrated, ":LEGACY_ID: %s\n", legacyIdentifier)
-			migrated.WriteString(":TYPE: migration\n:END:\n\n")
-			fmt.Fprintf(&migrated, "- *Preserved material:* [[file:archive/sdlc-v2/specs/%s/][%s - %s archived v2 work]]\n", item, identifier, descriptor)
-			migrated.WriteString("- *Disposition:* Preserve unchanged until the operator resumes or classifies it.\n\n")
+			legacyDirectory := filepath.Base(filepath.Dir(filepath.FromSlash(item.Path)))
+			legacyIdentifier, _ := v2WorkIdentity(legacyDirectory)
+			state, section := migratedWorkPlacement(item.Disposition)
+			descriptor := strings.NewReplacer("[", "(", "]", ")").Replace(item.Descriptor)
+			var entry strings.Builder
+			fmt.Fprintf(&entry, "** %s %s - %s :migration:\n", state, identifier, descriptor)
+			entry.WriteString(":PROPERTIES:\n")
+			fmt.Fprintf(&entry, ":CUSTOM_ID: w-%s\n", strings.ToLower(strings.TrimPrefix(identifier, "W")))
+			fmt.Fprintf(&entry, ":LEGACY_ID: %s\n", legacyIdentifier)
+			entry.WriteString(":TYPE: migration\n")
+			fmt.Fprintf(&entry, ":PRIORITY: %s\n", item.Priority)
+			fmt.Fprintf(&entry, ":SOURCE: %s\n", item.Path)
+			fmt.Fprintf(&entry, ":CREATED: %s\n", item.Created)
+			fmt.Fprintf(&entry, ":DISPOSITION: %s\n", item.Disposition)
+			entry.WriteString(":END:\n\n")
+			linkPath := strings.TrimPrefix(item.Path, "docs/")
+			fmt.Fprintf(&entry, "- *Specification:* [[file:%s][%s]]\n", linkPath, descriptor)
+			fmt.Fprintf(&entry, "- *Migration evidence:* %s\n", item.Evidence)
+			sectionEntries[section] = append(sectionEntries[section], entry.String())
 		}
-		text += migrated.String()
+		for _, section := range []string{"Undelivered features", "Human review", "Closed work"} {
+			entries := sectionEntries[section]
+			if len(entries) == 0 {
+				continue
+			}
+			marker := "* " + section + "\n"
+			if !strings.Contains(text, marker) {
+				return fmt.Errorf("work ledger template lacks section %q", section)
+			}
+			text = strings.Replace(text, marker, marker+"\n"+strings.Join(entries, "\n")+"\n", 1)
+		}
 	}
 	directory := filepath.Join(projectRoot, "docs")
 	if err := os.MkdirAll(directory, 0o755); err != nil {
@@ -816,6 +842,19 @@ func writeWorkLedger(sdlcRoot, projectRoot string, generation projectGeneration,
 	}
 	// #nosec G306 -- this tracked project document is intentionally readable.
 	return os.WriteFile(filepath.Join(directory, "work.org"), []byte(text), 0o644)
+}
+
+func migratedWorkPlacement(disposition string) (string, string) {
+	switch disposition {
+	case "delivered":
+		return "DONE", "Closed work"
+	case "approved-undelivered":
+		return "TODO", "Undelivered features"
+	case "abandoned":
+		return "ABANDONED", "Closed work"
+	default:
+		return "REVIEW", "Human review"
+	}
 }
 
 func v2WorkIdentity(directory string) (string, string) {
@@ -926,7 +965,9 @@ func convertLegacyTicketHeadings(body, state, kind string) (string, error) {
 				":PROPERTIES:",
 				fmt.Sprintf(":CUSTOM_ID: w-%03d", number),
 				fmt.Sprintf(":TYPE: %s", kind),
+				":PRIORITY: unassigned",
 				fmt.Sprintf(":SOURCE: %s", source),
+				":CREATED: unknown",
 				":END:",
 			)
 			continue

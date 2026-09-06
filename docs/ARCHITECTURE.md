@@ -81,16 +81,26 @@ on a dedicated migration branch.
 - SDLC v1 projects may first run the lossless GitHub-ticket migration. Historical
   requirements remain in `docs/ACs.org`; unresolved work moves to `work.org`.
 - SDLC v2 projects preserve active Spec Kit material unchanged under
-  `docs/archive/sdlc-v2/`, remove it from active workflow, and index it for later
-  operator disposition.
+  `docs/archive/sdlc-v2/`, remove it from active workflow, and classify every
+  archived specification in `docs/work.org` without adding individual feature
+  specifications to the project authority lists.
 
 Only after that migration does the initializer invoke headless Codex with the
 deployed read-only authority-discovery prompt. The model returns a temporary
 structured YAML proposal containing lists of product, architecture, and
-requirement documents, with descriptors and rationales. The initializer
-validates every proposed or amended path against repository files, requires
-operator confirmation, and writes only the confirmed path lists to the project
-profile.
+requirement documents, with descriptors and rationales. For an SDLC v2
+migration, the same proposal must classify every archived specification as
+delivered, approved but undelivered, abandoned, or unresolved, with its priority,
+creation date, and supporting evidence. Audit PASS alone is not operator
+approval.
+
+The initializer validates every proposed or amended authority path against
+repository files and requires operator confirmation before writing the stable
+path lists to the project profile. It validates exact archived-specification
+coverage separately, then renders each classification beneath the appropriate
+existing section in the canonical `docs/work.org` template. The template
+preamble, heading hierarchy, migration record, work identifiers, and required
+properties remain deterministic; the discovery agent never edits the ledger.
 
 The proposal lives in a temporary working directory in Git metadata. Its
 presence tells a later invocation that initialization did not complete. The

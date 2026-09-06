@@ -22,7 +22,8 @@ Replaced the Spec Kit delivery dependency with a lean, standalone workflow:
   external-audit timeout configuration, and one-time removal of migrated SDLC
   keys from `.env` without exposing or changing unrelated values;
 - lossless v2 archival by moving active Spec Kit state out of the live workflow,
-  preserving unrelated project integrations, and allocating v3 work IDs above
+  preserving unrelated project integrations, classifying every archived
+  specification in the canonical work ledger, and allocating v3 work IDs above
   historical work, requirement, test, and ticket numbers;
 - removal of active Spec Kit artefacts and the standalone multi-harness audit
   runner; and

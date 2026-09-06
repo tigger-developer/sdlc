@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"gopkg.in/yaml.v3"
 )
@@ -16,15 +17,25 @@ const authorityDiscoveryPromptPath = "prompts/discover-project-authorities.md"
 const authorityProposalFilename = "authority-proposal.yaml"
 
 type authorityProposal struct {
-	Version     int                             `yaml:"version"`
-	Authorities map[string][]authorityCandidate `yaml:"authorities"`
-	Warnings    []string                        `yaml:"warnings"`
+	Version      int                             `yaml:"version"`
+	Authorities  map[string][]authorityCandidate `yaml:"authorities"`
+	MigratedWork []migratedWorkCandidate         `yaml:"migrated_work"`
+	Warnings     []string                        `yaml:"warnings"`
 }
 
 type authorityCandidate struct {
 	Path       string `yaml:"path"`
 	Descriptor string `yaml:"descriptor"`
 	Rationale  string `yaml:"rationale"`
+}
+
+type migratedWorkCandidate struct {
+	Path        string `yaml:"path"`
+	Descriptor  string `yaml:"descriptor"`
+	Disposition string `yaml:"disposition"`
+	Priority    string `yaml:"priority"`
+	Created     string `yaml:"created"`
+	Evidence    string `yaml:"evidence"`
 }
 
 func initializationWorkspacePath(options Options, projectRoot string) (string, error) {
@@ -51,6 +62,7 @@ func resolvePostMigrationConfiguration(
 	sdlcRoot, projectRoot, workspace string,
 	values map[string]string,
 	explicit map[string]bool,
+	generation *projectGeneration,
 ) error {
 	fields := postMigrationFields(schema)
 	available, err := availableProjectFiles(options, projectRoot)
@@ -76,7 +88,7 @@ func resolvePostMigrationConfiguration(
 		}
 		explicit[field.Key] = true
 	}
-	if len(unresolved) == 0 {
+	if len(unresolved) == 0 && len(generation.legacyV2) == 0 {
 		return nil
 	}
 
@@ -88,7 +100,7 @@ func resolvePostMigrationConfiguration(
 	if err != nil {
 		return err
 	}
-	proposal, err = validateAuthorityProposal(proposal, fields, projectRoot, available)
+	proposal, err = validateAuthorityProposal(proposal, fields, projectRoot, available, generation.legacyV2)
 	if err != nil {
 		return fmt.Errorf("validating authority proposal %s: %w", proposalPath, err)
 	}
@@ -97,6 +109,7 @@ func resolvePostMigrationConfiguration(
 			fmt.Fprintf(options.Output, "Authority discovery warning: %s\n", warning)
 		}
 	}
+	generation.migratedV2 = proposal.MigratedWork
 	for _, field := range unresolved {
 		value, err := promptAuthorityField(options, field, proposal.Authorities[field.DiscoveryCategory], projectRoot, available)
 		if err != nil {
@@ -212,7 +225,7 @@ func validateAuthorityPaths(projectRoot string, available map[string]bool, value
 	return strings.Join(validated, ","), nil
 }
 
-func validateAuthorityProposal(proposal authorityProposal, fields []ConfigField, projectRoot string, available map[string]bool) (authorityProposal, error) {
+func validateAuthorityProposal(proposal authorityProposal, fields []ConfigField, projectRoot string, available map[string]bool, legacyV2 []string) (authorityProposal, error) {
 	expected := map[string]bool{}
 	for _, field := range fields {
 		expected[field.DiscoveryCategory] = true
@@ -236,6 +249,10 @@ func validateAuthorityProposal(proposal authorityProposal, fields []ConfigField,
 			if seen[path] {
 				continue
 			}
+			if field.DiscoveryCategory == "requirements" && (path == "docs/work.org" || strings.HasPrefix(path, "docs/archive/sdlc-v2/specs/")) {
+				proposal.Warnings = append(proposal.Warnings, fmt.Sprintf("Excluded %s from requirement authorities because migrated work is indexed through docs/work.org.", path))
+				continue
+			}
 			seen[path] = true
 			candidate.Path = path
 			candidate.Descriptor = strings.TrimSpace(candidate.Descriptor)
@@ -249,10 +266,73 @@ func validateAuthorityProposal(proposal authorityProposal, fields []ConfigField,
 			return authorityProposal{}, fmt.Errorf("authority proposal contains unknown category %q", category)
 		}
 	}
+	migratedWork, err := validateMigratedWork(proposal.MigratedWork, legacyV2, projectRoot, available)
+	if err != nil {
+		return authorityProposal{}, err
+	}
+	proposal.MigratedWork = migratedWork
 	for index, warning := range proposal.Warnings {
-		proposal.Warnings[index] = strings.TrimSpace(warning)
+		proposal.Warnings[index] = singleLine(warning)
 	}
 	return proposal, nil
+}
+
+func validateMigratedWork(candidates []migratedWorkCandidate, legacyV2 []string, projectRoot string, available map[string]bool) ([]migratedWorkCandidate, error) {
+	expected := make([]string, 0, len(legacyV2))
+	expectedSet := make(map[string]bool, len(legacyV2))
+	for _, item := range legacyV2 {
+		path := filepath.ToSlash(filepath.Join("docs", "archive", "sdlc-v2", "specs", item, "spec.md"))
+		expected = append(expected, path)
+		expectedSet[path] = true
+	}
+
+	byPath := make(map[string]migratedWorkCandidate, len(candidates))
+	for _, candidate := range candidates {
+		path, err := validateAuthorityPaths(projectRoot, available, candidate.Path)
+		if err != nil {
+			return nil, fmt.Errorf("migrated work %q: %w", candidate.Path, err)
+		}
+		if path == "" || strings.Contains(path, ",") || !expectedSet[path] {
+			return nil, fmt.Errorf("migrated work path is not an archived Spec Kit specification: %q", candidate.Path)
+		}
+		if _, duplicate := byPath[path]; duplicate {
+			return nil, fmt.Errorf("migrated work specification appears more than once: %s", path)
+		}
+		candidate.Path = path
+		candidate.Descriptor = singleLine(candidate.Descriptor)
+		candidate.Disposition = strings.ToLower(singleLine(candidate.Disposition))
+		candidate.Priority = singleLine(candidate.Priority)
+		candidate.Created = strings.ToLower(singleLine(candidate.Created))
+		candidate.Evidence = singleLine(candidate.Evidence)
+		if candidate.Descriptor == "" || candidate.Priority == "" || candidate.Created == "" || candidate.Evidence == "" {
+			return nil, fmt.Errorf("migrated work %s requires descriptor, priority, created, and evidence", path)
+		}
+		switch candidate.Disposition {
+		case "delivered", "approved-undelivered", "abandoned", "unresolved":
+		default:
+			return nil, fmt.Errorf("migrated work %s has invalid disposition %q", path, candidate.Disposition)
+		}
+		if candidate.Created != "unknown" {
+			if _, err := time.Parse("2006-01-02", candidate.Created); err != nil {
+				return nil, fmt.Errorf("migrated work %s has invalid created date %q", path, candidate.Created)
+			}
+		}
+		byPath[path] = candidate
+	}
+
+	validated := make([]migratedWorkCandidate, 0, len(expected))
+	for _, path := range expected {
+		candidate, ok := byPath[path]
+		if !ok {
+			return nil, fmt.Errorf("authority proposal omits archived Spec Kit specification %s", path)
+		}
+		validated = append(validated, candidate)
+	}
+	return validated, nil
+}
+
+func singleLine(value string) string {
+	return strings.Join(strings.Fields(value), " ")
 }
 
 func promptAuthorityField(options Options, field ConfigField, candidates []authorityCandidate, projectRoot string, available map[string]bool) (string, error) {

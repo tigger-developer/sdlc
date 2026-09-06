@@ -259,16 +259,19 @@ Inherited defaults and empty sections are omitted from project YAML.
   skill before continuing.
 - [X] Ask schema-driven non-authority project questions before migration.
 - [X] After migration, invoke headless Codex with a saved read-only prompt to
-  propose product, architecture, and requirement authorities as structured
-  YAML lists with descriptors and rationales.
+  propose stable product, architecture, and requirement authorities and, for
+  v2 migrations, classify every archived specification as structured YAML.
 - [X] Validate proposal paths against repository files, let the operator accept
   or replace each list, and write the confirmed lists to
   `.sdlc/project.yaml`.
 - [X] Keep the proposal in a temporary Git-metadata working directory whose
   presence identifies an interrupted initialization; remove it after successful
   completion.
-- [X] Create `docs/work.org`; the definition skill creates each specification
-  directory only when that work begins.
+- [X] Create `docs/work.org` from its canonical template before discovery. For
+  v2 migration, validate complete classification coverage and render every
+  archived specification into the appropriate existing work-ledger section.
+  The definition skill creates each new v3 specification directory only when
+  that work begins.
 - [X] Perform the applicable v1 or v2 migration, or initialize a new project.
 - [X] Validate and commit the migration as coherent checkpoints rather than a
   per-file or per-ticket commit loop.
@@ -302,13 +305,15 @@ Inherited defaults and empty sections are omitted from project YAML.
 
 - [X] Preserve `.specify/`, constitutions, specifications, plans, tasks,
   audits, and validation records on the archive branch.
-- [X] Move incomplete v2 work unchanged into a documented archive location on
-  the migration branch and index each item in `docs/work.org`.
+- [X] Move v2 work unchanged into a documented archive location on the
+  migration branch and index each item in `docs/work.org` as delivered,
+  approved but undelivered, abandoned, or unresolved.
 - [X] Do not convert or elaborate dormant incomplete work during migration.
 - [X] When the operator later resumes one item, convert only that item to the
   unified `spec.org` without reusing or renumbering its identifier.
 - [X] Preserve reliable audit and operator-approval evidence unchanged in the
-  v2 archive for later classification when its work resumes.
+  v2 archive. Use explicit operator approval or operator-authorized delivery
+  for migration classification; an audit PASS alone is not approval.
 - [X] Prompt the operator to record genuine project-wide authorities and
   infrastructure boundaries in `.sdlc/project.yaml`; preserve the constitution
   itself in the v2 archive.

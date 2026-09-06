@@ -30,19 +30,29 @@ candidates in full before classifying them.
   `docs/ACs.org` is normally historical requirement authority. Tests and code
   are evidence of implemented behaviour, not approval authority.
 
-For an SDLC v2 migration, read `docs/work.org` and inspect every archived Spec
-Kit specification it indexes. Include an archived specification as requirement
-authority only when repository evidence records explicit operator approval or
-operator-authorized delivery. An audit PASS, draft status, or eligibility for
-planning is not approval. Keep blocked, conditional, dormant, and unapproved
-specifications out of the authority list; `docs/work.org` retains them for later
-disposition.
+For an SDLC v2 migration, inspect every archived specification at
+`docs/archive/sdlc-v2/specs/*/spec.md` and its directly related audit,
+validation, plan, and task evidence. Return every specification exactly once in
+`migrated_work`; do not add it to an authority list. Classify it as:
 
-Do not classify `docs/work.org`, old implementation plans, ticket archives,
-source code, or tests as requirement authority merely because they contain
-useful evidence. Report ambiguous approval or delivery evidence in `warnings`.
-Use an empty list when the project has no credible document for a category.
-Never invent a document.
+- `delivered` only when repository evidence records operator-authorized
+  delivery;
+- `approved-undelivered` only when explicit operator approval is recorded but
+  delivery is not;
+- `abandoned` only when explicit abandonment is recorded; or
+- `unresolved` in every other case.
+
+An audit PASS, draft status, or eligibility for planning is not operator
+approval. Preserve a recorded priority and creation date; otherwise use
+`unassigned` and `unknown`. Give one concise evidence statement supporting the
+classification. Report ambiguous evidence in `warnings` while using
+`unresolved` rather than guessing.
+
+Do not classify `docs/work.org`, archived Spec Kit specifications, old
+implementation plans, ticket archives, source code, or tests as requirement
+authority merely because they contain useful evidence. Use an empty authority
+list when the project has no credible document for a category. Never invent a
+document.
 
 ## Output contract
 
@@ -64,9 +74,17 @@ authorities:
     - path: docs/ACs.org
       descriptor: Historical requirements ledger
       rationale: Preserves approved migrated requirements and traceability.
+migrated_work:
+  - path: docs/archive/sdlc-v2/specs/003-example/spec.md
+    descriptor: Example delivered change
+    disposition: delivered
+    priority: P1
+    created: 2026-09-01
+    evidence: The operator authorized delivery and validation is recorded.
 warnings: []
 ```
 
 Every category must be a YAML list, including when it contains zero or one
 candidate. Paths must be exact, project-relative file paths. Give every path a
-brief descriptor and a concrete rationale.
+brief descriptor and a concrete rationale. `migrated_work` must also be a YAML
+list; use `migrated_work: []` when no archived Spec Kit specifications exist.

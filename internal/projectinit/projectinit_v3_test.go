@@ -232,6 +232,8 @@ Still reproducible.
 	for _, want := range []string{
 		"** TODO W007 - Reject invalid host :defect:",
 		"** TODO W012 - Add status page :feature:",
+		":PRIORITY: unassigned",
+		":CREATED: unknown",
 		"**** Disposition",
 		"***** AC12.1 - Status is visible",
 	} {
@@ -247,6 +249,10 @@ func TestWriteWorkLedgerAllocatesMigratedV2WorkAboveHistoricIdentifiers(t *testi
 	generation := projectGeneration{
 		source: "v2", base: "master", archive: "sdlc_v2_state_2026-09-06",
 		migration: "sdlc-v3-migration-2026-09-06", legacyV2: []string{"001-old-feature"},
+		migratedV2: []migratedWorkCandidate{{
+			Path: "docs/archive/sdlc-v2/specs/001-old-feature/spec.md", Descriptor: "Old feature",
+			Disposition: "unresolved", Priority: "unassigned", Created: "unknown", Evidence: "Approval and delivery are not recorded.",
+		}},
 	}
 	if err := writeWorkLedger(testSDLCRoot(t), root, generation, time.Date(2026, 9, 6, 0, 0, 0, 0, time.UTC)); err != nil {
 		t.Fatal(err)
@@ -255,10 +261,68 @@ func TestWriteWorkLedgerAllocatesMigratedV2WorkAboveHistoricIdentifiers(t *testi
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, want := range []string{"W131 - old feature", ":LEGACY_ID: 001"} {
+	for _, want := range []string{
+		"** REVIEW W131 - Old feature :migration:", ":LEGACY_ID: 001", ":TYPE: migration",
+		":PRIORITY: unassigned", ":SOURCE: docs/archive/sdlc-v2/specs/001-old-feature/spec.md",
+		":CREATED: unknown", ":DISPOSITION: unresolved", "*Migration evidence:* Approval and delivery are not recorded.",
+	} {
 		if !strings.Contains(string(contents), want) {
 			t.Fatalf("work ledger lacks %q:\n%s", want, contents)
 		}
+	}
+	if strings.Contains(string(contents), "* Migrated v2 work requiring disposition") {
+		t.Fatalf("work ledger added a non-template top-level section:\n%s", contents)
+	}
+	template, err := os.ReadFile(filepath.Join(testSDLCRoot(t), "templates", "v3", "work.org"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	preamble := strings.SplitN(string(template), "* Open defects\n", 2)[0]
+	if !strings.HasPrefix(string(contents), preamble+"* Open defects\n") {
+		t.Fatalf("work ledger did not preserve the canonical template preamble:\n%s", contents)
+	}
+	humanReview := strings.Index(string(contents), "* Human review\n")
+	closedWork := strings.Index(string(contents), "* Closed work\n")
+	item := strings.Index(string(contents), "** REVIEW W131 - Old feature")
+	if humanReview < 0 || item < humanReview || closedWork < item {
+		t.Fatalf("unresolved migrated work was not placed under Human review:\n%s", contents)
+	}
+}
+
+func TestMigratedWorkPlacementUsesCanonicalSections(t *testing.T) {
+	tests := []struct {
+		disposition string
+		state       string
+		section     string
+	}{
+		{"delivered", "DONE", "Closed work"},
+		{"approved-undelivered", "TODO", "Undelivered features"},
+		{"abandoned", "ABANDONED", "Closed work"},
+		{"unresolved", "REVIEW", "Human review"},
+	}
+	for _, test := range tests {
+		state, section := migratedWorkPlacement(test.disposition)
+		if state != test.state || section != test.section {
+			t.Errorf("placement for %s = %s/%s, want %s/%s", test.disposition, state, section, test.state, test.section)
+		}
+	}
+}
+
+func TestValidateMigratedWorkRequiresExactArchivedCoverage(t *testing.T) {
+	root := t.TempDir()
+	path := "docs/archive/sdlc-v2/specs/001-example/spec.md"
+	writeProjectTestFile(t, filepath.Join(root, filepath.FromSlash(path)), "# Example\n")
+	available := map[string]bool{path: true}
+
+	if _, err := validateMigratedWork(nil, []string{"001-example"}, root, available); err == nil || !strings.Contains(err.Error(), "omits archived Spec Kit specification") {
+		t.Fatalf("missing-specification error = %v", err)
+	}
+	candidate := migratedWorkCandidate{
+		Path: path, Descriptor: "Example", Disposition: "unresolved",
+		Priority: "unassigned", Created: "unknown", Evidence: "Approval is not recorded.",
+	}
+	if _, err := validateMigratedWork([]migratedWorkCandidate{candidate, candidate}, []string{"001-example"}, root, available); err == nil || !strings.Contains(err.Error(), "more than once") {
+		t.Fatalf("duplicate-specification error = %v", err)
 	}
 }
 
@@ -314,12 +378,32 @@ func TestRunMigratesV2WithoutRenumberingOrDeletingUnrelatedIntegrations(t *testi
 	writeProjectTestFile(t, filepath.Join(project, ".agents", "skills", "project-helper", "SKILL.md"), "unrelated\n")
 	runGitTest(t, project, "add", "-A")
 	runGitTest(t, project, "commit", "-m", "v2 state")
+	runner := func(name string, arguments []string, directory string, input io.Reader, output, errorOutput io.Writer) error {
+		if name == "codex" {
+			writeProjectTestFile(t, argumentValue(arguments, "--output-last-message"), `version: 1
+authorities:
+  product: []
+  architecture: []
+  requirements: []
+migrated_work:
+  - path: docs/archive/sdlc-v2/specs/001-old-feature/spec.md
+    descriptor: Old feature
+    disposition: unresolved
+    priority: unassigned
+    created: unknown
+    evidence: Approval and delivery are not recorded.
+warnings: []
+`)
+			return nil
+		}
+		return localOnlyTestRunner(name, arguments, directory, input, output, errorOutput)
+	}
 
 	options := Options{
 		ProjectRoot: project, SDLCRoot: testSDLCRoot(t), Overrides: v3TestOverrides(t),
 		SDLCRevision: "v3-test", Input: strings.NewReader("\n\n\nn\nn\n"),
 		Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{},
-		RunCommand: localOnlyTestRunner,
+		RunCommand: runner,
 		Now:        func() time.Time { return time.Date(2026, 9, 6, 0, 0, 0, 0, time.UTC) },
 	}
 	if err := Run(options); err != nil {
@@ -339,7 +423,7 @@ func TestRunMigratesV2WithoutRenumberingOrDeletingUnrelatedIntegrations(t *testi
 		t.Fatal("active Spec Kit directories remain")
 	}
 	work, err := os.ReadFile(filepath.Join(project, "docs", "work.org"))
-	if err != nil || !strings.Contains(string(work), "W131 - old feature") || !strings.Contains(string(work), ":LEGACY_ID: 001") {
+	if err != nil || !strings.Contains(string(work), "W131 - Old feature") || !strings.Contains(string(work), ":LEGACY_ID: 001") {
 		t.Fatalf("migrated work ledger = %q, %v", work, err)
 	}
 	archived := runGitTest(t, project, "show", "sdlc_v2_state_2026-09-06:.specify/memory/constitution.md")
@@ -415,6 +499,8 @@ func TestRunDiscoversAuthorityDocumentsAfterV2Archival(t *testing.T) {
 	writeProjectTestFile(t, filepath.Join(project, "docs", "architecture.md"), "# Architecture\n")
 	writeProjectTestFile(t, filepath.Join(project, "docs", "requirements.md"), "# Requirements\n")
 	writeProjectTestFile(t, filepath.Join(project, ".specify", "memory", "constitution.md"), "legacy constitution\n")
+	writeProjectTestFile(t, filepath.Join(project, "specs", "001-delivered-feature", "spec.md"), "# Delivered feature\n")
+	writeProjectTestFile(t, filepath.Join(project, "specs", "002-unresolved-feature", "spec.md"), "# Unresolved feature\n")
 	runGitTest(t, project, "add", "-A")
 	runGitTest(t, project, "commit", "-m", "v2 state")
 
@@ -470,6 +556,25 @@ authorities:
     - path: docs/requirements.md
       descriptor: Current requirements
       rationale: Defines existing product requirements.
+    - path: docs/work.org
+      descriptor: Work ledger
+      rationale: Indexes current and migrated work.
+    - path: docs/archive/sdlc-v2/specs/001-delivered-feature/spec.md
+      descriptor: Delivered feature
+      rationale: Defines one delivered feature.
+migrated_work:
+  - path: docs/archive/sdlc-v2/specs/001-delivered-feature/spec.md
+    descriptor: Delivered feature
+    disposition: delivered
+    priority: P1
+    created: 2026-09-01
+    evidence: The operator authorized delivery and validation is recorded.
+  - path: docs/archive/sdlc-v2/specs/002-unresolved-feature/spec.md
+    descriptor: Unresolved feature
+    disposition: unresolved
+    priority: unassigned
+    created: unknown
+    evidence: No operator approval or delivery is recorded.
 warnings: []
 `)
 			return nil
@@ -484,7 +589,7 @@ warnings: []
 
 	options := Options{
 		ProjectRoot: project, SDLCRoot: testSDLCRoot(t), Overrides: overrides,
-		SDLCRevision: "v3-test", Input: strings.NewReader("n\ndocs/VISION.md,README.md\n\n-\nn\n"),
+		SDLCRevision: "v3-test", Input: strings.NewReader("n\ndocs/VISION.md,README.md\n\n\nn\n"),
 		Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{}, RunCommand: runner,
 		Now: func() time.Time { return time.Date(2026, 9, 6, 0, 0, 0, 0, time.UTC) },
 	}
@@ -498,9 +603,25 @@ warnings: []
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, want := range []string{"product:\n        - docs/VISION.md\n        - README.md", "architecture:\n        - docs/architecture.md", "requirements: []"} {
+	for _, want := range []string{"product:\n        - docs/VISION.md\n        - README.md", "architecture:\n        - docs/architecture.md", "requirements:\n        - docs/requirements.md"} {
 		if !strings.Contains(string(contents), want) {
 			t.Fatalf("project profile lacks authority list %q:\n%s", want, contents)
+		}
+	}
+	if strings.Contains(string(contents), "docs/archive/sdlc-v2/specs/") || strings.Contains(string(contents), "docs/work.org") {
+		t.Fatalf("project profile enumerates its work index or migrated feature specifications:\n%s", contents)
+	}
+	work, err := os.ReadFile(filepath.Join(project, "docs", "work.org"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{
+		"** DONE W001 - Delivered feature :migration:",
+		"** REVIEW W002 - Unresolved feature :migration:",
+		":PRIORITY: P1", ":CREATED: 2026-09-01", ":DISPOSITION: delivered",
+	} {
+		if !strings.Contains(string(work), want) {
+			t.Fatalf("work ledger lacks %q:\n%s", want, work)
 		}
 	}
 	if exists(filepath.Join(project, ".git", "sdlc-project-init")) {

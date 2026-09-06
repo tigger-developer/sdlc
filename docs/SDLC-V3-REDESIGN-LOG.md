@@ -323,5 +323,9 @@ solution detail for a new agent to begin with the defined tests.
   `OTNNN.n` identifiers.
 - Preserve complete v2 state on the dated archive branch and move active
   `.specify` and `specs` material unchanged under `docs/archive/sdlc-v2/`.
+- Classify every archived v2 specification through the temporary discovery
+  YAML and render it under the existing canonical `docs/work.org` sections.
+  Keep individual feature specifications out of the stable authority lists;
+  the work ledger supplies their state, provenance, and links.
 - Composite audit skills use one Codex subagent and retain its identity for
   follow-up reviews; focused audits never spawn separate contexts themselves.
