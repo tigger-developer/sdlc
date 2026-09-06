@@ -467,3 +467,21 @@ without reconstructing the work from conversation history.
   concise commit summary. `VERBOSE=1` preserves the complete Git output, and a
   failed commit replays its captured stdout and stderr before returning the
   error.
+- Completed the first end-to-end SDLC v2 to v3 project migration in First
+  Folio. The initializer created `.sdlc/project.yaml` and `docs/work.org`, moved
+  the active Spec Kit installation and three feature directories unchanged to
+  `docs/archive/sdlc-v2/`, and committed the result on
+  `sdlc-v3-migration-2026-09-06-3`.
+- The operator merged that migration branch into First Folio's `master` as
+  commit `13001c6`. The active `.specify/` and `specs/` directories are absent;
+  the archived copies, v3 project profile, work ledger, and named authority
+  documents are present. No project-local `SKILL.md` remains under
+  `.agents/skills/`; the v3 workflow uses the global skills deployed under
+  `~/.agents/skills/`.
+- The migrated First Folio ledger classifies unified font configuration and
+  source frontmatter configuration for human review, and manuscript block
+  layout as closed work. Migration preserved these dispositions rather than
+  forcing unfinished v2 work through a definition exercise.
+- First Folio's local `master` was three commits ahead of `origin/master` after
+  the merge. Publishing that branch remains an operator synchronization step;
+  it does not affect the local migration structure.
