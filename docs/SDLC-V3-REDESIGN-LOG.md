@@ -16,6 +16,10 @@ This document preserves decisions and open questions while the live SDLC is bein
   delivery work running five to ten fresh-context audits, each reloading the
   project and standards context at real model cost. Operator throughput was
   roughly four times slower than under the earlier workflow.
+- The operator is an independent developer who rarely exhausted the weekly
+  allowance of a US$100-per-month Codex subscription. The combined workflow
+  consumed that allowance in one afternoon and required an upgrade to the
+  US$200 package to continue, without making the resulting process acceptable.
 - The final trigger was a small script change, comparable to a one-line operator
   edit, that produced about 1,400 lines of artefacts and nine audits. Five
   audits were in its test-and-build delivery cycle, which ended with a failed

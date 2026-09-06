@@ -13,6 +13,12 @@ ten fresh-context audits. Each auditor reloaded the project and engineering
 context, incurring real model cost, while the operator experienced roughly four
 times the earlier definition and delivery time.
 
+The cost impact was material for an independent developer. The operator rarely
+exhausted the weekly allowance of a US$100-per-month Codex subscription before
+adopting Spec Kit. The combined workflow consumed that allowance in one
+afternoon, requiring an upgrade to the US$200 package merely to continue, while
+the resulting delivery experience remained unacceptable.
+
 The final trigger was a small script change whose implementation was comparable
 to a one-line operator edit. The workflow generated about 1,400 lines of
 artefacts and ran nine audits, including five test-and-build delivery audits,

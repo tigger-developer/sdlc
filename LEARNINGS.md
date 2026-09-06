@@ -21,6 +21,12 @@ comparable to a one-line operator edit, that generated about 1,400 lines of
 artefacts and ran nine audits. Five audits belonged to the test-and-build cycle,
 which ultimately failed its own gate without delivering the change.
 
+The direct financial signal was equally clear. The operator is an independent
+developer who rarely exhausted the weekly allowance of a US$100-per-month Codex
+subscription. After adopting Spec Kit, that allowance was consumed in one
+afternoon. Continuing required an upgrade to the US$200 package, without a
+corresponding improvement in delivery value.
+
 SDLC v3 retains the valuable constraints and removes the duplicate lifecycle:
 
 - one unified specification defines requirements, tests, and solution design;
