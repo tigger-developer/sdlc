@@ -402,11 +402,18 @@ without reconstructing the work from conversation history.
   disposition so those entries can populate `docs/work.org`; it should not
   select the stable authority documents.
 - Refined deterministic product and architecture discovery to inventory the
-  current project through Git and filter exact case-insensitive basenames for
-  `README`, `VISION`, and `ARCHITECTURE` Markdown or Org documents. Present the
-  exact tracked or untracked paths as operator-selectable candidates. The
-  authority prompt must offer a refresh action that repeats the inventory for
-  the current category without discarding earlier migration work or confirmed
-  answers, allowing the operator to relocate a misplaced authority such as a
-  root-level `ARCHITECTURE.md` into `docs/` before continuing. Do not use the
-  `find` command or inspect `.git` internals.
+  current project through Git. Match Markdown or Org files whose filename stem
+  contains `README`, `VISION`, or `ARCHITECTURE`, case-insensitively, so names
+  such as `ARCHITECTURE-v2.md` and `V2_VISION_DRAFT.md` remain visible. Preserve
+  the exact tracked or untracked path and case.
+- Present every matching product or architecture candidate with an explicit
+  selected or unselected state. Canonical current locations may begin selected;
+  versioned, draft, proposal, archived, and legacy locations remain visible but
+  begin unselected. Let the operator toggle multiple candidates before
+  accepting the category.
+- The authority prompt must offer a refresh action that repeats the Git
+  inventory for the current category without discarding earlier migration work,
+  confirmed answers, or the current selection for paths that still exist. This
+  allows the operator to relocate a misplaced authority such as a root-level
+  `ARCHITECTURE.md` into `docs/`, then rescan and continue without restarting.
+  Do not use the `find` command or inspect `.git` internals.
