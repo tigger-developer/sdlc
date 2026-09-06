@@ -228,6 +228,7 @@ authorities:
   architecture:
     - docs/architecture.md
   requirements:
+    - docs/work.org
     - docs/ACs.org
 
 infrastructure:
@@ -258,12 +259,16 @@ Inherited defaults and empty sections are omitted from project YAML.
 - [X] For an eligible GitHub-backed v1 project, offer the ticket-migration
   skill before continuing.
 - [X] Ask schema-driven non-authority project questions before migration.
-- [X] After migration, invoke headless Codex with a saved read-only prompt to
-  propose stable product, architecture, and requirement authorities and, for
-  v2 migrations, classify every archived specification as structured YAML.
-- [X] Validate proposal paths against repository files, let the operator accept
-  or replace each list, and write the confirmed lists to
-  `.sdlc/project.yaml`.
+- [X] After migration, derive README, vision, and architecture candidates from
+  the bounded Git inventory. Let the operator toggle multiple paths and rescan
+  after moving a misplaced document.
+- [X] Record `docs/work.org` and the sole applicable AC ledger as deterministic
+  requirement authorities. Reject simultaneous `docs/ACs.org` and
+  `docs/ACs.md` ledgers.
+- [X] Only for v2 migrations with archived specifications, invoke headless
+  Codex with the configured audit model and an exact bounded path list. Accept
+  structured disposition evidence only; do not ask the model to select
+  authorities or edit the work ledger.
 - [X] Keep the proposal in the project-owned `.sdlc/.init/` directory whose
   presence identifies an interrupted initialization; remove it before staging
   the completed migration. Never use private `.git` paths as application

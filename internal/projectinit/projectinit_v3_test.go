@@ -119,6 +119,7 @@ func TestWriteProjectProfileOmitsInheritedGlobalDefaults(t *testing.T) {
 			"SDLC_TECHNOLOGIES":             "GO,SHELL",
 			"SDLC_PRODUCT_AUTHORITIES":      "docs/VISION.md,README.md",
 			"SDLC_ARCHITECTURE_AUTHORITIES": "docs/architecture.md",
+			"SDLC_REQUIREMENT_AUTHORITIES":  "docs/work.org",
 			"SDLC_BRANCH_STRATEGY":          "feature",
 			"SDLC_SPEC_MODEL":               "gpt-example",
 			"SDLC_INFRA_ROLE":               "none",
@@ -128,7 +129,6 @@ func TestWriteProjectProfileOmitsInheritedGlobalDefaults(t *testing.T) {
 			"SDLC_TECHNOLOGIES":             true,
 			"SDLC_PRODUCT_AUTHORITIES":      true,
 			"SDLC_ARCHITECTURE_AUTHORITIES": true,
-			"SDLC_REQUIREMENT_AUTHORITIES":  true,
 			"SDLC_INFRA_ROLE":               true,
 		},
 		source: "new", base: "master", archive: "sdlc_new_state_2026-09-06",
@@ -151,8 +151,8 @@ func TestWriteProjectProfileOmitsInheritedGlobalDefaults(t *testing.T) {
 	if !strings.Contains(string(contents), "application") || !strings.Contains(string(contents), "GO") || !strings.Contains(string(contents), "docs/VISION.md") {
 		t.Fatalf("project facts missing:\n%s", contents)
 	}
-	if !strings.Contains(string(contents), "requirements: []") {
-		t.Fatalf("confirmed empty requirement authorities are not a YAML list:\n%s", contents)
+	if !strings.Contains(string(contents), "requirements:\n        - docs/work.org") {
+		t.Fatalf("deterministic work authority is missing from the YAML list:\n%s", contents)
 	}
 }
 
@@ -326,6 +326,129 @@ func TestValidateMigratedWorkRequiresExactArchivedCoverage(t *testing.T) {
 	}
 }
 
+func TestDiscoverAuthorityChoicesIncludesStemVariantsAndSelectsCanonicalPaths(t *testing.T) {
+	available := map[string]bool{
+		"README.md":                          true,
+		"docs/VISION.md":                     true,
+		"docs/proposal/V2_VISION_DRAFT.md":   true,
+		"docs/v1/VISION.md":                  true,
+		"docs/ARCHITECTURE.md":               true,
+		"docs/architecture-v2.org":           true,
+		"docs/v1/architecture.md":            true,
+		"docs/revision-notes.md":             true,
+		"vendor/example/README.txt":          true,
+		"docs/archive/README-background.org": true,
+	}
+
+	product := discoverAuthorityChoices(available, "product")
+	wantProduct := map[string]bool{
+		"README.md":                          true,
+		"docs/VISION.md":                     true,
+		"docs/archive/README-background.org": false,
+		"docs/proposal/V2_VISION_DRAFT.md":   false,
+		"docs/v1/VISION.md":                  false,
+	}
+	if len(product) != len(wantProduct) {
+		t.Fatalf("product candidates = %#v", product)
+	}
+	for _, choice := range product {
+		if selected, ok := wantProduct[choice.Path]; !ok || selected != choice.Selected {
+			t.Errorf("unexpected product choice %#v", choice)
+		}
+	}
+
+	architecture := discoverAuthorityChoices(available, "architecture")
+	wantArchitecture := map[string]bool{
+		"docs/ARCHITECTURE.md":     true,
+		"docs/architecture-v2.org": false,
+		"docs/v1/architecture.md":  false,
+	}
+	if len(architecture) != len(wantArchitecture) {
+		t.Fatalf("architecture candidates = %#v", architecture)
+	}
+	for _, choice := range architecture {
+		if selected, ok := wantArchitecture[choice.Path]; !ok || selected != choice.Selected {
+			t.Errorf("unexpected architecture choice %#v", choice)
+		}
+	}
+}
+
+func TestRequirementAuthoritiesAreDeterministic(t *testing.T) {
+	tests := []struct {
+		name      string
+		source    string
+		available map[string]bool
+		want      string
+		wantError string
+	}{
+		{"new project", "new", map[string]bool{"docs/work.org": true}, "docs/work.org", ""},
+		{"migrated Org ledger", "v1", map[string]bool{"docs/work.org": true, "docs/ACs.org": true}, "docs/work.org,docs/ACs.org", ""},
+		{"unconverted Markdown ledger", "v1", map[string]bool{"docs/work.org": true, "docs/ACs.md": true}, "docs/work.org,docs/ACs.md", ""},
+		{"conflicting ledgers", "v1", map[string]bool{"docs/work.org": true, "docs/ACs.org": true, "docs/ACs.md": true}, "", "both docs/ACs.org and docs/ACs.md"},
+		{"missing v1 ledger", "v1", map[string]bool{"docs/work.org": true}, "", "legacy migration requires docs/ACs.org or docs/ACs.md"},
+		{"missing work ledger", "new", map[string]bool{}, "", "docs/work.org is missing"},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			got, err := deterministicRequirementAuthorities(test.available, test.source)
+			if test.wantError != "" {
+				if err == nil || !strings.Contains(err.Error(), test.wantError) {
+					t.Fatalf("error = %v, want containing %q", err, test.wantError)
+				}
+				return
+			}
+			if err != nil || got != test.want {
+				t.Fatalf("authorities = %q, %v; want %q", got, err, test.want)
+			}
+		})
+	}
+}
+
+func TestAuthorityChooserRefreshesAfterDocumentMove(t *testing.T) {
+	project := t.TempDir()
+	writeProjectTestFile(t, filepath.Join(project, "ARCHITECTURE.md"), "# Architecture\n")
+	var inventories int
+	runner := func(name string, arguments []string, directory string, input io.Reader, output, errorOutput io.Writer) error {
+		if name != "git" || !containsArgument(arguments, "ls-files") {
+			return fmt.Errorf("unexpected command: %s %v", name, arguments)
+		}
+		inventories++
+		if inventories == 1 {
+			_, err := io.WriteString(output, "ARCHITECTURE.md\x00")
+			return err
+		}
+		if err := os.MkdirAll(filepath.Join(project, "docs"), 0o755); err != nil {
+			return err
+		}
+		if err := os.Rename(filepath.Join(project, "ARCHITECTURE.md"), filepath.Join(project, "docs", "ARCHITECTURE.md")); err != nil && !errors.Is(err, os.ErrNotExist) {
+			return err
+		}
+		_, err := io.WriteString(output, "docs/ARCHITECTURE.md\x00")
+		return err
+	}
+	var output bytes.Buffer
+	options := defaultOptions(Options{
+		ProjectRoot: project,
+		Input:       strings.NewReader("r\n\n"),
+		Output:      &output,
+		ErrorOutput: &bytes.Buffer{},
+		RunCommand:  runner,
+	})
+	field := ConfigField{Key: "SDLC_ARCHITECTURE_AUTHORITIES", Prompt: "Architecture authority paths", DiscoveryCategory: "architecture"}
+	got, err := promptDiscoveredAuthorityField(options, field, project)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got != "docs/ARCHITECTURE.md" {
+		t.Fatalf("authority after refresh = %q", got)
+	}
+	for _, want := range []string{"[ ] 1. ARCHITECTURE.md", "[x] 1. docs/ARCHITECTURE.md", "'r' to rescan"} {
+		if !strings.Contains(output.String(), want) {
+			t.Errorf("chooser output lacks %q:\n%s", want, output.String())
+		}
+	}
+}
+
 func TestRunInitializesOnceOnMigrationBranch(t *testing.T) {
 	project := t.TempDir()
 	runGitTest(t, project, "init")
@@ -351,6 +474,13 @@ func TestRunInitializesOnceOnMigrationBranch(t *testing.T) {
 	}
 	if !exists(filepath.Join(project, projectProfilePath)) || !exists(filepath.Join(project, "docs", "work.org")) {
 		t.Fatal("v3 project artefacts missing")
+	}
+	profile, err := os.ReadFile(filepath.Join(project, projectProfilePath))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(profile), "requirements:\n        - docs/work.org") || strings.Contains(string(profile), "authorities:\n    requirements:\n        - README.md") {
+		t.Fatalf("new-project requirement authorities = %s", profile)
 	}
 	environment, err := os.ReadFile(filepath.Join(project, ".env"))
 	if err != nil || string(environment) != "PRIVATE_TOKEN=secret\n" {
@@ -381,10 +511,6 @@ func TestRunMigratesV2WithoutRenumberingOrDeletingUnrelatedIntegrations(t *testi
 	runner := func(name string, arguments []string, directory string, input io.Reader, output, errorOutput io.Writer) error {
 		if name == "codex" {
 			writeProjectTestFile(t, argumentValue(arguments, "--output-last-message"), `version: 1
-authorities:
-  product: []
-  architecture: []
-  requirements: []
 migrated_work:
   - path: docs/archive/sdlc-v2/specs/001-old-feature/spec.md
     descriptor: Old feature
@@ -425,6 +551,10 @@ warnings: []
 	work, err := os.ReadFile(filepath.Join(project, "docs", "work.org"))
 	if err != nil || !strings.Contains(string(work), "W131 - Old feature") || !strings.Contains(string(work), ":LEGACY_ID: 001") {
 		t.Fatalf("migrated work ledger = %q, %v", work, err)
+	}
+	profile, err := os.ReadFile(filepath.Join(project, projectProfilePath))
+	if err != nil || !strings.Contains(string(profile), "requirements:\n        - docs/work.org\n        - docs/ACs.org") {
+		t.Fatalf("v2 requirement authorities = %q, %v", profile, err)
 	}
 	archived := runGitTest(t, project, "show", "sdlc_v2_state_2026-09-06:.specify/memory/constitution.md")
 	if archived != "legacy constitution\n" {
@@ -483,13 +613,17 @@ func TestRunMigratesV1ThroughTicketSkillBeforeCreatingProfile(t *testing.T) {
 	if !exists(filepath.Join(project, "docs", "ACs.org")) || exists(filepath.Join(project, "docs", "ACs.md")) {
 		t.Fatal("legacy AC ledger was not converted")
 	}
+	profile, err := os.ReadFile(filepath.Join(project, projectProfilePath))
+	if err != nil || !strings.Contains(string(profile), "requirements:\n        - docs/work.org\n        - docs/ACs.org") {
+		t.Fatalf("v1 requirement authorities = %q, %v", profile, err)
+	}
 	archived := runGitTest(t, project, "show", "sdlc_v1_state_2026-09-06:docs/ACs.md")
 	if !strings.Contains(archived, "AC7.1 - Existing result") {
 		t.Fatalf("archive branch lost v1 ledger: %q", archived)
 	}
 }
 
-func TestRunDiscoversAuthorityDocumentsAfterV2Archival(t *testing.T) {
+func TestRunClassifiesV2WorkAndResolvesAuthoritiesAfterArchival(t *testing.T) {
 	project := t.TempDir()
 	runGitTest(t, project, "init")
 	runGitTest(t, project, "config", "user.name", "Test Operator")
@@ -532,36 +666,14 @@ func TestRunDiscoversAuthorityDocumentsAfterV2Archival(t *testing.T) {
 			if err != nil {
 				return err
 			}
-			if !strings.Contains(string(prompt), "authorities:") {
+			if strings.Contains(string(prompt), "authorities:") || !strings.Contains(string(prompt), "docs/archive/sdlc-v2/specs/001-delivered-feature/spec.md") || !strings.Contains(string(prompt), "docs/archive/sdlc-v2/specs/002-unresolved-feature/spec.md") {
 				return fmt.Errorf("unexpected discovery prompt: %s", prompt)
 			}
 			outputPath := argumentValue(arguments, "--output-last-message")
 			if outputPath == "" {
-				return fmt.Errorf("missing authority proposal output path: %v", arguments)
+				return fmt.Errorf("missing migrated-work proposal output path: %v", arguments)
 			}
 			writeProjectTestFile(t, outputPath, `version: 1
-authorities:
-  product:
-    - path: README.md
-      descriptor: Project overview
-      rationale: Defines the product purpose.
-    - path: docs/VISION.md
-      descriptor: Product vision
-      rationale: Defines durable product scope.
-  architecture:
-    - path: docs/architecture.md
-      descriptor: System architecture
-      rationale: Defines technical boundaries.
-  requirements:
-    - path: docs/requirements.md
-      descriptor: Current requirements
-      rationale: Defines existing product requirements.
-    - path: docs/work.org
-      descriptor: Work ledger
-      rationale: Indexes current and migrated work.
-    - path: docs/archive/sdlc-v2/specs/001-delivered-feature/spec.md
-      descriptor: Delivered feature
-      rationale: Defines one delivered feature.
 migrated_work:
   - path: docs/archive/sdlc-v2/specs/001-delivered-feature/spec.md
     descriptor: Delivered feature
@@ -589,7 +701,7 @@ warnings: []
 
 	options := Options{
 		ProjectRoot: project, SDLCRoot: testSDLCRoot(t), Overrides: overrides,
-		SDLCRevision: "v3-test", Input: strings.NewReader("n\ndocs/VISION.md,README.md\n\n\nn\n"),
+		SDLCRevision: "v3-test", Input: strings.NewReader("n\n\n\nn\n"),
 		Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{}, RunCommand: runner,
 		Now: func() time.Time { return time.Date(2026, 9, 6, 0, 0, 0, 0, time.UTC) },
 	}
@@ -603,13 +715,13 @@ warnings: []
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, want := range []string{"product:\n        - docs/VISION.md\n        - README.md", "architecture:\n        - docs/architecture.md", "requirements:\n        - docs/requirements.md"} {
+	for _, want := range []string{"product:\n        - README.md\n        - docs/VISION.md", "architecture:\n        - docs/architecture.md", "requirements:\n        - docs/work.org"} {
 		if !strings.Contains(string(contents), want) {
 			t.Fatalf("project profile lacks authority list %q:\n%s", want, contents)
 		}
 	}
-	if strings.Contains(string(contents), "docs/archive/sdlc-v2/specs/") || strings.Contains(string(contents), "docs/work.org") {
-		t.Fatalf("project profile enumerates its work index or migrated feature specifications:\n%s", contents)
+	if strings.Contains(string(contents), "docs/archive/sdlc-v2/specs/") || strings.Contains(string(contents), "docs/requirements.md") {
+		t.Fatalf("project profile enumerates migrated or non-canonical requirement documents:\n%s", contents)
 	}
 	work, err := os.ReadFile(filepath.Join(project, "docs", "work.org"))
 	if err != nil {
@@ -678,7 +790,6 @@ func v3TestOverrides(t *testing.T) map[string]string {
 		"SDLC_TECHNOLOGIES":             "GO",
 		"SDLC_PRODUCT_AUTHORITIES":      "README.md",
 		"SDLC_ARCHITECTURE_AUTHORITIES": "README.md",
-		"SDLC_REQUIREMENT_AUTHORITIES":  "README.md",
 		"SDLC_BRANCH_STRATEGY":          "current",
 		"SDLC_SPEC_HARNESS":             "codex",
 		"SDLC_SPEC_PROVIDER":            "openai",

@@ -7,26 +7,27 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sort"
+	"strconv"
 	"strings"
 	"time"
+	"unicode"
 
 	"gopkg.in/yaml.v3"
 )
 
 const authorityDiscoveryPromptPath = "prompts/discover-project-authorities.md"
-const authorityProposalFilename = "authority-proposal.yaml"
+const migratedWorkProposalFilename = "migrated-work-proposal.yaml"
 
-type authorityProposal struct {
-	Version      int                             `yaml:"version"`
-	Authorities  map[string][]authorityCandidate `yaml:"authorities"`
-	MigratedWork []migratedWorkCandidate         `yaml:"migrated_work"`
-	Warnings     []string                        `yaml:"warnings"`
+type migratedWorkProposal struct {
+	Version      int                     `yaml:"version"`
+	MigratedWork []migratedWorkCandidate `yaml:"migrated_work"`
+	Warnings     []string                `yaml:"warnings"`
 }
 
-type authorityCandidate struct {
-	Path       string `yaml:"path"`
-	Descriptor string `yaml:"descriptor"`
-	Rationale  string `yaml:"rationale"`
+type authorityChoice struct {
+	Path     string
+	Selected bool
 }
 
 type migratedWorkCandidate struct {
@@ -58,101 +59,113 @@ func resolvePostMigrationConfiguration(
 	if err != nil {
 		return err
 	}
-	var unresolved []ConfigField
 	for _, field := range fields {
-		value, isExplicit, _ := initialValue(field, options.Overrides, legacy, global)
-		if !isExplicit {
-			unresolved = append(unresolved, field)
+		if field.DiscoveryCategory == "requirements" {
 			continue
 		}
-		if err := field.ValidateValue(value, technologies); err != nil {
-			return fmt.Errorf("%s: %w", field.Key, err)
+		value, isExplicit, _ := initialValue(field, options.Overrides, legacy, global)
+		if isExplicit {
+			if err := field.ValidateValue(value, technologies); err != nil {
+				return fmt.Errorf("%s: %w", field.Key, err)
+			}
+			value, err = validateAuthorityPaths(projectRoot, available, value)
+			if err != nil {
+				return fmt.Errorf("%s: %w", field.Key, err)
+			}
+		} else {
+			value, err = promptDiscoveredAuthorityField(options, field, projectRoot)
+			if err != nil {
+				return err
+			}
 		}
-		value, err = validateAuthorityPaths(projectRoot, available, value)
-		if err != nil {
-			return fmt.Errorf("%s: %w", field.Key, err)
-		}
-		if value != "" {
-			values[field.Key] = value
-		}
+		values[field.Key] = value
 		explicit[field.Key] = true
 	}
-	if len(unresolved) == 0 && len(generation.legacyV2) == 0 {
+
+	available, err = availableProjectFiles(options, projectRoot)
+	if err != nil {
+		return err
+	}
+	requirements, err := deterministicRequirementAuthorities(available, generation.source)
+	if err != nil {
+		return err
+	}
+	values["SDLC_REQUIREMENT_AUTHORITIES"] = requirements
+	explicit["SDLC_REQUIREMENT_AUTHORITIES"] = true
+
+	if len(generation.legacyV2) == 0 {
 		return nil
 	}
-
-	proposalPath, err := runAuthorityDiscovery(options, sdlcRoot, projectRoot, workspace, values["SDLC_AUDIT_MODEL"])
+	proposalPath, err := runMigratedWorkClassification(options, sdlcRoot, projectRoot, workspace, values["SDLC_AUDIT_MODEL"], generation.legacyV2)
 	if err != nil {
 		return err
 	}
-	proposal, err := readAuthorityProposal(proposalPath)
+	proposal, err := readMigratedWorkProposal(proposalPath)
 	if err != nil {
 		return err
 	}
-	proposal, err = validateAuthorityProposal(proposal, fields, projectRoot, available, generation.legacyV2)
+	proposal, err = validateMigratedWorkProposal(proposal, projectRoot, available, generation.legacyV2)
 	if err != nil {
-		return fmt.Errorf("validating authority proposal %s: %w", proposalPath, err)
+		return fmt.Errorf("validating migrated-work proposal %s: %w", proposalPath, err)
 	}
 	for _, warning := range proposal.Warnings {
 		if warning != "" {
-			fmt.Fprintf(options.Output, "Authority discovery warning: %s\n", warning)
+			fmt.Fprintf(options.Output, "Migrated work classification warning: %s\n", warning)
 		}
 	}
 	generation.migratedV2 = proposal.MigratedWork
-	for _, field := range unresolved {
-		value, err := promptAuthorityField(options, field, proposal.Authorities[field.DiscoveryCategory], projectRoot, available)
-		if err != nil {
-			return err
-		}
-		if value != "" {
-			values[field.Key] = value
-		}
-		explicit[field.Key] = true
-	}
 	return nil
 }
 
-func runAuthorityDiscovery(options Options, sdlcRoot, projectRoot, workspace, model string) (string, error) {
+func runMigratedWorkClassification(options Options, sdlcRoot, projectRoot, workspace, model string, legacyV2 []string) (string, error) {
 	promptPath := filepath.Join(sdlcRoot, filepath.FromSlash(authorityDiscoveryPromptPath))
 	prompt, err := os.ReadFile(promptPath)
 	if err != nil {
-		return "", fmt.Errorf("reading authority-discovery prompt %s: %w", promptPath, err)
+		return "", fmt.Errorf("reading migrated-work classification prompt %s: %w", promptPath, err)
 	}
-	proposalPath := filepath.Join(workspace, authorityProposalFilename)
+	paths := make([]string, 0, len(legacyV2))
+	for _, item := range legacyV2 {
+		paths = append(paths, filepath.ToSlash(filepath.Join("docs", "archive", "sdlc-v2", "specs", item, "spec.md")))
+	}
+	pathDocument, err := yaml.Marshal(map[string][]string{"specifications": paths})
+	if err != nil {
+		return "", fmt.Errorf("rendering bounded migrated-work paths: %w", err)
+	}
+	prompt = append(prompt, []byte("\n\n## Exact specification scope\n\nInspect only these specification directories and their directly related files:\n\n```yaml\n")...)
+	prompt = append(prompt, pathDocument...)
+	prompt = append(prompt, []byte("```\n")...)
+	proposalPath := filepath.Join(workspace, migratedWorkProposalFilename)
 	arguments := []string{"exec", "--ephemeral", "--sandbox", "read-only", "--output-last-message", proposalPath}
 	if strings.TrimSpace(model) != "" {
 		arguments = append(arguments, "--model", model)
 	}
 	arguments = append(arguments, "-")
 	if err := options.RunCommand("codex", arguments, projectRoot, bytes.NewReader(prompt), options.Output, options.ErrorOutput); err != nil {
-		return "", fmt.Errorf("discovering project authorities with headless Codex: %w", err)
+		return "", fmt.Errorf("classifying archived Spec Kit work with headless Codex: %w", err)
 	}
 	return proposalPath, nil
 }
 
-func readAuthorityProposal(path string) (authorityProposal, error) {
+func readMigratedWorkProposal(path string) (migratedWorkProposal, error) {
 	contents, err := os.ReadFile(path)
 	if err != nil {
-		return authorityProposal{}, fmt.Errorf("reading authority proposal %s: %w", path, err)
+		return migratedWorkProposal{}, fmt.Errorf("reading migrated-work proposal %s: %w", path, err)
 	}
 	decoder := yaml.NewDecoder(bytes.NewReader(contents))
 	decoder.KnownFields(true)
-	var proposal authorityProposal
+	var proposal migratedWorkProposal
 	if err := decoder.Decode(&proposal); err != nil {
-		return authorityProposal{}, fmt.Errorf("parsing authority proposal %s: %w", path, err)
+		return migratedWorkProposal{}, fmt.Errorf("parsing migrated-work proposal %s: %w", path, err)
 	}
 	var extra any
 	if err := decoder.Decode(&extra); !errors.Is(err, io.EOF) {
 		if err == nil {
-			return authorityProposal{}, fmt.Errorf("authority proposal %s contains multiple YAML documents", path)
+			return migratedWorkProposal{}, fmt.Errorf("migrated-work proposal %s contains multiple YAML documents", path)
 		}
-		return authorityProposal{}, fmt.Errorf("parsing authority proposal %s: %w", path, err)
+		return migratedWorkProposal{}, fmt.Errorf("parsing migrated-work proposal %s: %w", path, err)
 	}
 	if proposal.Version != 1 {
-		return authorityProposal{}, fmt.Errorf("authority proposal %s must declare version: 1", path)
-	}
-	if proposal.Authorities == nil {
-		return authorityProposal{}, fmt.Errorf("authority proposal %s has no authorities mapping", path)
+		return migratedWorkProposal{}, fmt.Errorf("migrated-work proposal %s must declare version: 1", path)
 	}
 	return proposal, nil
 }
@@ -165,9 +178,15 @@ func availableProjectFiles(options Options, projectRoot string) (map[string]bool
 	available := map[string]bool{}
 	for _, path := range strings.Split(output, "\x00") {
 		path = filepath.ToSlash(filepath.Clean(strings.TrimSpace(path)))
-		if path != "" && path != "." {
-			available[path] = true
+		if path == "" || path == "." {
+			continue
 		}
+		if _, statErr := os.Lstat(filepath.Join(projectRoot, filepath.FromSlash(path))); errors.Is(statErr, os.ErrNotExist) {
+			continue
+		} else if statErr != nil {
+			return nil, fmt.Errorf("checking inventoried project path %s: %w", path, statErr)
+		}
+		available[path] = true
 	}
 	return available, nil
 }
@@ -214,50 +233,10 @@ func validateAuthorityPaths(projectRoot string, available map[string]bool, value
 	return strings.Join(validated, ","), nil
 }
 
-func validateAuthorityProposal(proposal authorityProposal, fields []ConfigField, projectRoot string, available map[string]bool, legacyV2 []string) (authorityProposal, error) {
-	expected := map[string]bool{}
-	for _, field := range fields {
-		expected[field.DiscoveryCategory] = true
-		candidates, ok := proposal.Authorities[field.DiscoveryCategory]
-		if !ok {
-			return authorityProposal{}, fmt.Errorf("authority proposal omits %s list", field.DiscoveryCategory)
-		}
-		seen := map[string]bool{}
-		validated := make([]authorityCandidate, 0, len(candidates))
-		for _, candidate := range candidates {
-			if strings.TrimSpace(candidate.Descriptor) == "" || strings.TrimSpace(candidate.Rationale) == "" {
-				return authorityProposal{}, fmt.Errorf("authority proposal entry %q requires a descriptor and rationale", candidate.Path)
-			}
-			path, err := validateAuthorityPaths(projectRoot, available, candidate.Path)
-			if err != nil {
-				return authorityProposal{}, err
-			}
-			if path == "" || strings.Contains(path, ",") {
-				return authorityProposal{}, fmt.Errorf("authority proposal entry must contain exactly one path: %q", candidate.Path)
-			}
-			if seen[path] {
-				continue
-			}
-			if field.DiscoveryCategory == "requirements" && (path == "docs/work.org" || strings.HasPrefix(path, "docs/archive/sdlc-v2/specs/")) {
-				proposal.Warnings = append(proposal.Warnings, fmt.Sprintf("Excluded %s from requirement authorities because migrated work is indexed through docs/work.org.", path))
-				continue
-			}
-			seen[path] = true
-			candidate.Path = path
-			candidate.Descriptor = strings.TrimSpace(candidate.Descriptor)
-			candidate.Rationale = strings.TrimSpace(candidate.Rationale)
-			validated = append(validated, candidate)
-		}
-		proposal.Authorities[field.DiscoveryCategory] = validated
-	}
-	for category := range proposal.Authorities {
-		if !expected[category] {
-			return authorityProposal{}, fmt.Errorf("authority proposal contains unknown category %q", category)
-		}
-	}
+func validateMigratedWorkProposal(proposal migratedWorkProposal, projectRoot string, available map[string]bool, legacyV2 []string) (migratedWorkProposal, error) {
 	migratedWork, err := validateMigratedWork(proposal.MigratedWork, legacyV2, projectRoot, available)
 	if err != nil {
-		return authorityProposal{}, err
+		return migratedWorkProposal{}, err
 	}
 	proposal.MigratedWork = migratedWork
 	for index, warning := range proposal.Warnings {
@@ -313,7 +292,7 @@ func validateMigratedWork(candidates []migratedWorkCandidate, legacyV2 []string,
 	for _, path := range expected {
 		candidate, ok := byPath[path]
 		if !ok {
-			return nil, fmt.Errorf("authority proposal omits archived Spec Kit specification %s", path)
+			return nil, fmt.Errorf("migrated-work proposal omits archived Spec Kit specification %s", path)
 		}
 		validated = append(validated, candidate)
 	}
@@ -324,29 +303,160 @@ func singleLine(value string) string {
 	return strings.Join(strings.Fields(value), " ")
 }
 
-func promptAuthorityField(options Options, field ConfigField, candidates []authorityCandidate, projectRoot string, available map[string]bool) (string, error) {
-	fmt.Fprintf(options.Output, "\nProposed %s:\n", strings.ToLower(field.Prompt))
-	paths := make([]string, 0, len(candidates))
-	if len(candidates) == 0 {
-		fmt.Fprintln(options.Output, "- None identified.")
-	} else {
-		for index, candidate := range candidates {
-			fmt.Fprintf(options.Output, "%d. %s: %s\n   Evidence: %s\n", index+1, candidate.Path, candidate.Descriptor, candidate.Rationale)
-			paths = append(paths, candidate.Path)
+func deterministicRequirementAuthorities(available map[string]bool, source string) (string, error) {
+	if !available["docs/work.org"] {
+		return "", errors.New("docs/work.org is missing after project initialization")
+	}
+	hasOrg := available["docs/ACs.org"]
+	hasMarkdown := available["docs/ACs.md"]
+	if hasOrg && hasMarkdown {
+		return "", errors.New("both docs/ACs.org and docs/ACs.md exist; resolve the conflicting legacy requirement authorities")
+	}
+	paths := []string{"docs/work.org"}
+	if hasOrg {
+		paths = append(paths, "docs/ACs.org")
+	} else if hasMarkdown {
+		paths = append(paths, "docs/ACs.md")
+	} else if source == "v1" {
+		return "", errors.New("legacy migration requires docs/ACs.org or docs/ACs.md")
+	}
+	return strings.Join(paths, ","), nil
+}
+
+func discoverAuthorityChoices(available map[string]bool, category string) []authorityChoice {
+	var tokens []string
+	switch category {
+	case "product":
+		tokens = []string{"readme", "vision"}
+	case "architecture":
+		tokens = []string{"architecture"}
+	default:
+		return nil
+	}
+	var choices []authorityChoice
+	for path := range available {
+		extension := strings.ToLower(filepath.Ext(path))
+		if extension != ".md" && extension != ".org" {
+			continue
+		}
+		stem := strings.TrimSuffix(filepath.Base(path), filepath.Ext(path))
+		if !stemContainsAnyToken(stem, tokens) {
+			continue
+		}
+		choices = append(choices, authorityChoice{Path: path, Selected: canonicalAuthorityPath(path, category)})
+	}
+	sort.Slice(choices, func(left, right int) bool {
+		return choices[left].Path < choices[right].Path
+	})
+	return choices
+}
+
+func stemContainsAnyToken(stem string, wanted []string) bool {
+	tokens := strings.FieldsFunc(strings.ToLower(stem), func(character rune) bool {
+		return !unicode.IsLetter(character) && !unicode.IsNumber(character)
+	})
+	for _, token := range tokens {
+		for _, want := range wanted {
+			if token == want {
+				return true
+			}
 		}
 	}
-	fmt.Fprintf(options.Output, "Press Enter to accept, enter replacement paths separated by commas, or '-' for none: ")
-	line, err := options.inputReader.ReadString('\n')
-	if err != nil && !errors.Is(err, io.EOF) {
-		return "", fmt.Errorf("reading %s: %w", field.Key, err)
+	return false
+}
+
+func canonicalAuthorityPath(path, category string) bool {
+	normalized := strings.ToLower(filepath.ToSlash(path))
+	switch category {
+	case "product":
+		return normalized == "readme.md" || normalized == "readme.org" || normalized == "docs/vision.md" || normalized == "docs/vision.org"
+	case "architecture":
+		return normalized == "docs/architecture.md" || normalized == "docs/architecture.org"
+	default:
+		return false
 	}
-	line = strings.TrimSpace(line)
-	if line == "" {
-		line = strings.Join(paths, ",")
-	} else if line == "-" {
-		line = ""
+}
+
+func promptDiscoveredAuthorityField(options Options, field ConfigField, projectRoot string) (string, error) {
+	selected := map[string]bool{}
+	seen := map[string]bool{}
+	for {
+		available, err := availableProjectFiles(options, projectRoot)
+		if err != nil {
+			return "", err
+		}
+		choices := discoverAuthorityChoices(available, field.DiscoveryCategory)
+		present := map[string]bool{}
+		for index := range choices {
+			path := choices[index].Path
+			present[path] = true
+			if !seen[path] {
+				selected[path] = choices[index].Selected
+				seen[path] = true
+			}
+			choices[index].Selected = selected[path]
+		}
+		for path := range selected {
+			if !present[path] {
+				delete(selected, path)
+			}
+		}
+
+		fmt.Fprintf(options.Output, "\nSelect %s:\n", strings.ToLower(field.Prompt))
+		if len(choices) == 0 {
+			fmt.Fprintln(options.Output, "- No matching Markdown or Org documents found.")
+		} else {
+			for index, choice := range choices {
+				mark := " "
+				if choice.Selected {
+					mark = "x"
+				}
+				fmt.Fprintf(options.Output, "[%s] %d. %s\n", mark, index+1, choice.Path)
+			}
+		}
+		fmt.Fprint(options.Output, "Enter numbers to toggle, paths to replace, 'r' to rescan, '-' for none, or press Enter to accept: ")
+		line, err := options.inputReader.ReadString('\n')
+		if err != nil && !errors.Is(err, io.EOF) {
+			return "", fmt.Errorf("reading %s: %w", field.Key, err)
+		}
+		line = strings.TrimSpace(line)
+		switch line {
+		case "":
+			var paths []string
+			for _, choice := range choices {
+				if choice.Selected {
+					paths = append(paths, choice.Path)
+				}
+			}
+			return validateAuthorityPaths(projectRoot, available, strings.Join(paths, ","))
+		case "r", "R":
+			continue
+		case "-":
+			return "", nil
+		}
+
+		items := splitCSV(line)
+		numbers := make([]int, 0, len(items))
+		allNumbers := len(items) != 0
+		for _, item := range items {
+			number, numberErr := strconv.Atoi(item)
+			if numberErr != nil {
+				allNumbers = false
+				break
+			}
+			numbers = append(numbers, number)
+		}
+		if !allNumbers {
+			return validateAuthorityPaths(projectRoot, available, line)
+		}
+		for _, number := range numbers {
+			if number < 1 || number > len(choices) {
+				return "", fmt.Errorf("selection %d is outside the available range", number)
+			}
+			path := choices[number-1].Path
+			selected[path] = !selected[path]
+		}
 	}
-	return validateAuthorityPaths(projectRoot, available, line)
 }
 
 func postMigrationFields(schema ConfigSchema) []ConfigField {

@@ -15,17 +15,18 @@ Replaced the Spec Kit delivery dependency with a lean, standalone workflow:
   projects using `.sdlc/project.yaml`, `docs/work.org`, and preserved archive
   branches;
 - YAML global and project configuration in place of SDLC settings in `.env`;
-- schema-driven configuration, followed after migration by bounded read-only
-  Codex discovery and operator confirmation of product, architecture, and
-  requirement authority lists;
+- schema-driven configuration, deterministic multi-select discovery of README,
+  vision, and architecture documents with in-place rescanning, and automatic
+  `docs/work.org` plus legacy-ledger requirement authorities;
 - temporary structured YAML handoff and interruption detection under the
   project-owned `.sdlc/.init/` directory, without using private `.git` storage,
   external-audit timeout configuration, and one-time removal of migrated SDLC
   keys from `.env` without exposing or changing unrelated values;
 - lossless v2 archival by moving active Spec Kit state out of the live workflow,
   preserving unrelated project integrations, classifying every archived
-  specification in the canonical work ledger, and allocating v3 work IDs above
-  historical work, requirement, test, and ticket numbers;
+  specification through one bounded audit-model pass, rendering the canonical
+  work ledger deterministically, and allocating v3 work IDs above historical
+  work, requirement, test, and ticket numbers;
 - removal of active Spec Kit artefacts and the standalone multi-harness audit
   runner; and
 - a macOS and Linux Pandoc preview utility for Markdown and Org artefacts whose

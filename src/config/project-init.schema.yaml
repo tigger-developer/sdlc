@@ -11,6 +11,7 @@ retired_environment_keys:
   - SDLC_PROJECT_TYPE
   - SDLC_INFRA_ENABLED
   - SDLC_REVISION
+  - SDLC_REQUIREMENT_AUTHORITIES
 
 fields:
   - key: SDLC_PROJECT_KIND
@@ -51,16 +52,6 @@ fields:
     prompt: "Architecture authority paths"
     phase: post-migration
     discovery_category: architecture
-    allow_global: false
-
-  - key: SDLC_REQUIREMENT_AUTHORITIES
-    path: authorities.requirements
-    flag: requirement-authorities
-    help: Comma-separated existing requirement authority paths
-    type: string-list
-    prompt: "Requirement authority paths"
-    phase: post-migration
-    discovery_category: requirements
     allow_global: false
 
   - key: SDLC_BRANCH_STRATEGY

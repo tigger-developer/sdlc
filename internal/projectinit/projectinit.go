@@ -758,6 +758,9 @@ func writeProjectProfile(projectRoot, revision string, schema ConfigSchema, gene
 		}
 		setYAMLPath(root, field.Path, stored)
 	}
+	if requirements := splitCSV(generation.values["SDLC_REQUIREMENT_AUTHORITIES"]); len(requirements) != 0 {
+		setYAMLPath(root, "authorities.requirements", requirements)
+	}
 	contents, err := yaml.Marshal(root)
 	if err != nil {
 		return fmt.Errorf("rendering project profile: %w", err)

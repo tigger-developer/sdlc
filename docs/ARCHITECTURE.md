@@ -85,22 +85,23 @@ on a dedicated migration branch.
   archived specification in `docs/work.org` without adding individual feature
   specifications to the project authority lists.
 
-Only after that migration does the initializer invoke headless Codex with the
-deployed read-only authority-discovery prompt. The model returns a temporary
-structured YAML proposal containing lists of product, architecture, and
-requirement documents, with descriptors and rationales. For an SDLC v2
-migration, the same proposal must classify every archived specification as
-delivered, approved but undelivered, abandoned, or unresolved, with its priority,
-creation date, and supporting evidence. Audit PASS alone is not operator
-approval.
+After migration, the initializer derives stable authorities from the bounded
+Git file inventory. It presents Markdown and Org files whose stems contain
+README, VISION, or ARCHITECTURE as multi-select product or architecture
+candidates. Exact path case is preserved, canonical locations begin selected,
+and the operator can rescan after moving a file. The initializer always records
+`docs/work.org` as a requirement authority and adds the sole `docs/ACs.org` or
+`docs/ACs.md` ledger when present. Two AC ledgers are an error.
 
-The initializer validates every proposed or amended authority path against
-repository files and requires operator confirmation before writing the stable
-path lists to the project profile. It validates exact archived-specification
-coverage separately, then renders each classification beneath the appropriate
-existing section in the canonical `docs/work.org` template. The template
-preamble, heading hierarchy, migration record, work identifiers, and required
-properties remain deterministic; the discovery agent never edits the ledger.
+Only an SDLC v2 migration with archived specifications invokes headless Codex.
+The configured audit model receives the exact specification paths and may read
+only their feature directories. Its temporary structured YAML classifies each
+specification as delivered, approved but undelivered, abandoned, or unresolved,
+with priority, creation date, and supporting evidence. Audit PASS alone is not
+operator approval. The initializer validates exact coverage, then renders each
+classification beneath the appropriate existing section in the canonical
+`docs/work.org` template. The agent never selects authority documents or edits
+the ledger.
 
 The proposal lives in the project-owned `.sdlc/.init/` directory. Its presence
 tells a later invocation that initialization did not complete. The directory

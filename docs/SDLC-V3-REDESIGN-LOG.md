@@ -435,3 +435,17 @@ without reconstructing the work from conversation history.
   project with no archived specifications, install the clean template skeleton
   rather than creating a zero-byte file. Skip the model invocation when there
   are no archived Spec Kit specifications to classify.
+- Implemented the refined authority boundary. Product and architecture choices
+  now come from the exact Git inventory with stem matching, deterministic
+  defaults, multi-selection, manual replacement, and in-place refresh. The
+  project profile always receives `docs/work.org` plus the sole applicable AC
+  ledger. The obsolete requirement-authority configuration field is retained
+  only as a retired `.env` key for migration cleanup.
+- Narrowed the headless prompt and YAML contract to archived Spec Kit work
+  classification. It runs only when archived specifications exist, uses
+  `SDLC_AUDIT_MODEL`, receives the exact specification paths, and cannot return
+  authority selections. The script validates complete coverage and renders the
+  work ledger itself.
+- Verified the implementation with the complete repository-owned `make test`
+  target, including Go vetting, linting, shell checks, formatting checks, and
+  all Go unit tests.

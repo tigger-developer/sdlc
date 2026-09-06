@@ -68,11 +68,14 @@ The initializer:
 6. offers the legacy-ticket migration for eligible SDLC v1 projects;
 7. archives and removes active Spec Kit artefacts for v2 projects without
    normalizing unfinished work;
-8. runs a bounded, read-only headless Codex analysis over repository files and
-   proposes product, architecture, and requirement authorities;
-9. lets the operator confirm or replace each proposed authority list;
-10. creates `.sdlc/project.yaml` and `docs/work.org`;
-11. commits the migration; and
+8. inventories README, vision, and architecture Markdown or Org documents and
+   lets the operator select, deselect, move, and rescan them;
+9. records `docs/work.org` and the applicable AC ledger as deterministic
+   requirement authorities;
+10. for v2 projects with archived specifications, runs one bounded read-only
+    classification with the configured audit model and renders the results into
+    `docs/work.org`;
+11. creates `.sdlc/project.yaml`, commits the migration; and
 12. asks whether to merge the migration branch into the original branch.
 
 The first real project migration should be performed with the operator watching.
@@ -94,13 +97,17 @@ Enter to inherit it or enter a project override. Inherited global values are not
 copied into the project file. Project identity, technology selection, and
 infrastructure role are always project decisions.
 
-Authority documents are selected after migration so the proposal sees the final
-active and archived document layout. The temporary Codex result includes paths,
-descriptors, and rationales for operator review. Confirmed project authorities
-are stored as YAML lists, including lists containing one or no documents. A
-temporary `.sdlc/.init/` working directory remains if initialization is
-interrupted and is removed before a completed migration is staged. The
-initializer never uses private `.git` paths as application storage.
+Product and architecture authorities are selected after migration from the
+project's bounded Git file inventory. The chooser finds Markdown and Org files
+whose stems contain README, VISION, or ARCHITECTURE, preserves exact path case,
+and supports multiple selections and rescanning after a move. Requirement
+authorities are automatic: `docs/work.org` always applies, followed by
+`docs/ACs.org` or, when it is the only legacy ledger, `docs/ACs.md`. Two AC
+ledgers are an error. Only archived v2 specification disposition requires a
+model; its temporary YAML result contains status evidence rather than authority
+recommendations. A temporary `.sdlc/.init/` working directory remains if
+initialization is interrupted and is removed before a completed migration is
+staged. The initializer never uses private `.git` paths as application storage.
 
 Example global configuration:
 
