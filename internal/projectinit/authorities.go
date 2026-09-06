@@ -303,7 +303,7 @@ func singleLine(value string) string {
 	return strings.Join(strings.Fields(value), " ")
 }
 
-func deterministicRequirementAuthorities(available map[string]bool, source string) (string, error) {
+func deterministicRequirementAuthorities(available map[string]bool, _ string) (string, error) {
 	if !available["docs/work.org"] {
 		return "", errors.New("docs/work.org is missing after project initialization")
 	}
@@ -312,15 +312,10 @@ func deterministicRequirementAuthorities(available map[string]bool, source strin
 	if hasOrg && hasMarkdown {
 		return "", errors.New("both docs/ACs.org and docs/ACs.md exist; resolve the conflicting legacy requirement authorities")
 	}
-	paths := []string{"docs/work.org"}
-	if hasOrg {
-		paths = append(paths, "docs/ACs.org")
-	} else if hasMarkdown {
-		paths = append(paths, "docs/ACs.md")
-	} else if source == "v1" {
-		return "", errors.New("legacy migration requires docs/ACs.org or docs/ACs.md")
+	if hasOrg || hasMarkdown {
+		return "", errors.New("legacy acceptance criteria remain outside docs/work.org after project initialization")
 	}
-	return strings.Join(paths, ","), nil
+	return "docs/work.org", nil
 }
 
 func discoverAuthorityChoices(available map[string]bool, category string) []authorityChoice {

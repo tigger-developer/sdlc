@@ -418,10 +418,10 @@ func TestRequirementAuthoritiesAreDeterministic(t *testing.T) {
 		wantError string
 	}{
 		{"new project", "new", map[string]bool{"docs/work.org": true}, "docs/work.org", ""},
-		{"migrated Org ledger", "v1", map[string]bool{"docs/work.org": true, "docs/ACs.org": true}, "docs/work.org,docs/ACs.org", ""},
-		{"unconverted Markdown ledger", "v1", map[string]bool{"docs/work.org": true, "docs/ACs.md": true}, "docs/work.org,docs/ACs.md", ""},
+		{"unmerged Org ledger", "v1", map[string]bool{"docs/work.org": true, "docs/ACs.org": true}, "", "legacy acceptance criteria remain outside docs/work.org"},
+		{"unconverted Markdown ledger", "v1", map[string]bool{"docs/work.org": true, "docs/ACs.md": true}, "", "legacy acceptance criteria remain outside docs/work.org"},
 		{"conflicting ledgers", "v1", map[string]bool{"docs/work.org": true, "docs/ACs.org": true, "docs/ACs.md": true}, "", "both docs/ACs.org and docs/ACs.md"},
-		{"missing v1 ledger", "v1", map[string]bool{"docs/work.org": true}, "", "legacy migration requires docs/ACs.org or docs/ACs.md"},
+		{"merged v1 ledger", "v1", map[string]bool{"docs/work.org": true}, "docs/work.org", ""},
 		{"missing work ledger", "new", map[string]bool{}, "", "docs/work.org is missing"},
 	}
 	for _, test := range tests {
@@ -615,7 +615,7 @@ func TestRunMigratesV2WithoutRenumberingOrDeletingUnrelatedIntegrations(t *testi
 	runGitTest(t, project, "config", "user.name", "Test Operator")
 	runGitTest(t, project, "config", "user.email", "operator@example.invalid")
 	writeProjectTestFile(t, filepath.Join(project, "README.md"), "# Project\n")
-	writeProjectTestFile(t, filepath.Join(project, "docs", "ACs.org"), "*** AC130.1 - Existing behaviour\n")
+	writeProjectTestFile(t, filepath.Join(project, "docs", "ACs.org"), canonicalLegacyLedger("*** AC130.1 - Existing behaviour\n"))
 	writeProjectTestFile(t, filepath.Join(project, ".specify", "memory", "constitution.md"), "legacy constitution\n")
 	writeProjectTestFile(t, filepath.Join(project, "specs", "001-old-feature", "spec.md"), "unfinished feature\n")
 	writeProjectTestFile(t, filepath.Join(project, ".agents", "skills", "speckit-plan", "SKILL.md"), "old integration\n")
@@ -667,8 +667,11 @@ warnings: []
 		t.Fatalf("migrated work ledger = %q, %v", work, err)
 	}
 	profile, err := os.ReadFile(filepath.Join(project, projectProfilePath))
-	if err != nil || !strings.Contains(string(profile), "requirements:\n        - docs/work.org\n        - docs/ACs.org") {
+	if err != nil || !strings.Contains(string(profile), "requirements:\n        - docs/work.org") || strings.Contains(string(profile), "docs/ACs.org") {
 		t.Fatalf("v2 requirement authorities = %q, %v", profile, err)
+	}
+	if exists(filepath.Join(project, "docs", "ACs.org")) || !strings.Contains(string(work), legacyLedgerHeading) {
+		t.Fatal("v2 legacy acceptance criteria were not consolidated into the work ledger")
 	}
 	archived := runGitTest(t, project, "show", "sdlc_v2_state_2026-09-06:.specify/memory/constitution.md")
 	if archived != "legacy constitution\n" {
@@ -697,7 +700,7 @@ func TestRunMigratesV1ThroughTicketSkillBeforeCreatingProfile(t *testing.T) {
 			if !strings.Contains(strings.Join(arguments, " "), "migrate-legacy-acs-to-sdlc-v1") {
 				return fmt.Errorf("unexpected skill invocation: %v", arguments)
 			}
-			writeProjectTestFile(t, filepath.Join(project, "docs", "ACs.org"), "#+TITLE: Acceptance Criteria\n\n*** AC7.1 - Existing result\n")
+			writeProjectTestFile(t, filepath.Join(project, "docs", "ACs.org"), canonicalLegacyLedger("*** AC7.1 - Existing result\n"))
 			writeProjectTestFile(t, filepath.Join(project, "docs", "ticket-migration.org"), "#+TITLE: Ticket Migration\n")
 			if err := os.Remove(filepath.Join(project, "docs", "ACs.md")); err != nil {
 				return err
@@ -724,12 +727,16 @@ func TestRunMigratesV1ThroughTicketSkillBeforeCreatingProfile(t *testing.T) {
 	if skillCalls != 1 {
 		t.Fatalf("legacy migration skill calls = %d, want 1", skillCalls)
 	}
-	if !exists(filepath.Join(project, "docs", "ACs.org")) || exists(filepath.Join(project, "docs", "ACs.md")) {
-		t.Fatal("legacy AC ledger was not converted")
+	if exists(filepath.Join(project, "docs", "ACs.org")) || exists(filepath.Join(project, "docs", "ACs.md")) {
+		t.Fatal("separate legacy AC ledger remains after consolidation")
 	}
 	profile, err := os.ReadFile(filepath.Join(project, projectProfilePath))
-	if err != nil || !strings.Contains(string(profile), "requirements:\n        - docs/work.org\n        - docs/ACs.org") {
+	if err != nil || !strings.Contains(string(profile), "requirements:\n        - docs/work.org") || strings.Contains(string(profile), "docs/ACs.org") {
 		t.Fatalf("v1 requirement authorities = %q, %v", profile, err)
+	}
+	work, err := os.ReadFile(filepath.Join(project, "docs", "work.org"))
+	if err != nil || !strings.Contains(string(work), "*** AC7.1 - Existing result") {
+		t.Fatalf("v1 acceptance criteria missing from work ledger = %q, %v", work, err)
 	}
 	archived := runGitTest(t, project, "show", "sdlc_v1_state_2026-09-06:docs/ACs.md")
 	if !strings.Contains(archived, "AC7.1 - Existing result") {
@@ -940,6 +947,26 @@ func containsArgument(arguments []string, want string) bool {
 		}
 	}
 	return false
+}
+
+func canonicalLegacyLedger(criteria string) string {
+	return `#+TITLE: Legacy acceptance criteria
+
+* Ledger authority
+
+This file records legacy requirements.
+
+* Status vocabulary
+
+- *HOLDING:* Current.
+
+* Acceptance criteria
+
+** Historical work
+
+` + criteria + `
+* Migration notes and footnotes
+`
 }
 
 func v3TestOverrides(t *testing.T) map[string]string {

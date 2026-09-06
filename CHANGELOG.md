@@ -15,6 +15,9 @@ Replaced the Spec Kit delivery dependency with a lean, standalone workflow:
   projects using `.sdlc/project.yaml`, `docs/work.org`, and preserved archive
   branches;
 - YAML global and project configuration in place of SDLC settings in `.env`;
+- an explicit format boundary: YAML for configuration, Org for work and
+  specifications, and Markdown for explanatory documentation, with the work
+  ledger's TODO keyword as the sole current lifecycle state;
 - schema-driven configuration, deterministic multi-select discovery of README,
   vision, and architecture documents with in-place rescanning, and automatic
   `docs/work.org` plus legacy-ledger requirement authorities;
@@ -63,6 +66,14 @@ focused audits. Installation retires the obsolete global `audit-tests` skill.
 
 The exact `BYPASS-GATE-7` operator token now explicitly invokes the
 `emergency-change` workflow rather than merely enabling an unnamed route.
+
+Consolidated legacy acceptance criteria into the project work ledger during
+initialization. `docs/work.org` is now the sole requirement authority and may
+pre-exist migration; initialization preserves its content, adds only missing
+structure and records, folds the complete canonical `docs/ACs.org` hierarchy
+beneath `Legacy Acceptance Criteria (SDLC v1)`, then removes the redundant
+ledger. Added the idempotent standalone `sdlc-merge-legacy-acs` command for
+projects initialized before this change.
 
 ## v2.1.0 - 2026-09-05
 

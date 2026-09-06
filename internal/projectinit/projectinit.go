@@ -179,6 +179,13 @@ func Run(options Options) error {
 	if err := writeWorkLedger(sdlcRoot, projectRoot, generation, options.Now()); err != nil {
 		return err
 	}
+	if exists(filepath.Join(projectRoot, "docs", "ACs.org")) {
+		merged, mergeErr := MergeLegacyAcceptanceCriteria(projectRoot)
+		if mergeErr != nil {
+			return fmt.Errorf("merging legacy acceptance criteria into docs/work.org: %w", mergeErr)
+		}
+		fmt.Fprintf(options.Output, "Merged %d legacy acceptance criteria into docs/work.org.\n", merged.AcceptanceCriteria)
+	}
 	if source == "v1" {
 		if err := importLegacyWork(projectRoot); err != nil {
 			return err
@@ -900,7 +907,7 @@ func writeWorkLedger(sdlcRoot, projectRoot string, generation projectGeneration,
 	}
 	if generation.source == "v1" {
 		replacements["{{TICKET_ARCHIVE}}"] = "[[file:archive/migrated-tickets/][Archived ticket corpus]]."
-		replacements["{{HISTORICAL_REQUIREMENTS}}"] = "[[file:ACs.org][Legacy acceptance-criteria ledger]]."
+		replacements["{{HISTORICAL_REQUIREMENTS}}"] = "[[#legacy-acceptance-criteria][Legacy Acceptance Criteria (SDLC v1)]]."
 	}
 	if generation.source == "v2" {
 		replacements["{{V2_ARCHIVE}}"] = "[[file:archive/sdlc-v2/][Archived Spec Kit work]]."
@@ -909,10 +916,28 @@ func writeWorkLedger(sdlcRoot, projectRoot string, generation projectGeneration,
 	for before, after := range replacements {
 		text = strings.ReplaceAll(text, before, after)
 	}
+	directory := filepath.Join(projectRoot, "docs")
+	if err := os.MkdirAll(directory, 0o755); err != nil {
+		return err
+	}
+	workPath := filepath.Join(directory, "work.org")
+	if exists(workPath) {
+		existing, err := readRegularFile(workPath)
+		if err != nil {
+			return fmt.Errorf("reading existing work ledger: %w", err)
+		}
+		text, err = mergeWorkLedgerScaffold(string(existing), text, generation.migration)
+		if err != nil {
+			return err
+		}
+	}
 	if len(generation.migratedV2) != 0 {
 		nextWork := highestHistoricalWorkNumber(projectRoot) + 1
 		sectionEntries := map[string][]string{}
 		for _, item := range generation.migratedV2 {
+			if strings.Contains(text, ":SOURCE: "+item.Path+"\n") {
+				continue
+			}
 			identifier := fmt.Sprintf("W%03d", nextWork)
 			nextWork++
 			legacyDirectory := filepath.Base(filepath.Dir(filepath.FromSlash(item.Path)))
@@ -947,12 +972,52 @@ func writeWorkLedger(sdlcRoot, projectRoot string, generation projectGeneration,
 			text = strings.Replace(text, marker, marker+"\n"+strings.Join(entries, "\n")+"\n", 1)
 		}
 	}
-	directory := filepath.Join(projectRoot, "docs")
-	if err := os.MkdirAll(directory, 0o755); err != nil {
-		return err
-	}
 	// #nosec G306 -- this tracked project document is intentionally readable.
-	return os.WriteFile(filepath.Join(directory, "work.org"), []byte(text), 0o644)
+	return os.WriteFile(workPath, []byte(text), 0o644)
+}
+
+func mergeWorkLedgerScaffold(existing, rendered, migrationBranch string) (string, error) {
+	result := existing
+	canonical := splitOrgTopLevelSections(strings.Split(rendered, "\n"))
+	if len(canonical) == 0 {
+		return "", errors.New("canonical work ledger template contains no level-one sections")
+	}
+	for _, section := range canonical {
+		if section.title == "Migration record" {
+			continue
+		}
+		marker := "* " + section.title + "\n"
+		if strings.Contains(result, marker) {
+			continue
+		}
+		addition := strings.Join(section.lines, "\n") + "\n\n"
+		migrationMarker := "* Migration record\n"
+		if strings.Contains(result, migrationMarker) {
+			result = strings.Replace(result, migrationMarker, addition+migrationMarker, 1)
+		} else {
+			result = strings.TrimRight(result, "\n") + "\n\n" + addition
+		}
+	}
+
+	var migration orgSection
+	for _, section := range canonical {
+		if section.title == "Migration record" {
+			migration = section
+			break
+		}
+	}
+	if migration.title == "" {
+		return "", errors.New("canonical work ledger template lacks the Migration record section")
+	}
+	migrationMarker := "* Migration record\n"
+	if !strings.Contains(result, migrationMarker) {
+		return strings.TrimRight(result, "\n") + "\n\n" + strings.Join(migration.lines, "\n") + "\n", nil
+	}
+	if migrationBranch != "" && !strings.Contains(result, "- *Migration branch:* "+migrationBranch+"\n") {
+		body := strings.Join(trimBlankEdges(migration.lines[1:]), "\n")
+		result = strings.Replace(result, migrationMarker, migrationMarker+"\n"+body+"\n", 1)
+	}
+	return result, nil
 }
 
 func migratedWorkPlacement(disposition string) (string, string) {

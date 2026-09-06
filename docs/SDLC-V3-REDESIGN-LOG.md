@@ -500,3 +500,30 @@ without reconstructing the work from conversation history.
   available for narrow operator-requested reviews.
 - Made the exact `BYPASS-GATE-7` token explicitly invoke `emergency-change` and
   added installer retirement of the obsolete global `audit-tests` skill.
+- Consolidate the legacy AC ledger into the existing project work ledger during
+  initialization. Preserve `docs/work.org` when it already exists, add only
+  missing migration structure, insert the complete legacy hierarchy under an
+  initially folded `Legacy Acceptance Criteria (SDLC v1)` subtree, preserve its
+  archived-ticket links, and remove the redundant `docs/ACs.org` only after the
+  embedded copy is verified.
+- Record only `docs/work.org` as the requirement authority in
+  `.sdlc/project.yaml`. Keep `docs/ACs.org` as the intermediate canonical output
+  of the SDLC v1 ticket migration because reconciliation is complete before the
+  initializer consolidates it.
+- Add an idempotent `sdlc-merge-legacy-acs` command for projects such as First
+  Folio that completed v3 initialization while the AC ledger was still separate.
+  A repeated successful invocation is a no-op; differing embedded and separate
+  copies stop without selecting an authority.
+- Assign one role to each tracked format: YAML for SDLC configuration, Org for
+  the work ledger and unified specifications, and Markdown for explanatory
+  documentation. Use Markdown with YAML frontmatter only for a specific
+  external integration rather than as another SDLC authority format.
+- Keep each fact canonical. The TODO keyword in `docs/work.org` is the only
+  current lifecycle state; tags classify, properties hold stable metadata, and
+  links refer to specifications, evidence, and history without copying them.
+  A `spec.org` records its definition and gate evidence, not work state.
+- Retain deterministic template rendering and narrow structure-aware insertions
+  for initial work-ledger creation, legacy AC consolidation, and archived Spec
+  Kit classification. Do not add a Go Org writer to these paths. Consider an
+  Org parser later for post-write validation and queries after the supported
+  subset and round-trip expectations are stable.

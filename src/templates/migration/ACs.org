@@ -4,13 +4,15 @@
 
 # SDLC legacy-AC ledger template
 #
-# This file is the canonical post-migration shape for requirements established
+# This file is the canonical intermediate shape for requirements established
 # under the legacy ticket-led process. Keep it valid Org so a human can navigate
-# large ledgers by folding headings.
+# large ledgers by folding headings. SDLC v3 project initialization folds the
+# completed hierarchy into =docs/work.org= and removes this separate file.
 #
 # Authority:
-# - After migration, this file is the sole authority for requirements
-#   established under the legacy ticket-led process.
+# - After ticket migration and before v3 project initialization, this file is
+#   the sole authority for requirements established under the legacy ticket-led
+#   process.
 # - =docs/ticket-migration.org= and =docs/archive/migrated-tickets/= retain
 #   disposition, provenance, and rationale only. Ticket bodies and comments are
 #   not current requirement or AC authorities.
@@ -47,10 +49,12 @@
 
 * Ledger authority
 
-This file is the sole authoritative record of requirements established under
-the legacy ticket-led process, including current and superseded requirements,
-provenance, and test traceability. Requirements established or changed through
-SDLC v3 are governed by signed-off =specs/*/spec.org= artefacts.
+Until v3 project initialization, this file is the sole authoritative record of
+requirements established under the legacy ticket-led process, including current
+and superseded requirements, provenance, and test traceability. Initialization
+folds this complete hierarchy into =docs/work.org=, which then becomes the sole
+requirement authority. Requirements established or changed through SDLC v3 are
+governed by signed-off =specs/*/spec.org= artefacts.
 
 The migration index and archived tickets retain disposition, provenance, and
 rationale only. Ticket bodies and comments are not current requirement or AC

@@ -41,8 +41,9 @@ and final merge question by branch descriptor, not by an unexplained name.
 After migration, the initializer lists README, vision, and architecture
 Markdown or Org files from the bounded Git inventory. Selected entries use
 `[x]`; enter numbers to toggle them, `r` to rescan after moving a file, or press
-Enter to accept. Exact path case is preserved. `docs/work.org` and the single
-applicable AC ledger are recorded automatically rather than offered as choices.
+Enter to accept. Exact path case is preserved. `docs/work.org` is recorded
+automatically as the sole requirement authority rather than offered as a
+choice. Any canonical legacy AC ledger is folded into it first.
 
 Only an SDLC v2 project with archived Spec Kit specifications starts headless
 Codex. The configured audit model classifies those specifications in one
@@ -74,8 +75,10 @@ cannot commit the temporary state.
 - It archives every ticket and comment, creates `docs/ACs.org` and
   `docs/ticket-migration.org`, refreshes stale documentation, archives the old
   implementation plan, commits the evidence, then closes the legacy tickets.
-- The initializer then records unresolved defects and undelivered ideas in the
-  v3 work ledger without re-specifying them.
+- The initializer folds `docs/ACs.org` beneath the initially collapsed `Legacy
+  Acceptance Criteria (SDLC v1)` section of `docs/work.org`, removes the
+  redundant file, then records unresolved defects and undelivered ideas without
+  re-specifying them.
 
 ### SDLC v2 project
 
@@ -88,6 +91,20 @@ cannot commit the temporary state.
   unified specification only when the operator resumes it. New v3 work IDs are
   allocated above every historical work, AC, test, and ticket number; the v2 ID
   remains recorded as provenance.
+
+### Already initialized project with a separate legacy ledger
+
+From the project root, run:
+
+```sh
+sdlc-merge-legacy-acs
+```
+
+The command preserves an existing `docs/work.org`, folds the complete canonical
+`docs/ACs.org` hierarchy into it, updates `.sdlc/project.yaml` when present, and
+removes the redundant ledger. Rerunning after success changes nothing. If an
+interrupted run leaves two differing copies, the command stops rather than
+selecting one.
 
 ## 4. Define a change
 

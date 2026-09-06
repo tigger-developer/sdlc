@@ -24,7 +24,8 @@ make install
 
 The installer:
 
-- builds and installs `sdlc-install`, `sdlc-project-init`, and `sdlc-preview`;
+- builds and installs `sdlc-install`, `sdlc-project-init`, `sdlc-preview`, and
+  `sdlc-merge-legacy-acs`;
 - synchronizes the canonical standards to `~/.agents/sdlc`;
 - installs SDLC skills globally under `~/.agents/skills`;
 - retains Codex as the only supported v3 provider adapter; and
@@ -45,7 +46,7 @@ confirmation accepts `y` or `yes`.
 | `src/templates/v3/` | Unified specification, work, audit, validation, and preview templates |
 | `src/prompts/` | Saved prompts used by bounded headless initializer analysis |
 | `skills/` | Globally installed workflow and focused audit skills |
-| `cmd/` and `internal/` | Installer, initializer, and preview implementation |
+| `cmd/` and `internal/` | Installer, initializer, ledger merger, and preview implementation |
 
 ## Initialize a project once
 
@@ -71,8 +72,8 @@ The initializer:
    normalizing unfinished work;
 8. inventories README, vision, and architecture Markdown or Org documents and
    lets the operator select, deselect, move, and rescan them;
-9. records `docs/work.org` and the applicable AC ledger as deterministic
-   requirement authorities;
+9. folds any canonical `docs/ACs.org` into a preserved or newly created
+   `docs/work.org`, which becomes the sole requirement authority;
 10. for v2 projects with archived specifications, runs one bounded read-only
     classification with the configured audit model and renders the results into
     `docs/work.org`;
@@ -110,12 +111,13 @@ rescanning.
 Product and architecture authorities are selected after migration from the
 project's bounded Git file inventory. The chooser finds Markdown and Org files
 whose stems contain README, VISION, or ARCHITECTURE, preserves exact path case,
-and supports multiple selections and rescanning after a move. Requirement
-authorities are automatic: `docs/work.org` always applies, followed by
-`docs/ACs.org` or, when it is the only legacy ledger, `docs/ACs.md`. Two AC
-ledgers are an error. Only archived v2 specification disposition requires a
-model; its temporary YAML result contains status evidence rather than authority
-recommendations. A temporary `.sdlc/.init/` working directory remains if
+and supports multiple selections and rescanning after a move. The initializer
+preserves an existing `docs/work.org`, adds missing migration structure, and
+folds a canonical legacy AC ledger beneath `Legacy Acceptance Criteria (SDLC
+v1)`. It then records only `docs/work.org` as the requirement authority. Only
+archived v2 specification disposition requires a model; its temporary YAML
+result contains status evidence rather than authority recommendations. A
+temporary `.sdlc/.init/` working directory remains if
 initialization is interrupted and is removed before a completed migration is
 staged. A tracked `.sdlc/.gitignore` excludes that temporary directory from
 commits. The initializer never uses private `.git` paths as application storage.
@@ -221,10 +223,16 @@ second. Read `~/.agents/sdlc/ORGMODE.md` before editing Org artefacts.
 ## Migration evidence
 
 SDLC v1 ticket migration remains an explicit operator-invoked workflow. It
-creates a lossless local ticket archive, canonical `docs/ACs.org`, and
-`docs/ticket-migration.org`, updates stale project documents, archives the old
+creates a lossless local ticket archive, an intermediate canonical
+`docs/ACs.org`, and `docs/ticket-migration.org`, updates stale project documents,
+archives the old
 implementation plan, and closes tickets only after durable evidence is
 committed.
+
+`sdlc-project-init` then folds that intermediate ledger into `docs/work.org`
+before importing unresolved legacy work or archived Spec Kit specifications.
+For an already initialized v3 project, run `sdlc-merge-legacy-acs` once from the
+project root. A successful rerun is a no-op.
 
 SDLC v2 migration preserves `.specify` and existing feature directories under
 `docs/archive/sdlc-v2/`, removes them from the active workflow, and indexes the

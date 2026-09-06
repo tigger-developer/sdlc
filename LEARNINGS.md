@@ -43,6 +43,35 @@ wrong home for SDLC settings. V3 uses readable YAML: global defaults in
 once, then removes those exact keys while preserving unrelated content; agents
 never read `.env`.
 
+## Match the storage format to the authority
+
+No single text format serves configuration, narrative documentation, and a
+human-operated work ledger equally well. SDLC v3 assigns each format one
+semantic role:
+
+- YAML stores machine configuration in `.sdlc/project.yaml` and
+  `~/.agents/sdlc.yaml`;
+- Org stores the canonical work ledger and context-independent specifications;
+- Markdown stores explanatory project documentation such as README, vision,
+  and architecture documents; and
+- Markdown with YAML frontmatter is used only when an external tool requires
+  that interface.
+
+This division keeps each fact canonical. The TODO keyword in `docs/work.org` is
+the sole current lifecycle state. Org tags classify a work item, properties
+hold stable metadata, and links point to requirements, design, evidence, and
+history without copying their authority. A specification defines the change; it
+does not repeat the work item's lifecycle state.
+
+The Go Org ecosystem includes a parser and writer that expose headings, TODO
+states, tags, properties, links, and an outline tree. That is useful for
+validation and queries, but broad parse-and-render mutation would place
+operator formatting and unsupported Org syntax at the mercy of a partial
+implementation. Initial ledger creation therefore renders the canonical
+template, and migration performs narrow structure-aware insertions. A Go Org
+parser may validate the resulting supported subset after the format stabilizes;
+it should not rewrite the whole document merely to insert known nodes.
+
 ## Semantic discovery can remain human-controlled
 
 Configuration code can validate paths and persist lists, but it cannot reliably

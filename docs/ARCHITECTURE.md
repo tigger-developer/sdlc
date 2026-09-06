@@ -46,15 +46,36 @@ specs/NNN-descriptor/validation.org
 The project YAML contains non-secret project facts, named product, architecture,
 and requirement authorities, migration branch metadata, and explicit overrides.
 It does not copy inherited global defaults from `~/.agents/sdlc.yaml`. The work
-ledger carries work state and provenance without duplicating requirements,
-tests, or design. Each unified specification is a context-independent delivery
-handoff. Audit and validation records remain separate so evidence cannot
+ledger carries work state, provenance, and an initially folded legacy
+acceptance-criteria subtree. Current v3 requirements, tests, and design remain
+in each unified specification rather than being duplicated into the ledger.
+Each specification is a context-independent delivery handoff. Audit and
+validation records remain separate so evidence cannot
 silently rewrite the authority it assesses.
 
 Org provides addressable hierarchy, stable internal links, properties, folding,
 and readable plain text. The supported subset is deliberately portable and does
 not execute code. `sdlc-preview` uses Pandoc to provide browser rendering without
 requiring Emacs.
+
+### Storage and parser boundary
+
+The framework uses YAML for machine configuration, Org for work and
+specification authorities, and Markdown for explanatory documentation. Markdown
+with YAML frontmatter is not an SDLC storage format unless an integrated tool
+requires it.
+
+Within `docs/work.org`, the TODO keyword is the sole current lifecycle state.
+Tags are non-exclusive classifications, properties are stable metadata, and
+links identify other authorities without copying them. A linked `spec.org`
+defines requirements, traced tests, edge cases, and solution design, but does
+not repeat the work item's lifecycle state.
+
+Initialization writes Org from canonical templates and performs narrow,
+structure-aware insertions for migrated work and legacy acceptance criteria. It
+does not parse and re-render an existing operator-authored ledger. A Go Org
+parser is a future validation and query boundary, not a whole-document writer,
+until round-trip preservation of the supported subset is demonstrated.
 
 ## Gate architecture
 
@@ -73,10 +94,11 @@ contexts. `define-change` and `deliver-change` own their normal composite gates;
 operator-requested review. The composite workflow owns context creation,
 retention, retry limits, evidence recording, and the human handback.
 
-The specification records its lifecycle state, current definition-gate status,
-and operator sign-off. Detailed revision-specific findings remain in
-`audits.org`. Delivery reads this recorded authority and does not repeat the
-definition gate when entering a new context.
+The work ledger records the specification's lifecycle state. The specification
+records its current definition-gate status and operator sign-off. Detailed
+revision-specific findings remain in `audits.org`. Delivery reads these
+separate authorities and does not repeat the definition gate when entering a
+new context.
 
 ## Initialization and migration
 
@@ -86,7 +108,8 @@ on a dedicated migration branch.
 
 - New projects receive the project profile and empty work ledger.
 - SDLC v1 projects may first run the lossless GitHub-ticket migration. Historical
-  requirements remain in `docs/ACs.org`; unresolved work moves to `work.org`.
+  requirements are normalized through `docs/ACs.org`, then folded into
+  `docs/work.org`; unresolved work enters the same ledger.
 - SDLC v2 projects preserve active Spec Kit material unchanged under
   `docs/archive/sdlc-v2/`, remove it from active workflow, and classify every
   archived specification in `docs/work.org` without adding individual feature
@@ -96,9 +119,10 @@ After migration, the initializer derives stable authorities from the bounded
 Git file inventory. It presents Markdown and Org files whose stems contain
 README, VISION, or ARCHITECTURE as multi-select product or architecture
 candidates. Exact path case is preserved, canonical locations begin selected,
-and the operator can rescan after moving a file. The initializer always records
-`docs/work.org` as a requirement authority and adds the sole `docs/ACs.org` or
-`docs/ACs.md` ledger when present. Two AC ledgers are an error.
+and the operator can rescan after moving a file. The initializer preserves an
+existing `docs/work.org`, adds only missing migration structure and records,
+folds any canonical `docs/ACs.org` into it, and records only `docs/work.org` as
+the requirement authority. A remaining separate AC ledger is an error.
 
 Only an SDLC v2 migration with archived specifications invokes headless Codex.
 The configured audit model receives the exact specification paths and may read
@@ -107,7 +131,7 @@ specification as delivered, approved but undelivered, abandoned, or unresolved,
 with priority, creation date, and supporting evidence. Audit PASS alone is not
 operator approval. The initializer validates exact coverage, then renders each
 classification beneath the appropriate existing section in the canonical
-`docs/work.org` template. The agent never selects authority documents or edits
+`docs/work.org` hierarchy. The agent never selects authority documents or edits
 the ledger.
 
 The proposal lives in the project-owned `.sdlc/.init/` directory. Its presence

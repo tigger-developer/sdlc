@@ -233,7 +233,6 @@ authorities:
     - docs/architecture.md
   requirements:
     - docs/work.org
-    - docs/ACs.org
 
 infrastructure:
   role: consumer
@@ -266,9 +265,8 @@ Inherited defaults and empty sections are omitted from project YAML.
 - [X] After migration, derive README, vision, and architecture candidates from
   the bounded Git inventory. Let the operator toggle multiple paths and rescan
   after moving a misplaced document.
-- [X] Record `docs/work.org` and the sole applicable AC ledger as deterministic
-  requirement authorities. Reject simultaneous `docs/ACs.org` and
-  `docs/ACs.md` ledgers.
+- [X] Fold the canonical legacy AC ledger into `docs/work.org` and record that
+  consolidated document as the sole requirement authority.
 - [X] Only for v2 migrations with archived specifications, invoke headless
   Codex with the configured audit model and an exact bounded path list. Accept
   structured disposition evidence only; do not ask the model to select
@@ -298,8 +296,9 @@ Inherited defaults and empty sections are omitted from project YAML.
 - [X] Run `make test` once at the beginning and stop if it fails.
 - [X] Archive every GitHub ticket, its comments, status, and commit references
   under `docs/archive/migrated-tickets/`.
-- [X] Reconcile the historical AC ledger as `docs/ACs.org` using the canonical
-  Org hierarchy and without losing information.
+- [X] Reconcile the historical AC ledger through `docs/ACs.org` using the
+  canonical Org hierarchy and without losing information; project initialization
+  then folds it into `docs/work.org`.
 - [X] Use live regression tests and existing AC entries as delivery evidence.
 - [X] Apply the agreed delivery heuristics and mark heuristic-only conclusions
   visibly.
@@ -466,7 +465,8 @@ record. It records:
 - `spec.org` records lifecycle state, definition-gate status, and operator
   sign-off. Delivery trusts that current recorded authority rather than
   beginning with another definition-audit cycle.
-- `work.org` carries status and links, not duplicated requirements or design.
+- `work.org` carries status, links, and the folded SDLC v1 acceptance-criteria
+  ledger; active v3 requirements and design remain in their signed-off specs.
 - Historical `.env` migration is schema-allowlisted and removes only migrated
   SDLC keys after the YAML profile is safely written.
 - Unsupported-provider cleanup uses exact owned paths and hook signatures.
