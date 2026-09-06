@@ -97,6 +97,11 @@ next question. Multi-choice input toggles the named or numbered choices,
 redraws their complete `[x]` state, and requires Enter to confirm. The final
 concise confirmation makes the accepted interpretation visibly auditable.
 
+Legacy acceptance-criteria import now removes the exact obsolete v2 statement
+that assigns current requirement authority to Spec Kit Markdown artefacts. The
+normalizer preserves the corresponding SDLC v3 Org authority statement and all
+other legacy content.
+
 Added Rust as an automatically discoverable technology standard, covering Cargo
 reproducibility, idiomatic API and ownership design, common architectures,
 async and concurrency discipline, errors, unsafe and FFI boundaries, provider

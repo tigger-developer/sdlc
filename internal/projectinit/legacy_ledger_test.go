@@ -35,6 +35,12 @@ func TestMergeLegacyAcceptanceCriteriaPreservesWorkAndConsolidatesAuthority(t *t
 
 This file records legacy requirements.
 
+Requirements established or changed through Spec Kit are governed by approved
+=specs/*/spec.md= artefacts.
+
+Requirements established or changed through SDLC v3 are governed by signed-off
+=specs/*/spec.org= artefacts.
+
 * Status vocabulary
 
 - *HOLDING:* Current.
@@ -105,6 +111,12 @@ authorities:
 	if strings.Contains(string(work), "**** Status\n") || strings.Contains(string(work), legacyLedgerPlaceholder) {
 		t.Fatalf("consolidated work ledger retained duplicate status or placeholder:\n%s", work)
 	}
+	if strings.Contains(strings.Join(strings.Fields(string(work)), " "), obsoleteSpecKitAuthority) {
+		t.Fatalf("consolidated work ledger retained obsolete Spec Kit authority:\n%s", work)
+	}
+	if !strings.Contains(string(work), "Requirements established or changed through SDLC v3") {
+		t.Fatalf("consolidated work ledger dropped current v3 authority:\n%s", work)
+	}
 	profile, err := os.ReadFile(filepath.Join(root, projectProfilePath))
 	if err != nil {
 		t.Fatal(err)
@@ -163,6 +175,9 @@ func TestMergeLegacyAcceptanceCriteriaNormalizesExistingMergedLedger(t *testing.
 
 Historical authority.
 
+Requirements established or changed through Spec Kit are governed by approved
+=specs/*/spec.md= artefacts.
+
 ** Status vocabulary
 
 Historical vocabulary.
@@ -201,6 +216,9 @@ HOLDING
 	}
 	if strings.Contains(string(contents), "**** Status\n") {
 		t.Fatalf("normalized ledger retained the duplicate Status field:\n%s", contents)
+	}
+	if strings.Contains(strings.Join(strings.Fields(string(contents)), " "), obsoleteSpecKitAuthority) {
+		t.Fatalf("normalized ledger retained obsolete Spec Kit authority:\n%s", contents)
 	}
 }
 

@@ -12,10 +12,11 @@ import (
 )
 
 const (
-	legacyLedgerHeading     = "* Legacy Acceptance Criteria (SDLC v1) :legacy:"
-	legacyLedgerTitle       = "Legacy Acceptance Criteria (SDLC v1)"
-	legacyLedgerID          = "legacy-acceptance-criteria"
-	legacyLedgerPlaceholder = "{{LEGACY_ACCEPTANCE_CRITERIA}}"
+	legacyLedgerHeading      = "* Legacy Acceptance Criteria (SDLC v1) :legacy:"
+	legacyLedgerTitle        = "Legacy Acceptance Criteria (SDLC v1)"
+	legacyLedgerID           = "legacy-acceptance-criteria"
+	legacyLedgerPlaceholder  = "{{LEGACY_ACCEPTANCE_CRITERIA}}"
+	obsoleteSpecKitAuthority = "Requirements established or changed through Spec Kit are governed by approved =specs/*/spec.md= artefacts."
 )
 
 // LegacyLedgerMerge describes one legacy-ledger consolidation.
@@ -110,7 +111,7 @@ func readRegularFile(path string) ([]byte, error) {
 
 func renderLegacyLedgerBlock(document string) (string, int, error) {
 	document = strings.ReplaceAll(document, "\r\n", "\n")
-	lines := strings.Split(document, "\n")
+	lines := removeObsoleteSpecKitAuthority(strings.Split(document, "\n"))
 	firstHeading := -1
 	sourceDate := ""
 	for index, line := range lines {
@@ -212,6 +213,28 @@ func trimBlankEdges(lines []string) []string {
 	return lines
 }
 
+func removeObsoleteSpecKitAuthority(lines []string) []string {
+	var output []string
+	for index := 0; index < len(lines); {
+		if strings.TrimSpace(lines[index]) == "" {
+			output = append(output, lines[index])
+			index++
+			continue
+		}
+
+		end := index + 1
+		for end < len(lines) && strings.TrimSpace(lines[end]) != "" {
+			end++
+		}
+		paragraph := strings.Join(strings.Fields(strings.Join(lines[index:end], " ")), " ")
+		if paragraph != obsoleteSpecKitAuthority {
+			output = append(output, lines[index:end]...)
+		}
+		index = end
+	}
+	return output
+}
+
 func mergeLegacyBlock(work, block string) (string, bool, error) {
 	existing := legacyLedgerSection(work)
 	if existing != "" {
@@ -262,7 +285,7 @@ func legacyLedgerSection(document string) string {
 }
 
 func normalizeLegacyLedgerBlock(block string) (string, int, error) {
-	lines := strings.Split(strings.ReplaceAll(block, "\r\n", "\n"), "\n")
+	lines := removeObsoleteSpecKitAuthority(strings.Split(strings.ReplaceAll(block, "\r\n", "\n"), "\n"))
 	if len(lines) == 0 || !strings.HasPrefix(lines[0], "* "+legacyLedgerTitle) {
 		return "", 0, errors.New("legacy acceptance-criteria subtree has an invalid heading")
 	}

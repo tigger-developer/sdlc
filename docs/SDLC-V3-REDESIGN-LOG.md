@@ -559,3 +559,6 @@ without reconstructing the work from conversation history.
   the committed `Cargo.lock` through a canonical fail-closed `make vulncheck`
   target. The target checks prerequisites but never installs the scanner or
   generates dependency state.
+- Remove the exact obsolete Spec Kit requirement-authority paragraph while
+  importing or normalizing a legacy `ACs.org` subtree. Preserve the current
+  SDLC v3 authority statement and every other legacy paragraph unchanged.
