@@ -482,8 +482,8 @@ func promptField(reader *bufio.Reader, output io.Writer, field ConfigField, inhe
 			choices = append(choices, technology.Name)
 		}
 	}
+	fmt.Fprintln(output, field.Prompt)
 	if len(choices) != 0 {
-		fmt.Fprintln(output, field.Prompt)
 		for index, choice := range choices {
 			fmt.Fprintf(output, "%d. %s\n", index+1, choice)
 		}
@@ -495,11 +495,7 @@ func promptField(reader *bufio.Reader, output io.Writer, field ConfigField, inhe
 		}
 		fmt.Fprintf(output, "%s: %s. Press Enter to inherit, or enter a project value.\n", label, inherited)
 	}
-	if len(choices) != 0 {
-		fmt.Fprint(output, "Selection: ")
-	} else {
-		fmt.Fprintf(output, "%s ", field.Prompt)
-	}
+	fmt.Fprint(output, "Selection: ")
 	line, err := reader.ReadString('\n')
 	if err != nil && !errors.Is(err, io.EOF) {
 		return "", false, fmt.Errorf("reading %s: %w", field.Key, err)

@@ -1,6 +1,7 @@
 package projectinit
 
 import (
+	"bufio"
 	"bytes"
 	"errors"
 	"fmt"
@@ -46,6 +47,28 @@ func TestSchemaAndTechnologyDiscoveryAreDeterministic(t *testing.T) {
 		}
 	}
 	t.Fatal("audit timeout field was not found")
+}
+
+func TestPromptFieldRendersQuestionBeforeDefault(t *testing.T) {
+	var output bytes.Buffer
+	value, explicit, err := promptField(
+		bufio.NewReader(strings.NewReader("\n")),
+		&output,
+		ConfigField{Key: "SDLC_TEST_TIMEOUT", Type: "duration", Prompt: "Select timeout:"},
+		"5m",
+		"schema",
+		nil,
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if value != "5m" || explicit {
+		t.Fatalf("selection = %q, explicit = %v", value, explicit)
+	}
+	want := "Select timeout:\nDefault: 5m. Press Enter to inherit, or enter a project value.\nSelection: "
+	if output.String() != want {
+		t.Fatalf("prompt output = %q, want %q", output.String(), want)
+	}
 }
 
 func TestSpecificationTemplateInternalLinksResolve(t *testing.T) {
