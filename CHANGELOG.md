@@ -139,6 +139,11 @@ state is archived, unfinished work remains explicitly classified rather than
 being forced through delivery, and the live project has one current work and
 requirement authority.
 
+Added repository-level agent instructions requiring each SDLC modification to
+end in a semantic-version release, annotated Git tag, and branch-and-tag push.
+Corrections made before a pending tag remain part of that release rather than
+causing artificial version churn.
+
 ## v2.1.0 - 2026-09-05
 
 Defined the intended replacement for the four separately approved Spec Kit
