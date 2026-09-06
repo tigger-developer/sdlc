@@ -142,9 +142,10 @@ copy of itself.
   then backfill specification, design, documentation, and evidence.
 - [X] **Migrate legacy tickets:** adapt the existing skill to prepare a v1
   project for v3 without requiring Spec Kit.
-- [X] **Focused audits:** retain `audit-spec`, `audit-design`, `audit-tests`,
-  and `audit-code` as criteria and optional diagnostic skills. Their direct
-  invocation must not accidentally create additional auditor contexts.
+- [X] **Focused audits:** retain `audit-spec`, `audit-design`, and `audit-code`;
+  split the ambiguous test audit into `audit-test-definitions` and
+  `audit-test-code`. Their direct invocation must not accidentally create
+  additional auditor contexts.
 - [X] Review `diagnose-issue`, `recommendations-please`, `summarize-issues`,
   and `useful-be` for v3 terminology and routing.
 - [X] Retire `audit-definition` and `audit-implementation` implementations
@@ -158,6 +159,9 @@ copy of itself.
 
 - [X] Keep local self-audit in the authoring context. It must not launch a
   script or another agent.
+- [X] Make `define-change` and `deliver-change` own their corresponding local
+  remediation and retained external audit rather than requiring another
+  operator invocation between each workflow step.
 - [X] Launch one external Codex auditor only after every local component audit
   passes.
 - [X] Pass all component audit instructions and the bounded artefact/context
@@ -412,7 +416,7 @@ Inherited defaults and empty sections are omitted from project YAML.
 - [X] Exercise initialization for a blank project.
 - [X] Exercise migration fixtures representing SDLC v1 and v2 states.
 - [X] Verify Org templates parse with Pandoc and retain stable internal links.
-- [ ] Run the first real project migration paired with the operator.
+- [X] Run the first real project migration paired with the operator.
 - [ ] Deliver one small ordinary change through both v3 gates before tagging
   v3.0.0.
 
@@ -454,9 +458,14 @@ record. It records:
   `docs/archive/sdlc-v2/`; unrelated project integrations remain active.
 - Initialization requires a clean worktree and reports the blocker rather than
   stashing or committing unknown work.
-- The global skills are `define-change`, `audit-definition`, `deliver-change`,
-  `audit-implementation`, `pair-change`, and `emergency-change`. The focused
-  audits remain available as criteria and diagnostics.
+- The primary global workflows are `define-change`, `deliver-change`,
+  `pair-change`, and `emergency-change`. `audit-definition` and
+  `audit-implementation` remain independently invocable composite reviews. The
+  focused audits are `audit-spec`, `audit-design`, `audit-test-definitions`,
+  `audit-test-code`, and `audit-code`.
+- `spec.org` records lifecycle state, definition-gate status, and operator
+  sign-off. Delivery trusts that current recorded authority rather than
+  beginning with another definition-audit cycle.
 - `work.org` carries status and links, not duplicated requirements or design.
 - Historical `.env` migration is schema-allowlisted and removes only migrated
   SDLC keys after the YAML profile is safely written.

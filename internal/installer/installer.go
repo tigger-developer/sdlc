@@ -87,6 +87,7 @@ var retiredV2SharedPaths = []string{
 
 var retiredGlobalSkillPaths = []string{
 	"audit-acs",
+	"audit-tests",
 	"design-solution",
 	"draft-bug-fix",
 	"draft-design-issue",

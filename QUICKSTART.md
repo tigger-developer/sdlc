@@ -98,16 +98,10 @@ $define-change
 ```
 
 Review the generated `spec.org` in the browser. It must be sufficient for a new
-agent with no drafting-conversation context.
-
-Run the combined gate:
-
-```text
-$audit-definition
-```
-
-The gate applies specification, design, and test-definition audits locally,
-then in one retained external Codex context. Sign off only after PASS.
+agent with no drafting-conversation context. The same skill runs the combined
+specification, design, and test-definition gate locally, then in one retained
+external Codex context. Sign off only after `spec.org` records the resulting
+PASS and awaits operator sign-off.
 
 ## 5. Deliver the signed-off change
 
@@ -117,17 +111,15 @@ Invoke:
 $deliver-change
 ```
 
-The delivery sequence is automated test, RED, implementation, GREEN. Test
-definitions classified as OT or UT are recorded but do not pretend to be TDD.
+Delivery requires an `APPROVED` specification with a current definition PASS
+and recorded operator sign-off. It does not rerun definition audits. The
+sequence is automated test, RED, implementation, GREEN, then the combined
+implemented-test and code gate. Test definitions classified as OT or UT are
+recorded but do not pretend to be TDD. After PASS, execute them, record results
+in `validation.org`, reconcile documentation, and decide closure.
 
-Run the combined gate:
-
-```text
-$audit-implementation
-```
-
-After PASS, execute the selected OT and UT checks, record results in
-`validation.org`, reconcile documentation, and decide closure.
+Use `$audit-definition`, `$audit-implementation`, or any focused audit
+independently when a separate review is wanted.
 
 ## 6. Use a variant only when selected
 
@@ -140,10 +132,11 @@ $pair-change
 For an emergency, include the exact token in the same instruction:
 
 ```text
-BYPASS-GATE-7
+BYPASS-GATE-7 <bounded emergency change>
 ```
 
-The agent cannot infer or self-authorize the emergency route.
+The exact token invokes `$emergency-change`. The agent cannot infer, suggest, or
+self-authorize the route.
 
 ## 7. Preview an artefact
 

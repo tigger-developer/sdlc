@@ -9,9 +9,12 @@ replace operator approval, test execution, or implementation evidence.
   edge cases, authority, and context-independent handoff.
 - `audit-design` challenges traceability, architecture fit, boundaries,
   trade-offs, security, operability, and failure behaviour.
-- `audit-tests` challenges test definitions or implemented tests for complete
-  requirement coverage, honest RT/UT/OT classification, TDD suitability, and
-  gaming opportunities.
+- `audit-test-definitions` challenges proposed RT/UT/OT coverage,
+  classification, observable boundaries, TDD suitability, and gaming
+  opportunities without demanding implementation evidence.
+- `audit-test-code` challenges implemented tests, RED/GREEN evidence, current
+  results, traceability, assertions, and departures from the signed-off test
+  strategy.
 - `audit-code` challenges the implemented change against the signed-off
   specification, tests, selected standards, and language best practice.
 
@@ -22,8 +25,8 @@ their own findings resolved.
 
 ### Definition gate
 
-The authoring context applies `audit-spec`, `audit-design`, and `audit-tests`
-together to `spec.org`.
+The authoring context applies `audit-spec`, `audit-design`, and
+`audit-test-definitions` together to `spec.org`.
 
 1. Review locally, remediate, and repeat for at most five local rounds.
 2. Start no external auditor until all three local reviews pass.
@@ -37,10 +40,21 @@ named authorities, applicable standards, and focused repository evidence. It
 must test whether a new agent can safely deliver without the drafting
 conversation.
 
+An effective PASS sets `DEFINITION_GATE` in `spec.org` to `PASS` and its
+lifecycle state to `AWAITING_SIGNOFF`. Explicit operator sign-off records the
+authority and date and changes the lifecycle state to `APPROVED`. Detailed
+rounds remain in `audits.org`. Lifecycle-only recording does not invalidate the
+audit; any material specification change resets the gate and sign-off to
+`PENDING`.
+
 ### Implementation gate
 
-The delivery context applies `audit-tests` and `audit-code` together to the
-implemented tests and code.
+The delivery context applies `audit-test-code` and `audit-code` together to the
+implemented tests and production code.
+
+Delivery starts only when `spec.org` records `APPROVED`, a current definition
+gate `PASS`, explicit operator sign-off, and linked audit evidence. It does not
+rerun definition audits merely because a delivery context has started.
 
 1. Review locally, remediate, and repeat for at most five local rounds.
 2. Start no external auditor until both local reviews pass.

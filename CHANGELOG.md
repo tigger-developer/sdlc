@@ -51,6 +51,19 @@ The initializer now suppresses Git's per-file migration commit inventory by
 default and prints one concise commit summary. `VERBOSE=1` retains the full Git
 output, while commit failures always replay captured diagnostics.
 
+The primary `define-change` and `deliver-change` skills now own their complete
+local-remediation and retained-external-audit gates. A delivery starts from the
+current audited and operator-approved lifecycle status recorded in `spec.org`;
+it does not rerun definition audits.
+
+Split the ambiguous `audit-tests` skill into `audit-test-definitions` for the
+pre-implementation test strategy and `audit-test-code` for implemented tests and
+execution evidence. Both remain independently invocable alongside the other
+focused audits. Installation retires the obsolete global `audit-tests` skill.
+
+The exact `BYPASS-GATE-7` operator token now explicitly invokes the
+`emergency-change` workflow rather than merely enabling an unnamed route.
+
 ## v2.1.0 - 2026-09-05
 
 Defined the intended replacement for the four separately approved Spec Kit

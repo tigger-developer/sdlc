@@ -6,10 +6,10 @@ description: Run the combined SDLC v3 implemented-test and code gate with at mos
 Read `~/.agents/sdlc/MAIN.md` and `AUDITS.md`, then apply the implementation-gate
 contract to the active change.
 
-In this delivery context, apply the `audit-tests` and `audit-code` criteria
-together. Remediate, rerun affected automated tests, and repeat for no more than
-five local rounds. Record each round in `audits.org`. Do not invoke the focused
-skills through separate agents or scripts.
+In this delivery context, apply the `audit-test-code` and `audit-code` criteria
+together. Remediate, rerun affected automated tests, and repeat for no more
+than five local rounds. Record each round in `audits.org`. Do not invoke the
+focused skills through separate agents or scripts.
 
 Only after both pass locally, spawn exactly one external Codex subagent. Give it
 the signed-off specification, exact implementation delta, test evidence,

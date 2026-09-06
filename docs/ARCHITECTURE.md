@@ -68,8 +68,15 @@ Each gate uses at most two contexts:
    any remediation.
 
 Focused audit skills define reusable review criteria. They never spawn their own
-contexts. Composite gate skills own context creation, retention, retry limits,
-evidence recording, and the human handback.
+contexts. `define-change` and `deliver-change` own their normal composite gates;
+`audit-definition` and `audit-implementation` expose those gates for separate
+operator-requested review. The composite workflow owns context creation,
+retention, retry limits, evidence recording, and the human handback.
+
+The specification records its lifecycle state, current definition-gate status,
+and operator sign-off. Detailed revision-specific findings remain in
+`audits.org`. Delivery reads this recorded authority and does not repeat the
+definition gate when entering a new context.
 
 ## Initialization and migration
 

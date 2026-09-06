@@ -15,6 +15,8 @@ func TestV3InteractiveInstallUsesOneGlobalTreeAndRetiresUnsupportedCopies(t *tes
 	writeFixtureFile(t, filepath.Join(source, "src", "MAIN.md"), "# Lean SDLC\n")
 	writeFixtureFile(t, filepath.Join(source, "src", "prompts", "discover-project-authorities.md"), "Discover project authorities.\n")
 	writeFixtureFile(t, filepath.Join(source, "skills", "audit-code", "SKILL.md"), "---\nname: audit-code\ndescription: Review code.\n---\n")
+	writeFixtureFile(t, filepath.Join(source, "skills", "audit-test-code", "SKILL.md"), "---\nname: audit-test-code\ndescription: Review implemented tests.\n---\n")
+	writeFixtureFile(t, filepath.Join(source, "skills", "audit-test-definitions", "SKILL.md"), "---\nname: audit-test-definitions\ndescription: Review test definitions.\n---\n")
 	writeFixtureFile(t, filepath.Join(source, "skills", "define-change", "SKILL.md"), "---\nname: define-change\ndescription: Define a change.\n---\n")
 	writeFixtureFile(t, filepath.Join(source, "hooks", "agent-command-guard.sh"), "#!/usr/bin/env bash\n")
 	writeFixtureFile(t, filepath.Join(source, "templates", "codex-sdlc.rules.example"), codexPythonRulesStart+"\nprefix_rule(pattern=[\"python3\"], decision=\"forbidden\")\n"+codexPythonRulesEnd+"\n")
@@ -30,6 +32,7 @@ func TestV3InteractiveInstallUsesOneGlobalTreeAndRetiresUnsupportedCopies(t *tes
 	}
 	writeFixtureFile(t, filepath.Join(root, ".copilot", "hooks", "sdlc-tool-guard.json"), "{}\n")
 	writeFixtureFile(t, filepath.Join(root, ".agents", "sdlc", "skills", "audit-code", "SKILL.md"), "duplicate\n")
+	writeFixtureFile(t, filepath.Join(root, ".agents", "skills", "audit-tests", "SKILL.md"), "obsolete\n")
 	writeFixtureFile(t, filepath.Join(root, ".claude", "settings.json"), `{"personal":true,"hooks":{"PreToolUse":[{"matcher":"*","hooks":[{"type":"command","command":"bash ~/.agents/sdlc/hooks/agent-command-guard.sh","timeout":5}]}]}}`)
 	writeFixtureFile(t, filepath.Join(root, ".hermes", "config.yaml"), "personal: true\nhooks:\n  pre_tool_call:\n    - command: bash ~/.agents/sdlc/hooks/agent-command-guard.sh\n      matcher: .*\n      timeout: 5\n")
 
@@ -39,7 +42,12 @@ func TestV3InteractiveInstallUsesOneGlobalTreeAndRetiresUnsupportedCopies(t *tes
 	}
 	assertFixtureContent(t, filepath.Join(root, ".agents", "sdlc", "MAIN.md"), "# Lean SDLC\n")
 	assertFixtureContent(t, filepath.Join(root, ".agents", "skills", "audit-code", "SKILL.md"), "---\nname: audit-code\ndescription: Review code.\n---\n")
+	assertFixtureContent(t, filepath.Join(root, ".agents", "skills", "audit-test-code", "SKILL.md"), "---\nname: audit-test-code\ndescription: Review implemented tests.\n---\n")
+	assertFixtureContent(t, filepath.Join(root, ".agents", "skills", "audit-test-definitions", "SKILL.md"), "---\nname: audit-test-definitions\ndescription: Review test definitions.\n---\n")
 	assertFixtureContent(t, filepath.Join(root, ".agents", "skills", "define-change", "SKILL.md"), "---\nname: define-change\ndescription: Define a change.\n---\n")
+	if _, err := os.Lstat(filepath.Join(root, ".agents", "skills", "audit-tests")); !os.IsNotExist(err) {
+		t.Fatalf("retired global audit-tests skill remains: %v", err)
+	}
 	if _, err := os.Lstat(filepath.Join(root, ".agents", "sdlc", "skills")); !os.IsNotExist(err) {
 		t.Fatalf("duplicate canonical-root skills directory remains: %v", err)
 	}

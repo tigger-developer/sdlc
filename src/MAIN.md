@@ -83,10 +83,13 @@ Normal delivery has two phases and two human gates:
 
 1. **Define:** create one context-independent `spec.org` containing context,
    acceptance criteria, traced test definitions, edge cases, and solution
-   design. Run the definition gate, then obtain operator sign-off.
+   design. The `define-change` workflow audits and remediates it locally, runs
+   one retained external definition audit, then obtains operator sign-off.
 2. **Deliver:** write justified automated tests first, observe RED, implement,
-   observe GREEN, run the implementation gate, execute required one-off and
-   user tests, update affected documentation, and obtain operator closure.
+   observe GREEN, then let `deliver-change` audit and remediate the implemented
+   tests and code locally before one retained external implementation audit.
+   Execute required one-off and user tests, update affected documentation, and
+   obtain operator closure.
 
 The definition gate combines specification, design, and test-definition audits.
 The implementation gate combines implemented-test and code audits. Read
@@ -101,7 +104,8 @@ repository. Uncaptured conversation or hidden assumptions fail the gate.
 - **Paired development:** only an explicit operator selection enables the live
   collaborative route in `PAIRING.md`. Ordinary conversation does not.
 - **Emergency delivery:** only the exact operator token `BYPASS-GATE-7` in the
-  same request enables `EMERGENCY.md`. An agent must never invoke or infer it.
+  same request authorizes and invokes `emergency-change`, which applies
+  `EMERGENCY.md`. An agent must never suggest, infer, or self-authorize it.
 
 ## Project initialization
 

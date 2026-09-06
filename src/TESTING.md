@@ -66,9 +66,16 @@ automated regression test is justified, write or amend it before changing
 production code, observe it fail for the intended reason, implement the smallest
 coherent change, observe it pass, then refactor without losing evidence. When no
 automated regression test is justified, record the specific reason; urgency,
-difficulty, or inconvenience is insufficient. An `audit-tests` PASS confirms
-test design and traceability; it does not replace a required failing automated
-test execution.
+difficulty, or inconvenience is insufficient. An `audit-test-definitions` PASS
+confirms test design and traceability; it does not replace a required failing
+automated test execution.
+
+At the definition gate, audit only the proposed RT, UT, and OT definitions. Do
+not demand test code, execution results, or RED/GREEN evidence before
+implementation. At the implementation gate, `audit-test-code` reviews the
+actual test changes and current evidence against those signed-off definitions.
+Planned tests are not implementation evidence, and implemented tests do not
+retroactively repair an inadequate definition.
 
 Define the expected evidence for one-off and user tests before implementation
 where practical. They do not follow TDD and do not require a pre-change failure.

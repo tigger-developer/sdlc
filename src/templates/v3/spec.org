@@ -2,6 +2,9 @@
 #+SUBTITLE: Unified change specification
 #+STARTUP: overview
 #+OPTIONS: toc:2 num:nil
+#+SDLC_STATE: DRAFT
+#+DEFINITION_GATE: PENDING
+#+OPERATOR_SIGNOFF: PENDING
 
 #+begin_comment
 This is the canonical SDLC v3 specification template.
@@ -11,6 +14,13 @@ instructional placeholder before definition sign-off. Keep the document concise,
 but make it sufficient for a new agent to deliver without the drafting
 conversation. Use Org emphasis sparingly: bold functional nouns, states, values,
 and consequences that support rapid scanning. Do not bold structural words.
+
+Lifecycle states are =DRAFT=, =AWAITING_SIGNOFF=, and =APPROVED=. Only an
+effective definition-gate PASS may set =DEFINITION_GATE= to =PASS=. Only
+explicit operator sign-off may set =SDLC_STATE= to =APPROVED= and replace
+=OPERATOR_SIGNOFF= with the authority and date. Any later material specification
+change resets all three fields to their initial values. Detailed audit evidence
+remains in =audits.org=.
 #+end_comment
 
 * Specification Summary
@@ -248,7 +258,7 @@ task list or duplicate stable architecture documents.
 :CUSTOM_ID: delivery-handoff
 :END:
 
-- *Status:* Draft, definition audit pending.
+- *Status:* [Match the lifecycle metadata at the top of this specification.]
 - *Required reading:* [Only the exact additional sources needed beyond this
   specification and =.sdlc/project.yaml=.]
 - *First implementation step:* Write [[#rt-nnn-1][RTNNN.1 - Descriptive
@@ -257,7 +267,7 @@ task list or duplicate stable architecture documents.
 - *Validation evidence:* [[file:validation.org][=validation.org=]] when UT or OT
   execution occurs.
 - *Documentation impact:* [Files to update, or none with reason.]
-- *Operator sign-off:* Pending.
+- *Operator sign-off:* [Match the recorded operator-sign-off metadata.]
 
 #+begin_comment
 Before definition sign-off, test the handoff: could a new agent deliver this

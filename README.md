@@ -165,27 +165,32 @@ Invoke `$define-change`. It asks only the clarification needed and creates one
   and
 - a context-independent delivery handoff.
 
-Invoke `$audit-definition`. The authoring context applies the specification,
-design, and test audits together for at most five local rounds. Only after local
-PASS does one external Codex context run all three audits. That same context is
-resumed after remediation. The gate never spans more than two contexts.
+The same skill applies the specification, design, and test-definition audits,
+remediating for at most five local rounds. Only after local PASS does one
+retained external Codex context run all three audits. On effective PASS,
+`spec.org` records `AWAITING_SIGNOFF`; explicit operator sign-off changes it to
+`APPROVED`. `$audit-definition` remains available for a separately requested
+combined review.
 
 The operator reviews and signs off the definition before implementation.
 
 ### Deliver
 
-Invoke `$deliver-change`. Automated regression tests are written first and must
-show the intended RED result. The agent implements the smallest coherent change
-and returns the suite to GREEN.
-
-Invoke `$audit-implementation`. The authoring context applies the implemented
-test and code audits together for at most five local rounds. One retained
-external Codex context then runs both. After PASS, required OT and UT evidence is
-recorded in `validation.org`, affected documentation is reconciled, and the
-operator decides closure.
+Invoke `$deliver-change`. It admits only a current `APPROVED` specification with
+a definition-gate PASS and recorded operator sign-off; it does not rerun the
+definition audits. Automated regression tests are written first and must show
+the intended RED result. The agent implements the smallest coherent change,
+returns the suite to GREEN, and applies the implemented-test and production-code
+audits locally before one retained external audit context. After PASS, required
+OT and UT evidence is recorded in `validation.org`, affected documentation is
+reconciled, and the operator decides closure. `$audit-implementation` remains
+available for a separately requested combined review.
 
 Audit results live in `audits.org`. They are evidence for an exact revision, not
 human approval.
+
+The independently invocable focused audits are `$audit-spec`, `$audit-design`,
+`$audit-test-definitions`, `$audit-test-code`, and `$audit-code`.
 
 ## Variant workflows
 
@@ -193,11 +198,10 @@ human approval.
   The bounded objective and each explicit iteration instruction form the
   working specification. User validations are first-class evidence and are
   consolidated into durable artefacts at closure.
-- `$emergency-change` is available only when the operator includes the exact
-  token `BYPASS-GATE-7` in the same request. It uses a bounded temporary
-  specification, preserves TDD where an automated test is justified, runs the
-  implementation gate, then backfills the durable specification, design,
-  validation, and documentation.
+- The exact operator token `BYPASS-GATE-7` invokes `$emergency-change`. It uses
+  a bounded temporary specification, preserves TDD where an automated test is
+  justified, runs the implementation gate, then backfills the durable
+  specification, design, validation, and documentation.
 
 ## Project artefacts
 

@@ -17,7 +17,7 @@ descriptors. A timeout, missing verdict, or malformed verdict is not a PASS.
 
 - *Artefact:* [[file:spec.org][WNNN - Short descriptive title]]
 - *Revision:* [Git commit or SHA-256]
-- *Audits:* specification, design, and test definitions
+- *Audits:* =audit-spec=, =audit-design=, and =audit-test-definitions=
 - *Verdict:* [PASS, PROVISIONAL, or FAIL]
 - *Findings:* [None, or numbered findings with descriptors]
 - *Remediation:* [Changes made before the next round, or none]
@@ -29,7 +29,8 @@ descriptors. A timeout, missing verdict, or malformed verdict is not a PASS.
 
 - *Artefact:* [[file:spec.org][WNNN - Short descriptive title]]
 - *Revision:* [Git commit or SHA-256]
-- *Audits:* specification, design, and test definitions in one context
+- *Audits:* =audit-spec=, =audit-design=, and =audit-test-definitions= in one
+  context
 - *Verdict:* [PASS, PROVISIONAL, or FAIL]
 - *Findings:* [None, or numbered findings with descriptors]
 - *Supersedes:* [Earlier external review, or none]
@@ -43,7 +44,7 @@ descriptors. A timeout, missing verdict, or malformed verdict is not a PASS.
 
 - *Artefacts:* [Descriptive implementation and test paths]
 - *Revision:* [Git commit]
-- *Audits:* implemented tests and code
+- *Audits:* =audit-test-code= and =audit-code=
 - *Verdict:* [PASS, PROVISIONAL, or FAIL]
 - *Findings:* [None, or numbered findings with descriptors]
 - *Remediation:* [Changes made before the next round, or none]
@@ -55,7 +56,7 @@ descriptors. A timeout, missing verdict, or malformed verdict is not a PASS.
 
 - *Artefacts:* [Descriptive implementation and test paths]
 - *Revision:* [Git commit]
-- *Audits:* implemented tests and code in one context
+- *Audits:* =audit-test-code= and =audit-code= in one context
 - *Verdict:* [PASS, PROVISIONAL, or FAIL]
 - *Findings:* [None, or numbered findings with descriptors]
 - *Supersedes:* [Earlier external review, or none]

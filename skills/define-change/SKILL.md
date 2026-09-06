@@ -1,6 +1,6 @@
 ---
 name: define-change
-description: Draft one lean SDLC v3 change specification containing requirements, tests, and solution design.
+description: Define and audit one lean SDLC v3 change through operator sign-off, without implementing it.
 ---
 
 Read `~/.agents/sdlc/MAIN.md`, `ISSUES.md`, `TESTING.md`, `CODING.md`,
@@ -17,10 +17,18 @@ Allocate the next never-used project work number. Create
 `~/.agents/sdlc/templates/v3/spec.org`. Include context, falsifiable acceptance
 criteria, traced RT/UT/OT test definitions, edge cases, solution design,
 mandatory security impact, and a context-independent delivery handoff. Create
-`audits.org` and `validation.org` from their canonical templates only when
+`audits.org` from its canonical template. Create `validation.org` only when
 needed. Add or update the descriptive work item in `docs/work.org`.
 
 The opening summary must accurately and completely represent the detail below
-its section break. Open the completed specification with `sdlc-preview`; preview
-is presentation, not a gate. Do not implement code. The next action is the
-definition gate.
+its section break. Apply the complete definition gate from `AUDITS.md` in this
+context: review and remediate locally for at most five rounds, then use one
+retained external context for the composite independent audit. Do not invoke
+the focused auditors through separate agents or scripts.
+
+On effective PASS, set the specification's definition-gate status to `PASS` and
+its lifecycle state to `AWAITING_SIGNOFF`, preserving the detailed evidence in
+`audits.org`. Open the specification with `sdlc-preview` and return it for
+operator sign-off. Preview is presentation, not a gate. After explicit sign-off,
+record the authority and date in `spec.org` and set its lifecycle state to
+`APPROVED`. Do not implement code.

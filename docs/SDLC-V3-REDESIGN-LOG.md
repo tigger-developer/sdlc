@@ -89,7 +89,7 @@ Each gate uses no more than two contexts: the authoring context and one external
 
 ### Definition gate
 
-- Apply the `audit-spec`, `audit-design`, and `audit-tests` criteria together in the authoring context.
+- Apply the `audit-spec`, `audit-design`, and `audit-test-definitions` criteria together in the authoring context.
 - Remediate and repeat for at most five local rounds.
 - Start one external auditor context only after all three pass locally.
 - Apply all three audits in that single external context and return one combined verdict.
@@ -97,7 +97,7 @@ Each gate uses no more than two contexts: the authoring context and one external
 
 ### Implementation gate
 
-- Apply the `audit-tests` and `audit-code` criteria together in the authoring context.
+- Apply the `audit-test-code` and `audit-code` criteria together in the authoring context.
 - Remediate and repeat for at most five local rounds.
 - Start one external auditor context only after both pass locally.
 - Apply both audits in that single external context and return one combined verdict.
@@ -485,3 +485,18 @@ without reconstructing the work from conversation history.
 - First Folio's local `master` was three commits ahead of `origin/master` after
   the merge. Publishing that branch remains an operator synchronization step;
   it does not affect the local migration structure.
+- Refined the v3 workflow entry points after the First Folio migration. The
+  operator invokes `define-change` once for drafting, local remediation, the
+  retained external definition audit, and sign-off presentation. The operator
+  invokes `deliver-change` once for TDD, local remediation, the retained
+  external implementation audit, final validation, and closure presentation.
+- Added specification lifecycle metadata for definition-gate status and
+  operator sign-off. Delivery is admitted from that current recorded state and
+  does not begin by repeating definition audits. A material specification
+  change resets both authorities to pending.
+- Split `audit-tests` into `audit-test-definitions` and `audit-test-code` so the
+  definition gate cannot demand implementation evidence and the implementation
+  gate cannot accept plans as executed evidence. Both focused skills remain
+  available for narrow operator-requested reviews.
+- Made the exact `BYPASS-GATE-7` token explicitly invoke `emergency-change` and
+  added installer retirement of the obsolete global `audit-tests` skill.
