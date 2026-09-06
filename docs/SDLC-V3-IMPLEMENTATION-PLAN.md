@@ -448,3 +448,23 @@ record. It records:
   watching.
 - Deliver one small ordinary change through both v3 gates.
 - Reconcile any discrepancy found by those trials before tagging v3.0.0.
+
+## Validation evidence before live installation
+
+- The complete Go test suite, `go vet`, `golangci-lint`, ShellCheck, and shfmt
+  pass against the implementation commit.
+- Every v3 and migration Org template parses successfully with Pandoc, and the
+  specification template's internal links resolve to declared custom IDs.
+- The built installer was exercised against an isolated user home. Its first
+  interactive run installed the v3 corpus and Codex adapter; its unchanged
+  second run reported only that all detected copies were current.
+- The built initializer was exercised against an isolated blank Git project.
+  It created the archive branch, migration branch, project profile, work ledger,
+  and coherent migration commit.
+- The built initializer was exercised against an isolated v2 project. It moved
+  active Spec Kit state unchanged into the project archive, removed the active
+  paths, retained the original ID as provenance, and allocated the v3 work ID
+  above the historical AC number.
+- An isolated v1 fixture verifies the GitHub and Codex boundaries without
+  making a metered call. The first real v1 migration remains the paired release
+  trial.

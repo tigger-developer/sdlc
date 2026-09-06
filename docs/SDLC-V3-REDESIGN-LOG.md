@@ -1,7 +1,9 @@
 # SDLC v3 Redesign Log
 
 Status: Accepted design record implemented on the `sdlc-v3` branch. Validation
-and the first paired project migration remain before release tagging.
+through isolated installer, new-project, v1, and v2 fixtures has passed. Live
+installation, the first paired project migration, and one ordinary delivery
+remain before release tagging.
 
 This document preserves decisions and open questions while the live SDLC is being redesigned. Update it as decisions are made so work can resume after context compaction or in a new agent session.
 
