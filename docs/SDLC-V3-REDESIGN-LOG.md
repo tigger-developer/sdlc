@@ -331,3 +331,53 @@ solution detail for a new agent to begin with the defined tests.
   the work ledger supplies their state, provenance, and links.
 - Composite audit skills use one Codex subagent and retain its identity for
   follow-up reviews; focused audits never spawn separate contexts themselves.
+
+## Implementation and pilot chronology
+
+This section records significant actions as well as decisions. It exists so an
+interrupted or compacted agent context can resume from repository evidence
+without reconstructing the work from conversation history.
+
+### 2026-09-06
+
+- Created the `sdlc-v3` development branch and recorded the initial redesign
+  decisions (`9ceb42c`).
+- Made context-independent delivery specifications an explicit requirement
+  (`214542c`).
+- Settled the v1, v2, and new-project migration architecture (`da5592f`) and
+  prepared the implementation handover (`33bc1cc`, `6722121`).
+- Defined the portable Org outlining contract and canonical v3 templates
+  (`72847f8`).
+- Implemented the lean v3 routing, globally installed skills, two-phase
+  delivery workflow, paired and emergency variants, and Org artefacts
+  (`ea60974`).
+- Implemented the first v3 installer and migration path, including removal of
+  superseded Spec Kit runtime artefacts (`aee79cd`).
+- Exercised isolated new-project, v1, and v2 migrations and recorded the
+  rehearsal evidence (`246d832`).
+- Added post-migration Codex discovery of project authority documents with
+  structured YAML output and operator confirmation (`2827c3e`).
+- Corrected installer handling of managed prompt files so a successful install
+  verifies as current (`2a1bd58`).
+- Moved model-question wording, choices, defaults, and persistence into the
+  deterministic project-initialization schema, then corrected the generic
+  renderer so every question has the same order and presentation
+  (`9c23e5d`, `909fd4f`, `6bc8375`, `a039b8c`).
+- Changed v2 migration discovery to identify approved Spec Kit specifications,
+  migrate their state into `docs/work.org`, and keep individual archived specs
+  out of stable requirement-authority configuration (`e36ccb7`, `b9113f8`).
+- Began the first paired live migration in First Folio. The interrupted run
+  exposed that initializer recovery state had been stored under `.git`, which
+  violated the repository boundary and made recovery opaque.
+- Replaced the private `.git` workspace with the explicit project-owned
+  `.sdlc/.init/` workspace and added the absolute rule that agents must never
+  directly manipulate `.git` internals (`6a54e5c`).
+- The operator preserved the interrupted First Folio migration in a Git stash,
+  returned to `master`, and removed the obsolete `.git/sdlc-project-init`
+  directory. A residual untracked archived `feature.json` was identified before
+  restarting. The live migration has not yet been rerun with the corrected
+  initializer.
+- Clarified the deployment command: from the SDLC repository use
+  `make install`; from another directory,
+  `make -C /Users/tigger/code/agents/sdlc install` invokes the same target
+  without first changing directory.
