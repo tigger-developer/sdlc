@@ -487,6 +487,13 @@ presentation differences into migration blockers. Remove the exact known text
 with whitespace-tolerant matching, preserve adjacent content, then surface only
 unknown references for human interpretation.
 
+## Interrupted migrations must retain enough evidence to resume
+
+An interruption marker must not permanently block the command that created it.
+When the current migration branch, dated archive branch, source generation, and
+original primary branch remain unambiguous, rerun the idempotent migration steps
+in place. Ambiguous state must stop rather than create replacement branches.
+
 ## Generate the invariant and ask an agent for the evidence
 
 A generic constitution scaffold asks an agent to invent both universal

@@ -182,6 +182,16 @@ HOLDING
 	}
 }
 
+func TestParseLegacyStatusAcceptsEmphasizedSentenceStatus(t *testing.T) {
+	state, qualification, err := parseLegacyStatus([]string{"*HOLDING.*"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if state != "HOLD" || len(qualification) != 0 {
+		t.Fatalf("parsed status = %q, qualification = %#v", state, qualification)
+	}
+}
+
 func TestMergeLegacyAcceptanceCriteriaRejectsDifferentEmbeddedCopy(t *testing.T) {
 	root := t.TempDir()
 	writeProjectTestFile(t, filepath.Join(root, "docs", "work.org"), legacyLedgerHeading+"\n:PROPERTIES:\n:VISIBILITY: folded\n:END:\n\nDifferent content.\n\n* Migration record\n")

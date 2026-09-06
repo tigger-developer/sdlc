@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## v3.0.2 - 2026-09-06
+
+- Resume an interrupted `sdlc-project-init` when its current migration branch,
+  dated archive branch, source generation, and primary branch can be recovered
+  unambiguously. Reuse already archived Spec Kit work instead of creating
+  replacement branches.
+- Accept the legacy Org status form `*HOLDING.*` and normalize it to `HOLD`.
+  Unknown status values and ambiguous recovery state still stop migration.
+
 ## v3.0.1 - 2026-09-06
 
 Legacy acceptance-criteria migration now removes the known obsolete Spec Kit

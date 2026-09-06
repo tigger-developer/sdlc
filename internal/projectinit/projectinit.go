@@ -76,27 +76,38 @@ func Run(options Options) error {
 		return err
 	}
 	workspace := initializationWorkspacePath(projectRoot)
-	if exists(workspace) {
-		return fmt.Errorf("previous initialization did not complete; inspect the temporary working directory %s", workspace)
-	}
-	if _, err := os.Stat(filepath.Join(projectRoot, projectProfilePath)); err == nil {
-		return fmt.Errorf("%s already exists; sdlc-project-init runs exactly once", projectProfilePath)
-	} else if !errors.Is(err, os.ErrNotExist) {
-		return fmt.Errorf("checking project profile: %w", err)
-	}
-	if err := requireCleanWorktree(options, projectRoot); err != nil {
-		return err
-	}
-	if err := ensureInitialCommit(options, projectRoot); err != nil {
-		return err
-	}
-
-	source, err := DetectSource(projectRoot)
+	resume, err := interruptedMigration(options, projectRoot, workspace)
 	if err != nil {
 		return err
 	}
+	if _, err := os.Stat(filepath.Join(projectRoot, projectProfilePath)); err == nil && resume == nil {
+		return fmt.Errorf("%s already exists; sdlc-project-init runs exactly once", projectProfilePath)
+	} else if !errors.Is(err, os.ErrNotExist) {
+		if err != nil {
+			return fmt.Errorf("checking project profile: %w", err)
+		}
+	}
+	if resume == nil {
+		if err := requireCleanWorktree(options, projectRoot); err != nil {
+			return err
+		}
+		if err := ensureInitialCommit(options, projectRoot); err != nil {
+			return err
+		}
+	}
+
+	source := ""
+	if resume != nil {
+		source = resume.source
+		fmt.Fprintf(options.Output, "Resuming interrupted SDLC v3 initialization on %s.\n", resume.migration)
+	} else {
+		source, err = DetectSource(projectRoot)
+		if err != nil {
+			return err
+		}
+	}
 	runTicketMigration := false
-	if source == "v1" {
+	if source == "v1" && resume == nil {
 		runTicketMigration, err = chooseTicketMigration(options, projectRoot)
 		if err != nil {
 			return err
@@ -134,33 +145,45 @@ func Run(options Options) error {
 		return err
 	}
 
-	base, err := commandOutput(options, projectRoot, "git", "branch", "--show-current")
-	if err != nil || strings.TrimSpace(base) == "" {
-		return errors.New("the project must be on a named Git branch before initialization")
-	}
-	base = strings.TrimSpace(base)
-	date := options.Now().Format("2006-01-02")
-	archive := uniqueBranchName(options, projectRoot, fmt.Sprintf("sdlc_%s_state_%s", source, date))
-	migration := uniqueBranchName(options, projectRoot, fmt.Sprintf("sdlc-v3-migration-%s", date))
-	if err := options.RunCommand("git", []string{"branch", archive, "HEAD"}, projectRoot, nil, options.Output, options.ErrorOutput); err != nil {
-		return fmt.Errorf("creating archive branch %s: %w", archive, err)
-	}
-	fmt.Fprintf(options.Output, "Archived the exact pre-migration state on %s.\n", archive)
-	if yes, promptErr := promptYesNo(options, fmt.Sprintf("Push archive branch %s to origin? [y/N]: ", archive), false); promptErr != nil {
-		return promptErr
-	} else if yes {
-		if err := options.RunCommand("git", []string{"push", "-u", "origin", archive}, projectRoot, nil, options.Output, options.ErrorOutput); err != nil {
-			return fmt.Errorf("pushing archive branch %s: %w", archive, err)
+	var base, archive, migration, date string
+	if resume != nil {
+		base, archive, migration, date = resume.base, resume.archive, resume.migration, resume.date
+	} else {
+		base, err = commandOutput(options, projectRoot, "git", "branch", "--show-current")
+		if err != nil || strings.TrimSpace(base) == "" {
+			return errors.New("the project must be on a named Git branch before initialization")
+		}
+		base = strings.TrimSpace(base)
+		date = options.Now().Format("2006-01-02")
+		archive = uniqueBranchName(options, projectRoot, fmt.Sprintf("sdlc_%s_state_%s", source, date))
+		migration = uniqueBranchName(options, projectRoot, fmt.Sprintf("sdlc-v3-migration-%s", date))
+		if err := options.RunCommand("git", []string{"branch", archive, "HEAD"}, projectRoot, nil, options.Output, options.ErrorOutput); err != nil {
+			return fmt.Errorf("creating archive branch %s: %w", archive, err)
+		}
+		fmt.Fprintf(options.Output, "Archived the exact pre-migration state on %s.\n", archive)
+		if yes, promptErr := promptYesNo(options, fmt.Sprintf("Push archive branch %s to origin? [y/N]: ", archive), false); promptErr != nil {
+			return promptErr
+		} else if yes {
+			if err := options.RunCommand("git", []string{"push", "-u", "origin", archive}, projectRoot, nil, options.Output, options.ErrorOutput); err != nil {
+				return fmt.Errorf("pushing archive branch %s: %w", archive, err)
+			}
+		}
+		if err := options.RunCommand("git", []string{"switch", "-c", migration}, projectRoot, nil, options.Output, options.ErrorOutput); err != nil {
+			return fmt.Errorf("creating migration branch %s: %w", migration, err)
 		}
 	}
-	if err := options.RunCommand("git", []string{"switch", "-c", migration}, projectRoot, nil, options.Output, options.ErrorOutput); err != nil {
-		return fmt.Errorf("creating migration branch %s: %w", migration, err)
-	}
 
+	if resume == nil {
+		if err := createInitializationWorkspace(sdlcRoot, projectRoot, workspace); err != nil {
+			return fmt.Errorf("creating temporary initialization workspace %s: %w", workspace, err)
+		}
+	}
 	generation := projectGeneration{values: values, explicit: explicit, source: source, base: base, archive: archive, migration: migration, date: date}
 	if source == "v1" {
-		if err := prepareLegacyProject(options, projectRoot, values, runTicketMigration); err != nil {
-			return err
+		if exists(filepath.Join(projectRoot, "docs", "ACs.md")) || exists(filepath.Join(projectRoot, "docs", "ACs.org")) {
+			if err := prepareLegacyProject(options, projectRoot, values, runTicketMigration); err != nil {
+				return err
+			}
 		}
 	}
 	if source == "v2" {
@@ -172,9 +195,6 @@ func Run(options Options) error {
 		if err := ensureNoSpecKit(projectRoot); err != nil {
 			return err
 		}
-	}
-	if err := createInitializationWorkspace(sdlcRoot, projectRoot, workspace); err != nil {
-		return fmt.Errorf("creating temporary initialization workspace %s: %w", workspace, err)
 	}
 	if err := writeWorkLedger(sdlcRoot, projectRoot, generation, options.Now()); err != nil {
 		return err
@@ -786,6 +806,59 @@ func branchExists(options Options, projectRoot, name string) bool {
 	return err == nil
 }
 
+func interruptedMigration(options Options, projectRoot, workspace string) (*projectGeneration, error) {
+	if !exists(workspace) {
+		return nil, nil
+	}
+	current, err := commandOutput(options, projectRoot, "git", "branch", "--show-current")
+	if err != nil {
+		return nil, fmt.Errorf("reading interrupted migration branch: %w", err)
+	}
+	current = strings.TrimSpace(current)
+	const prefix = "sdlc-v3-migration-"
+	if !strings.HasPrefix(current, prefix) || len(current) < len(prefix)+10 {
+		return nil, fmt.Errorf("cannot safely resume initialization from %s on branch %q", workspace, current)
+	}
+	date := current[len(prefix) : len(prefix)+10]
+	branches, err := commandOutput(options, projectRoot, "git", "for-each-ref", "--format=%(refname:short)", "refs/heads")
+	if err != nil {
+		return nil, fmt.Errorf("listing archive branches for interrupted initialization: %w", err)
+	}
+	var archives []string
+	for _, branch := range strings.Fields(branches) {
+		if strings.HasPrefix(branch, "sdlc_") && strings.Contains(branch, "_state_"+date) {
+			archives = append(archives, branch)
+		}
+	}
+	if len(archives) != 1 {
+		return nil, fmt.Errorf("cannot safely resume initialization from %s: expected one archive branch for %s, found %d", workspace, date, len(archives))
+	}
+	archive := archives[0]
+	identity := strings.TrimPrefix(archive, "sdlc_")
+	separator := strings.Index(identity, "_state_")
+	if separator < 1 {
+		return nil, fmt.Errorf("cannot safely derive the migration source from %s", archive)
+	}
+	base := ""
+	for _, candidate := range []string{"master", "main"} {
+		if !branchExists(options, projectRoot, candidate) {
+			continue
+		}
+		archiveRevision, archiveErr := commandOutput(options, projectRoot, "git", "rev-parse", archive)
+		baseRevision, baseErr := commandOutput(options, projectRoot, "git", "rev-parse", candidate)
+		if archiveErr == nil && baseErr == nil && strings.TrimSpace(archiveRevision) == strings.TrimSpace(baseRevision) {
+			base = candidate
+			break
+		}
+	}
+	if base == "" {
+		return nil, fmt.Errorf("cannot safely derive the primary branch from %s", archive)
+	}
+	return &projectGeneration{
+		source: identity[:separator], base: base, archive: archive, migration: current, date: date,
+	}, nil
+}
+
 func chooseTicketMigration(options Options, projectRoot string) (bool, error) {
 	if !exists(filepath.Join(projectRoot, "docs", "ACs.md")) || exists(filepath.Join(projectRoot, "docs", "ticket-migration.org")) {
 		return false, nil
@@ -838,9 +911,6 @@ func runCodexSkill(options Options, projectRoot, model, prompt string) error {
 
 func archiveSpecKit(projectRoot string) ([]string, error) {
 	archiveRoot := filepath.Join(projectRoot, "docs", "archive", "sdlc-v2")
-	if exists(archiveRoot) {
-		return nil, fmt.Errorf("v2 archive destination already exists: %s", archiveRoot)
-	}
 	var workItems []string
 	for _, relative := range []string{".specify", "specs"} {
 		source := filepath.Join(projectRoot, relative)
@@ -859,6 +929,9 @@ func archiveSpecKit(projectRoot string) ([]string, error) {
 			}
 		}
 		destination := filepath.Join(archiveRoot, relative)
+		if exists(destination) {
+			return nil, fmt.Errorf("both active and archived Spec Kit paths exist: %s and %s", source, destination)
+		}
 		if err := os.MkdirAll(filepath.Dir(destination), 0o755); err != nil {
 			return nil, err
 		}
@@ -875,8 +948,30 @@ func archiveSpecKit(projectRoot string) ([]string, error) {
 			}
 		}
 	}
-	sort.Strings(workItems)
+	entries, err := os.ReadDir(filepath.Join(archiveRoot, "specs"))
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		return nil, fmt.Errorf("reading archived Spec Kit work: %w", err)
+	}
+	for _, entry := range entries {
+		if entry.IsDir() {
+			workItems = append(workItems, entry.Name())
+		}
+	}
+	workItems = uniqueSortedStrings(workItems)
 	return workItems, nil
+}
+
+func uniqueSortedStrings(values []string) []string {
+	seen := map[string]bool{}
+	result := make([]string, 0, len(values))
+	for _, value := range values {
+		if !seen[value] {
+			seen[value] = true
+			result = append(result, value)
+		}
+	}
+	sort.Strings(result)
+	return result
 }
 
 func stripArchivedSpecStatuses(archiveRoot string, workItems []string) error {

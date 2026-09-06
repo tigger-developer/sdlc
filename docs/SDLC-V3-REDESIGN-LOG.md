@@ -608,3 +608,7 @@ without reconstructing the work from conversation history.
   in the same paragraph. `v3.0.1` makes that exact retirement tolerant of line
   wrapping and paragraph placement while retaining human review for every
   genuinely unknown Spec Kit reference.
+- The next Superscale attempt exposed the legacy emphasized status
+  `*HOLDING.*` and showed that `.sdlc/.init/` prevented recovery from the
+  initializer's own partial migration. `v3.0.2` normalizes that known legacy
+  state to `HOLD` and resumes an unambiguous existing migration in place.

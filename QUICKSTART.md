@@ -60,10 +60,11 @@ obsolete top-level Status fields and renders their lifecycle into
 model operation.
 
 If initialization is interrupted during or after authority selection, its
-temporary working directory remains at `.sdlc/.init/`. A later invocation
-reports that path instead of treating the project as a fresh start. The
-initializer records `.init/` in `.sdlc/.gitignore` so ordinary Git operations
-cannot commit the temporary state.
+temporary working directory remains at `.sdlc/.init/`. Rerun
+`sdlc-project-init` on the migration branch. It resumes when the matching dated
+archive and original primary branch are unambiguous; otherwise it stops without
+creating another branch. The initializer records `.init/` in
+`.sdlc/.gitignore` so ordinary Git operations cannot commit the temporary state.
 
 ### New project
 

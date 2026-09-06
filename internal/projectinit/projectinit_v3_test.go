@@ -938,7 +938,7 @@ warnings: []
 	}
 }
 
-func TestRunReportsInterruptedInitializationWorkspace(t *testing.T) {
+func TestRunRejectsUnrelatedInitializationWorkspace(t *testing.T) {
 	project := t.TempDir()
 	runGitTest(t, project, "init")
 	runGitTest(t, project, "config", "user.name", "Test Operator")
@@ -953,8 +953,34 @@ func TestRunReportsInterruptedInitializationWorkspace(t *testing.T) {
 		ProjectRoot: project, SDLCRoot: testSDLCRoot(t), Overrides: v3TestOverrides(t),
 		Input: strings.NewReader(""), Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{},
 	})
-	if err == nil || !strings.Contains(err.Error(), "previous initialization did not complete") || !strings.Contains(err.Error(), workspace) {
+	if err == nil || !strings.Contains(err.Error(), "cannot safely resume initialization") || !strings.Contains(err.Error(), workspace) {
 		t.Fatalf("interrupted initialization error = %v", err)
+	}
+}
+
+func TestInterruptedMigrationReusesExistingBranches(t *testing.T) {
+	project := t.TempDir()
+	runGitTest(t, project, "init")
+	runGitTest(t, project, "config", "user.name", "Test Operator")
+	runGitTest(t, project, "config", "user.email", "operator@example.invalid")
+	writeProjectTestFile(t, filepath.Join(project, "README.md"), "# Project\n")
+	runGitTest(t, project, "add", "README.md")
+	runGitTest(t, project, "commit", "-m", "initial")
+	runGitTest(t, project, "branch", "sdlc_v2_state_2026-09-06", "HEAD")
+	runGitTest(t, project, "switch", "-c", "sdlc-v3-migration-2026-09-06")
+	writeProjectTestFile(t, filepath.Join(project, ".sdlc", ".init", "proposal.yaml"), "version: 1\n")
+	writeProjectTestFile(t, filepath.Join(project, "docs", "archive", "sdlc-v2", "specs", "001-example", "spec.md"), "# Example\n")
+
+	resume, err := interruptedMigration(defaultOptions(Options{}), project, initializationWorkspacePath(project))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resume == nil || resume.source != "v2" || resume.base != "master" || resume.archive != "sdlc_v2_state_2026-09-06" || resume.migration != "sdlc-v3-migration-2026-09-06" {
+		t.Fatalf("resume state = %#v", resume)
+	}
+	items, err := archiveSpecKit(project)
+	if err != nil || len(items) != 1 || items[0] != "001-example" {
+		t.Fatalf("archived work = %#v, %v", items, err)
 	}
 }
 

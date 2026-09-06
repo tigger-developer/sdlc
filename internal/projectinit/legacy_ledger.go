@@ -430,10 +430,10 @@ func parseLegacyStatus(lines []string) (string, []string, error) {
 		if !strings.HasPrefix(upper, candidate) {
 			continue
 		}
-		if len(value) > len(candidate) && !strings.ContainsRune(" \t,:*-_=", rune(value[len(candidate)])) {
+		if len(value) > len(candidate) && !strings.ContainsRune(" \t,.:*-_=", rune(value[len(candidate)])) {
 			continue
 		}
-		remainder := strings.TrimLeft(value[len(candidate):], " \t,:*-=")
+		remainder := strings.TrimLeft(value[len(candidate):], " \t,.:*-=")
 		qualification := append([]string(nil), trimmed[1:]...)
 		if remainder != "" {
 			qualification = append([]string{remainder}, qualification...)

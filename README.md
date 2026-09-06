@@ -131,9 +131,10 @@ folds a canonical legacy AC ledger beneath `Legacy Acceptance Criteria (SDLC
 v1)`. It then records only `docs/work.org` as the requirement authority.
 Technology assessment and archived v2 specification disposition require a
 model. Their temporary YAML contains recommendations or status evidence rather
-than authority decisions. A temporary `.sdlc/.init/` working directory remains if
-initialization is interrupted and is removed before a completed migration is
-staged. A tracked `.sdlc/.gitignore` excludes that temporary directory from
+than authority decisions. A temporary `.sdlc/.init/` working directory remains
+if initialization is interrupted. Rerunning `sdlc-project-init` on the migration
+branch resumes when the dated archive and original primary branch are
+unambiguous. A tracked `.sdlc/.gitignore` excludes that temporary directory from
 commits. The initializer never uses private `.git` paths as application storage.
 
 Example global configuration:
