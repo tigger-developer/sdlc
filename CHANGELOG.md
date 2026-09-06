@@ -42,6 +42,11 @@ Declining the optional SDLC v1 ticket pre-migration now continues project
 initialization. A canonical `.sdlc/.gitignore` prevents interrupted
 initialization state under `.sdlc/.init/` from entering commits.
 
+Standardized initializer prompts with blank-line separation and one shared
+`[x]` and `[ ]` choice renderer. Questions and valid options remain defined by
+the YAML schema; authority selection retains its separate toggle and rescan
+behaviour.
+
 ## v2.1.0 - 2026-09-05
 
 Defined the intended replacement for the four separately approved Spec Kit

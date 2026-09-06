@@ -57,6 +57,11 @@ type projectGeneration struct {
 	migratedV2 []migratedWorkCandidate
 }
 
+type promptChoice struct {
+	Label    string
+	Selected bool
+}
+
 // Run initializes or migrates one project to SDLC v3.
 func Run(options Options) error {
 	options = defaultOptions(options)
@@ -551,12 +556,15 @@ func promptField(reader *bufio.Reader, output io.Writer, field ConfigField, inhe
 			choices = append(choices, technology.Name)
 		}
 	}
-	fmt.Fprintln(output, field.Prompt)
-	if len(choices) != 0 {
-		for index, choice := range choices {
-			fmt.Fprintf(output, "%d. %s\n", index+1, choice)
-		}
+	displayChoices := make([]promptChoice, 0, len(choices))
+	selected := map[string]bool{}
+	for _, value := range splitCSV(inherited) {
+		selected[value] = true
 	}
+	for _, choice := range choices {
+		displayChoices = append(displayChoices, promptChoice{Label: choice, Selected: selected[choice]})
+	}
+	renderPromptChoices(output, field.Prompt, displayChoices)
 	if inherited != "" {
 		label := "Default"
 		if inheritedSource == "global" {
@@ -594,6 +602,17 @@ func promptField(reader *bufio.Reader, output io.Writer, field ConfigField, inhe
 		return strings.Join(selected, ","), true, nil
 	}
 	return line, true, nil
+}
+
+func renderPromptChoices(output io.Writer, prompt string, choices []promptChoice) {
+	fmt.Fprintf(output, "\n%s\n", prompt)
+	for index, choice := range choices {
+		mark := " "
+		if choice.Selected {
+			mark = "x"
+		}
+		fmt.Fprintf(output, "[%s] %d. %s\n", mark, index+1, choice.Label)
+	}
 }
 
 func yamlPathString(root map[string]any, path string) (string, bool) {

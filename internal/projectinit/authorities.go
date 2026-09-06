@@ -402,17 +402,13 @@ func promptDiscoveredAuthorityField(options Options, field ConfigField, projectR
 			}
 		}
 
-		fmt.Fprintf(options.Output, "\nSelect %s:\n", strings.ToLower(field.Prompt))
+		displayChoices := make([]promptChoice, 0, len(choices))
+		for _, choice := range choices {
+			displayChoices = append(displayChoices, promptChoice{Label: choice.Path, Selected: choice.Selected})
+		}
+		renderPromptChoices(options.Output, "Select "+strings.ToLower(field.Prompt)+":", displayChoices)
 		if len(choices) == 0 {
 			fmt.Fprintln(options.Output, "- No matching Markdown or Org documents found.")
-		} else {
-			for index, choice := range choices {
-				mark := " "
-				if choice.Selected {
-					mark = "x"
-				}
-				fmt.Fprintf(options.Output, "[%s] %d. %s\n", mark, index+1, choice.Path)
-			}
 		}
 		fmt.Fprint(options.Output, "Enter numbers to toggle, paths to replace, 'r' to rescan, '-' for none, or press Enter to accept: ")
 		line, err := options.inputReader.ReadString('\n')

@@ -459,3 +459,7 @@ without reconstructing the work from conversation history.
   project entries.
 - Added focused unit coverage for both defects and reran the complete
   repository-owned `make test` target successfully.
+- Unified initializer question presentation. Every question now starts after a
+  blank line, and schema choices and authority candidates use one shared `[x]`
+  and `[ ]` renderer. The schema continues to own questions, options, defaults,
+  and validation; scalar and multi-select input behaviour remains separate.

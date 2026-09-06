@@ -65,7 +65,43 @@ func TestPromptFieldRendersQuestionBeforeDefault(t *testing.T) {
 	if value != "5m" || explicit {
 		t.Fatalf("selection = %q, explicit = %v", value, explicit)
 	}
-	want := "Select timeout:\nDefault: 5m. Press Enter to inherit, or enter a project value.\nSelection: "
+	want := "\nSelect timeout:\nDefault: 5m. Press Enter to inherit, or enter a project value.\nSelection: "
+	if output.String() != want {
+		t.Fatalf("prompt output = %q, want %q", output.String(), want)
+	}
+}
+
+func TestPromptFieldUsesSharedSelectedChoiceLayout(t *testing.T) {
+	schema, err := LoadConfigSchema(testSDLCRoot(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var field ConfigField
+	for _, candidate := range schema.Fields {
+		if candidate.Key == "SDLC_BRANCH_STRATEGY" {
+			field = candidate
+			break
+		}
+	}
+	if field.Key == "" {
+		t.Fatal("SDLC_BRANCH_STRATEGY is absent from the schema")
+	}
+	var output bytes.Buffer
+	value, explicit, err := promptField(
+		bufio.NewReader(strings.NewReader("\n")),
+		&output,
+		field,
+		"current",
+		"schema",
+		nil,
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if value != "current" || explicit {
+		t.Fatalf("selection = %q, explicit = %v", value, explicit)
+	}
+	want := "\nSelect delivery branch strategy:\n[x] 1. current\n[ ] 2. feature\nDefault: current. Press Enter to inherit, or enter a project value.\nSelection: "
 	if output.String() != want {
 		t.Fatalf("prompt output = %q, want %q", output.String(), want)
 	}
