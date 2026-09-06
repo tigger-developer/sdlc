@@ -252,7 +252,7 @@ func TestRunInitializesOnceOnMigrationBranch(t *testing.T) {
 	options := Options{
 		ProjectRoot:  project,
 		SDLCRoot:     testSDLCRoot(t),
-		Overrides:    v3TestOverrides(),
+		Overrides:    v3TestOverrides(t),
 		SDLCRevision: "v3-test",
 		Input:        strings.NewReader("\n\n\nn\nn\n"),
 		Output:       &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{},
@@ -293,7 +293,7 @@ func TestRunMigratesV2WithoutRenumberingOrDeletingUnrelatedIntegrations(t *testi
 	runGitTest(t, project, "commit", "-m", "v2 state")
 
 	options := Options{
-		ProjectRoot: project, SDLCRoot: testSDLCRoot(t), Overrides: v3TestOverrides(),
+		ProjectRoot: project, SDLCRoot: testSDLCRoot(t), Overrides: v3TestOverrides(t),
 		SDLCRevision: "v3-test", Input: strings.NewReader("\n\n\nn\nn\n"),
 		Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{},
 		RunCommand: localOnlyTestRunner,
@@ -362,7 +362,7 @@ func TestRunMigratesV1ThroughTicketSkillBeforeCreatingProfile(t *testing.T) {
 	}
 
 	options := Options{
-		ProjectRoot: project, SDLCRoot: testSDLCRoot(t), Overrides: v3TestOverrides(),
+		ProjectRoot: project, SDLCRoot: testSDLCRoot(t), Overrides: v3TestOverrides(t),
 		SDLCRevision: "v3-test", Input: strings.NewReader("yes\n\n\n\nn\nn\n"),
 		Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{}, RunCommand: runner,
 		Now: func() time.Time { return time.Date(2026, 9, 6, 0, 0, 0, 0, time.UTC) },
@@ -395,7 +395,7 @@ func TestRunDiscoversAuthorityDocumentsAfterV2Archival(t *testing.T) {
 	runGitTest(t, project, "add", "-A")
 	runGitTest(t, project, "commit", "-m", "v2 state")
 
-	overrides := v3TestOverrides()
+	overrides := v3TestOverrides(t)
 	delete(overrides, "SDLC_PRODUCT_AUTHORITIES")
 	delete(overrides, "SDLC_ARCHITECTURE_AUTHORITIES")
 	delete(overrides, "SDLC_REQUIREMENT_AUTHORITIES")
@@ -403,7 +403,7 @@ func TestRunDiscoversAuthorityDocumentsAfterV2Archival(t *testing.T) {
 	runner := func(name string, arguments []string, directory string, input io.Reader, output, errorOutput io.Writer) error {
 		if name == "codex" {
 			discoveryCalls++
-			if argumentValue(arguments, "--sandbox") != "read-only" || argumentValue(arguments, "--model") != "gpt-test" || !containsArgument(arguments, "--ephemeral") {
+			if argumentValue(arguments, "--sandbox") != "read-only" || argumentValue(arguments, "--model") != overrides["SDLC_SPEC_MODEL"] || !containsArgument(arguments, "--ephemeral") {
 				return fmt.Errorf("unsafe or misconfigured authority discovery invocation: %v", arguments)
 			}
 			if exists(filepath.Join(project, ".specify")) {
@@ -489,7 +489,7 @@ func TestRunReportsInterruptedInitializationWorkspace(t *testing.T) {
 	writeProjectTestFile(t, filepath.Join(project, ".git", "sdlc-project-init", "authority-proposal.yaml"), "version: 1\n")
 
 	err := Run(Options{
-		ProjectRoot: project, SDLCRoot: testSDLCRoot(t), Overrides: v3TestOverrides(),
+		ProjectRoot: project, SDLCRoot: testSDLCRoot(t), Overrides: v3TestOverrides(t),
 		Input: strings.NewReader(""), Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{},
 	})
 	if err == nil || !strings.Contains(err.Error(), "previous initialization did not complete") || !strings.Contains(err.Error(), "sdlc-project-init") {
@@ -515,8 +515,13 @@ func containsArgument(arguments []string, want string) bool {
 	return false
 }
 
-func v3TestOverrides() map[string]string {
-	return map[string]string{
+func v3TestOverrides(t *testing.T) map[string]string {
+	t.Helper()
+	schema, err := LoadConfigSchema(testSDLCRoot(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	overrides := map[string]string{
 		"SDLC_PROJECT_KIND":             "application",
 		"SDLC_TECHNOLOGIES":             "GO",
 		"SDLC_PRODUCT_AUTHORITIES":      "README.md",
@@ -525,16 +530,19 @@ func v3TestOverrides() map[string]string {
 		"SDLC_BRANCH_STRATEGY":          "current",
 		"SDLC_SPEC_HARNESS":             "codex",
 		"SDLC_SPEC_PROVIDER":            "openai",
-		"SDLC_SPEC_MODEL":               "gpt-test",
 		"SDLC_BUILD_HARNESS":            "codex",
 		"SDLC_BUILD_PROVIDER":           "openai",
-		"SDLC_BUILD_MODEL":              "gpt-test",
 		"SDLC_AUDIT_HARNESS":            "codex",
 		"SDLC_AUDIT_PROVIDER":           "openai",
-		"SDLC_AUDIT_MODEL":              "gpt-test",
 		"SDLC_AUDIT_TIMEOUT":            "5m",
 		"SDLC_INFRA_ROLE":               "none",
 	}
+	for _, field := range schema.Fields {
+		if strings.HasSuffix(field.Key, "_MODEL") {
+			overrides[field.Key] = field.Default
+		}
+	}
+	return overrides
 }
 
 func testSDLCRoot(t *testing.T) string {

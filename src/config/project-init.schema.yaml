@@ -99,10 +99,10 @@ fields:
     path: delivery.definition.model
     flag: spec-model
     help: Definition model
-    type: string
-    prompt: |-
-      Which model should definition work use?
-      Model (press Enter to inherit the current default):
+    type: choice
+    choices: &supported_openai_models [gpt-5.6-sol, gpt-5.6-terra, gpt-5.6-luna]
+    prompt: "Select definition model:"
+    default: gpt-5.6-sol
     allow_global: true
     migration_aliases: [SDLC_DELIVERY_MODEL]
 
@@ -131,10 +131,10 @@ fields:
     path: delivery.build.model
     flag: build-model
     help: Delivery model
-    type: string
-    prompt: |-
-      Which model should delivery work use?
-      Model (press Enter to inherit the current default):
+    type: choice
+    choices: *supported_openai_models
+    prompt: "Select delivery model:"
+    default: gpt-5.6-terra
     allow_global: true
 
   - key: SDLC_AUDIT_HARNESS
@@ -162,10 +162,10 @@ fields:
     path: delivery.audit.model
     flag: audit-model
     help: External audit model
-    type: string
-    prompt: |-
-      Which model should external audits use?
-      Model (press Enter to inherit the current default):
+    type: choice
+    choices: *supported_openai_models
+    prompt: "Select external audit model:"
+    default: gpt-5.6-luna
     allow_global: true
 
   - key: SDLC_AUDIT_TIMEOUT
