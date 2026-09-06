@@ -1,277 +1,130 @@
-# Independent Audit Standards
+# Audit and Gate Standards
 
-Audits provide independent evidence without making the auditor an author or the
-operator an intermediary in routine revision cycles.
+Audits challenge work before a human gate. They provide evidence; they do not
+replace operator approval, test execution, or implementation evidence.
 
-## Independence
+## Audit roles
 
-- Invoke formal audits through `sdlc-audit`. It starts a new one-shot harness
-  process in an empty temporary working directory and does not resume or inherit
-  the authoring conversation.
-- The audit skill supplies only the candidate files and exact context files
-  needed for its judgement. The runner embeds their contents with the canonical
-  audit prompt and this contract. Do not pass directories, the whole repository,
-  or unrelated files.
-- The main authoring context may dispatch the auditor, wait for its verdict,
-  remediate findings, and dispatch the next fresh audit.
-- The auditor is findings-only. It must not modify the audited artefact or mark
-  its own finding resolved.
-- Record the audit name, provider, model, artefact revision, verdict, findings,
-  and any superseding attempt in the active feature's `audits.md`.
+- `audit-spec` challenges context, scope, requirements, acceptance criteria,
+  edge cases, authority, and context-independent handoff.
+- `audit-design` challenges traceability, architecture fit, boundaries,
+  trade-offs, security, operability, and failure behaviour.
+- `audit-tests` challenges test definitions or implemented tests for complete
+  requirement coverage, honest RT/UT/OT classification, TDD suitability, and
+  gaming opportunities.
+- `audit-code` challenges the implemented change against the signed-off
+  specification, tests, selected standards, and language best practice.
 
-The runner resolves `SDLC_AUDIT_HARNESS`, `SDLC_AUDIT_PROVIDER`,
-`SDLC_AUDIT_MODEL`, and `SDLC_AUDIT_TIMEOUT` in command-line,
-process-environment, project `.env`, then user `.env` order.
-`SDLC_AUDIT_HARNESS` falls back to `SDLC_AGENT_HARNESS`.
-The two shell files are evaluated by the deployed allowlisted Bash wrapper; the
-runner does not interpret their shell expressions. It invokes the selected
-Hermes, Codex, or Claude harness in a fresh context. Hermes requires and receives
-provider and model explicitly. Codex and Claude ignore `SDLC_AUDIT_PROVIDER`,
-receive only the model, and report their harness-native provider. A harness
-execution error, timeout, malformed verdict, wrong audit name, or reported
-effective provider or model that does not match the request fails closed. A
-valid FAIL remains an audit result, not a runner failure.
-`SDLC_AUDIT_TIMEOUT` accepts a whole-second Go duration of at least one second,
-such as `90s`, `4m`, or `15m`; `--timeout` overrides it. An unset value defaults
-to five minutes. The same duration bounds the child-process context and the
-Hermes run budget.
-Harness reasoning or display text before the last exact audit header is
-discarded; only the validated machine-readable report is returned to the
-caller.
+Auditors are findings-only. They do not modify the audited artefact or mark
+their own findings resolved.
 
-## Brownfield source coverage
+## Two composite gates
 
-For a brownfield specification or design, verify that the author examined the
-relevant requirement and design authorities, historical work records,
-maintained regression tests and traceability, and affected implementation. An
-auditor that discovers a material source or conflict omitted from the authored
-context pass must report a source-coverage finding. Do not require baseline
-detail to be copied into a delta artefact merely to prove that it was examined.
+### Definition gate
 
-## Finding classifications and verdicts
+The authoring context applies `audit-spec`, `audit-design`, and `audit-tests`
+together to `spec.org`.
 
-Classify each finding as:
+1. Review locally, remediate, and repeat for at most five local rounds.
+2. Start no external auditor until all three local reviews pass.
+3. Start one external Codex context and run all three audits there in one turn.
+4. If it fails, remediate locally, rerun all affected local reviews, then resume
+   the same external context. Never create another auditor for the same gate.
+5. Stop at PASS, five failed gate rounds, or a human-controlled decision.
 
-- `[BLOCKING]`: a material contradiction, missing decision, unsafe boundary,
-  unverifiable requirement or evidence claim, standards violation, or defect
-  that prevents phase sign-off.
-- `[CONDITION]`: an exact mandatory correction that requires no further
-  judgement and has a stated deterministic verification method.
-- `[ADVISORY]`: an optional improvement that does not prevent phase sign-off.
+The external auditor receives only the current specification, project profile,
+named authorities, applicable standards, and focused repository evidence. It
+must test whether a new agent can safely deliver without the drafting
+conversation.
 
-Do not fail an audit solely because an advisory exists. Use `PASS` when no
-required correction remains; a PASS may include numbered advisory findings.
-Use `PROVISIONAL` when every required correction qualifies as a condition and
-no blocking finding exists. Use `FAIL` when at least one blocking finding
-exists. A PROVISIONAL or FAIL verdict may also include advisories. End with
-exactly one of these machine-checkable forms:
+### Implementation gate
 
-Return only the selected form. Do not add an introduction, conclusion,
-explanation, summary, Markdown fence, or any other text before or after it.
+The delivery context applies `audit-tests` and `audit-code` together to the
+implemented tests and code.
 
-```text
-AUDIT: <audit name>
-AUDITOR_PROVIDER: <provider used for this audit>
-AUDITOR_MODEL: <model used for this audit>
-VERDICT: PASS
+1. Review locally, remediate, and repeat for at most five local rounds.
+2. Start no external auditor until both local reviews pass.
+3. Start one external Codex context and run both audits there in one turn.
+4. If it fails, remediate locally, rerun affected tests and local reviews, then
+   resume the same external context.
+5. Stop at PASS, five failed gate rounds, or a human-controlled decision.
 
-1. [ADVISORY] <optional improvement ordered by severity>
-```
+Each gate therefore spans at most two contexts: its authoring context and one
+retained external auditor context. Do not invoke each focused audit in a new
+context and do not replace an unfavourable auditor.
 
-or:
+## Findings and verdicts
+
+Classify findings as:
+
+- `[BLOCKING]`: a contradiction, unsafe boundary, missing material decision,
+  unverifiable requirement, coverage gap, standards violation, or defect that
+  prevents sign-off.
+- `[CONDITION]`: an exact mechanical correction with a deterministic check that
+  requires no judgement.
+- `[ADVISORY]`: a non-blocking improvement.
+
+Use `PASS` when no required correction remains, `PROVISIONAL` when every
+required correction is a mechanical condition, and `FAIL` when a blocking
+finding exists. A timeout, silence, malformed verdict, or wrong audit name is
+not PASS.
+
+Each composite verdict records:
 
 ```text
-AUDIT: <audit name>
-AUDITOR_PROVIDER: <provider used for this audit>
-AUDITOR_MODEL: <model used for this audit>
-VERDICT: PROVISIONAL
+GATE: definition | implementation
+REVISION: <audited revision or SHA-256>
+VERDICT: PASS | PROVISIONAL | FAIL
 
-1. [CONDITION] <exact required correction> | VERIFY: <deterministic check>
-2. [ADVISORY] <optional additional finding>
+1. [audit-name] [classification] <finding with descriptive IDs>
 ```
 
-or:
+A PROVISIONAL verdict becomes effective PASS only when the author applies
+exactly the stated conditions, verifies each stated check, and changes nothing
+else. Any judgement or additional change requires the retained auditor to
+review the new revision.
 
-```text
-AUDIT: <audit name>
-AUDITOR_PROVIDER: <provider used for this audit>
-AUDITOR_MODEL: <model used for this audit>
-VERDICT: FAIL
+## Evidence record
 
-1. [BLOCKING] <material finding ordered by severity>
-2. [ADVISORY] <optional additional finding>
-```
+Write every local and external gate result to the active change's `audits.org`:
 
-Omit numbered lines when a PASS has no advisories. A relevant change within the
-audited scope makes the earlier PASS non-current and requires a fresh independent
-audit unless every change satisfies an exact PROVISIONAL condition under the
-receipt contract below. Preserve the earlier verdict as revision-specific
-history.
+- gate and round;
+- artefact and exact revision;
+- local or external context;
+- all component audits applied;
+- verdict and findings;
+- remediation or condition receipt; and
+- the retained external context identifier.
 
-## Provisional conditions
+Preserve superseded verdicts as revision-specific history. A later relevant
+change makes an earlier PASS non-current; it does not erase it. Review only the
+changed scope and enough adjacent context to judge it safely.
 
-A condition is permitted only when it is:
+## Brownfield evidence
 
-- narrow, unambiguous, and mechanical;
-- consistent with every signed-off upstream artefact;
-- deterministically verifiable by the authoring context; and
-- unrelated to product behaviour, architecture, security, privacy, access,
-  persisted data, external contracts, or irreversible outcomes.
+For brownfield work, confirm the author examined the relevant requirement and
+design authorities, traced historical records, maintained regression tests,
+and affected implementation. Report material omitted sources or conflicts.
+Do not demand that a delta specification copy its entire baseline.
 
-The auditor must state the exact correction and its verification method in the
-same `[CONDITION]` finding. If the correction requires interpretation, a choice
-between alternatives, or a material change, classify it as `[BLOCKING]`
-instead.
+## Human boundaries
 
-The authoring context may apply exactly the stated conditions without a fresh
-audit. It must verify each condition, ensure no additional change entered the
-corrected revision, and append this receipt to the active feature's `audits.md`:
+Stop the autonomous loop when remediation would:
 
-```text
-CONDITION_RECEIPT:
-AUDIT: <audit name>
-AUDITED_REVISION: <revision that received PROVISIONAL>
-CORRECTED_REVISION: <revision containing only the conditions>
-EFFECTIVE_VERDICT: PASS
+- change a signed-off requirement or design;
+- decide product behaviour, scope, architecture, security, privacy, access,
+  persisted data, an external contract, or an irreversible outcome without
+  authority; or
+- exceed five failed rounds.
 
-1. [SATISFIED] <condition> | EVIDENCE: <verification result>
-```
+At a gate handback, report the verdict, rounds, decisions, assumptions,
+advisories, and unresolved findings. Give every ID a descriptor. Only the
+operator may sign off the definition or close delivered work.
 
-Record every condition in the auditor's order. The receipt matures the
-PROVISIONAL verdict to an effective PASS without another model audit. If any
-condition cannot be applied or verified exactly, or the corrected revision
-contains another change, treat the attempt as FAIL and obtain a fresh audit.
+## Variant workflows
 
-## Autonomous phase convergence
-
-The main authoring context owns convergence within the current phase. The
-initial audit is attempt one. After a FAIL, it must remediate blocking findings
-that belong to the current phase and dispatch a fresh audit without handing
-back to the operator between attempts. It may make and record reasonable,
-reversible decisions consistent with signed-off upstream artefacts.
-
-After a PROVISIONAL verdict, apply and verify its conditions under the receipt
-contract. This does not consume another audit attempt. A condition that cannot
-be satisfied exactly converts the attempt to FAIL for the five-attempt limit.
-
-Stop the autonomous loop when:
-
-- the audit passes or a PROVISIONAL verdict matures to effective PASS;
-- five audit attempts in the phase have failed;
-- remediation would change a signed-off upstream artefact; or
-- a decision affects product behaviour, scope, security, privacy, access,
-  persisted data, an external contract, or an irreversible outcome and is not
-  already authorized.
-
-Do not change a signed-off upstream artefact merely to obtain a PASS. When a
-blocking finding belongs upstream, identify the exact proposed correction and
-return it for operator validation. Do not switch auditors merely to seek a more
-favourable verdict.
-
-## Phase synchronization
-
-The four staged phases are specification and clarification; plan and design;
-test design and tasks; and implementation, verification, and convergence.
-Before the first change in each phase, follow the phase-start pull contract in
-`~/.agents/sdlc/GIT.md`.
-
-After the phase reaches effective PASS, commit its coherent artefacts and follow
-the phase-end pull and push contract before handback or automatic advancement
-into another authorized phase. A tracked asynchronous push may overlap
-independent work as defined by `GIT.md`; collect its result before another Git
-operation or handback. Synchronization status is recoverability evidence, not an
-audit verdict, and a transient failure does not erase the phase result.
-
-## Phase handback
-
-Return to the operator only after PASS, effective PASS from a satisfied
-PROVISIONAL verdict, the fifth failed attempt, or an earlier human-controlled
-blocker. Report:
-
-- the current verdict and number of audit attempts;
-- decisions made within the signed-off authority and their rationale;
-- assumptions or proposed upstream changes requiring operator validation;
-- retained advisories; and
-- any unresolved blocking findings.
-
-An audit PASS or effective PASS is independent evidence, not operator approval.
-Request operator sign-off before advancing to the next phase.
-
-The operator may sign off the current phase and authorize one or more named,
-consecutive downstream phases in the same instruction. This authorization does
-not pre-approve artefacts that do not yet exist or replace any required audit.
-It permits the authoring context to advance through the named phases without an
-intermediate handback when each required audit reaches effective PASS and no
-autonomous-loop stop condition applies.
-
-After sign-off of an audited design, an instruction to "move on to test and
-build" authorizes task and test-traceability generation, `audit-tests`
-convergence, cross-artefact analysis, TDD implementation, and `audit-code`
-convergence. It does not waive RED/GREEN evidence, authorize an upstream change,
-or silently authorize a one-off or user test requiring human participation or
-separate external authority. Return after the authorized sequence with the
-decisions, assumptions, evidence, advisories, and unresolved matters required
-by this section.
-
-## Revision and completion boundaries
-
-An audit verdict remains evidence for the artefact revision and scope it
-assessed. A later relevant change does not erase that history, but the earlier
-verdict is no longer current for completion. The fresh audit may focus on the
-later delta plus the adjacent context needed to assess it safely; it need not
-repeat unrelated review.
-
-`audit-tests` owns the selected test strategy before implementation.
-`audit-code` owns the implementation and must not reopen an effective
-`audit-tests` PASS merely because final one-off or user-test results have not yet
-been executed. For staged and emergency delivery, execute final one-off and user
-tests after `audit-code` has an effective PASS. Completion and convergence, not
-the code audit, require their current passing results in `validation.md`.
-
-If final validation exposes a defect and remediation changes code, obtain a
-fresh `audit-code` verdict for the changed implementation and repeat only the
-test results materially affected by the change.
-
-## Emergency changes
-
-`BYPASS-GATE-7` skips the pre-implementation specification, design, and test
-audits because its exact surrounding request is the temporary specification and
-the applicable test evidence is selected before the fix. It does not skip
-`audit-code`.
-
-After implementation, verification, and durable artefact reconciliation, run a
-change-scoped `audit-code`. Remediate blocking findings and dispatch fresh
-audits under the normal five-attempt convergence contract until the change has
-an effective PASS or reaches a defined handback condition. Then execute and
-record the selected one-off and user tests. Unrelated legacy defects are not
-blocking unless the emergency change depends on them, worsens them, or cannot be
-assessed safely without resolving them.
-
-## Paired development
-
-The staged specification, design, test, and code audit sequence applies to Spec
-Kit delivery. It is not repeated for each iteration of explicitly selected
-paired development under `~/.agents/sdlc/PAIRING.md`.
-
-For paired work:
-
-- run one `audit-code` at closure when the change adds or materially modifies
-  code, templates, scripts, or non-trivial CSS;
-- scope that audit to the change and only the adjacent context needed to assess
-  it;
-- do not make unrelated legacy defects blocking unless the change relies on
-  them, worsens them, or cannot be assessed safely without resolving them;
-- run `audit-design` only for a durable structural, architectural, theme API,
-  integration, or deployment decision;
-- run `audit-tests` only when material automated-test design exists to judge;
-  and
-- run `audit-spec` only when the paired work produces or changes a durable
-  specification requiring independent review.
-
-If audit remediation changes behaviour already covered by a paired validation,
-repeat only the materially affected validation before closure. Preserve the
-earlier result as superseded evidence for its reviewed revision.
-
-When an audit does not apply, state that fact and the reason in the closure
-handback. The operator's confirmed user-test record remains evidence rather than
-an audit verdict.
+- Paired work uses only the change-scoped audits required by `PAIRING.md`; it
+  does not run a gate on every live iteration.
+- `BYPASS-GATE-7` skips the definition gate, but runs the implementation gate
+  after tests and implementation, then reconciles durable specification,
+  design, validation, and documentation evidence.

@@ -1,0 +1,61 @@
+#+TITLE: WNNN - Audit Evidence
+#+STARTUP: content
+#+OPTIONS: toc:2 num:nil
+
+#+begin_comment
+Record gate evidence without editing the audited specification or implementation
+claim. Every verdict names the artefact revision and gives identifiers adjacent
+descriptors. A timeout, missing verdict, or malformed verdict is not a PASS.
+#+end_comment
+
+* Definition gate
+
+** Local review
+:PROPERTIES:
+:ROUND:    1
+:END:
+
+- *Artefact:* [[file:spec.org][WNNN - Short descriptive title]]
+- *Revision:* [Git commit or SHA-256]
+- *Audits:* specification, design, and test definitions
+- *Verdict:* [PASS or FAIL]
+- *Findings:* [None, or numbered findings with descriptors]
+- *Remediation:* [Changes made before the next round, or none]
+
+** External review
+:PROPERTIES:
+:CONTEXT:  [Retained Codex context identifier]
+:END:
+
+- *Artefact:* [[file:spec.org][WNNN - Short descriptive title]]
+- *Revision:* [Git commit or SHA-256]
+- *Audits:* specification, design, and test definitions in one context
+- *Verdict:* [PASS or FAIL]
+- *Findings:* [None, or numbered findings with descriptors]
+- *Supersedes:* [Earlier external review, or none]
+
+* Implementation gate
+
+** Local review
+:PROPERTIES:
+:ROUND:    1
+:END:
+
+- *Artefacts:* [Descriptive implementation and test paths]
+- *Revision:* [Git commit]
+- *Audits:* implemented tests and code
+- *Verdict:* [PASS or FAIL]
+- *Findings:* [None, or numbered findings with descriptors]
+- *Remediation:* [Changes made before the next round, or none]
+
+** External review
+:PROPERTIES:
+:CONTEXT:  [Retained Codex context identifier]
+:END:
+
+- *Artefacts:* [Descriptive implementation and test paths]
+- *Revision:* [Git commit]
+- *Audits:* implemented tests and code in one context
+- *Verdict:* [PASS or FAIL]
+- *Findings:* [None, or numbered findings with descriptors]
+- *Supersedes:* [Earlier external review, or none]

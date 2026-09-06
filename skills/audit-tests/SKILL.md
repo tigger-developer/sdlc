@@ -3,10 +3,9 @@ name: audit-tests
 description: Challenge test specifications for coverage gaps, gaming opportunities, and integration risks. Advisory only; no file changes.
 ---
 
-Do not perform this audit in the current context. Invoke `sdlc-audit audit-tests`
-with one `--artifact` for each test-design file and one `--context` for each
-exact specification, test standard, or evidence file needed to judge it. Do not
-pass directories or unrelated files. Pass an exact authority outside the
-project and canonical SDLC directories with `--external-context FILE`. Return
-the validated report emitted by the command and follow the convergence contract
-in `~/.agents/sdlc/AUDITS.md`.
+Read `~/.agents/sdlc/MAIN.md`, `TESTING.md`, and `AUDITS.md`. Review the named
+test definitions or implemented tests without modifying them. Challenge
+requirement coverage, observable boundaries, RT/UT/OT classification, TDD
+suitability, missing failure paths, gaming opportunities, brittle simulations,
+and unjustified test code. Return findings under the verdict contract in
+`AUDITS.md`.

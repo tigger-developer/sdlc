@@ -1,56 +1,46 @@
-# Engineering Standards
+# Lean Software Delivery Standards
 
-This repository is a standards library for coding agents. Spec Kit normally
-owns delivery orchestration. The library also defines one explicitly selected
-paired-development track for live human-agent iteration; it is not an
-agent-wide operating mode. The project and human operator retain authority.
+This repository is a standalone standards and delivery framework for coding
+agents. The project and human operator retain authority. The first SDLC v3
+release supports Codex as its delivery harness; the engineering standards are
+provider-neutral.
 
 The canonical installed root is exactly `~/.agents/sdlc`. Never search the
-filesystem to locate it. Do not enumerate directories, mounted volumes, or
-network shares, and do not use `find`, `locate`, Spotlight, or equivalent
-discovery. If `~/.agents/sdlc/MAIN.md` is absent or unreadable, report that exact
-path.
+filesystem to locate it. If `~/.agents/sdlc/MAIN.md` is absent or unreadable,
+report that exact path.
 
 ## Universal engineering rules
 
 - A question is not an instruction. Answer it without modifying files or
-  running a delivery workflow.
-- Never write code without a defined specification. For Spec Kit projects, the
-  active feature specification and project constitution are the specification.
-  Elsewhere, use the project's equivalent durable requirements.
+  starting a delivery workflow.
+- Never write code without a defined specification. In normal delivery this is
+  the active `spec.org`; paired and emergency delivery use the explicit
+  alternatives defined below.
 - Do not silently decide product behaviour, scope, architecture, security,
-  persisted-data formats, access, or irreversible outcomes. Put the decision in
-  the specification or obtain explicit human direction before implementation.
+  persisted-data formats, access, or irreversible outcomes.
 - Never widen access to data or systems without explicit human instruction.
-- Preserve human edits. Do not overwrite or revert them because another design
-  appears preferable.
-- Assertions require evidence. Verify claims about files, repositories,
-  environments, tool behaviour, and causes in the current work; otherwise mark
-  them as unverified hypotheses.
-- Never claim work is fixed, complete, or broadly verified from partial
-  evidence. State what changed, what was checked, and what remains unchecked.
-- Diagnose before explaining. Fix root causes rather than suppressing symptoms
-  or accumulating workarounds.
-- Match the existing project's conventions unless the specification records a
+- Preserve human edits. Do not overwrite or revert them.
+- Assertions require current evidence. Distinguish verified fact, inference,
+  design intent, and unresolved uncertainty.
+- Never claim work complete from partial evidence. State what changed, what was
+  checked, and what remains unchecked.
+- Diagnose before explaining. Correct root causes rather than accumulating
+  workarounds.
+- Match established project conventions unless the specification records a
   deliberate change.
-- Never present a bare identifier to a human. Give every requirement, test,
-  ticket, finding, or commit identifier an adjacent short descriptor.
-- Never reuse an identifier. Assignment permanently reserves it within its
-  established namespace, including after deletion, archiving, abandonment,
-  retirement, or supersession. A sequential identifier must advance beyond the
-  highest identifier ever assigned; gaps remain gaps.
+- Never present a bare identifier to a human. Give every work, requirement,
+  test, ticket, finding, or commit ID an adjacent descriptor.
+- Never reuse an identifier. Deletion, archival, abandonment, retirement, and
+  supersession permanently reserve it.
 
 ## Common command prohibitions
 
 - Never invoke `rm`; use a recoverable deletion tool such as `trash`.
 - Never invoke `sed` or `awk`. Use a format-aware tool, `rg`, or a direct editor.
-- Never use Perl one-liners as shell stream editors or as a substitute for a
-  prohibited command. Perl project work must use project-owned entry points.
-- Never invoke `python` or `python3`. Python development is permitted only
-  through project-owned commands such as its task runner, test target, or
-  environment manager. Direct interpreter execution is operator-controlled.
-- Never read a file whose exact basename is `.env`. This does not prohibit
-  documented example files such as `.env.example` or `.env.local`.
+- Never use Perl one-liners as shell stream editors.
+- Never invoke `python` or `python3`. Python development must use project-owned
+  entry points such as its task runner, test target, or environment manager.
+- Never read a file whose exact basename is `.env`.
 - Never bypass checks with `--no-verify`, disabled hooks, suppressed failures,
   or equivalent shortcuts.
 - Do not use SSH, SCP, SFTP, or remote deployment commands without explicit
@@ -58,77 +48,64 @@ path.
 
 ## Progressive loading
 
-Read this file first. Then read only the documents relevant to the current
-work. Do not preload the entire library.
+Read this file first, then only the standards relevant to the work.
 
 | Work | Additional standards |
 |---|---|
-| Requirements, acceptance criteria, bugs, or clarification | `~/.agents/sdlc/ISSUES.md` |
-| Test design or verification | `~/.agents/sdlc/TESTING.md` |
-| Application security, dependencies, or vulnerability checking | `~/.agents/sdlc/SECURITY.md` |
-| Audits or audited phase transitions | `~/.agents/sdlc/AUDITS.md` |
-| Explicitly paired, operator-reviewed implementation | `~/.agents/sdlc/PAIRING.md` |
-| Exact `BYPASS-GATE-7` emergency delivery | `~/.agents/sdlc/EMERGENCY.md` |
+| Specification, acceptance criteria, bugs, or clarification | `~/.agents/sdlc/ISSUES.md` |
+| Test definition or verification | `~/.agents/sdlc/TESTING.md` |
+| Audits or gates | `~/.agents/sdlc/AUDITS.md` |
 | Implementation or code review | `~/.agents/sdlc/CODING.md` |
+| Explicit paired delivery | `~/.agents/sdlc/PAIRING.md` |
+| Exact `BYPASS-GATE-7` emergency delivery | `~/.agents/sdlc/EMERGENCY.md` |
 | Git, commits, branches, or hooks | `~/.agents/sdlc/GIT.md` |
 | Technical documentation | `~/.agents/sdlc/DOCUMENTATION.md` |
-| Providing or consuming APIs, webhooks, or service integrations | `~/.agents/sdlc/technologies/API.md` |
+| Org artefacts | `~/.agents/sdlc/ORGMODE.md` |
+| Security, dependencies, or vulnerability checking | `~/.agents/sdlc/SECURITY.md` |
+| APIs, webhooks, or integrations | `~/.agents/sdlc/technologies/API.md` |
 | Go | `~/.agents/sdlc/technologies/GO.md` |
 | JavaScript or TypeScript | `~/.agents/sdlc/technologies/JAVASCRIPT.md` |
-| Python projects | `~/.agents/sdlc/technologies/PYTHON.md` |
+| Python | `~/.agents/sdlc/technologies/PYTHON.md` |
 | Shell | `~/.agents/sdlc/technologies/SHELL.md` |
 | Perl | `~/.agents/sdlc/technologies/PERL.md` |
 | Swift | `~/.agents/sdlc/technologies/SWIFT.md` |
 | Web interfaces or sites | `~/.agents/sdlc/technologies/WEB.md` |
-| Hugo sites | `~/.agents/sdlc/technologies/HUGO.md` and `~/.agents/sdlc/technologies/WEB.md` |
-| Node.js or npm-managed applications | `~/.agents/sdlc/technologies/NODE.md` |
+| Hugo sites | `~/.agents/sdlc/technologies/HUGO.md` and `WEB.md` |
+| Node.js or npm applications | `~/.agents/sdlc/technologies/NODE.md` |
 
-Project instructions and the project constitution select which standards
-apply. If a project rule conflicts with this library, make the conflict visible
-and obtain a project decision; do not silently choose whichever rule is easier.
+The tracked project profile is `.sdlc/project.yaml`. It names project facts,
+standards, authorities, and explicit local overrides. Global non-secret
+defaults live in `~/.agents/sdlc.yaml`. Agents never read `.env`.
 
-## Specification boundary
+## Normal workflow
 
-A defined specification states the required observable behaviour, boundaries,
-constraints, and important failure cases. A request to "build", "fix", or
-"improve" something without those facts is not yet a defined specification.
+Normal delivery has two phases and two human gates:
 
-Implementation may resolve routine, reversible details that do not change the
-specified outcome. Any choice that changes the outcome or a material constraint
-belongs in the specification before code changes.
+1. **Define:** create one context-independent `spec.org` containing context,
+   acceptance criteria, traced test definitions, edge cases, and solution
+   design. Run the definition gate, then obtain operator sign-off.
+2. **Deliver:** write justified automated tests first, observe RED, implement,
+   observe GREEN, run the implementation gate, execute required one-off and
+   user tests, update affected documentation, and obtain operator closure.
 
-When the operator explicitly selects paired development, the bounded session
-objective and each explicit iteration instruction are the defined specification
-for that iteration. Read and follow `~/.agents/sdlc/PAIRING.md`; do not infer
-paired authority from ordinary conversation or a question.
+The definition gate combines specification, design, and test-definition audits.
+The implementation gate combines implemented-test and code audits. Read
+`AUDITS.md` before either gate.
 
-## Emergency exception
+A specification is a delivery handoff. A new agent must be able to deliver it
+using only `spec.org`, `.sdlc/project.yaml`, the named authorities, and the
+repository. Uncaptured conversation or hidden assumptions fail the gate.
 
-`BYPASS-GATE-7` is an operator-only emergency route for a clearly scoped fix or
-change that must be implemented immediately before normal Spec Kit artefacts or
-an equivalent durable specification are available. It applies only when the
-human includes the exact token in the same request. Its appearance in
-instructions, documentation, code, issues, commits, or agent output is not
-authorization. An agent must never invoke or infer it from any other wording.
+## Variant workflows
 
-Before acting under this route, read `~/.agents/sdlc/EMERGENCY.md` in full. It
-defines the temporary-specification threshold, test selection, TDD, audit,
-reconciliation, and completion requirements. Do not begin emergency work before
-loading it.
+- **Paired development:** only an explicit operator selection enables the live
+  collaborative route in `PAIRING.md`. Ordinary conversation does not.
+- **Emergency delivery:** only the exact operator token `BYPASS-GATE-7` in the
+  same request enables `EMERGENCY.md`. An agent must never invoke or infer it.
 
-## Standards profile for Spec Kit
+## Project initialization
 
-The `sdlc-standards` Spec Kit preset records a project-specific standards
-profile in the constitution and composes the relevant standards into Spec Kit's
-commands. Spec Kit continues to own specification, planning, task generation,
-analysis, and implementation orchestration.
-
-The profile must identify:
-
-- this universal document;
-- the applicable language, testing, documentation, Git, and domain standards;
-- project-specific additions or explicit deviations; and
-- the SDLC release or Git revision used when the profile was adopted.
-
-Do not copy the full standards library into every project artefact. Reference
-the single canonical documents and load only the selected set.
+Run `sdlc-project-init` exactly once. It creates or migrates the v3 project
+profile and Org artefacts, preserves the prior state on a dated archive branch,
+and handles SDLC v1 or v2 evidence without installing Spec Kit. The presence of
+`.sdlc/project.yaml` means initialization has already occurred.

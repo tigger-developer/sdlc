@@ -63,7 +63,7 @@ means the specification is not ready for audit or approval.
 
 - **Accurate:** agree with the request and cited authorities; distinguish
   requirements, evidence, assumptions, and unresolved decisions.
-- **Brief:** give every Spec Kit section a distinct purpose; retain only the
+- **Brief:** give every section a distinct purpose; retain only the
   repetition needed to connect user value, behavioural examples, authoritative
   rules, and feature-level measurements.
 - **Clear:** use direct, falsifiable language; separate independently failing
@@ -103,31 +103,25 @@ restatements of the same behaviour. Length follows the complexity of the
 change; brevity must not remove a material case, constraint, or source
 relationship.
 
-## Specification summary
+## Unified specification
 
-Every Spec Kit specification begins with a `Specification Summary`, followed by
-an exact `***` Markdown section break before metadata and detailed sections. It
-uses these labels in order:
+Normal delivery uses one Org document at `specs/NNN-descriptor/spec.org`. It
+contains, in order:
 
-- **Outcome:** the user or system result in one sentence.
-- **Before:** the affected current behaviour or relevant greenfield absence.
-- **After:** the required observable behaviour.
-- **Changes:** precise behaviour, interface, data, or constraint differences.
-- **Unchanged:** preserved behaviour, compatibility boundaries, and exclusions.
-- **Edge cases:** applicable empty, missing, invalid, limit, repetition,
-  concurrency, partial-failure, security, privacy, accessibility, and
-  compatibility behaviour.
-- **Decisions:** resolved assumptions and any unresolved decision.
-- **Evidence:** requirement and baseline sources plus a reference to the
-  feature's external `audits.md`; never a copied mutable verdict.
-- **Next step:** clarification still required or what operator sign-off permits.
+- a scan-friendly summary covering outcome, before, after, changes, unchanged
+  boundaries, edge cases, decisions, and next step;
+- context, scope, authorities, constraints, decisions, and blockers;
+- acceptance criteria;
+- traced RT, UT, and OT test definitions;
+- edge cases;
+- solution design and architecture impact, including security; and
+- a context-independent delivery handoff.
 
-Use short, keyword-anchored bullets with one principal fact per bullet. Draft
-the detailed specification first and derive the summary from it. The summary is
-a presentation layer within the same artefact, not a separate authority. It
-must introduce no requirement or interpretation absent below the section break,
-contradict none, and omit no material change, unchanged boundary, decision, or
-applicable edge case. A mismatch is a blocking specification-audit finding.
+Use the canonical `~/.agents/sdlc/templates/v3/spec.org`. Draft the detail first
+and derive the opening summary from it. The summary introduces nothing absent
+below its section break, contradicts nothing, and omits no material change,
+unchanged boundary, decision, or edge case. A mismatch blocks the definition
+gate.
 
 ## Acceptance criteria
 

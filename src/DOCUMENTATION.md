@@ -63,7 +63,7 @@ specification, plan, architecture record, or reference document.
 
 ## Delivery closure
 
-Before closing Spec Kit, paired, or `BYPASS-GATE-7` work, reconcile every
+Before closing normal, paired, or `BYPASS-GATE-7` work, reconcile every
 document made inaccurate, incomplete, or misleading by the change. Record the
 documentation outcome as updated or not affected, with the reason when it is
 not affected. Known stale documentation blocks closure.

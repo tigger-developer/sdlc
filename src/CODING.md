@@ -53,7 +53,7 @@ only those selected by the project's standards profile.
 - Follow an established file-header convention. If the project has none, each
   source file begins with a concise two-line `ABOUTME` header describing its
   purpose where the language permits it. Record any project-wide deviation in
-  the constitution.
+  `.sdlc/project.yaml` or the named architecture authority.
 - Public APIs, exported symbols, configuration keys, and operational interfaces
   require durable documentation.
 

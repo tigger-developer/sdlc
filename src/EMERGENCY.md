@@ -66,8 +66,8 @@ has an effective audit PASS and current passing test evidence.
 
 ## Boundaries
 
-The exception skips pre-implementation Spec Kit artefacts, tickets, modes,
-approval gates, and specification, design, and test audits. It does not override
+The exception skips the normal pre-implementation definition artefact and
+definition gate. It does not override
 safety, the common command prohibitions, test-driven development, audit-code,
 verification integrity, preservation of human work, documentation accuracy, or
 evidence requirements. It does not authorize unrelated work or scope expansion.

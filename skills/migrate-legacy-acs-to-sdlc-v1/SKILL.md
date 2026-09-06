@@ -1,12 +1,12 @@
 ---
 name: migrate-legacy-acs-to-sdlc-v1
-description: Archive and close a brownfield project's legacy GitHub tickets while reconciling its SDLC v1 acceptance-criteria ledger and documentation before Spec Kit initialization. Invoke only when the operator requests this migration.
+description: Archive and close a brownfield project's legacy GitHub tickets while reconciling its SDLC v1 acceptance-criteria ledger and documentation before SDLC v3 initialization. Invoke only when the operator requests this migration.
 metadata:
   preferred_provider: openai-codex
   preferred_model: gpt-5.6-luna
 ---
 
-# Retire an SDLC v1 ticket system for Spec Kit
+# Prepare an SDLC v1 project for SDLC v3
 
 If `~/.agents/sdlc/MAIN.md` is absent or unreadable, report that exact path;
 never search for another copy.
@@ -31,7 +31,7 @@ produces:
    when the source exists; and
 6. closure of every legacy issue after the archive is committed.
 
-Do not invoke `sdlc-project-init`, create Spec Kit artefacts, change tests or
+Do not invoke `sdlc-project-init`, create SDLC v3 artefacts, change tests or
 implementation, or migrate undelivered scope into `docs/ACs.org`. Do not inspect
 old code, search Git history ticket by ticket, re-litigate design, reproduce
 historical verification, or add migration comments to tickets.
@@ -120,9 +120,9 @@ conversion or initialization, verify that `docs/ACs.md` is absent and use only
 The authority section must state that `docs/ACs.org` is the sole authority for
 requirements established under the legacy ticket-led process. Archived tickets,
 comments, and `docs/ticket-migration.org` retain disposition, provenance, and
-rationale only; they are not current requirement or AC authorities. Approved
-Spec Kit feature specifications govern requirements established or changed
-after migration.
+rationale only; they are not current requirement or AC authorities. Signed-off
+SDLC v3 specifications govern requirements established or changed after
+migration.
 
 ## Build the live-RT delivery map first
 
@@ -332,4 +332,5 @@ screen, present `docs/ticket-migration.org` with `HTML_PREVIEW_TOOL` when that
 variable names an available command; otherwise use an available text editor.
 Presentation is not an approval gate.
 
-The operator decides whether the project is ready for `sdlc-project-init`.
+The operator decides whether the project is ready for `sdlc-project-init`, which
+creates the v3 profile and work ledger after this ticket migration is committed.

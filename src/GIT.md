@@ -38,20 +38,18 @@ Do not rely on commit-message keywords to close work automatically unless the
 project explicitly adopts that behaviour. A merged change and a verified
 outcome are separate facts.
 
-## Staged phase synchronization
+## Phase synchronization
 
-`SDLC_BRANCH_STRATEGY` selects the project workflow:
+The project profile selects the branch strategy:
 
 - `current` keeps delivery on the operator-selected branch; and
-- `feature` uses one published branch per Spec Kit feature.
+- `feature` uses one published branch per change.
 
 The initializer resolves this value from command line, process environment,
-project `.env`, user `~/.agents/.env`, then the schema default. The project
-constitution records the resolved strategy so agents need not read `.env`.
+project `.sdlc/project.yaml`, user `~/.agents/sdlc.yaml`, then the schema
+default. It persists only explicit project overrides. Agents never read `.env`.
 
-Staged Spec Kit delivery has four synchronized phases: specification and
-clarification; plan and design; test design and tasks; and implementation,
-verification, and convergence.
+Normal delivery has two synchronized phases: definition and delivery.
 
 At the start of each phase:
 

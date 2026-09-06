@@ -1,0 +1,45 @@
+#+TITLE: WNNN - Validation Evidence
+#+STARTUP: content
+#+OPTIONS: toc:2 num:nil
+
+#+begin_comment
+Record executed evidence, not planned tests. Keep one node per run. Automated
+regression results may reference the supported suite output. Record every user
+test and one-off test here with its dated result.
+#+end_comment
+
+* Automated regression
+
+** [YYYY-MM-DD] - Supported regression suite
+
+- *Command:* =make test=
+- *Revision:* [Git commit]
+- *Result:* [PASS or FAIL]
+- *Evidence:* [Concise output or descriptive artefact link]
+
+* User tests
+
+** UTNNN.1 - Descriptive user validation
+:PROPERTIES:
+:CUSTOM_ID: ut-nnn-1-result
+:DATE:      [YYYY-MM-DD]
+:END:
+
+- *Criterion:* [[file:spec.org::#ac-nnn-1][ACNNN.1 - Descriptive outcome]]
+- *Reviewer:* [Operator or named role]
+- *Result:* [PASS, FAIL, or NOT RUN]
+- *Evidence:* [What the reviewer observed]
+
+* One-off tests
+
+** OTNNN.1 - Descriptive bounded verification
+:PROPERTIES:
+:CUSTOM_ID: ot-nnn-1-result
+:DATE:      [YYYY-MM-DD]
+:END:
+
+- *Criterion:* [[file:spec.org::#ac-nnn-1][ACNNN.1 - Descriptive outcome]]
+- *Boundary:* [Exact target]
+- *Result:* [PASS, FAIL, or NOT RUN]
+- *Evidence:* [Concise output or descriptive artefact link]
+- *Cleanup:* [Completed action, or not applicable]

@@ -29,7 +29,7 @@ Never reuse a test identifier within its established namespace. A removed,
 abandoned, retired, or superseded test permanently reserves its identifier. For
 sequential identifiers, consult active records, archives, and version history
 and allocate above the highest value ever assigned. Preserve superseded entries
-in `validation.md` rather than recycling them.
+in `validation.org` rather than recycling them.
 
 ### Regression packs as brownfield evidence
 
@@ -72,7 +72,7 @@ test execution.
 
 Define the expected evidence for one-off and user tests before implementation
 where practical. They do not follow TDD and do not require a pre-change failure.
-For staged Spec Kit and `BYPASS-GATE-7` work, execute their final verification
+For normal and `BYPASS-GATE-7` work, execute final verification
 after `audit-code` has an effective PASS. Earlier diagnostic executions may
 inform implementation but are not final evidence unless they remain current for
 the audited candidate. Paired development uses the live user-validation contract
@@ -94,11 +94,10 @@ repository.
 
 ## Non-automated test results
 
-When a Spec Kit feature selects any one-off or user test, its active feature
-directory must contain `validation.md`. Create the record before implementation
-with each selected test marked `PENDING`, then replace that status with the
-observed `PASS` or `FAIL` result after execution. Non-Spec Kit projects must use
-an equivalent durable project record.
+When a change selects any one-off or user test, its specification directory must
+contain `validation.org`. Create the record before implementation with each
+selected test marked `PENDING`, then replace that status with the observed
+`PASS` or `FAIL` result after execution.
 
 Every planned entry must include:
 
@@ -117,7 +116,7 @@ A completed or superseded entry must also include:
 
 Do not infer PASS from a completed task, an agent report, or an implementation
 claim. Required one-off and user tests remain incomplete until their results are
-recorded in `validation.md`. Completion and convergence require a current PASS
+recorded in `validation.org`. Closure requires a current PASS
 for every required entry; missing, `PENDING`, `FAIL`, or materially stale results
 block closure, not `audit-code`.
 
@@ -150,9 +149,8 @@ Maintain a provisional ledger during the session. For each validation, retain:
 - whether a later iteration superseded it.
 
 At closure, present the current ledger once and ask whether it may be recorded
-as the user tests for the change. On approval, write it to the active feature's
-`validation.md`. Outside Spec Kit, use the project's equivalent durable evidence
-record. A later change invalidates only entries whose observed behaviour it
+as the user tests for the change. On approval, write it to the active change's
+`validation.org`. A later change invalidates only entries whose observed behaviour it
 materially affects.
 
 Add automated regression coverage only when the behaviour is objective and

@@ -6,8 +6,8 @@ and other experience-led changes where a detailed specification would obstruct
 the feedback loop.
 
 This is a code-only delivery track, not a conversational default or an
-agent-wide operating mode. The operator must select it explicitly. Spec Kit
-remains the default for autonomous or pre-specified delivery.
+agent-wide operating mode. The operator must select it explicitly. The normal
+two-phase workflow remains the default for autonomous or pre-specified delivery.
 
 ## Delivery flow
 
@@ -34,7 +34,8 @@ the final accepted behaviour, evidence, and design. That consolidation records
 what the operator authorized and validated; it does not grant permission
 retrospectively or introduce unapproved behaviour.
 
-The project constitution and applicable engineering standards remain in force.
+The project profile, named architecture authorities, and applicable engineering
+standards remain in force.
 The agent may resolve routine, reversible details that do not change the stated
 outcome. A decision affecting product scope, architecture, security, privacy,
 access, persisted data, an external contract, or an irreversible outcome must
