@@ -106,8 +106,9 @@ the ledger.
 The proposal lives in the project-owned `.sdlc/.init/` directory. Its presence
 tells a later invocation that initialization did not complete. The directory
 remains available when initialization fails and is removed before a completed
-migration is staged. The initializer never uses private `.git` paths as
-application storage.
+migration is staged. The initializer creates or extends `.sdlc/.gitignore` from
+the canonical template so `.init/` cannot be committed. It never uses private
+`.git` paths as application storage.
 
 The initializer commits the coherent migration and asks whether to merge it into
 the original branch. It never normalizes dormant unfinished work merely because

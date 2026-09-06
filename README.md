@@ -65,7 +65,8 @@ The initializer:
 4. creates a dated branch preserving the exact pre-migration state and offers
    to push it;
 5. creates a dedicated v3 migration branch;
-6. offers the legacy-ticket migration for eligible SDLC v1 projects;
+6. offers the optional legacy-ticket migration for eligible SDLC v1 projects
+   and continues with the existing ledger when declined;
 7. archives and removes active Spec Kit artefacts for v2 projects without
    normalizing unfinished work;
 8. inventories README, vision, and architecture Markdown or Org documents and
@@ -107,7 +108,8 @@ ledgers are an error. Only archived v2 specification disposition requires a
 model; its temporary YAML result contains status evidence rather than authority
 recommendations. A temporary `.sdlc/.init/` working directory remains if
 initialization is interrupted and is removed before a completed migration is
-staged. The initializer never uses private `.git` paths as application storage.
+staged. A tracked `.sdlc/.gitignore` excludes that temporary directory from
+commits. The initializer never uses private `.git` paths as application storage.
 
 Example global configuration:
 

@@ -47,7 +47,9 @@ bounded read-only pass, and the initializer renders their statuses into
 
 If initialization is interrupted during or after authority selection, its
 temporary working directory remains at `.sdlc/.init/`. A later invocation
-reports that path instead of treating the project as a fresh start.
+reports that path instead of treating the project as a fresh start. The
+initializer records `.init/` in `.sdlc/.gitignore` so ordinary Git operations
+cannot commit the temporary state.
 
 ### New project
 
@@ -62,7 +64,8 @@ reports that path instead of treating the project as a fresh start.
 
 - When any historical GitHub tickets and `docs/ACs.md` are found, the
   initializer offers `$migrate-legacy-acs-to-sdlc-v1` before the general
-  project-profile questions.
+  project-profile questions. Declining skips that optional workflow and
+  continues initialization from the existing AC ledger.
 - The migration runs the supported regression suite once and stops if it fails.
 - It archives every ticket and comment, creates `docs/ACs.org` and
   `docs/ticket-migration.org`, refreshes stale documentation, archives the old

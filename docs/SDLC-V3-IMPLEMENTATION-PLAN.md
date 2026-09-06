@@ -271,8 +271,8 @@ Inherited defaults and empty sections are omitted from project YAML.
   authorities or edit the work ledger.
 - [X] Keep the proposal in the project-owned `.sdlc/.init/` directory whose
   presence identifies an interrupted initialization; remove it before staging
-  the completed migration. Never use private `.git` paths as application
-  storage.
+  the completed migration. Track `.sdlc/.gitignore` with `.init/` excluded.
+  Never use private `.git` paths as application storage.
 - [X] Create `docs/work.org` from its canonical template before discovery. For
   v2 migration, validate complete classification coverage and render every
   archived specification into the appropriate existing work-ledger section.
@@ -290,7 +290,7 @@ Inherited defaults and empty sections are omitted from project YAML.
 ### 9. Migrate SDLC v1 projects
 
 - [X] Run the existing fast pre-migration workflow when the operator accepts
-  it.
+  it. Declining skips that optional workflow without stopping initialization.
 - [X] Run `make test` once at the beginning and stop if it fails.
 - [X] Archive every GitHub ticket, its comments, status, and commit references
   under `docs/archive/migrated-tickets/`.

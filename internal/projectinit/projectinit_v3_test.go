@@ -761,6 +761,55 @@ func TestRunReportsInterruptedInitializationWorkspace(t *testing.T) {
 	}
 }
 
+func TestChooseTicketMigrationDeclineContinues(t *testing.T) {
+	project := t.TempDir()
+	writeProjectTestFile(t, filepath.Join(project, "docs", "ACs.md"), "# Acceptance criteria\n")
+	var output bytes.Buffer
+	options := defaultOptions(Options{
+		ProjectRoot: project,
+		Input:       strings.NewReader("n\n"),
+		Output:      &output,
+		ErrorOutput: &bytes.Buffer{},
+		RunCommand: func(name string, arguments []string, directory string, input io.Reader, output, errorOutput io.Writer) error {
+			if name != "gh" {
+				return fmt.Errorf("unexpected command: %s %v", name, arguments)
+			}
+			_, err := io.WriteString(output, `[{"number":7}]`)
+			return err
+		},
+	})
+	run, err := chooseTicketMigration(options, project)
+	if err != nil {
+		t.Fatalf("declining optional ticket migration returned an error: %v", err)
+	}
+	if run {
+		t.Fatal("declined ticket migration was selected")
+	}
+}
+
+func TestInitializationWorkspaceIsIgnoredByGit(t *testing.T) {
+	project := t.TempDir()
+	runGitTest(t, project, "init")
+	writeProjectTestFile(t, filepath.Join(project, ".sdlc", ".gitignore"), "local-cache/\n")
+	workspace := initializationWorkspacePath(project)
+	if err := createInitializationWorkspace(testSDLCRoot(t), project, workspace); err != nil {
+		t.Fatal(err)
+	}
+	writeProjectTestFile(t, filepath.Join(workspace, "interrupted.yaml"), "version: 1\n")
+	command := exec.Command("git", "check-ignore", "--quiet", ".sdlc/.init/interrupted.yaml")
+	command.Dir = project
+	if output, err := command.CombinedOutput(); err != nil {
+		t.Fatalf("temporary initialization state is not ignored: %v: %s", err, output)
+	}
+	ignore, err := os.ReadFile(filepath.Join(project, ".sdlc", ".gitignore"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(ignore) != "local-cache/\n.init/\n" {
+		t.Fatalf("initialization ignore file = %q", ignore)
+	}
+}
+
 func argumentValue(arguments []string, name string) string {
 	for index := 0; index+1 < len(arguments); index++ {
 		if arguments[index] == name {

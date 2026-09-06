@@ -449,3 +449,13 @@ without reconstructing the work from conversation history.
 - Verified the implementation with the complete repository-owned `make test`
   target, including Go vetting, linting, shell checks, formatting checks, and
   all Go unit tests.
+- The second First Folio rehearsal exposed two initializer defects. Declining
+  the advertised optional ticket pre-migration aborted v1 initialization, and
+  the project workspace lacked the agreed nested ignore file, allowing a
+  manual synchronization to commit `.sdlc/.init/` on the interrupted branch.
+- Changed a declined ticket migration to continue with the existing ledger.
+  Added a canonical project ignore template and merge-safe creation of
+  `.sdlc/.gitignore`, ensuring `.init/` is ignored without replacing existing
+  project entries.
+- Added focused unit coverage for both defects and reran the complete
+  repository-owned `make test` target successfully.

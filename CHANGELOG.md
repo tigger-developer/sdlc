@@ -19,9 +19,9 @@ Replaced the Spec Kit delivery dependency with a lean, standalone workflow:
   vision, and architecture documents with in-place rescanning, and automatic
   `docs/work.org` plus legacy-ledger requirement authorities;
 - temporary structured YAML handoff and interruption detection under the
-  project-owned `.sdlc/.init/` directory, without using private `.git` storage,
-  external-audit timeout configuration, and one-time removal of migrated SDLC
-  keys from `.env` without exposing or changing unrelated values;
+  project-owned, Git-ignored `.sdlc/.init/` directory, without using private
+  `.git` storage, external-audit timeout configuration, and one-time removal of
+  migrated SDLC keys from `.env` without exposing or changing unrelated values;
 - lossless v2 archival by moving active Spec Kit state out of the live workflow,
   preserving unrelated project integrations, classifying every archived
   specification through one bounded audit-model pass, rendering the canonical
@@ -37,6 +37,10 @@ definitions, focused audit criteria, paired development, `BYPASS-GATE-7`, and
 the lossless legacy-ticket migration workflow. The first v3 release supports
 Codex with OpenAI models while unsupported provider copies and hooks are
 retired.
+
+Declining the optional SDLC v1 ticket pre-migration now continues project
+initialization. A canonical `.sdlc/.gitignore` prevents interrupted
+initialization state under `.sdlc/.init/` from entering commits.
 
 ## v2.1.0 - 2026-09-05
 

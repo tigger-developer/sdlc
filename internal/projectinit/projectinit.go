@@ -168,7 +168,7 @@ func Run(options Options) error {
 			return err
 		}
 	}
-	if err := createInitializationWorkspace(projectRoot, workspace); err != nil {
+	if err := createInitializationWorkspace(sdlcRoot, projectRoot, workspace); err != nil {
 		return fmt.Errorf("creating temporary initialization workspace %s: %w", workspace, err)
 	}
 	if err := writeWorkLedger(sdlcRoot, projectRoot, generation, options.Now()); err != nil {
@@ -220,7 +220,7 @@ func Run(options Options) error {
 	return nil
 }
 
-func createInitializationWorkspace(projectRoot, workspace string) error {
+func createInitializationWorkspace(sdlcRoot, projectRoot, workspace string) error {
 	directory := filepath.Join(projectRoot, ".sdlc")
 	if info, err := os.Lstat(directory); err == nil {
 		if info.Mode()&os.ModeSymlink != 0 || !info.IsDir() {
@@ -233,7 +233,58 @@ func createInitializationWorkspace(projectRoot, workspace string) error {
 	} else {
 		return err
 	}
+	if err := ensureInitializationIgnore(sdlcRoot, directory); err != nil {
+		return err
+	}
 	return os.Mkdir(workspace, 0o700)
+}
+
+func ensureInitializationIgnore(sdlcRoot, directory string) error {
+	templatePath := filepath.Join(sdlcRoot, "templates", "v3", "project.gitignore")
+	templateContents, err := os.ReadFile(templatePath)
+	if err != nil {
+		return fmt.Errorf("reading project ignore template: %w", err)
+	}
+	destination := filepath.Join(directory, ".gitignore")
+	info, err := os.Lstat(destination)
+	if errors.Is(err, os.ErrNotExist) {
+		// #nosec G306 -- this tracked project configuration is intentionally readable.
+		return os.WriteFile(destination, templateContents, 0o644)
+	}
+	if err != nil {
+		return err
+	}
+	if info.Mode()&os.ModeSymlink != 0 || !info.Mode().IsRegular() {
+		return errors.New(".sdlc/.gitignore must be a regular file, not a symbolic link")
+	}
+	existing, err := os.ReadFile(destination)
+	if err != nil {
+		return err
+	}
+	updated := string(existing)
+	for _, required := range strings.Split(strings.TrimSpace(string(templateContents)), "\n") {
+		if required == "" || containsExactLine(updated, required) {
+			continue
+		}
+		if updated != "" && !strings.HasSuffix(updated, "\n") {
+			updated += "\n"
+		}
+		updated += required + "\n"
+	}
+	if updated == string(existing) {
+		return nil
+	}
+	// #nosec G306 -- this tracked project configuration is intentionally readable.
+	return os.WriteFile(destination, []byte(updated), 0o644)
+}
+
+func containsExactLine(contents, wanted string) bool {
+	for _, line := range strings.Split(contents, "\n") {
+		if line == wanted {
+			return true
+		}
+	}
+	return false
 }
 
 func defaultOptions(options Options) Options {
@@ -625,10 +676,7 @@ func chooseTicketMigration(options Options, projectRoot string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	if !yes {
-		return false, errors.New("ticket migration was declined; no SDLC v3 migration branch was created")
-	}
-	return true, nil
+	return yes, nil
 }
 
 func prepareLegacyProject(options Options, projectRoot string, values map[string]string, runTicketMigration bool) error {
