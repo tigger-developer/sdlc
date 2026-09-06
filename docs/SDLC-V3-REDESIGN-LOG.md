@@ -225,8 +225,10 @@ an application's own root configuration.
   and requirement documents as structured YAML lists. Show descriptors and
   rationales, let the operator confirm or replace the paths, then create
   `.sdlc/project.yaml`.
-- Keep the temporary proposal in Git metadata so an interrupted initialization
-  is recognizable, then remove it after successful completion.
+- Keep the temporary proposal in the project-owned `.sdlc/.init/` directory so
+  an interrupted initialization is recognizable, then remove it before staging
+  the completed migration. Never use private `.git` paths as application
+  storage.
 - Validate and commit the migration, then ask whether to merge it into the
   original primary branch.
 

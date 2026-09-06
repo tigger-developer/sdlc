@@ -21,7 +21,6 @@ import (
 )
 
 const projectProfilePath = ".sdlc/project.yaml"
-const initializationWorkspaceName = "sdlc-project-init"
 
 var historicalIdentifierPattern = regexp.MustCompile(`(?m)(?:^|[^A-Za-z0-9])(?:W|AC|RT|UT|OT)0*([0-9]+)(?:[.]|\b)|#0*([0-9]+)\b`)
 
@@ -72,10 +71,7 @@ func Run(options Options) error {
 	if err := ensureGitRepository(options, projectRoot); err != nil {
 		return err
 	}
-	workspace, err := initializationWorkspacePath(options, projectRoot)
-	if err != nil {
-		return err
-	}
+	workspace := initializationWorkspacePath(projectRoot)
 	if exists(workspace) {
 		return fmt.Errorf("previous initialization did not complete; inspect the temporary working directory %s", workspace)
 	}
@@ -172,7 +168,7 @@ func Run(options Options) error {
 			return err
 		}
 	}
-	if err := os.Mkdir(workspace, 0o700); err != nil {
+	if err := createInitializationWorkspace(projectRoot, workspace); err != nil {
 		return fmt.Errorf("creating temporary initialization workspace %s: %w", workspace, err)
 	}
 	if err := writeWorkLedger(sdlcRoot, projectRoot, generation, options.Now()); err != nil {
@@ -199,6 +195,9 @@ func Run(options Options) error {
 			return err
 		}
 	}
+	if err := os.RemoveAll(workspace); err != nil {
+		return fmt.Errorf("removing temporary initialization workspace %s: %w", workspace, err)
+	}
 	if err := options.RunCommand("git", []string{"add", "-A"}, projectRoot, nil, options.Output, options.ErrorOutput); err != nil {
 		return fmt.Errorf("staging migration: %w", err)
 	}
@@ -218,10 +217,23 @@ func Run(options Options) error {
 			return fmt.Errorf("merging %s: %w", migration, err)
 		}
 	}
-	if err := os.RemoveAll(workspace); err != nil {
-		return fmt.Errorf("removing temporary initialization workspace %s: %w", workspace, err)
-	}
 	return nil
+}
+
+func createInitializationWorkspace(projectRoot, workspace string) error {
+	directory := filepath.Join(projectRoot, ".sdlc")
+	if info, err := os.Lstat(directory); err == nil {
+		if info.Mode()&os.ModeSymlink != 0 || !info.IsDir() {
+			return errors.New(".sdlc must be a project directory, not a file or symbolic link")
+		}
+	} else if errors.Is(err, os.ErrNotExist) {
+		if err := os.Mkdir(directory, 0o755); err != nil {
+			return err
+		}
+	} else {
+		return err
+	}
+	return os.Mkdir(workspace, 0o700)
 }
 
 func defaultOptions(options Options) Options {

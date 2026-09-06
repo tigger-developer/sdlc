@@ -264,9 +264,10 @@ Inherited defaults and empty sections are omitted from project YAML.
 - [X] Validate proposal paths against repository files, let the operator accept
   or replace each list, and write the confirmed lists to
   `.sdlc/project.yaml`.
-- [X] Keep the proposal in a temporary Git-metadata working directory whose
-  presence identifies an interrupted initialization; remove it after successful
-  completion.
+- [X] Keep the proposal in the project-owned `.sdlc/.init/` directory whose
+  presence identifies an interrupted initialization; remove it before staging
+  the completed migration. Never use private `.git` paths as application
+  storage.
 - [X] Create `docs/work.org` from its canonical template before discovery. For
   v2 migration, validate complete classification coverage and render every
   archived specification into the appropriate existing work-ledger section.

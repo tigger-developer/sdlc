@@ -14,6 +14,10 @@ specification or verification evidence.
 - Stop before editing only when requested work overlaps changes whose ownership
   cannot be established.
 - Never use destructive recovery commands against a broad path.
+- Never directly read, enumerate, create, modify, or delete anything inside
+  `.git`. Git internals are not application storage or an agent workspace. Use
+  documented `git` commands for every repository operation. No exception
+  process applies.
 - Never bypass hooks or checks with `--no-verify`, disabled hooks, force flags,
   or an alternate Git directory.
 - Never force-push or rewrite shared history without explicit authority for the

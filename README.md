@@ -98,8 +98,9 @@ Authority documents are selected after migration so the proposal sees the final
 active and archived document layout. The temporary Codex result includes paths,
 descriptors, and rationales for operator review. Confirmed project authorities
 are stored as YAML lists, including lists containing one or no documents. A
-temporary working directory in the project's Git metadata remains if
-initialization is interrupted and is removed only after successful completion.
+temporary `.sdlc/.init/` working directory remains if initialization is
+interrupted and is removed before a completed migration is staged. The
+initializer never uses private `.git` paths as application storage.
 
 Example global configuration:
 

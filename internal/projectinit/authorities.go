@@ -38,19 +38,8 @@ type migratedWorkCandidate struct {
 	Evidence    string `yaml:"evidence"`
 }
 
-func initializationWorkspacePath(options Options, projectRoot string) (string, error) {
-	path, err := commandOutput(options, projectRoot, "git", "rev-parse", "--git-path", initializationWorkspaceName)
-	if err != nil {
-		return "", fmt.Errorf("resolving temporary initialization workspace: %w", err)
-	}
-	path = strings.TrimSpace(path)
-	if path == "" {
-		return "", errors.New("Git returned an empty temporary initialization workspace path")
-	}
-	if !filepath.IsAbs(path) {
-		path = filepath.Join(projectRoot, path)
-	}
-	return filepath.Clean(path), nil
+func initializationWorkspacePath(projectRoot string) string {
+	return filepath.Join(projectRoot, ".sdlc", ".init")
 }
 
 func resolvePostMigrationConfiguration(

@@ -624,7 +624,7 @@ warnings: []
 			t.Fatalf("work ledger lacks %q:\n%s", want, work)
 		}
 	}
-	if exists(filepath.Join(project, ".git", "sdlc-project-init")) {
+	if exists(initializationWorkspacePath(project)) {
 		t.Fatal("successful initialization left its temporary working directory behind")
 	}
 }
@@ -637,13 +637,14 @@ func TestRunReportsInterruptedInitializationWorkspace(t *testing.T) {
 	writeProjectTestFile(t, filepath.Join(project, "README.md"), "# Project\n")
 	runGitTest(t, project, "add", "README.md")
 	runGitTest(t, project, "commit", "-m", "initial")
-	writeProjectTestFile(t, filepath.Join(project, ".git", "sdlc-project-init", "authority-proposal.yaml"), "version: 1\n")
+	workspace := initializationWorkspacePath(project)
+	writeProjectTestFile(t, filepath.Join(workspace, "authority-proposal.yaml"), "version: 1\n")
 
 	err := Run(Options{
 		ProjectRoot: project, SDLCRoot: testSDLCRoot(t), Overrides: v3TestOverrides(t),
 		Input: strings.NewReader(""), Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{},
 	})
-	if err == nil || !strings.Contains(err.Error(), "previous initialization did not complete") || !strings.Contains(err.Error(), "sdlc-project-init") {
+	if err == nil || !strings.Contains(err.Error(), "previous initialization did not complete") || !strings.Contains(err.Error(), workspace) {
 		t.Fatalf("interrupted initialization error = %v", err)
 	}
 }

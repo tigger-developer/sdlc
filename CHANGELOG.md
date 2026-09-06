@@ -18,7 +18,8 @@ Replaced the Spec Kit delivery dependency with a lean, standalone workflow:
 - schema-driven configuration, followed after migration by bounded read-only
   Codex discovery and operator confirmation of product, architecture, and
   requirement authority lists;
-- temporary structured YAML handoff and interruption detection in Git metadata,
+- temporary structured YAML handoff and interruption detection under the
+  project-owned `.sdlc/.init/` directory, without using private `.git` storage,
   external-audit timeout configuration, and one-time removal of migrated SDLC
   keys from `.env` without exposing or changing unrelated values;
 - lossless v2 archival by moving active Spec Kit state out of the live workflow,

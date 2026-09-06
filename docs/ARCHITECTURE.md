@@ -102,10 +102,11 @@ existing section in the canonical `docs/work.org` template. The template
 preamble, heading hierarchy, migration record, work identifiers, and required
 properties remain deterministic; the discovery agent never edits the ledger.
 
-The proposal lives in a temporary working directory in Git metadata. Its
-presence tells a later invocation that initialization did not complete. The
-directory remains available when initialization fails and is removed after a
-successful initialization and optional merge decision.
+The proposal lives in the project-owned `.sdlc/.init/` directory. Its presence
+tells a later invocation that initialization did not complete. The directory
+remains available when initialization fails and is removed before a completed
+migration is staged. The initializer never uses private `.git` paths as
+application storage.
 
 The initializer commits the coherent migration and asks whether to merge it into
 the original branch. It never normalizes dormant unfinished work merely because
