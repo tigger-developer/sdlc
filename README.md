@@ -92,8 +92,9 @@ See [QUICKSTART.md](QUICKSTART.md) for each migration path.
 
 ## Configuration
 
-Global non-secret defaults live at `~/.agents/sdlc.yaml`. Project facts and
-explicit overrides live in tracked `.sdlc/project.yaml`. Resolution order is:
+Global non-secret defaults and the deployed SDLC release live at
+`~/.agents/sdlc.yaml`. Project facts and explicit overrides live in tracked
+`.sdlc/project.yaml`. Resolution order is:
 
 1. command line;
 2. process environment;
@@ -139,6 +140,7 @@ Example global configuration:
 
 ```yaml
 version: 3
+release: v3.0.0
 delivery:
   branch_strategy: current
   definition:
@@ -158,6 +160,11 @@ infrastructure:
   owner: Example platform team
   contract: /absolute/path/to/PROJECT-INTEGRATION.md
 ```
+
+`version` identifies the configuration schema. `release` identifies the latest
+semantic-version Git tag deployed by `make install`; the installer maintains it
+without replacing unrelated settings. Projects follow those global skills and
+standards, so `.sdlc/project.yaml` does not duplicate an SDLC release pin.
 
 The initializer can import only schema-allowlisted historical `SDLC_*` values
 from a project `.env` through its shell wrapper. After the YAML profile is

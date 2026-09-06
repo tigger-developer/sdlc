@@ -76,7 +76,9 @@ Read this file first, then only the standards relevant to the work.
 
 The tracked project profile is `.sdlc/project.yaml`. It names project facts,
 standards, authorities, and explicit local overrides. Global non-secret
-defaults live in `~/.agents/sdlc.yaml`. Agents never read `.env`.
+defaults and the installed SDLC release live in `~/.agents/sdlc.yaml`. The
+schema `version` and deployed `release` are separate values. Project profiles do
+not pin the globally installed SDLC. Agents never read `.env`.
 
 ## Normal workflow
 

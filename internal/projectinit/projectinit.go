@@ -36,7 +36,6 @@ type Options struct {
 	SDLCRoot         string
 	GlobalConfigPath string
 	Overrides        map[string]string
-	SDLCRevision     string
 	Input            io.Reader
 	Output           io.Writer
 	ErrorOutput      io.Writer
@@ -203,7 +202,7 @@ func Run(options Options) error {
 			return err
 		}
 	}
-	if err := writeProjectProfile(projectRoot, options.SDLCRevision, schema, generation); err != nil {
+	if err := writeProjectProfile(projectRoot, schema, generation); err != nil {
 		return err
 	}
 	if len(legacy) != 0 {
@@ -950,16 +949,13 @@ func ensureNoSpecKit(projectRoot string) error {
 	return nil
 }
 
-func writeProjectProfile(projectRoot, revision string, schema ConfigSchema, generation projectGeneration) error {
+func writeProjectProfile(projectRoot string, schema ConfigSchema, generation projectGeneration) error {
 	root := map[string]any{"version": 3}
 	setYAMLPath(root, "project.migration_source", generation.source)
 	setYAMLPath(root, "project.primary_branch", generation.base)
 	setYAMLPath(root, "migration.archive_branch", generation.archive)
 	setYAMLPath(root, "migration.branch", generation.migration)
 	setYAMLPath(root, "migration.date", generation.date)
-	if revision != "" {
-		setYAMLPath(root, "sdlc.revision", revision)
-	}
 	for _, field := range schema.Fields {
 		value := generation.values[field.Key]
 		if !generation.explicit[field.Key] {

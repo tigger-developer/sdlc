@@ -1,8 +1,8 @@
 # SDLC v3 Implementation Plan
 
-Status: Accepted implementation handover. Implementation is active on the
-`sdlc-v3` branch; release remains conditional on validation and the first paired
-project migration.
+Status: Implemented on the `sdlc-v3` branch. Isolated new-project, SDLC v1, and
+SDLC v2 migration fixtures have passed, and the first watched SDLC v2 project
+migration has completed. The operator has authorized the `v3.0.0` release.
 
 ## Intended outcome
 
@@ -180,8 +180,10 @@ copy of itself.
 ### 7. Replace project configuration
 
 - [X] Use `~/.agents/sdlc.yaml` for non-secret global defaults.
+- [X] Record the installed SDLC release there from the latest semantic-version
+  Git tag reachable from the build commit, while preserving unrelated settings.
 - [X] Use `.sdlc/project.yaml` for tracked project facts and explicit local
-  overrides.
+  overrides, without a duplicate SDLC release pin.
 - [X] Implement precedence as command line, process environment, project YAML,
   global YAML, then schema default.
 - [X] Drive prompts, choices, validation, and persistence from one YAML schema.
@@ -198,33 +200,39 @@ copy of itself.
 Candidate global configuration:
 
 ```yaml
-schema: 1
-
-models:
-  definition: gpt-5.6-sol
-  build: gpt-5.6-terra
-  audit: gpt-5.6-luna
-
-audit:
-  timeout: 5m
-
-git:
+version: 3
+release: v3.0.0
+delivery:
   branch_strategy: current
+  definition:
+    harness: codex
+    provider: openai
+    model: gpt-5.6-sol
+  build:
+    harness: codex
+    provider: openai
+    model: gpt-5.6-terra
+  audit:
+    harness: codex
+    provider: openai
+    model: gpt-5.6-luna
+    timeout: 5m
 ```
 
 Candidate project configuration:
 
 ```yaml
-schema: 1
+version: 3
 
 project:
-  type: brownfield
-  initialized_from: sdlc-v2
-  initialized_with: v3.0.0
+  kind: application
+  migration_source: v2
+  primary_branch: master
 
-technologies:
-  - GO
-  - SHELL
+standards:
+  technologies:
+    - GO
+    - SHELL
 
 authorities:
   product:
@@ -239,12 +247,10 @@ infrastructure:
   owner: Example infrastructure project
   contract: /path/to/integration-contract.md
 
-git:
-  primary_branch: master
-
 migration:
   archive_branch: sdlc_v2_state_YYYY-MM-DD
-  migrated_at: YYYY-MM-DD
+  branch: sdlc-v3-migration-YYYY-MM-DD
+  date: YYYY-MM-DD
 ```
 
 Inherited defaults and empty sections are omitted from project YAML.
@@ -471,12 +477,13 @@ record. It records:
   SDLC keys after the YAML profile is safely written.
 - Unsupported-provider cleanup uses exact owned paths and hook signatures.
 
-## Remaining release checks
+## Post-release operating validation
 
-- Perform the first representative project migration with the operator
-  watching.
-- Deliver one small ordinary change through both v3 gates.
-- Reconcile any discrepancy found by those trials before tagging v3.0.0.
+- The first representative project migration was performed with the operator
+  watching before release.
+- Deliver one small ordinary change through both v3 gates after installation.
+- Reconcile any discrepancy found by that delivery through a subsequent
+  semantic-version release.
 
 ## Validation evidence before live installation
 

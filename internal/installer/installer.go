@@ -106,6 +106,7 @@ type Options struct {
 	Source    string
 	Apply     bool
 	Configure bool
+	Release   string
 	Input     io.Reader
 	Output    io.Writer
 }
@@ -131,9 +132,10 @@ type managedRetirement struct {
 }
 
 type installationPlan struct {
-	syncs          []managedSync
-	retirements    []managedRetirement
-	configurations []*configurationChange
+	syncs                 []managedSync
+	retirements           []managedRetirement
+	managedConfigurations []*configurationChange
+	configurations        []*configurationChange
 }
 
 func Run(options Options) error {
@@ -146,7 +148,7 @@ func Run(options Options) error {
 	if err != nil {
 		return err
 	}
-	plan, err := planInstallation(agent, source, agentHome)
+	plan, err := planInstallation(agent, source, agentHome, options.Release)
 	if err != nil {
 		return err
 	}
@@ -161,7 +163,7 @@ func Run(options Options) error {
 		if err := applyInstallation(plan, options.Output); err != nil {
 			return err
 		}
-		verified, verifyErr := planInstallation(agent, source, agentHome)
+		verified, verifyErr := planInstallation(agent, source, agentHome, options.Release)
 		if verifyErr != nil {
 			return fmt.Errorf("verifying installation: %w", verifyErr)
 		}
@@ -182,7 +184,7 @@ func Run(options Options) error {
 	return nil
 }
 
-func RunInteractive(sourcePath, userHome string, input io.Reader, output io.Writer) error {
+func RunInteractive(sourcePath, userHome, release string, input io.Reader, output io.Writer) error {
 	if input == nil {
 		input = os.Stdin
 	}
@@ -209,7 +211,7 @@ func RunInteractive(sourcePath, userHome string, input io.Reader, output io.Writ
 	}
 	plan := installationPlan{}
 	commonHome := filepath.Join(userHome, ".agents")
-	shared, planErr := planSharedInstallation(source, commonHome)
+	shared, planErr := planSharedInstallation(source, commonHome, release)
 	if planErr != nil {
 		return planErr
 	}
@@ -258,7 +260,7 @@ func RunInteractive(sourcePath, userHome string, input io.Reader, output io.Writ
 			return err
 		}
 	}
-	verified, verifyErr := planDetectedInstallation(source, userHome, agents)
+	verified, verifyErr := planDetectedInstallation(source, userHome, agents, release)
 	if verifyErr != nil {
 		return verifyErr
 	}
@@ -272,10 +274,10 @@ func RunInteractive(sourcePath, userHome string, input io.Reader, output io.Writ
 	return nil
 }
 
-func planDetectedInstallation(source, userHome string, agents []string) (installationPlan, error) {
+func planDetectedInstallation(source, userHome string, agents []string, release string) (installationPlan, error) {
 	plan := installationPlan{}
 	commonHome := filepath.Join(userHome, ".agents")
-	shared, err := planSharedInstallation(source, commonHome)
+	shared, err := planSharedInstallation(source, commonHome, release)
 	if err != nil {
 		return installationPlan{}, err
 	}
@@ -343,7 +345,7 @@ func detectedAgents(userHome string) ([]string, error) {
 }
 
 func installationHasChanges(plan installationPlan) bool {
-	if len(plan.configurations) != 0 || len(plan.retirements) != 0 {
+	if len(plan.configurations) != 0 || len(plan.managedConfigurations) != 0 || len(plan.retirements) != 0 {
 		return true
 	}
 	for _, sync := range plan.syncs {
@@ -357,6 +359,7 @@ func installationHasChanges(plan installationPlan) bool {
 func mergeInstallationPlan(plan *installationPlan, addition installationPlan) {
 	plan.syncs = append(plan.syncs, addition.syncs...)
 	plan.retirements = append(plan.retirements, addition.retirements...)
+	plan.managedConfigurations = append(plan.managedConfigurations, addition.managedConfigurations...)
 }
 
 func withDefaultIO(options Options) Options {
@@ -480,10 +483,10 @@ func defaultAgentHome(agent string) (string, error) {
 	return filepath.Join(home, "."+agent), nil
 }
 
-func planInstallation(agent, source, agentHome string) (installationPlan, error) {
+func planInstallation(agent, source, agentHome, release string) (installationPlan, error) {
 	commonHome := filepath.Join(filepath.Dir(agentHome), ".agents")
 	plan := installationPlan{}
-	shared, err := planSharedInstallation(source, commonHome)
+	shared, err := planSharedInstallation(source, commonHome, release)
 	if err != nil {
 		return installationPlan{}, err
 	}
@@ -496,7 +499,7 @@ func planInstallation(agent, source, agentHome string) (installationPlan, error)
 	return plan, nil
 }
 
-func planSharedInstallation(source, commonHome string) (installationPlan, error) {
+func planSharedInstallation(source, commonHome, release string) (installationPlan, error) {
 	liveSDLC := filepath.Join(commonHome, "sdlc")
 	if sameLexicalPath(source, liveSDLC) {
 		return installationPlan{}, fmt.Errorf("source %q is the live SDLC directory; use a separate staging clone", source)
@@ -541,6 +544,13 @@ func planSharedInstallation(source, commonHome string) (installationPlan, error)
 		return installationPlan{}, retirementErr
 	}
 	plan.retirements = append(plan.retirements, retirements...)
+	releaseChange, err := planGlobalReleaseConfiguration(commonHome, release)
+	if err != nil {
+		return installationPlan{}, err
+	}
+	if releaseChange != nil {
+		plan.managedConfigurations = append(plan.managedConfigurations, releaseChange)
+	}
 	return plan, nil
 }
 
@@ -689,6 +699,13 @@ func printInstallationPlan(output io.Writer, plan installationPlan, apply bool) 
 		}
 		fmt.Fprintf(output, "Installation: %s %s\n", verb, retirement.path)
 	}
+	for _, change := range plan.managedConfigurations {
+		verb := "would update managed configuration"
+		if apply {
+			verb = "will update managed configuration"
+		}
+		fmt.Fprintf(output, "Installation: %s %s\n", verb, change.path)
+	}
 }
 
 func applyInstallation(plan installationPlan, output io.Writer) error {
@@ -706,6 +723,11 @@ func applyInstallation(plan installationPlan, output io.Writer) error {
 			return err
 		}
 		fmt.Fprintf(output, "Installation retired: %s\n", retirement.path)
+	}
+	for _, change := range plan.managedConfigurations {
+		if err := applyConfigurationChange(change, output); err != nil {
+			return err
+		}
 	}
 	return nil
 }

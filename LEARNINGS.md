@@ -466,6 +466,19 @@ the commands and drafting skills removed by this migration. Each active legacy
 path is renamed to an adjacent backup; no generalized destination deletion or
 ownership inference is introduced.
 
+## Schema identity is not release identity
+
+`version: 3` in SDLC YAML identifies the configuration schema, not the installed
+framework release. The annotated semantic-version Git tag is the sole release
+authority. The installer derives a separate global `release` value from the
+latest tag reachable from its build commit and updates it without replacing the
+operator's other defaults.
+
+Global skills and standards move together, so copying that release into every
+project would create stale duplicate state. `.sdlc/project.yaml` records only
+project facts and explicit overrides; projects follow the release installed in
+`~/.agents/sdlc.yaml`.
+
 ## Generate the invariant and ask an agent for the evidence
 
 A generic constitution scaffold asks an agent to invent both universal

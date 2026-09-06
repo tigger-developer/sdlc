@@ -5,18 +5,20 @@ PROJECT_INITIALIZER ?= bin/sdlc-project-init
 PREVIEWER ?= bin/sdlc-preview
 LEGACY_AC_MERGER ?= bin/sdlc-merge-legacy-acs
 INSTALL_FLAGS ?=
-SDLC_RELEASE ?= $(shell git for-each-ref --count=1 --sort=-version:refname --format='%(refname:short)' --points-at=HEAD 'refs/tags/v*')
+SDLC_RELEASE ?= $(shell git for-each-ref --merged=HEAD --count=1 --sort=-version:refname --format='%(refname:short)' 'refs/tags/v*')
+INSTALLER_BUILD_FLAGS :=
 PROJECT_INITIALIZER_BUILD_FLAGS :=
 PREVIEWER_BUILD_FLAGS :=
 LEGACY_AC_MERGER_BUILD_FLAGS :=
 ifneq ($(strip $(SDLC_RELEASE)),)
+INSTALLER_BUILD_FLAGS += -ldflags "-X main.buildRelease=$(SDLC_RELEASE)"
 PROJECT_INITIALIZER_BUILD_FLAGS += -ldflags "-X main.buildRelease=$(SDLC_RELEASE)"
 PREVIEWER_BUILD_FLAGS += -ldflags "-X main.buildRelease=$(SDLC_RELEASE)"
 LEGACY_AC_MERGER_BUILD_FLAGS += -ldflags "-X main.buildRelease=$(SDLC_RELEASE)"
 endif
 
 build:
-	go build -o $(INSTALLER) ./cmd/sdlc-install
+	go build $(INSTALLER_BUILD_FLAGS) -o $(INSTALLER) ./cmd/sdlc-install
 	go build $(PROJECT_INITIALIZER_BUILD_FLAGS) -o $(PROJECT_INITIALIZER) ./cmd/sdlc-project-init
 	go build $(PREVIEWER_BUILD_FLAGS) -o $(PREVIEWER) ./cmd/sdlc-preview
 	go build $(LEGACY_AC_MERGER_BUILD_FLAGS) -o $(LEGACY_AC_MERGER) ./cmd/sdlc-merge-legacy-acs

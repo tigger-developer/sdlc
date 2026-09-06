@@ -178,7 +178,7 @@ func TestWriteProjectProfileOmitsInheritedGlobalDefaults(t *testing.T) {
 		source: "new", base: "master", archive: "sdlc_new_state_2026-09-06",
 		migration: "sdlc-v3-migration-2026-09-06", date: "2026-09-06",
 	}
-	if err := writeProjectProfile(root, "v3-test", schema, generation); err != nil {
+	if err := writeProjectProfile(root, schema, generation); err != nil {
 		t.Fatal(err)
 	}
 	contents, err := os.ReadFile(filepath.Join(root, projectProfilePath))
@@ -191,6 +191,9 @@ func TestWriteProjectProfileOmitsInheritedGlobalDefaults(t *testing.T) {
 	}
 	if strings.Contains(string(contents), "gpt-example") || strings.Contains(string(contents), "branch_strategy") {
 		t.Fatalf("inherited defaults leaked into project profile:\n%s", contents)
+	}
+	if strings.Contains(string(contents), "sdlc:") || strings.Contains(string(contents), "revision:") {
+		t.Fatalf("project profile contains a stale SDLC pin:\n%s", contents)
 	}
 	if !strings.Contains(string(contents), "application") || !strings.Contains(string(contents), "GO") || !strings.Contains(string(contents), "docs/VISION.md") {
 		t.Fatalf("project facts missing:\n%s", contents)
@@ -545,12 +548,11 @@ func TestRunInitializesOnceOnMigrationBranch(t *testing.T) {
 	runGitTest(t, project, "add", "README.md", ".gitignore")
 	runGitTest(t, project, "commit", "-m", "initial")
 	options := Options{
-		ProjectRoot:  project,
-		SDLCRoot:     testSDLCRoot(t),
-		Overrides:    v3TestOverrides(t),
-		SDLCRevision: "v3-test",
-		Input:        strings.NewReader("\n\n\nn\nn\n"),
-		Output:       &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{},
+		ProjectRoot: project,
+		SDLCRoot:    testSDLCRoot(t),
+		Overrides:   v3TestOverrides(t),
+		Input:       strings.NewReader("\n\n\nn\nn\n"),
+		Output:      &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{},
 		RunCommand: localOnlyTestRunner,
 		Now:        func() time.Time { return time.Date(2026, 9, 6, 0, 0, 0, 0, time.UTC) },
 	}
@@ -690,7 +692,7 @@ warnings: []
 
 	options := Options{
 		ProjectRoot: project, SDLCRoot: testSDLCRoot(t), Overrides: v3TestOverrides(t),
-		SDLCRevision: "v3-test", Input: strings.NewReader("\n\n\nn\nn\n"),
+		Input:  strings.NewReader("\n\n\nn\nn\n"),
 		Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{},
 		RunCommand: runner,
 		Now:        func() time.Time { return time.Date(2026, 9, 6, 0, 0, 0, 0, time.UTC) },
@@ -766,7 +768,7 @@ func TestRunMigratesV1ThroughTicketSkillBeforeCreatingProfile(t *testing.T) {
 
 	options := Options{
 		ProjectRoot: project, SDLCRoot: testSDLCRoot(t), Overrides: v3TestOverrides(t),
-		SDLCRevision: "v3-test", Input: strings.NewReader("yes\n\n\n\nn\nn\n"),
+		Input:  strings.NewReader("yes\n\n\n\nn\nn\n"),
 		Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{}, RunCommand: runner,
 		Now: func() time.Time { return time.Date(2026, 9, 6, 0, 0, 0, 0, time.UTC) },
 	}
@@ -880,7 +882,7 @@ warnings: []
 
 	options := Options{
 		ProjectRoot: project, SDLCRoot: testSDLCRoot(t), Overrides: overrides,
-		SDLCRevision: "v3-test", Input: strings.NewReader("n\n\n\nn\n"),
+		Input:  strings.NewReader("n\n\n\nn\n"),
 		Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{}, RunCommand: runner,
 		Now: func() time.Time { return time.Date(2026, 9, 6, 0, 0, 0, 0, time.UTC) },
 	}

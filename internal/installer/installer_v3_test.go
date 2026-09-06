@@ -37,7 +37,7 @@ func TestV3InteractiveInstallUsesOneGlobalTreeAndRetiresUnsupportedCopies(t *tes
 	writeFixtureFile(t, filepath.Join(root, ".hermes", "config.yaml"), "personal: true\nhooks:\n  pre_tool_call:\n    - command: bash ~/.agents/sdlc/hooks/agent-command-guard.sh\n      matcher: .*\n      timeout: 5\n")
 
 	var output bytes.Buffer
-	if err := RunInteractive(source, root, strings.NewReader("yes\n"), &output); err != nil {
+	if err := RunInteractive(source, root, "v3.0.0", strings.NewReader("yes\n"), &output); err != nil {
 		t.Fatalf("install: %v\n%s", err, output.String())
 	}
 	assertFixtureContent(t, filepath.Join(root, ".agents", "sdlc", "MAIN.md"), "# Lean SDLC\n")
@@ -66,6 +66,10 @@ func TestV3InteractiveInstallUsesOneGlobalTreeAndRetiresUnsupportedCopies(t *tes
 	if !strings.Contains(hermes, "personal: true") || strings.Contains(hermes, "agent-command-guard") {
 		t.Fatalf("Hermes cleanup did not preserve personal data and remove guard: %s", hermes)
 	}
+	global := readFixtureFile(t, filepath.Join(root, ".agents", "sdlc.yaml"))
+	if !strings.Contains(global, "version: 3") || !strings.Contains(global, "release: v3.0.0") {
+		t.Fatalf("global configuration does not identify the schema and deployed release:\n%s", global)
+	}
 }
 
 func TestV3InteractiveInstallIsSilentNoOpAfterSynchronization(t *testing.T) {
@@ -80,11 +84,18 @@ func TestV3InteractiveInstallIsSilentNoOpAfterSynchronization(t *testing.T) {
 	}
 	writeFixtureFile(t, filepath.Join(source, "templates", "codex-sdlc.rules.example"), codexPythonRulesStart+"\n"+codexPythonRulesEnd+"\n")
 	var first bytes.Buffer
-	if err := RunInteractive(source, root, strings.NewReader("yes\n"), &first); err != nil {
+	writeFixtureFile(t, filepath.Join(root, ".agents", "sdlc.yaml"), "# operator settings\nversion: 3\nrelease: v2.1.0\ndelivery:\n  branch_strategy: feature\n")
+	if err := RunInteractive(source, root, "v3.0.0", strings.NewReader("yes\n"), &first); err != nil {
 		t.Fatal(err)
 	}
+	global := readFixtureFile(t, filepath.Join(root, ".agents", "sdlc.yaml"))
+	for _, expected := range []string{"# operator settings", "version: 3", "release: v3.0.0", "branch_strategy: feature"} {
+		if !strings.Contains(global, expected) {
+			t.Fatalf("global configuration lost %q:\n%s", expected, global)
+		}
+	}
 	var second bytes.Buffer
-	if err := RunInteractive(source, root, strings.NewReader("unexpected\n"), &second); err != nil {
+	if err := RunInteractive(source, root, "v3.0.0", strings.NewReader("unexpected\n"), &second); err != nil {
 		t.Fatal(err)
 	}
 	if !strings.Contains(second.String(), "All detected SDLC copies are current.") || strings.Contains(second.String(), "Deploy all") {

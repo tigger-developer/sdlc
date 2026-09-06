@@ -7,7 +7,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"runtime/debug"
 	"strings"
 
 	"github.com/tigger-developer/sdlc/internal/projectinit"
@@ -86,7 +85,6 @@ func runCommand(arguments []string, input io.Reader, output, errorOutput io.Writ
 		SDLCRoot:         *configuredRoot,
 		GlobalConfigPath: *globalConfig,
 		Overrides:        overrides,
-		SDLCRevision:     sourceRevision(),
 		Input:            input,
 		Output:           output,
 		ErrorOutput:      errorOutput,
@@ -134,28 +132,4 @@ func bootstrapSDLCRoot(arguments []string) (string, error) {
 		}
 	}
 	return filepath.Abs(root)
-}
-
-func sourceRevision() string {
-	if buildRelease != "" {
-		return buildRelease
-	}
-	buildInfo, ok := debug.ReadBuildInfo()
-	if !ok {
-		return ""
-	}
-	var revision string
-	modified := false
-	for _, setting := range buildInfo.Settings {
-		switch setting.Key {
-		case "vcs.revision":
-			revision = setting.Value
-		case "vcs.modified":
-			modified = setting.Value == "true"
-		}
-	}
-	if modified {
-		return ""
-	}
-	return revision
 }

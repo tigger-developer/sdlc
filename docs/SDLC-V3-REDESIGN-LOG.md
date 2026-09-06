@@ -1,9 +1,9 @@
 # SDLC v3 Redesign Log
 
 Status: Accepted design record implemented on the `sdlc-v3` branch. Validation
-through isolated installer, new-project, v1, and v2 fixtures has passed. Live
-installation, the first paired project migration, and one ordinary delivery
-remain before release tagging.
+through isolated installer, new-project, v1, and v2 fixtures has passed. The
+first watched v2 project migration has completed, and the operator has
+authorized merge and release as `v3.0.0`.
 
 This document preserves decisions and open questions while the live SDLC is being redesigned. Update it as decisions are made so work can resume after context compaction or in a new agent session.
 
@@ -587,3 +587,19 @@ without reconstructing the work from conversation history.
 - Prepared the changelog and design learnings for the `v3.0.0` release. The
   operator required a stop before tagging, so no release tag or push belongs to
   this checkpoint.
+- Keep the global configuration schema version and deployed SDLC release
+  separate. `version: 3` identifies the YAML schema. A top-level `release`
+  records the latest semantic-version Git tag deployed by `make install`.
+- Treat the Git tag as the sole release authority. The installer derives the
+  global `release` value from the latest applicable release tag and preserves
+  every unrelated setting in `~/.agents/sdlc.yaml`; no hand-maintained version
+  file is introduced.
+- Stop recording an SDLC revision in `.sdlc/project.yaml`. Global skills and
+  standards follow the deployed release, so a project-local pin would be stale
+  duplicate state. Existing project pins may be removed manually; initialization
+  does not rewrite already migrated projects.
+- Merge `sdlc-v3` into the repository's primary branch before tagging and
+  publishing `v3.0.0`.
+- The later release instruction supersedes the earlier pre-tag checkpoint. The
+  release commit must pass the local regression suite, merge into `master`, and
+  be published with its annotated tag before handback.

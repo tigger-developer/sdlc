@@ -46,7 +46,10 @@ specs/NNN-descriptor/validation.org
 The project YAML contains non-secret project facts, named product, architecture,
 and requirement authorities, migration branch metadata, and explicit overrides.
 It does not copy inherited global defaults from `~/.agents/sdlc.yaml`. The work
-ledger carries work state, provenance, and an initially folded legacy
+profile does not pin an SDLC release: global skills and standards follow the
+release recorded in `~/.agents/sdlc.yaml`. Its schema `version` remains distinct
+from that installer-managed `release`. The work ledger carries work state,
+provenance, and an initially folded legacy
 acceptance-criteria subtree. Current v3 requirements, tests, and design remain
 in each unified specification rather than being duplicated into the ledger.
 Each specification is a context-independent delivery handoff. Audit and
@@ -178,7 +181,13 @@ only the migrated SDLC keys and preserves unrelated `.env` content.
 
 ## Recovery and release boundary
 
+Annotated semantic-version Git tags are the release authority. The build embeds
+the latest release tag reachable from its current commit. `make install` records
+that value as the top-level `release` in `~/.agents/sdlc.yaml`, preserving the
+operator's other global defaults. Project profiles do not duplicate it.
+
 The entire unfinished v2 implementation is preserved on
-`sdlc_v2_state_2026-09-06`. V3 is developed on `sdlc-v3`. It is not tagged until
-the focused unit suite, installer fixtures, Org rendering, and the first paired
-project migration have been reviewed.
+`sdlc_v2_state_2026-09-06`. V3 was developed on `sdlc-v3`; that branch is merged
+into `master` before the annotated release tag. The release candidate requires
+the local regression suite, installer fixtures, Org rendering, and a watched
+project migration to pass.

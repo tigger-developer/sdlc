@@ -144,6 +144,13 @@ end in a semantic-version release, annotated Git tag, and branch-and-tag push.
 Corrections made before a pending tag remain part of that release rather than
 causing artificial version churn.
 
+The installer now records the deployed release in `~/.agents/sdlc.yaml` from
+the latest semantic-version tag reachable from the build commit, while
+preserving every unrelated global setting. Configuration schema `version: 3`
+remains distinct from the installed `release`. New project profiles no longer
+duplicate an SDLC revision that would become stale as the global framework is
+updated.
+
 ## v2.1.0 - 2026-09-05
 
 Defined the intended replacement for the four separately approved Spec Kit

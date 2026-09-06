@@ -54,10 +54,24 @@ func TestRunHelpIsSuccessful(t *testing.T) {
 	if err != nil {
 		t.Fatalf("run(--help) error = %v", err)
 	}
-	for _, flagName := range []string{"-agent", "-agent-home", "-source", "-apply", "-configure"} {
+	for _, flagName := range []string{"-agent", "-agent-home", "-source", "-apply", "-configure", "-version"} {
 		if !strings.Contains(output.String(), flagName) {
 			t.Errorf("help output missing %q: %q", flagName, output.String())
 		}
+	}
+}
+
+func TestRunVersionReportsEmbeddedRelease(t *testing.T) {
+	previous := buildRelease
+	buildRelease = "v3.0.0"
+	t.Cleanup(func() { buildRelease = previous })
+	var output bytes.Buffer
+
+	if err := run([]string{"--version"}, strings.NewReader(""), &output); err != nil {
+		t.Fatalf("run(--version) error = %v", err)
+	}
+	if output.String() != "sdlc-install v3.0.0\n" {
+		t.Fatalf("version output = %q", output.String())
 	}
 }
 
