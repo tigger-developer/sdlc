@@ -35,6 +35,13 @@ The initializer prints a concise migration commit summary. Use
 `VERBOSE=1 sdlc-project-init` only when the complete Git changed-file inventory
 is useful.
 
+Before the technology question, the configured audit model performs one
+bounded, read-only stack assessment. Its evidence-backed recommendations appear
+as `[x]` selections. Press Enter to accept them or enter the complete corrected
+selection. The assessment ignores archives, generated output, dependencies,
+framework-owned files, and incidental tooling. A truly blank project receives
+no inferred selection.
+
 The command creates the archive branch before making changes. Review any push
 and final merge question by branch descriptor, not by an unexplained name.
 
@@ -45,11 +52,12 @@ Enter to accept. Exact path case is preserved. `docs/work.org` is recorded
 automatically as the sole requirement authority rather than offered as a
 choice. Any canonical legacy AC ledger is folded into it first.
 
-Only an SDLC v2 project with archived Spec Kit specifications starts headless
-Codex. The configured audit model classifies those specifications in one
-bounded read-only pass. The initializer removes their obsolete top-level Status
-fields and renders their lifecycle into `docs/work.org`. Projects without
-archived specifications skip this call.
+An SDLC v2 project with archived Spec Kit specifications starts one additional
+headless Codex context. The configured audit model classifies those
+specifications in one bounded read-only pass. The initializer removes their
+obsolete top-level Status fields and renders their lifecycle into
+`docs/work.org`. Projects without archived specifications skip this second
+model operation.
 
 If initialization is interrupted during or after authority selection, its
 temporary working directory remains at `.sdlc/.init/`. A later invocation

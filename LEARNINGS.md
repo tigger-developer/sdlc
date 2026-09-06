@@ -87,11 +87,19 @@ decide whether a README owns product policy or merely introduces a repository.
 Asking the operator to recall every authority path is equally unreliable,
 especially after migration has moved or created documents.
 
-V3 therefore separates semantic proposal from deterministic control. A bounded,
-read-only headless agent analyses repository files only after migration and
-returns structured YAML containing candidate paths, descriptors, and rationales.
-The initializer validates those paths and the operator confirms or replaces each
-list. The model proposes; it never silently grants authority.
+V3 therefore separates semantic proposal from deterministic control. Authority
+paths come from a bounded Git inventory and remain explicit operator choices.
+Where classification needs semantic judgement, a bounded read-only agent
+returns strict structured YAML that the initializer validates before use. The
+model proposes or classifies; it never silently grants authority.
+
+Technology selection has the same recall problem but a narrower answer space.
+A schema supplies the complete set of available standards, while one bounded
+read-only assessment identifies only those materially evidenced by maintained
+product, test, build, packaging, or deployment artefacts. The result is a
+preselected recommendation, not hidden configuration. This helps both
+brownfield projects and scaffolded greenfield projects without pretending that
+an empty repository reveals its intended stack.
 
 ## Migration preserves history without processing dormant work
 

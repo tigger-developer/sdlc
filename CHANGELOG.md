@@ -85,6 +85,13 @@ visible. V2 migration removes the obsolete top-level Status field from archived
 Spec Kit specifications after preserving the exact pre-migration state on the
 archive branch.
 
+Added one bounded, read-only technology assessment before the schema-driven
+technology question. It uses the configured audit model, recommends only
+dynamically discovered technology standards, excludes archived, generated,
+vendored, framework, and incidental files, and presents its evidence-backed
+choices as operator-editable defaults. Blank projects and unavailable model
+runs fall back to the required manual selection.
+
 ## v2.1.0 - 2026-09-05
 
 Defined the intended replacement for the four separately approved Spec Kit

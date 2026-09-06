@@ -540,3 +540,13 @@ without reconstructing the work from conversation history.
   `HOLDING` to `HOLD`, preserve any qualification under `Status qualification`,
   and inherit `legacy` from the folded parent subtree. Remove `docs/ACs.org`
   only after verifying the complete merged subtree.
+- Add one bounded, read-only technology-stack assessment before the existing
+  schema question when the operator has not supplied a selection. Use the audit
+  model resolved through the normal configuration precedence, including the
+  global Luna default. Supply the dynamically discovered schema choices,
+  reject unknown or evidence-free output, and present valid recommendations as
+  preselected operator-editable defaults.
+- Apply the assessment to brownfield repositories and greenfield repositories
+  with scaffolding. Exclude archives, generated output, vendored dependencies,
+  provider or framework artefacts, and incidental tooling. A truly blank
+  project produces no inferred selection and still requires an operator choice.

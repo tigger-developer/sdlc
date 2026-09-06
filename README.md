@@ -60,26 +60,29 @@ The initializer:
 
 1. refuses when `.sdlc/project.yaml` already exists;
 2. detects a new project, an SDLC v1 project, or an SDLC v2 Spec Kit project;
-3. asks the schema-driven questions needed before migration, including project
-   role, technologies, infrastructure ownership, branch strategy, agent
+3. uses the configured audit model for one bounded, read-only assessment of
+   technologies materially used by the project, then presents those findings
+   as preselected choices in the schema-driven technology question;
+4. asks the remaining schema-driven questions needed before migration,
+   including project role, infrastructure ownership, branch strategy, agent
    settings, and audit timeout;
-4. creates a dated branch preserving the exact pre-migration state and offers
+5. creates a dated branch preserving the exact pre-migration state and offers
    to push it;
-5. creates a dedicated v3 migration branch;
-6. offers the optional legacy-ticket migration for eligible SDLC v1 projects
+6. creates a dedicated v3 migration branch;
+7. offers the optional legacy-ticket migration for eligible SDLC v1 projects
    and continues with the existing ledger when declined;
-7. archives and removes active Spec Kit artefacts for v2 projects without
+8. archives and removes active Spec Kit artefacts for v2 projects without
    normalizing unfinished work;
-8. inventories README, vision, and architecture Markdown or Org documents and
+9. inventories README, vision, and architecture Markdown or Org documents and
    lets the operator select, deselect, move, and rescan them;
-9. folds any canonical `docs/ACs.org` into a preserved or newly created
+10. folds any canonical `docs/ACs.org` into a preserved or newly created
    `docs/work.org`, which becomes the sole requirement authority;
-10. for v2 projects with archived specifications, runs one bounded read-only
+11. for v2 projects with archived specifications, runs one bounded read-only
     classification with the configured audit model, removes their obsolete
     top-level Status fields, and renders their lifecycle into `docs/work.org`;
-11. creates `.sdlc/project.yaml` and commits the migration with a concise
+12. creates `.sdlc/project.yaml` and commits the migration with a concise
     commit summary; and
-12. asks whether to merge the migration branch into the original branch.
+13. asks whether to merge the migration branch into the original branch.
 
 Set `VERBOSE=1` to show Git's complete changed-file inventory during the
 migration commit.
@@ -103,6 +106,14 @@ Enter to inherit it or enter a project override. Inherited global values are not
 copied into the project file. Project identity, technology selection, and
 infrastructure role are always project decisions.
 
+When no explicit technology selection exists, the initializer asks the
+configured audit model for a read-only assessment before displaying the
+schema-owned technology choices. Maintained product, test, build, packaging,
+and deployment artefacts count as evidence. Archived, generated, vendored,
+framework-owned, and incidental tooling does not. The recommendations begin
+selected and include concise evidence; the operator may accept or replace them.
+A genuinely blank project has no inferred stack and requires a manual choice.
+
 Every interactive question begins on a separate line. Schema choices and
 document authorities share the same `[x]` and `[ ]` presentation; configuration
 questions select one value, while authority questions permit toggling and
@@ -114,10 +125,10 @@ whose stems contain README, VISION, or ARCHITECTURE, preserves exact path case,
 and supports multiple selections and rescanning after a move. The initializer
 preserves an existing `docs/work.org`, adds missing migration structure, and
 folds a canonical legacy AC ledger beneath `Legacy Acceptance Criteria (SDLC
-v1)`. It then records only `docs/work.org` as the requirement authority. Only
-archived v2 specification disposition requires a model; its temporary YAML
-result contains status evidence rather than authority recommendations. A
-temporary `.sdlc/.init/` working directory remains if
+v1)`. It then records only `docs/work.org` as the requirement authority.
+Technology assessment and archived v2 specification disposition require a
+model. Their temporary YAML contains recommendations or status evidence rather
+than authority decisions. A temporary `.sdlc/.init/` working directory remains if
 initialization is interrupted and is removed before a completed migration is
 staged. A tracked `.sdlc/.gitignore` excludes that temporary directory from
 commits. The initializer never uses private `.git` paths as application storage.

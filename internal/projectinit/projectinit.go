@@ -129,7 +129,8 @@ func Run(options Options) error {
 		return err
 	}
 	legacy = normalizeLegacyConfiguration(legacy, options.ErrorOutput)
-	values, explicit, err := resolveConfiguration(options, schema, technologies, global, legacy)
+	technologyAssessment := assessProjectTechnologies(options, schema, technologies, global, legacy, sdlcRoot, projectRoot)
+	values, explicit, err := resolveConfiguration(options, schema, technologies, global, legacy, technologyAssessment)
 	if err != nil {
 		return err
 	}
@@ -489,7 +490,7 @@ func removeMigratedEnvironment(sdlcRoot, projectRoot string, schema ConfigSchema
 	return nil
 }
 
-func resolveConfiguration(options Options, schema ConfigSchema, technologies []Technology, global map[string]any, legacy map[string]string) (map[string]string, map[string]bool, error) {
+func resolveConfiguration(options Options, schema ConfigSchema, technologies []Technology, global map[string]any, legacy map[string]string, technologyAssessment *technologyAssessment) (map[string]string, map[string]bool, error) {
 	reader := options.inputReader
 	values := map[string]string{}
 	explicit := map[string]bool{}
@@ -501,6 +502,11 @@ func resolveConfiguration(options Options, schema ConfigSchema, technologies []T
 			continue
 		}
 		value, isExplicit, valueSource := initialValue(field, options.Overrides, legacy, global)
+		if field.Key == "SDLC_TECHNOLOGIES" && !isExplicit && value == "" && technologyAssessment != nil {
+			value = technologyAssessment.selection()
+			valueSource = "assessment"
+			renderTechnologyAssessment(options.Output, *technologyAssessment)
+		}
 		if field.Prompt != "" && !isExplicit {
 			selected, changed, err := promptField(reader, options.Output, field, value, valueSource, technologies)
 			if err != nil {
@@ -606,10 +612,14 @@ func promptField(reader *bufio.Reader, output io.Writer, field ConfigField, inhe
 	renderPromptChoices(output, field.Prompt, displayChoices)
 	if inherited != "" {
 		label := "Default"
+		action := "inherit"
 		if inheritedSource == "global" {
 			label = "Global SDLC default"
+		} else if inheritedSource == "assessment" {
+			label = "Recommended"
+			action = "accept"
 		}
-		fmt.Fprintf(output, "%s: %s. Press Enter to inherit, or enter a project value.\n", label, inherited)
+		fmt.Fprintf(output, "%s: %s. Press Enter to %s, or enter a project value.\n", label, inherited, action)
 	}
 	fmt.Fprint(output, "Selection: ")
 	line, err := reader.ReadString('\n')

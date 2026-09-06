@@ -106,6 +106,17 @@ new context.
 worktree, creates a dated archive branch before mutation, and performs all work
 on a dedicated migration branch.
 
+Before configuration, one ephemeral Codex context assesses the project's
+technology stack in a read-only sandbox using the configured audit model. The
+prompt receives the exact technology names discovered from the deployed
+standards directory. Its strict YAML result can recommend only those names and
+must attach concrete evidence. The initializer validates the result and uses it
+only as the default for the existing schema-driven multi-select question.
+Explicit selections skip the model; an unavailable or invalid assessment falls
+back visibly to manual selection. This applies equally to maintained
+brownfield projects and greenfield projects with initial scaffolding. A blank
+project has no evidence from which to infer a stack.
+
 - New projects receive the project profile and empty work ledger.
 - SDLC v1 projects may first run the lossless GitHub-ticket migration. Historical
   requirements are normalized through `docs/ACs.org`, then folded into
@@ -127,14 +138,15 @@ existing `docs/work.org`, adds only missing migration structure and records,
 folds any canonical `docs/ACs.org` into it, and records only `docs/work.org` as
 the requirement authority. A remaining separate AC ledger is an error.
 
-Only an SDLC v2 migration with archived specifications invokes headless Codex.
-The configured audit model receives the exact specification paths and may read
-only their feature directories. Its temporary structured YAML classifies each
-specification as delivered, approved but undelivered, abandoned, or unresolved,
-with priority, creation date, and supporting evidence. Audit PASS alone is not
-operator approval. The initializer validates exact coverage, then renders each
-classification beneath `Work items` in the canonical `docs/work.org`
-hierarchy. The agent never selects authority documents or edits the ledger.
+The other bounded headless Codex operation applies only to an SDLC v2 migration
+with archived specifications. The configured audit model receives the exact
+specification paths and may read only their feature directories. Its temporary
+structured YAML classifies each specification as delivered, approved but
+undelivered, abandoned, or unresolved, with priority, creation date, and
+supporting evidence. Audit PASS alone is not operator approval. The initializer
+validates exact coverage, then renders each classification beneath `Work items`
+in the canonical `docs/work.org` hierarchy. Neither model operation selects
+authority documents or edits project artefacts.
 
 The proposal lives in the project-owned `.sdlc/.init/` directory. Its presence
 tells a later invocation that initialization did not complete. The directory
