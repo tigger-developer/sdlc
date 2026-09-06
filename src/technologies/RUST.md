@@ -255,6 +255,31 @@ suppress findings. Use `cargo deny` additionally when licence, allowed source,
 duplicate-version, or banned-crate policy is required; those checks do not
 replace behavioural tests.
 
+Use this baseline target when `cargo audit` is the selected scanner:
+
+```make
+.PHONY: vulncheck
+vulncheck:
+	@command -v cargo-audit >/dev/null 2>&1 || { \
+		printf '%s\n' 'cargo-audit is required for make vulncheck' >&2; \
+		exit 1; \
+	}
+	@test -f Cargo.lock || { \
+		printf '%s\n' 'Cargo.lock is required for make vulncheck' >&2; \
+		exit 1; \
+	}
+	cargo audit --file Cargo.lock
+```
+
+The target deliberately does not install `cargo-audit` or generate a lockfile.
+`cargo audit --file Cargo.lock` checks the named resolved dependency graph and
+returns failure for reported vulnerabilities. Record narrowly approved advisory
+exceptions in the repository's Cargo Audit configuration under the exception
+contract in `~/.agents/sdlc/SECURITY.md`; never add an inline `--ignore` merely
+to make the target pass. A workspace normally has one root `Cargo.lock`; add an
+explicit scan for every other committed lockfile that contributes to a deployed
+artefact.
+
 ## Established ecosystem libraries
 
 Prefer the standard library and existing project dependencies when they meet the

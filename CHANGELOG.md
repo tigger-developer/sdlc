@@ -102,7 +102,9 @@ reproducibility, idiomatic API and ownership design, common architectures,
 async and concurrency discipline, errors, unsafe and FFI boundaries, provider
 SDK isolation, testing, security scanning, established ecosystem libraries, and
 Rust-specific anti-patterns. Rust deployables now use `cargo audit` as their
-preferred `make vulncheck` scanner.
+preferred `make vulncheck` scanner, with a fail-closed canonical target that
+requires the scanner and committed `Cargo.lock` instead of installing or
+generating either during the gate.
 
 ## v2.1.0 - 2026-09-05
 

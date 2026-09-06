@@ -68,6 +68,7 @@ Read this file first, then only the standards relevant to the work.
 | Python | `~/.agents/sdlc/technologies/PYTHON.md` |
 | Shell | `~/.agents/sdlc/technologies/SHELL.md` |
 | Perl | `~/.agents/sdlc/technologies/PERL.md` |
+| Rust | `~/.agents/sdlc/technologies/RUST.md` |
 | Swift | `~/.agents/sdlc/technologies/SWIFT.md` |
 | Web interfaces or sites | `~/.agents/sdlc/technologies/WEB.md` |
 | Hugo sites | `~/.agents/sdlc/technologies/HUGO.md` and `WEB.md` |

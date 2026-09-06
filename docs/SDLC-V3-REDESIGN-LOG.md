@@ -554,3 +554,8 @@ without reconstructing the work from conversation history.
   or name toggles that choice, the complete `[x]` state is redrawn, and Enter
   confirms it. After validation, print the concise resolved selection before
   the next question.
+- Add Rust as a dynamically discovered technology standard and route Rust work
+  to it from `MAIN.md`. Deployable Rust applications use `cargo audit` against
+  the committed `Cargo.lock` through a canonical fail-closed `make vulncheck`
+  target. The target checks prerequisites but never installs the scanner or
+  generates dependency state.
