@@ -417,3 +417,21 @@ without reconstructing the work from conversation history.
   allows the operator to relocate a misplaced authority such as a root-level
   `ARCHITECTURE.md` into `docs/`, then rescan and continue without restarting.
   Do not use the `find` command or inspect `.git` internals.
+- Never ask the operator or a model whether `docs/work.org` or the applicable
+  legacy AC ledger is an authority. The initializer always records
+  `docs/work.org` under requirement authorities. It also records `docs/ACs.org`
+  when present, otherwise `docs/ACs.md` when present. Both ledgers existing is
+  an error; a missing ledger is an error only for a migration source that
+  requires one. A genuinely new project has no legacy ledger to record.
+- The only semantic model work during project initialization is an SDLC v2
+  migration with archived Spec Kit specifications. Invoke the configured audit
+  model with a short bounded prompt to classify each archived specification as
+  delivered, approved-undelivered, abandoned, or unresolved. The model returns
+  structured status evidence only; it does not select authorities or write the
+  ledger.
+- Render `docs/work.org` deterministically from the canonical template. Populate
+  it from the bounded v2 classification for an SDLC v2 migration and from the
+  ticket-migration record for an SDLC v1 migration. For a new project, or a v2
+  project with no archived specifications, install the clean template skeleton
+  rather than creating a zero-byte file. Skip the model invocation when there
+  are no archived Spec Kit specifications to classify.
