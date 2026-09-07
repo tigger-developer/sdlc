@@ -289,4 +289,62 @@
 
 - *Authorization:* Taḋg approved W004 for implementation on 2026-09-07 after
   reviewing the definition-gate PASS.
-- *Status:* Implementation audit evidence has not yet been recorded.
+- *Specification:* SHA-256
+  =5de03e3f8c9a5fc46866d86498624531e90bc374a989f388a948a582b6e6b392=.
+
+** Local review - round 1
+:PROPERTIES:
+:ROUND:    1
+:END:
+
+- *Revision:* Git commit =78f00bf=
+- *Audits:* =audit-test-code= and =audit-code=
+- *Verdict:* FAIL
+- *Findings:*
+  1. [audit-code] [BLOCKING] An unknown option-bearing =sudo= wrapper could
+     bypass command restrictions.
+  2. [audit-code] [BLOCKING] A literal =.env= search pattern was blocked while
+     an unrecognized native hook payload could pass without a decision.
+  3. [audit-test-code] [BLOCKING] Regression evidence did not yet cover the
+     complete cross-harness phase matrix, native payload boundaries, conflict
+     preservation, canonical skill refresh, or generic start and resume
+     failures.
+
+** Local review - round 2
+:PROPERTIES:
+:ROUND:    2
+:END:
+
+- *Revision:* Git commit =8115b3c=
+- *Audits:* =audit-test-code= and =audit-code=
+- *Verdict:* FAIL
+- *Findings:*
+  1. [audit-code] [BLOCKING] Archived Spec Kit classification invoked a harness
+     outside the shared runner, bypassing the configured timeout, process-group
+     termination, bundle verification, and typed incident contract.
+  2. [audit-test-code] [BLOCKING] The installer verifier required an executable
+     command guard, but the tracked guard was mode =0644=; a real installation
+     therefore failed after writing its projections.
+- *Remediation:* Routed classification through the shared harness runner and
+  restored executable mode on the canonical guard. The installer regression
+  now exercises that mode contract.
+
+** Local review - round 3
+:PROPERTIES:
+:ROUND:    3
+:END:
+
+- *Revision:* Git commit
+  =a148c28409c007e1bcdff4e0c2a7af5190cd9584=
+- *Audits:* =audit-test-code= and =audit-code=
+- *Verdict:* PASS
+- *Findings:* No required correction remains.
+- *Evidence:* =make test= passed Go vet, golangci-lint, ShellCheck, shfmt, and
+  all Go regression packages on 2026-09-08. Focused project-initializer,
+  harness-runner, runner-CLI, and uncached installer regressions also passed.
+- *Advisory:* The canonical shell guard is now 432 lines, above the shell
+  complexity tripwire. Its behaviour is covered by focused regression tests,
+  but a later change should consider moving parsing into a small structured
+  implementation without weakening the single canonical policy.
+- *Status:* Local implementation gate PASS. One retained external implementation
+  audit remains required.
