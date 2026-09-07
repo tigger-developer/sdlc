@@ -44,24 +44,33 @@ outcome are separate facts.
 
 ## Phase synchronization
 
-The project profile selects the branch strategy:
+The project profile selects the implementation branch strategy:
 
-- `current` keeps delivery on the operator-selected branch; and
-- `feature` uses one published branch per change.
+- `current` keeps implementation on the operator-selected branch; and
+- `feature` uses one published implementation branch per approved change.
 
 The initializer resolves this value from command line, process environment,
 project `.sdlc/project.yaml`, user `~/.agents/sdlc.yaml`, then the schema
 default. It persists only explicit project overrides. Agents never read `.env`.
 
-Normal delivery has two synchronized phases: definition and delivery.
+Normal delivery has two synchronized phases: definition and delivery. The
+definition phase always remains on the operator-selected branch. The branch
+strategy applies only after definition-gate PASS and operator sign-off admit
+the change to delivery.
 
 At the start of each phase:
 
 1. Inspect the repository and working tree.
 2. Pull the active branch through its configured upstream and pull strategy
    before changing that phase's artefacts.
-3. Under `feature`, pull the configured base branch before creating a new
-   feature branch. After creation, synchronize the feature branch itself.
+
+At the start of the delivery phase only, under `feature`:
+
+1. Pull the project's recorded primary branch.
+2. Create one project-convention feature branch for the approved change.
+3. Synchronize and publish that feature branch before implementation.
+
+Do not create, switch, merge, or delete a feature branch during definition.
 
 At the end of each phase, after its artefacts have an effective audit PASS and
 are committed:
@@ -69,10 +78,11 @@ are committed:
 1. Pull the active branch through its configured upstream and pull strategy.
 2. Push every committed phase checkpoint to that upstream.
 
-Selecting `feature` authorizes creation and first publication of the feature
-branch through an existing configured remote. It does not authorize creating or
-changing a remote, guessing a base branch, or rewriting history. Follow the
-project's established branch naming and integration policy.
+Selecting `feature` authorizes creation and first publication of the
+implementation branch through an existing configured remote. It does not
+authorize creating or changing a remote, guessing a primary branch, or
+rewriting history. Follow the project's established branch naming and
+integration policy.
 
 A push may run asynchronously while independent non-Git work continues, but it
 must remain tracked and only one synchronization operation may be in flight.

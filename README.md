@@ -70,8 +70,8 @@ The initializer:
 3. applies schema-defined heuristics to the bounded Git inventory and presents
    the detected technologies as preselected choices for operator confirmation;
 4. asks the remaining schema-driven questions needed before migration,
-   including project role, infrastructure ownership, branch strategy, agent
-   settings, and audit timeout;
+   including project role, infrastructure ownership, implementation branch
+   strategy, agent settings, and audit timeout;
 5. creates a dated branch preserving the exact pre-migration state and offers
    to push it;
 6. creates a dedicated v3 migration branch;

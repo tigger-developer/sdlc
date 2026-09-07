@@ -13,6 +13,13 @@ evidence that remains current. Do not begin by rerunning definition audits. A
 material specification change resets the definition gate and sign-off to
 `PENDING` and moves the work item to `REVIEW`.
 
+After admission, apply the implementation branch strategy from the project and
+global configuration. Under `current`, remain on the operator-selected branch.
+Under `feature`, pull the project's recorded primary branch, create and publish
+one project-convention feature branch for this change, then deliver there. Do
+not create the feature branch during definition or before checking admission.
+Never guess a primary branch, remote, or naming convention.
+
 Write every justified automated regression test before production code and
 observe the expected RED result. Implement the smallest coherent solution,
 observe GREEN, and keep the specification synchronized if implementation

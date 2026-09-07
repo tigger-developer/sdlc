@@ -105,10 +105,10 @@ fields:
   - key: SDLC_BRANCH_STRATEGY
     path: delivery.branch_strategy
     flag: branch-strategy
-    help: Delivery branch strategy
+    help: Implementation branch strategy
     type: choice
     choices: [current, feature]
-    prompt: "Select delivery branch strategy:"
+    prompt: "Select implementation branch strategy:"
     default: current
     allow_global: true
 

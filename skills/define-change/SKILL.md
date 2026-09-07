@@ -3,9 +3,14 @@ name: define-change
 description: Define and audit one lean SDLC v3 change through operator sign-off, without implementing it.
 ---
 
-Read `~/.agents/sdlc/MAIN.md`, `ISSUES.md`, `TESTING.md`, `CODING.md`,
+Read `~/.agents/sdlc/MAIN.md`, `ISSUES.md`, `TESTING.md`, `CODING.md`, `GIT.md`,
 `DOCUMENTATION.md`, and `ORGMODE.md`, then the project profile and its selected
 standards and authorities.
+
+Remain on the operator-selected branch throughout definition. Do not create,
+switch, merge, or delete a feature branch. The project branch strategy applies
+only when an approved specification enters delivery. Synchronize the current
+branch at the definition boundaries required by `GIT.md`.
 
 Ask no more than three concise free-form questions needed to define product
 scope. If operator direction raises unresolved test or design choices, ask no

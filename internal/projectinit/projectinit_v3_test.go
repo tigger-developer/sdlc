@@ -126,7 +126,7 @@ func TestPromptFieldUsesSharedSelectedChoiceLayout(t *testing.T) {
 	if value != "current" || explicit {
 		t.Fatalf("selection = %q, explicit = %v", value, explicit)
 	}
-	want := "\nSelect delivery branch strategy:\n[x] 1. current\n[ ] 2. feature\nDefault: current. Press Enter to inherit, or enter a project value.\nSelection: "
+	want := "\nSelect implementation branch strategy:\n[x] 1. current\n[ ] 2. feature\nDefault: current. Press Enter to inherit, or enter a project value.\nSelection: "
 	if output.String() != want {
 		t.Fatalf("prompt output = %q, want %q", output.String(), want)
 	}
