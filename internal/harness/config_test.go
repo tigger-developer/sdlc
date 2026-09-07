@@ -64,6 +64,29 @@ func TestW004LowerPrecedenceProviderIsIgnoredWhenHarnessChanges(t *testing.T) {
 	}
 }
 
+func TestW004EveryHarnessResolvesForEveryPhase(t *testing.T) {
+	for _, phase := range []string{"definition", "build", "audit"} {
+		for _, harnessName := range []string{"codex", "claude", "copilot", "hermes"} {
+			t.Run(phase+"/"+harnessName, func(t *testing.T) {
+				provider := ""
+				if harnessName == "hermes" {
+					provider = "test-provider"
+				}
+				config, err := ResolveConfig(ConfigOptions{
+					Phase: phase, GlobalPath: filepath.Join(t.TempDir(), "absent.yaml"), Harness: harnessName,
+					Provider: provider, Model: "test-model", Timeout: 17 * time.Second, LookupEnv: noEnvironment,
+				})
+				if err != nil {
+					t.Fatal(err)
+				}
+				if config.Harness != harnessName || config.Provider != provider || config.Model != "test-model" || config.Timeout != 17*time.Second {
+					t.Fatalf("config = %#v", config)
+				}
+			})
+		}
+	}
+}
+
 func writeHarnessConfig(t *testing.T, path, harnessName, provider, model, timeout string) {
 	t.Helper()
 	contents := "version: 3\ndelivery:\n  audit:\n    harness: " + harnessName + "\n    provider: " + provider + "\n    model: " + model + "\n    timeout: " + timeout + "\n"

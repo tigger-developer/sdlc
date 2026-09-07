@@ -186,6 +186,32 @@ func TestW004ExecuteReturnsTypedTimeoutAndExecutableIncidents(t *testing.T) {
 	}
 }
 
+func TestW004ExecuteReturnsTypedStartAndResumeFailures(t *testing.T) {
+	for _, resume := range []bool{false, true} {
+		request := Request{
+			Harness: "claude", Model: "model", Prompt: "prompt", Bundle: t.TempDir(),
+			SessionID: "00000000-0000-4000-8000-000000000000",
+		}
+		_, err := Execute(context.Background(), request, resume, nil, func(context.Context, string, []string, string, io.Reader, io.Writer, io.Writer) error {
+			return errors.New("provider exited unsuccessfully")
+		}, io.Discard)
+		if err == nil {
+			t.Fatalf("resume=%t succeeded", resume)
+		}
+		var incident *Incident
+		if !errors.As(err, &incident) {
+			t.Fatalf("resume=%t error = %v", resume, err)
+		}
+		want := "start-failed"
+		if resume {
+			want = "resume-failed"
+		}
+		if incident.Kind != want || incident.SessionID != request.SessionID {
+			t.Fatalf("resume=%t incident = %#v", resume, incident)
+		}
+	}
+}
+
 func TestW004ImmutableBundleDetectsMutation(t *testing.T) {
 	root := t.TempDir()
 	source := filepath.Join(root, "source.org")
