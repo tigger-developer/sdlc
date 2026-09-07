@@ -25,6 +25,7 @@ standard and record it in project configuration.
 |---|---|
 | Bash or POSIX-style shell | Google Shell Style Guide, ShellCheck, shfmt |
 | Fish shell | Fish language documentation, `fish --no-execute`, `fish_indent --check` |
+| Lua | Lua reference manual, StyLua, Luacheck |
 | Python | PEP 8, Ruff |
 | Perl | `perlstyle`, Perl::Critic, perltidy |
 | Swift | Swift API Design Guidelines, SwiftLint, swift-format |

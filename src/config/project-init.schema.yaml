@@ -13,6 +13,54 @@ retired_environment_keys:
   - SDLC_REVISION
   - SDLC_REQUIREMENT_AUTHORITIES
 
+technology_detection:
+  exclude_directories:
+    - .agent
+    - .agents
+    - .claude
+    - .codex
+    - .git
+    - .specify
+    - build
+    - dist
+    - node_modules
+    - vendor
+  exclude_prefixes:
+    - docs/archive/
+  rules:
+    - technology: API
+      basenames: [openapi.json, openapi.yaml, openapi.yml, swagger.json, swagger.yaml, swagger.yml]
+    - technology: FISH
+      extensions: [.fish]
+    - technology: GO
+      basenames: [go.mod, go.work]
+      extensions: [.go]
+    - technology: HUGO
+      basenames: [hugo.json, hugo.toml, hugo.yaml, hugo.yml]
+      implies: [WEB]
+    - technology: JAVASCRIPT
+      extensions: [.cjs, .js, .jsx, .mjs, .ts, .tsx]
+    - technology: LUA
+      basenames: [.luacheckrc, .stylua.toml]
+      extensions: [.lua, .rockspec]
+    - technology: NODE
+      basenames: [bun.lock, bun.lockb, deno.json, deno.jsonc, package-lock.json, package.json, pnpm-lock.yaml, yarn.lock]
+    - technology: PERL
+      extensions: [.pl, .pm, .t]
+    - technology: PYTHON
+      basenames: [Pipfile, poetry.lock, pyproject.toml, requirements.txt, uv.lock]
+      extensions: [.py]
+    - technology: RUST
+      basenames: [Cargo.lock, Cargo.toml]
+      extensions: [.rs]
+    - technology: SHELL
+      extensions: [.bash, .sh]
+    - technology: SWIFT
+      basenames: [Package.swift]
+      extensions: [.swift]
+    - technology: WEB
+      extensions: [.css, .htm, .html, .scss]
+
 fields:
   - key: SDLC_PROJECT_KIND
     path: project.kind

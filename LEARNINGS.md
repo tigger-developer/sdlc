@@ -123,13 +123,16 @@ Where classification needs semantic judgement, a bounded read-only agent
 returns strict structured YAML that the initializer validates before use. The
 model proposes or classifies; it never silently grants authority.
 
-Technology selection has the same recall problem but a narrower answer space.
-A schema supplies the complete set of available standards, while one bounded
-read-only assessment identifies only those materially evidenced by maintained
-product, test, build, packaging, or deployment artefacts. The result is a
-preselected recommendation, not hidden configuration. This helps both
-brownfield projects and scaffolded greenfield projects without pretending that
-an empty repository reveals its intended stack.
+Technology selection has the same recall problem but a narrower, mechanically
+detectable answer space. The schema now owns basename, extension, exclusion,
+and implication heuristics over the bounded Git inventory. Their result is a
+preselected recommendation, not hidden configuration or proof. This avoids
+loading an agent and the SDLC merely to recognize familiar project files while
+retaining operator confirmation for ambiguity and omissions.
+
+Likewise, a populated global default needs no repetitive project question.
+Initialization inherits it without copying it; an explicit command option
+reopens those questions when a project needs local overrides.
 
 Technology standards should distinguish an established ecosystem reach-for from
 an unconditional dependency endorsement. Rust makes that boundary especially

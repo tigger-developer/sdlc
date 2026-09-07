@@ -61,6 +61,8 @@ func runCommand(arguments []string, input io.Reader, output, errorOutput io.Writ
 	project := flags.String("project", ".", "project root")
 	configuredRoot := flags.String("sdlc-root", sdlcRoot, "canonical SDLC root")
 	globalConfig := flags.String("global-config", "", "global SDLC YAML configuration")
+	overrideGlobalConfig := flags.Bool("override-global-config", false, "prompt for project overrides to populated global defaults")
+	noAgentScan := flags.Bool("no-agent-scan", false, "skip semantic classification of archived Spec Kit work")
 	overrideFlags := map[string]*string{}
 	for _, field := range schema.Fields {
 		overrideFlags[field.Key] = flags.String(field.Flag, "", field.Help)
@@ -81,13 +83,15 @@ func runCommand(arguments []string, input io.Reader, output, errorOutput io.Writ
 		}
 	}
 	return projectinit.Run(projectinit.Options{
-		ProjectRoot:      *project,
-		SDLCRoot:         *configuredRoot,
-		GlobalConfigPath: *globalConfig,
-		Overrides:        overrides,
-		Input:            input,
-		Output:           output,
-		ErrorOutput:      errorOutput,
+		ProjectRoot:          *project,
+		SDLCRoot:             *configuredRoot,
+		GlobalConfigPath:     *globalConfig,
+		OverrideGlobalConfig: *overrideGlobalConfig,
+		SkipAgentScans:       *noAgentScan,
+		Overrides:            overrides,
+		Input:                input,
+		Output:               output,
+		ErrorOutput:          errorOutput,
 	})
 }
 
@@ -108,6 +112,9 @@ func printBootstrapHelp(output io.Writer) {
 	fmt.Fprintln(output, "  --project PATH        project root (default: current directory)")
 	fmt.Fprintln(output, "  --sdlc-root PATH      canonical SDLC root (default: ~/.agents/sdlc)")
 	fmt.Fprintln(output, "  --global-config PATH  global SDLC YAML configuration")
+	fmt.Fprintln(output, "  --override-global-config")
+	fmt.Fprintln(output, "                        prompt for project overrides to populated global defaults")
+	fmt.Fprintln(output, "  --no-agent-scan      skip semantic classification of archived Spec Kit work")
 	fmt.Fprintln(output, "  --version             print the command version")
 	fmt.Fprintln(output, "")
 	fmt.Fprintln(output, "Project-setting options are generated from config/project-init.schema.yaml.")

@@ -1,0 +1,39 @@
+#+TITLE: W003 - Audit Evidence
+#+STARTUP: content
+#+OPTIONS: toc:2 num:nil
+
+* Definition gate
+
+** Retrospective definition
+
+- *Artefact:* [[file:spec.org][W003 - Deterministic project initialization]]
+- *Revision:* Working tree after emergency implementation.
+- *Audits:* Definition was backfilled under =BYPASS-GATE-7=; no retrospective
+  definition PASS is claimed.
+- *Verdict:* NOT APPLICABLE
+- *Findings:* None recorded before implementation.
+
+* Implementation gate
+
+** Local review
+:PROPERTIES:
+:ROUND:    1
+:END:
+
+- *Artefacts:* Deterministic initializer, Lua standard, tests, and related
+  documentation.
+- *Revision:* Pending checkpoint commit.
+- *Audits:* =audit-test-code= and =audit-code=
+- *Verdict:* PENDING
+- *Findings:* Pending local review.
+- *Remediation:* None yet.
+
+** External review
+
+- *Artefacts:* Deterministic initializer, Lua standard, tests, and related
+  documentation.
+- *Revision:* Pending checkpoint commit.
+- *Audits:* =audit-test-code= and =audit-code= in one context
+- *Verdict:* PENDING
+- *Findings:* Pending external review.
+- *Supersedes:* None.

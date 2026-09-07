@@ -115,6 +115,46 @@ func TestResolvedSchemaSelectionIsConfirmedVisually(t *testing.T) {
 	}
 }
 
+func TestGlobalConfigurationSkipsQuestionUnlessOverrideRequested(t *testing.T) {
+	schema := ConfigSchema{Fields: []ConfigField{{
+		Key: "SDLC_BUILD_MODEL", Path: "delivery.build.model", Type: "choice",
+		Choices: []string{"global-model", "project-model"}, Prompt: "Select delivery model:", AllowGlobal: true,
+	}}}
+	global := map[string]any{"delivery": map[string]any{"build": map[string]any{"model": "global-model"}}}
+
+	var inheritedOutput bytes.Buffer
+	values, explicit, err := resolveConfiguration(defaultOptions(Options{
+		Input: strings.NewReader("project-model\n"), Output: &inheritedOutput, ErrorOutput: &inheritedOutput,
+	}), schema, nil, global, nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if values["SDLC_BUILD_MODEL"] != "global-model" || explicit["SDLC_BUILD_MODEL"] || inheritedOutput.Len() != 0 {
+		t.Fatalf("global value was not silently inherited: values=%#v explicit=%#v output=%q", values, explicit, inheritedOutput.String())
+	}
+
+	var overrideOutput bytes.Buffer
+	values, explicit, err = resolveConfiguration(defaultOptions(Options{
+		OverrideGlobalConfig: true,
+		Input:                strings.NewReader("2\n"),
+		Output:               &overrideOutput,
+		ErrorOutput:          &overrideOutput,
+	}), schema, nil, global, nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if values["SDLC_BUILD_MODEL"] != "project-model" || !explicit["SDLC_BUILD_MODEL"] || !strings.Contains(overrideOutput.String(), "Global SDLC default") {
+		t.Fatalf("global override was not prompted: values=%#v explicit=%#v output=%q", values, explicit, overrideOutput.String())
+	}
+}
+
+func TestSkippedAgentScanClassifiesArchivedWorkAsUnresolved(t *testing.T) {
+	items := unresolvedMigratedWork([]string{"001-old-feature"})
+	if len(items) != 1 || items[0].Disposition != "unresolved" || items[0].Descriptor != "old feature" {
+		t.Fatalf("unresolved migration = %#v", items)
+	}
+}
+
 func TestSpecificationTemplateInternalLinksResolve(t *testing.T) {
 	t.Parallel()
 

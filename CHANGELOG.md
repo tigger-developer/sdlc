@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+## v3.0.10 - 2026-09-07
+
+- Replaced the routine model-backed technology assessment in `sdlc-init` with
+  deterministic YAML heuristics over the bounded Git inventory. Detected
+  technologies remain preselected recommendations requiring operator
+  confirmation.
+- Added `--override-global-config`; populated user-level defaults are now
+  inherited silently and remain absent from the project profile unless the
+  operator requests and selects an override.
+- Added `--no-agent-scan` for migrations that must preserve archived Spec Kit
+  specifications as unresolved `REVIEW` work without semantic classification.
+- Added Lua standards covering appropriate selection, language and host
+  boundaries, strengths and weaknesses, common libraries, Hammerspoon, CLI
+  contracts, security, verification, and anti-patterns. Lua source and
+  LuaRocks files now participate in deterministic technology detection.
+
 ## v3.0.9 - 2026-09-07
 
 - Kept `sdlc-install` repository-internal and expanded the help for every

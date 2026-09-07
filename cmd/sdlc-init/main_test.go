@@ -21,4 +21,9 @@ func TestHelpDoesNotRequireDeployedSchema(t *testing.T) {
 			t.Errorf("help output missing %q: %q", explanation, output.String())
 		}
 	}
+	for _, option := range []string{"--override-global-config", "--no-agent-scan"} {
+		if !strings.Contains(output.String(), option) {
+			t.Errorf("help output missing %q: %q", option, output.String())
+		}
+	}
 }

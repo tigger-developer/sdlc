@@ -1,31 +1,24 @@
 package projectinit
 
 import (
-	"bytes"
-	"errors"
 	"fmt"
 	"io"
-	"os"
 	"path/filepath"
+	"sort"
 	"strings"
-
-	"gopkg.in/yaml.v3"
 )
 
-const technologyAssessmentPromptPath = "prompts/discover-project-technologies.md"
-
 type technologyAssessment struct {
-	Version      int                             `yaml:"version"`
-	Technologies []technologyAssessmentCandidate `yaml:"technologies"`
-	Warnings     []string                        `yaml:"warnings"`
+	Technologies []technologyAssessmentCandidate
+	Warnings     []string
 }
 
 type technologyAssessmentCandidate struct {
-	Name     string `yaml:"name"`
-	Evidence string `yaml:"evidence"`
+	Name     string
+	Evidence string
 }
 
-func assessProjectTechnologies(options Options, schema ConfigSchema, technologies []Technology, global map[string]any, legacy map[string]string, sdlcRoot, projectRoot string) *technologyAssessment {
+func assessProjectTechnologies(options Options, schema ConfigSchema, technologies []Technology, global map[string]any, legacy map[string]string, projectRoot string) *technologyAssessment {
 	technologyField, ok := schemaField(schema, "SDLC_TECHNOLOGIES")
 	if !ok {
 		fmt.Fprintln(options.ErrorOutput, "Warning: technology assessment skipped because SDLC_TECHNOLOGIES is absent from the configuration schema.")
@@ -35,13 +28,14 @@ func assessProjectTechnologies(options Options, schema ConfigSchema, technologie
 		return nil
 	}
 
-	model := ""
-	if auditModelField, found := schemaField(schema, "SDLC_AUDIT_MODEL"); found {
-		model, _, _ = initialValue(auditModelField, options.Overrides, legacy, global)
-	}
-	assessment, err := runTechnologyAssessment(options, sdlcRoot, projectRoot, model, technologies)
+	available, err := availableProjectFiles(options, projectRoot)
 	if err != nil {
-		fmt.Fprintf(options.ErrorOutput, "Warning: automatic technology assessment was unavailable: %v\nSelect the applicable technologies manually.\n", err)
+		fmt.Fprintf(options.ErrorOutput, "Warning: deterministic technology detection was unavailable: %v\nSelect the applicable technologies manually.\n", err)
+		return nil
+	}
+	assessment, err := detectProjectTechnologies(schema.TechnologyDetection, technologies, available)
+	if err != nil {
+		fmt.Fprintf(options.ErrorOutput, "Warning: deterministic technology detection failed: %v\nSelect the applicable technologies manually.\n", err)
 		return nil
 	}
 	return &assessment
@@ -56,101 +50,119 @@ func schemaField(schema ConfigSchema, key string) (ConfigField, bool) {
 	return ConfigField{}, false
 }
 
-func runTechnologyAssessment(options Options, sdlcRoot, projectRoot, model string, technologies []Technology) (technologyAssessment, error) {
-	promptPath := filepath.Join(sdlcRoot, filepath.FromSlash(technologyAssessmentPromptPath))
-	prompt, err := os.ReadFile(promptPath)
-	if err != nil {
-		return technologyAssessment{}, fmt.Errorf("reading technology-assessment prompt %s: %w", promptPath, err)
-	}
-	available := make([]string, 0, len(technologies))
+func detectProjectTechnologies(detection TechnologyDetection, technologies []Technology, files map[string]bool) (technologyAssessment, error) {
+	installed := make(map[string]bool, len(technologies))
 	for _, technology := range technologies {
-		available = append(available, technology.Name)
+		installed[technology.Name] = true
 	}
-	choiceDocument, err := yaml.Marshal(map[string][]string{"available_technologies": available})
-	if err != nil {
-		return technologyAssessment{}, fmt.Errorf("rendering available technologies: %w", err)
-	}
-	prompt = append(prompt, []byte("\n\n## Available schema choices\n\nReturn only names from this list:\n\n```yaml\n")...)
-	prompt = append(prompt, choiceDocument...)
-	prompt = append(prompt, []byte("```\n")...)
-
-	workspace, err := os.MkdirTemp("", "sdlc-init-technologies-")
-	if err != nil {
-		return technologyAssessment{}, fmt.Errorf("creating temporary technology-assessment workspace: %w", err)
-	}
-	defer func() { _ = os.RemoveAll(workspace) }()
-	proposalPath := filepath.Join(workspace, "technology-assessment.yaml")
-	arguments := []string{"exec", "--ephemeral", "--sandbox", "read-only", "--output-last-message", proposalPath}
-	if strings.TrimSpace(model) != "" {
-		arguments = append(arguments, "--model", model)
-	}
-	arguments = append(arguments, "-")
-	if err := options.RunCommand("codex", arguments, projectRoot, bytes.NewReader(prompt), options.Output, options.ErrorOutput); err != nil {
-		return technologyAssessment{}, fmt.Errorf("assessing the project technology stack with headless Codex: %w", err)
-	}
-	assessment, err := readTechnologyAssessment(proposalPath)
-	if err != nil {
-		return technologyAssessment{}, err
-	}
-	return validateTechnologyAssessment(assessment, technologies)
-}
-
-func readTechnologyAssessment(path string) (technologyAssessment, error) {
-	contents, err := os.ReadFile(path)
-	if err != nil {
-		return technologyAssessment{}, fmt.Errorf("reading technology assessment %s: %w", path, err)
-	}
-	decoder := yaml.NewDecoder(bytes.NewReader(contents))
-	decoder.KnownFields(true)
-	var assessment technologyAssessment
-	if err := decoder.Decode(&assessment); err != nil {
-		return technologyAssessment{}, fmt.Errorf("parsing technology assessment %s: %w", path, err)
-	}
-	var extra any
-	if err := decoder.Decode(&extra); !errors.Is(err, io.EOF) {
-		if err == nil {
-			return technologyAssessment{}, fmt.Errorf("technology assessment %s contains multiple YAML documents", path)
+	rules := make(map[string]TechnologyDetectionRule, len(detection.Rules))
+	for _, rule := range detection.Rules {
+		if !installed[rule.Technology] {
+			return technologyAssessment{}, fmt.Errorf("technology detection rule %s has no installed standard", rule.Technology)
 		}
-		return technologyAssessment{}, fmt.Errorf("parsing technology assessment %s: %w", path, err)
+		for _, implied := range rule.Implies {
+			if !installed[implied] {
+				return technologyAssessment{}, fmt.Errorf("technology detection rule %s implies unavailable standard %s", rule.Technology, implied)
+			}
+		}
+		rules[rule.Technology] = rule
 	}
-	if assessment.Version != 1 {
-		return technologyAssessment{}, fmt.Errorf("technology assessment %s must declare version: 1", path)
+	for technology := range installed {
+		if _, ok := rules[technology]; !ok {
+			return technologyAssessment{}, fmt.Errorf("installed technology standard %s has no detection rule", technology)
+		}
+	}
+
+	matches := map[string][]string{}
+	for path := range files {
+		if excludedTechnologyPath(path, detection) {
+			continue
+		}
+		for _, rule := range detection.Rules {
+			if technologyPathMatches(path, rule) {
+				matches[rule.Technology] = append(matches[rule.Technology], filepath.ToSlash(path))
+			}
+		}
+	}
+	for technology := range matches {
+		sort.Strings(matches[technology])
+	}
+	impliedBy := map[string][]string{}
+	for technology := range matches {
+		for _, implied := range rules[technology].Implies {
+			impliedBy[implied] = append(impliedBy[implied], technology)
+		}
+	}
+
+	assessment := technologyAssessment{}
+	for _, technology := range technologies {
+		paths := matches[technology.Name]
+		if len(paths) != 0 {
+			assessment.Technologies = append(assessment.Technologies, technologyAssessmentCandidate{
+				Name: technology.Name, Evidence: technologyEvidence(paths),
+			})
+			continue
+		}
+		if sources := impliedBy[technology.Name]; len(sources) != 0 {
+			sort.Strings(sources)
+			assessment.Technologies = append(assessment.Technologies, technologyAssessmentCandidate{
+				Name: technology.Name, Evidence: "Required by detected " + strings.Join(sources, ", ") + " standards.",
+			})
+		}
 	}
 	return assessment, nil
 }
 
-func validateTechnologyAssessment(assessment technologyAssessment, technologies []Technology) (technologyAssessment, error) {
-	available := make(map[string]bool, len(technologies))
-	for _, technology := range technologies {
-		available[technology.Name] = true
-	}
-	seen := map[string]bool{}
-	byName := make(map[string]technologyAssessmentCandidate, len(assessment.Technologies))
-	for _, candidate := range assessment.Technologies {
-		candidate.Name = strings.TrimSpace(candidate.Name)
-		candidate.Evidence = singleLine(candidate.Evidence)
-		if !available[candidate.Name] {
-			return technologyAssessment{}, fmt.Errorf("technology assessment selected unknown schema choice %q", candidate.Name)
-		}
-		if seen[candidate.Name] {
-			return technologyAssessment{}, fmt.Errorf("technology assessment selected %s more than once", candidate.Name)
-		}
-		if candidate.Evidence == "" {
-			return technologyAssessment{}, fmt.Errorf("technology assessment selected %s without evidence", candidate.Name)
-		}
-		seen[candidate.Name] = true
-		byName[candidate.Name] = candidate
-	}
-	assessment.Technologies = nil
-	for _, technology := range technologies {
-		if candidate, selected := byName[technology.Name]; selected {
-			assessment.Technologies = append(assessment.Technologies, candidate)
+func excludedTechnologyPath(path string, detection TechnologyDetection) bool {
+	normalized := strings.ToLower(filepath.ToSlash(filepath.Clean(path)))
+	for _, prefix := range detection.ExcludePrefixes {
+		if strings.HasPrefix(normalized, strings.ToLower(filepath.ToSlash(prefix))) {
+			return true
 		}
 	}
-	for index, warning := range assessment.Warnings {
-		assessment.Warnings[index] = singleLine(warning)
+	excluded := map[string]bool{}
+	for _, directory := range detection.ExcludeDirectories {
+		excluded[strings.ToLower(directory)] = true
 	}
-	return assessment, nil
+	parts := strings.Split(normalized, "/")
+	for _, part := range parts[:len(parts)-1] {
+		if excluded[part] {
+			return true
+		}
+	}
+	return false
+}
+
+func technologyPathMatches(path string, rule TechnologyDetectionRule) bool {
+	base := strings.ToLower(filepath.Base(path))
+	extension := strings.ToLower(filepath.Ext(base))
+	for _, candidate := range rule.Basenames {
+		if base == strings.ToLower(candidate) {
+			return true
+		}
+	}
+	for _, candidate := range rule.Extensions {
+		if extension == strings.ToLower(candidate) {
+			return true
+		}
+	}
+	return false
+}
+
+func technologyEvidence(paths []string) string {
+	shown := paths
+	if len(shown) > 3 {
+		shown = shown[:3]
+	}
+	evidence := "Matched tracked file"
+	if len(paths) != 1 {
+		evidence += "s"
+	}
+	evidence += ": " + strings.Join(shown, ", ")
+	if len(paths) > len(shown) {
+		evidence += fmt.Sprintf(" and %d more", len(paths)-len(shown))
+	}
+	return evidence + "."
 }
 
 func (assessment technologyAssessment) selection() string {

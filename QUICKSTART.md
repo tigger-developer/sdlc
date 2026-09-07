@@ -39,12 +39,15 @@ The initializer prints a concise migration commit summary. Use
 `VERBOSE=1 sdlc-init` only when the complete Git changed-file inventory
 is useful.
 
-Before the technology question, the configured audit model performs one
-bounded, read-only stack assessment. Its evidence-backed recommendations appear
-as `[x]` selections. Press Enter to accept them or enter the complete corrected
-selection. The assessment ignores archives, generated output, dependencies,
-framework-owned files, and incidental tooling. A truly blank project receives
-no inferred selection.
+Before the technology question, schema-defined file heuristics inspect the
+bounded Git inventory. Their evidence-backed recommendations appear as `[x]`
+selections. Press Enter to confirm them or toggle the corrected selection. The
+detector ignores archives, generated output, dependencies, and provider runtime
+state. A truly blank project receives no inferred selection.
+
+Populated values in `~/.agents/sdlc.yaml` are inherited without prompting and
+are not copied into the project profile. Use `sdlc-init
+--override-global-config` when the project needs to review and override them.
 
 The command creates the archive branch before making changes. Review any push
 and final merge question by branch descriptor, not by an unexplained name.
@@ -62,6 +65,10 @@ specifications in one bounded read-only pass. The initializer removes their
 obsolete top-level Status fields and renders their lifecycle into
 `docs/work.org`. Projects without archived specifications skip this second
 model operation.
+
+Use `sdlc-init --no-agent-scan` to avoid that classification. The archived
+specifications are then retained as unresolved `REVIEW` work for later operator
+classification.
 
 If initialization is interrupted during or after authority selection, its
 temporary working directory remains at `.sdlc/.init/`. Rerun

@@ -77,3 +77,13 @@ coordination. Use =MIGRATION_DISPOSITION= only to preserve an immutable migratio
 classification; it is provenance, not current state.
 
 * Work items
+
+** ACTIVE W003 - Deterministic project initialization :maintenance:
+:PROPERTIES:
+:CUSTOM_ID: w-003
+:PRIORITY: P1
+:SOURCE: operator
+:CREATED: 2026-09-07
+:END:
+
+- *Specification:* [[file:../specs/003-deterministic-project-init/spec.org][W003 - Deterministic project initialization]]

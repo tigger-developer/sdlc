@@ -3,61 +3,42 @@ package projectinit
 import (
 	"bufio"
 	"bytes"
-	"fmt"
-	"io"
-	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 )
 
-func TestRunTechnologyAssessmentUsesAuditModelAndSchemaChoices(t *testing.T) {
-	project := t.TempDir()
-	writeProjectTestFile(t, filepath.Join(project, "go.mod"), "module example.test/project\n\ngo 1.25\n")
+func TestTechnologyAssessmentUsesSchemaHeuristics(t *testing.T) {
+	schema, err := LoadConfigSchema(testSDLCRoot(t))
+	if err != nil {
+		t.Fatal(err)
+	}
 	technologies, err := DiscoverTechnologies(filepath.Join(testSDLCRoot(t), "technologies"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	var capturedPrompt string
-	options := defaultOptions(Options{
-		Output:      &bytes.Buffer{},
-		ErrorOutput: &bytes.Buffer{},
-		RunCommand: func(name string, arguments []string, directory string, input io.Reader, output, errorOutput io.Writer) error {
-			if name != "codex" {
-				return fmt.Errorf("unexpected command %s", name)
-			}
-			if argumentValue(arguments, "--model") != "gpt-5.6-luna" || argumentValue(arguments, "--sandbox") != "read-only" || !containsArgument(arguments, "--ephemeral") {
-				return fmt.Errorf("unbounded or wrongly configured Codex invocation: %v", arguments)
-			}
-			contents, readErr := io.ReadAll(input)
-			if readErr != nil {
-				return readErr
-			}
-			capturedPrompt = string(contents)
-			proposalPath := argumentValue(arguments, "--output-last-message")
-			return os.WriteFile(proposalPath, []byte("version: 1\ntechnologies:\n  - name: GO\n    evidence: go.mod declares the maintained Go product.\nwarnings: []\n"), 0o600)
-		},
+	assessment, err := detectProjectTechnologies(schema.TechnologyDetection, technologies, map[string]bool{
+		"go.mod":                        true,
+		"src/main.go":                   true,
+		"hugo.toml":                     true,
+		"docs/archive/old/component.ts": true,
 	})
-	assessment, err := runTechnologyAssessment(options, testSDLCRoot(t), project, "gpt-5.6-luna", technologies)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if assessment.selection() != "GO" {
+	if assessment.selection() != "GO,HUGO,WEB" {
 		t.Fatalf("selection = %q", assessment.selection())
 	}
-	if !strings.Contains(capturedPrompt, "available_technologies:") || !strings.Contains(capturedPrompt, "- GO") || !strings.Contains(capturedPrompt, "docs/archive") {
-		t.Fatalf("bounded prompt is missing choices or exclusions:\n%s", capturedPrompt)
+	if strings.Contains(assessment.Technologies[0].Evidence, "docs/archive") {
+		t.Fatalf("archived evidence was used: %#v", assessment)
 	}
 }
 
-func TestTechnologyAssessmentRejectsUnknownOrUnsupportedOutput(t *testing.T) {
-	_, err := validateTechnologyAssessment(technologyAssessment{
-		Version: 1,
-		Technologies: []technologyAssessmentCandidate{
-			{Name: "RUST", Evidence: "Cargo.toml exists."},
-		},
-	}, []Technology{{Name: "GO"}})
-	if err == nil || !strings.Contains(err.Error(), "unknown schema choice") {
+func TestTechnologyAssessmentRejectsRuleWithoutInstalledStandard(t *testing.T) {
+	_, err := detectProjectTechnologies(TechnologyDetection{
+		Rules: []TechnologyDetectionRule{{Technology: "RUST", Basenames: []string{"Cargo.toml"}}},
+	}, []Technology{{Name: "GO"}}, map[string]bool{"Cargo.toml": true})
+	if err == nil || !strings.Contains(err.Error(), "has no installed standard") {
 		t.Fatalf("validation error = %v", err)
 	}
 }
@@ -67,61 +48,40 @@ func TestTechnologyAssessmentSkipsExplicitSelection(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	options := defaultOptions(Options{
-		Overrides:   map[string]string{"SDLC_TECHNOLOGIES": "GO"},
-		Output:      &bytes.Buffer{},
-		ErrorOutput: &bytes.Buffer{},
-		RunCommand: func(name string, arguments []string, directory string, input io.Reader, output, errorOutput io.Writer) error {
-			t.Fatalf("explicit technology selection invoked %s", name)
-			return nil
-		},
-	})
-	assessment := assessProjectTechnologies(options, schema, []Technology{{Name: "GO"}}, nil, nil, testSDLCRoot(t), t.TempDir())
+	options := defaultOptions(Options{Overrides: map[string]string{"SDLC_TECHNOLOGIES": "GO"}, Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{}})
+	assessment := assessProjectTechnologies(options, schema, []Technology{{Name: "GO"}}, nil, nil, t.TempDir())
 	if assessment != nil {
 		t.Fatalf("assessment = %#v", assessment)
 	}
 }
 
-func TestTechnologyAssessmentUsesConfiguredGlobalAuditModel(t *testing.T) {
-	t.Setenv("SDLC_TECHNOLOGIES", "")
-	t.Setenv("SDLC_AUDIT_MODEL", "")
-	schema, err := LoadConfigSchema(testSDLCRoot(t))
-	if err != nil {
-		t.Fatal(err)
-	}
-	global := map[string]any{
-		"delivery": map[string]any{
-			"audit": map[string]any{"model": "gpt-5.6-luna"},
-		},
-	}
-	options := defaultOptions(Options{
-		Output:      &bytes.Buffer{},
-		ErrorOutput: &bytes.Buffer{},
-		RunCommand: func(name string, arguments []string, directory string, input io.Reader, output, errorOutput io.Writer) error {
-			if name != "codex" || argumentValue(arguments, "--model") != "gpt-5.6-luna" {
-				return fmt.Errorf("audit model was not used: %s %v", name, arguments)
-			}
-			return os.WriteFile(argumentValue(arguments, "--output-last-message"), []byte("version: 1\ntechnologies: []\nwarnings: []\n"), 0o600)
-		},
-	})
-	assessment := assessProjectTechnologies(options, schema, []Technology{{Name: "GO"}}, global, nil, testSDLCRoot(t), t.TempDir())
-	if assessment == nil {
-		t.Fatal("configured assessment was not returned")
-	}
-}
-
 func TestTechnologyAssessmentUsesSchemaOrder(t *testing.T) {
-	assessment, err := validateTechnologyAssessment(technologyAssessment{
-		Version: 1,
-		Technologies: []technologyAssessmentCandidate{
-			{Name: "WEB", Evidence: "Maintained browser UI."},
-			{Name: "GO", Evidence: "Maintained Go runtime."},
-		},
-	}, []Technology{{Name: "GO"}, {Name: "WEB"}})
+	assessment, err := detectProjectTechnologies(TechnologyDetection{Rules: []TechnologyDetectionRule{
+		{Technology: "WEB", Extensions: []string{".html"}},
+		{Technology: "GO", Extensions: []string{".go"}},
+	}}, []Technology{{Name: "GO"}, {Name: "WEB"}}, map[string]bool{"index.html": true, "main.go": true})
 	if err != nil {
 		t.Fatal(err)
 	}
 	if assessment.selection() != "GO,WEB" {
+		t.Fatalf("selection = %q", assessment.selection())
+	}
+}
+
+func TestLuaSourceSelectsLuaStandard(t *testing.T) {
+	schema, err := LoadConfigSchema(testSDLCRoot(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	technologies, err := DiscoverTechnologies(filepath.Join(testSDLCRoot(t), "technologies"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	assessment, err := detectProjectTechnologies(schema.TechnologyDetection, technologies, map[string]bool{"filters/normalize.lua": true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if assessment.selection() != "LUA" {
 		t.Fatalf("selection = %q", assessment.selection())
 	}
 }

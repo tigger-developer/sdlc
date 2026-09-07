@@ -96,6 +96,11 @@ func resolvePostMigrationConfiguration(
 	if len(generation.legacyV2) == 0 {
 		return nil
 	}
+	if options.SkipAgentScans {
+		generation.migratedV2 = unresolvedMigratedWork(generation.legacyV2)
+		fmt.Fprintln(options.Output, "Skipped archived Spec Kit classification; migrated work is marked REVIEW for later operator classification.")
+		return nil
+	}
 	proposalPath, err := runMigratedWorkClassification(options, sdlcRoot, projectRoot, workspace, values["SDLC_AUDIT_MODEL"], generation.legacyV2)
 	if err != nil {
 		return err
@@ -115,6 +120,22 @@ func resolvePostMigrationConfiguration(
 	}
 	generation.migratedV2 = proposal.MigratedWork
 	return nil
+}
+
+func unresolvedMigratedWork(legacyV2 []string) []migratedWorkCandidate {
+	items := make([]migratedWorkCandidate, 0, len(legacyV2))
+	for _, directory := range legacyV2 {
+		_, descriptor := v2WorkIdentity(directory)
+		items = append(items, migratedWorkCandidate{
+			Path:        filepath.ToSlash(filepath.Join("docs", "archive", "sdlc-v2", "specs", directory, "spec.md")),
+			Descriptor:  descriptor,
+			Disposition: "unresolved",
+			Priority:    "unassigned",
+			Created:     "unknown",
+			Evidence:    "Semantic classification skipped by operator request.",
+		})
+	}
+	return items
 }
 
 func runMigratedWorkClassification(options Options, sdlcRoot, projectRoot, workspace, model string, legacyV2 []string) (string, error) {

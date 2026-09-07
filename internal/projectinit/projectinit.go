@@ -32,16 +32,18 @@ type Technology struct {
 
 // Options controls one once-only project initialization.
 type Options struct {
-	ProjectRoot      string
-	SDLCRoot         string
-	GlobalConfigPath string
-	Overrides        map[string]string
-	Input            io.Reader
-	Output           io.Writer
-	ErrorOutput      io.Writer
-	Now              func() time.Time
-	RunCommand       func(string, []string, string, io.Reader, io.Writer, io.Writer) error
-	inputReader      *bufio.Reader
+	ProjectRoot          string
+	SDLCRoot             string
+	GlobalConfigPath     string
+	OverrideGlobalConfig bool
+	SkipAgentScans       bool
+	Overrides            map[string]string
+	Input                io.Reader
+	Output               io.Writer
+	ErrorOutput          io.Writer
+	Now                  func() time.Time
+	RunCommand           func(string, []string, string, io.Reader, io.Writer, io.Writer) error
+	inputReader          *bufio.Reader
 }
 
 type projectGeneration struct {
@@ -139,7 +141,7 @@ func Run(options Options) error {
 		return err
 	}
 	legacy = normalizeLegacyConfiguration(legacy, options.ErrorOutput)
-	technologyAssessment := assessProjectTechnologies(options, schema, technologies, global, legacy, sdlcRoot, projectRoot)
+	technologyAssessment := assessProjectTechnologies(options, schema, technologies, global, legacy, projectRoot)
 	values, explicit, err := resolveConfiguration(options, schema, technologies, global, legacy, technologyAssessment)
 	if err != nil {
 		return err
@@ -530,7 +532,7 @@ func resolveConfiguration(options Options, schema ConfigSchema, technologies []T
 			renderTechnologyAssessment(options.Output, *technologyAssessment)
 		}
 		prompted := false
-		if field.Prompt != "" && !isExplicit {
+		if field.Prompt != "" && !isExplicit && (valueSource != "global" || options.OverrideGlobalConfig) {
 			selected, changed, err := promptField(reader, options.Output, field, value, valueSource, technologies)
 			if err != nil {
 				return nil, nil, err

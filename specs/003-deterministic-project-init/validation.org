@@ -1,0 +1,30 @@
+#+TITLE: W003 - Validation Evidence
+#+STARTUP: content
+#+OPTIONS: toc:2 num:nil
+
+* Automated regression
+
+** 2026-09-07 - Focused RED and GREEN
+
+- *Command:* =go test ./internal/projectinit ./cmd/sdlc-init=
+- *Revision:* Working tree before checkpoint commit.
+- *Result:* PASS
+- *Evidence:* The first run failed because the generic detector did not exist;
+  the second failed because the global-override and scan-skip controls did not
+  exist. After implementation, both packages passed.
+
+** 2026-09-07 - Supported regression suite
+
+- *Command:* =make test=
+- *Revision:* Pending checkpoint commit.
+- *Result:* PASS
+- *Evidence:* =go vet=, =golangci-lint=, ShellCheck, =shfmt -d=, and all Go
+  package tests completed successfully.
+
+* User tests
+
+- None defined.
+
+* One-off tests
+
+- None defined.

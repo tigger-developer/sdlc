@@ -21,10 +21,27 @@ var environmentKeyPattern = regexp.MustCompile(`^SDLC_[A-Z0-9_]+$`)
 // ConfigSchema is the single source of truth for initializer questions and
 // project/global configuration resolution.
 type ConfigSchema struct {
-	Version                int           `yaml:"version"`
-	Precedence             []string      `yaml:"precedence"`
-	RetiredEnvironmentKeys []string      `yaml:"retired_environment_keys"`
-	Fields                 []ConfigField `yaml:"fields"`
+	Version                int                 `yaml:"version"`
+	Precedence             []string            `yaml:"precedence"`
+	RetiredEnvironmentKeys []string            `yaml:"retired_environment_keys"`
+	TechnologyDetection    TechnologyDetection `yaml:"technology_detection"`
+	Fields                 []ConfigField       `yaml:"fields"`
+}
+
+// TechnologyDetection defines deterministic recommendations from the tracked
+// project inventory. The operator remains responsible for confirming them.
+type TechnologyDetection struct {
+	ExcludeDirectories []string                  `yaml:"exclude_directories"`
+	ExcludePrefixes    []string                  `yaml:"exclude_prefixes"`
+	Rules              []TechnologyDetectionRule `yaml:"rules"`
+}
+
+// TechnologyDetectionRule maps strong filesystem evidence to one standard.
+type TechnologyDetectionRule struct {
+	Technology string   `yaml:"technology"`
+	Basenames  []string `yaml:"basenames"`
+	Extensions []string `yaml:"extensions"`
+	Implies    []string `yaml:"implies"`
 }
 
 // ConfigField describes one configurable value and its project YAML path.
@@ -96,6 +113,9 @@ func (schema ConfigSchema) Validate() error {
 	paths := map[string]bool{}
 	flags := map[string]bool{}
 	discoveryCategories := map[string]bool{}
+	if err := schema.TechnologyDetection.Validate(); err != nil {
+		return err
+	}
 	for _, field := range schema.Fields {
 		if !environmentKeyPattern.MatchString(field.Key) || keys[field.Key] {
 			return fmt.Errorf("invalid or duplicate key %q", field.Key)
@@ -155,6 +175,29 @@ func (schema ConfigSchema) Validate() error {
 			return fmt.Errorf("invalid, duplicate, or still-active retired environment key %q", key)
 		}
 		keys[key] = true
+	}
+	return nil
+}
+
+// Validate rejects ambiguous or unsafe detector definitions.
+func (detection TechnologyDetection) Validate() error {
+	if len(detection.Rules) == 0 {
+		return errors.New("technology_detection requires at least one rule")
+	}
+	seen := map[string]bool{}
+	for _, rule := range detection.Rules {
+		if rule.Technology == "" || seen[rule.Technology] {
+			return fmt.Errorf("invalid or duplicate technology detection rule %q", rule.Technology)
+		}
+		seen[rule.Technology] = true
+		if len(rule.Basenames) == 0 && len(rule.Extensions) == 0 {
+			return fmt.Errorf("technology detection rule %s has no evidence signals", rule.Technology)
+		}
+		for _, extension := range rule.Extensions {
+			if !strings.HasPrefix(extension, ".") || strings.ContainsAny(extension, "/\\") {
+				return fmt.Errorf("technology detection rule %s has invalid extension %q", rule.Technology, extension)
+			}
+		}
 	}
 	return nil
 }

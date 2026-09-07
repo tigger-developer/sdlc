@@ -62,9 +62,8 @@ The initializer:
 
 1. refuses when `.sdlc/project.yaml` already exists;
 2. detects a new project, an SDLC v1 project, or an SDLC v2 Spec Kit project;
-3. uses the configured audit model for one bounded, read-only assessment of
-   technologies materially used by the project, then presents those findings
-   as preselected choices in the schema-driven technology question;
+3. applies schema-defined heuristics to the bounded Git inventory and presents
+   the detected technologies as preselected choices for operator confirmation;
 4. asks the remaining schema-driven questions needed before migration,
    including project role, infrastructure ownership, branch strategy, agent
    settings, and audit timeout;
@@ -104,18 +103,19 @@ Global non-secret defaults and the deployed SDLC release live at
 4. global YAML; and
 5. schema default.
 
-When a global value exists, the initializer shows it and lets the operator press
-Enter to inherit it or enter a project override. Inherited global values are not
-copied into the project file. Project identity, technology selection, and
-infrastructure role are always project decisions.
+When a global value exists, the initializer inherits it without asking and does
+not copy it into the project file. Pass `--override-global-config` to display
+those questions and record selected project overrides. Project identity,
+technology selection, and infrastructure role are always project decisions.
 
-When no explicit technology selection exists, the initializer asks the
-configured audit model for a read-only assessment before displaying the
-schema-owned technology choices. Maintained product, test, build, packaging,
-and deployment artefacts count as evidence. Archived, generated, vendored,
-framework-owned, and incidental tooling does not. The recommendations begin
-selected and include concise evidence; the operator may accept or replace them.
-A genuinely blank project has no inferred stack and requires a manual choice.
+When no explicit technology selection exists, the initializer applies the
+deterministic file heuristics in `config/project-init.schema.yaml` to the bounded
+Git inventory. Maintained manifests and source files provide recommendations;
+archives, generated output, vendored dependencies, and provider runtime state
+are excluded. Recommendations begin selected with concise matching evidence,
+and the operator confirms or corrects them. A genuinely blank project has no
+inferred stack and requires a manual choice. The heuristics optimize recall and
+need not establish the stack without operator confirmation.
 
 Every interactive question begins on a separate line. Schema choices and
 document authorities share the same `[x]` and `[ ]` presentation; configuration
@@ -131,9 +131,9 @@ and supports multiple selections and rescanning after a move. The initializer
 preserves an existing `docs/work.org`, adds missing migration structure, and
 folds a canonical legacy AC ledger beneath `Legacy Acceptance Criteria (SDLC
 v1)`. It then records only `docs/work.org` as the requirement authority.
-Technology assessment and archived v2 specification disposition require a
-model. Their temporary YAML contains recommendations or status evidence rather
-than authority decisions. A temporary `.sdlc/.init/` working directory remains
+Only archived v2 specification disposition requires model judgement. Pass
+`--no-agent-scan` to preserve those specifications as unresolved `REVIEW` work
+instead. A temporary `.sdlc/.init/` working directory remains
 if initialization is interrupted. Rerunning `sdlc-init` on the migration
 branch resumes when the dated archive and original primary branch are
 unambiguous. A tracked `.sdlc/.gitignore` excludes that temporary directory from

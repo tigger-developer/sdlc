@@ -117,16 +117,18 @@ new context.
 worktree, creates a dated archive branch before mutation, and performs all work
 on a dedicated migration branch.
 
-Before configuration, one ephemeral Codex context assesses the project's
-technology stack in a read-only sandbox using the configured audit model. The
-prompt receives the exact technology names discovered from the deployed
-standards directory. Its strict YAML result can recommend only those names and
-must attach concrete evidence. The initializer validates the result and uses it
-only as the default for the existing schema-driven multi-select question.
-Explicit selections skip the model; an unavailable or invalid assessment falls
-back visibly to manual selection. This applies equally to maintained
+Before configuration, the initializer applies technology-detection rules from
+`config/project-init.schema.yaml` to the bounded Git inventory. Rules identify
+strong basenames and extensions, exclude archived or generated paths, and may
+express implications such as Hugo requiring the web standard. The results are
+only preselected recommendations in the existing schema-driven multi-select;
+the operator confirms or corrects them. This applies equally to maintained
 brownfield projects and greenfield projects with initial scaffolding. A blank
 project has no evidence from which to infer a stack.
+
+Global configuration values are inherited without a question and without being
+copied into the project profile. `--override-global-config` deliberately
+re-enables those questions.
 
 - New projects receive the project profile and empty work ledger.
 - SDLC v1 projects may first run the lossless GitHub-ticket migration. Historical
@@ -156,8 +158,9 @@ structured YAML classifies each specification as delivered, approved but
 undelivered, abandoned, or unresolved, with priority, creation date, and
 supporting evidence. Audit PASS alone is not operator approval. The initializer
 validates exact coverage, then renders each classification beneath `Work items`
-in the canonical `docs/work.org` hierarchy. Neither model operation selects
-authority documents or edits project artefacts.
+in the canonical `docs/work.org` hierarchy. `--no-agent-scan` instead records
+each archived specification as unresolved `REVIEW` work. Model classification
+never selects authority documents or edits project artefacts.
 
 The proposal lives in the project-owned `.sdlc/.init/` directory. Its presence
 tells a later invocation that initialization did not complete. The directory

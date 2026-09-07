@@ -65,6 +65,7 @@ Read this file first, then only the standards relevant to the work.
 | APIs, webhooks, or integrations | `~/.agents/sdlc/technologies/API.md` |
 | Go | `~/.agents/sdlc/technologies/GO.md` |
 | JavaScript or TypeScript | `~/.agents/sdlc/technologies/JAVASCRIPT.md` |
+| Lua or a Lua-hosted framework | `~/.agents/sdlc/technologies/LUA.md` |
 | Python | `~/.agents/sdlc/technologies/PYTHON.md` |
 | Bash or POSIX-style shell | `~/.agents/sdlc/technologies/SHELL.md` |
 | Fish shell | `~/.agents/sdlc/technologies/FISH.md` |

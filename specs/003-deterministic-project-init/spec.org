@@ -1,0 +1,311 @@
+#+TITLE: W003 - Deterministic project initialization
+#+SUBTITLE: Emergency change specification
+#+STARTUP: overview
+#+OPTIONS: toc:2 num:nil
+#+DEFINITION_GATE: RETROSPECTIVE
+#+OPERATOR_SIGNOFF: BYPASS-GATE-7 2026-09-07
+
+* Specification Summary
+:PROPERTIES:
+:CUSTOM_ID: summary
+:END:
+
+- Outcome :: =sdlc-init= *preselects project technologies deterministically*,
+  *inherits global settings silently*, and supports a *model-free migration*.
+- Before :: Technology selection launched a model, and every global default was
+  presented again as a project question.
+- After :: YAML heuristics propose technologies for operator confirmation;
+  populated global defaults are skipped unless explicitly reopened.
+- Changes :: Add schema-owned technology detection, a Lua standard,
+  =--override-global-config=, and =--no-agent-scan=.
+- Unchanged :: The operator confirms project technologies, project-owned facts
+  remain project questions, and archived v2 classification still uses a model
+  unless explicitly skipped.
+- Edge cases :: Blank repositories have no recommendation; archives and generated
+  dependencies do not influence selection; Hugo implies the web standard.
+- Decisions :: Heuristics optimize useful preselection, not perfect inference.
+- Next step :: Run the implementation gate, then let the operator test the
+  installed initializer.
+
+The summary above accurately and completely represents the detail below.
+
+-----
+
+* Context
+:PROPERTIES:
+:CUSTOM_ID: context
+:END:
+
+** Problem
+
+The initializer used a fresh model context to infer a small, bounded list of
+technologies from familiar repository files. This added cost and latency before
+an operator-confirmed question. It also repeatedly asked about settings already
+defined as global defaults.
+
+** Outcome
+
+Project initialization remains operator-controlled while routine detection and
+global inheritance become fast, deterministic, and schema-driven.
+
+** Scope
+
+*** In scope
+
+- Technology recommendations from maintained project files.
+- Lua engineering guidance and Lua source detection.
+- Silent inheritance of populated global defaults.
+- Explicit reopening of global-default questions.
+- Optional model-free preservation of archived Spec Kit work.
+
+*** Out of scope
+
+- Perfect technology inference.
+- Semantic classification of product or architecture authorities.
+- Automatic selection without operator confirmation.
+
+*** Unchanged
+
+- Product kind, technology selection, authorities, and infrastructure role are
+  project facts and cannot be supplied by global configuration.
+- Existing deterministic authority discovery and migration behaviour remains.
+
+** Authority and starting point
+
+- Project profile :: [[file:../../.sdlc/project.yaml][=.sdlc/project.yaml=]]
+- Product authority :: [[file:../../README.md][=README.md=]]
+- Architecture authority :: [[file:../../docs/ARCHITECTURE.md][=docs/ARCHITECTURE.md=]]
+- Configuration schema :: [[file:../../src/config/project-init.schema.yaml][=src/config/project-init.schema.yaml=]]
+
+** Constraints and dependencies
+
+- Detection uses the bounded Git file inventory already used by initialization.
+- The schema remains the canonical source for signals and implications.
+- No model or metered service participates in technology detection.
+
+** Decisions
+
+- False positives or omissions are acceptable because recommendations are
+  visibly preselected and require operator confirmation.
+- Lua is preferred to shell where a host supplies Lua or scripting logic needs
+  real data structures and modules; a standalone runtime still requires
+  justification.
+
+** Unresolved blockers
+
+- None.
+
+* Acceptance Criteria
+:PROPERTIES:
+:CUSTOM_ID: acceptance-criteria
+:END:
+
+** AC003.1 - Schema-owned technology recommendations
+:PROPERTIES:
+:CUSTOM_ID: ac-003-1
+:END:
+
+- Criterion :: Given a project without an explicit technology selection,
+  =sdlc-init= recommends standards whose schema signals match maintained project
+  files and leaves the operator to confirm or correct the selection.
+- Proven by :: [[#rt-003-1][RT003.1 - Detect maintained technologies]]
+
+** AC003.2 - Detection boundaries and implications
+:PROPERTIES:
+:CUSTOM_ID: ac-003-2
+:END:
+
+- Criterion :: Archived, generated, dependency, and provider-runtime paths do
+  not affect recommendations, while a detected standard may imply another
+  schema-declared standard.
+- Proven by :: [[#rt-003-1][RT003.1 - Detect maintained technologies]]
+
+** AC003.3 - Lua standard and detection
+:PROPERTIES:
+:CUSTOM_ID: ac-003-3
+:END:
+
+- Criterion :: A maintained Lua source, LuaRocks specification, or Lua tooling
+  file recommends the Lua standard, whose guidance covers selection, strengths,
+  weaknesses, libraries, hosts such as Hammerspoon, security, verification, and
+  anti-patterns.
+- Proven by :: [[#rt-003-2][RT003.2 - Detect and validate Lua guidance]]
+
+** AC003.4 - Global defaults remain global
+:PROPERTIES:
+:CUSTOM_ID: ac-003-4
+:END:
+
+- Criterion :: Given a populated value in =~/.agents/sdlc.yaml=, =sdlc-init=
+  inherits it without asking or copying it into project configuration unless
+  =--override-global-config= is supplied.
+- Proven by :: [[#rt-003-3][RT003.3 - Exercise global inheritance and override]]
+
+** AC003.5 - Model-free archived-work preservation
+:PROPERTIES:
+:CUSTOM_ID: ac-003-5
+:END:
+
+- Criterion :: Given =--no-agent-scan= during v2 migration, each archived
+  specification is retained as unresolved =REVIEW= work without invoking the
+  semantic classifier.
+- Proven by :: [[#rt-003-4][RT003.4 - Skip archived-work classification]]
+
+* Test Definitions
+:PROPERTIES:
+:CUSTOM_ID: test-definitions
+:END:
+
+** RT003.1 - Detect maintained technologies
+:PROPERTIES:
+:CUSTOM_ID: rt-003-1
+:END:
+
+- Covers :: [[#ac-003-1][AC003.1 - Schema-owned technology recommendations]] and
+  [[#ac-003-2][AC003.2 - Detection boundaries and implications]]
+- Boundary :: YAML detector rules applied to a bounded project-file inventory.
+- Setup :: Supply maintained Go and Hugo files plus an archived JavaScript file.
+- Action :: Run the detector.
+- Expected :: GO, HUGO, and implied WEB are selected in standard order;
+  archived JavaScript is ignored.
+- Retention :: Persistent Go regression suite.
+
+** RT003.2 - Detect and validate Lua guidance
+:PROPERTIES:
+:CUSTOM_ID: rt-003-2
+:END:
+
+- Covers :: [[#ac-003-3][AC003.3 - Lua standard and detection]]
+- Boundary :: Installed technology standards and schema detector rules.
+- Setup :: Supply a maintained =.lua= file and the deployed standards inventory.
+- Action :: Load and validate the schema, then run detection.
+- Expected :: LUA is recommended, and every installed standard has exactly one
+  usable detector rule.
+- Retention :: Persistent Go regression suite plus documentation review.
+
+** RT003.3 - Exercise global inheritance and override
+:PROPERTIES:
+:CUSTOM_ID: rt-003-3
+:END:
+
+- Covers :: [[#ac-003-4][AC003.4 - Global defaults remain global]]
+- Boundary :: Configuration resolution and prompt rendering.
+- Setup :: Provide a populated global build-model value.
+- Action :: Resolve once normally and once with =--override-global-config=.
+- Expected :: Normal resolution emits no question and records no project value;
+  override mode prompts and records the selected project alternative.
+- Retention :: Persistent Go regression suite.
+
+** RT003.4 - Skip archived-work classification
+:PROPERTIES:
+:CUSTOM_ID: rt-003-4
+:END:
+
+- Covers :: [[#ac-003-5][AC003.5 - Model-free archived-work preservation]]
+- Boundary :: Post-migration archived-work disposition and CLI help.
+- Setup :: Supply one archived v2 specification and enable the scan-skip option.
+- Action :: Resolve the migrated work and inspect the command help.
+- Expected :: The work is recorded as unresolved =REVIEW= with explicit skipped
+  classification evidence, and both new switches are documented.
+- Retention :: Persistent Go regression suite.
+
+* Edge Cases
+:PROPERTIES:
+:CUSTOM_ID: edge-cases
+:END:
+
+** No maintained evidence
+
+- Condition :: The bounded inventory matches no detector rule.
+- Required behaviour :: No technology is preselected; the operator chooses.
+- Covered by :: [[#ac-003-1][AC003.1 - Schema-owned technology recommendations]]
+
+** Explicit technology selection
+
+- Condition :: CLI, environment, or legacy migration input already supplies the
+  technology list.
+- Required behaviour :: Detection is skipped and the explicit selection wins.
+- Covered by :: [[#ac-003-1][AC003.1 - Schema-owned technology recommendations]]
+
+* Solution Design
+:PROPERTIES:
+:CUSTOM_ID: solution-design
+:END:
+
+** Architecture context
+
+- Relevant components :: The YAML schema defines inputs; the Go initializer
+  interprets them; the existing multi-select obtains operator confirmation.
+- Ownership boundary :: The SDLC owns recommendations and prompts; the operator
+  owns final project classification.
+- Existing pattern :: Reuse the bounded Git inventory and schema-driven UI.
+
+** High-level design
+
+*** Flow
+
+1. Load and validate installed technology standards and detector rules.
+2. Match maintained file basenames and extensions, excluding declared paths.
+3. Add declared implications, render evidence, and pass recommendations to the
+   existing confirmation control.
+4. During configuration resolution, silently inherit populated global values
+   unless override mode explicitly reopens them.
+
+*** Interfaces and configuration
+
+- Interface :: =technology_detection= in =project-init.schema.yaml= owns
+  exclusions, basenames, extensions, and implications.
+- Interface :: =sdlc-init --override-global-config= reopens global questions.
+- Interface :: =sdlc-init --no-agent-scan= preserves archived v2 work as
+  unresolved =REVIEW= items.
+- Compatibility :: Existing CLI, environment, project, global, and default
+  precedence remains unchanged.
+
+*** Data and state
+
+- Inherited global values remain absent from =.sdlc/project.yaml=.
+- Technology recommendations are transient and are persisted only after
+  operator confirmation.
+
+*** Failure behaviour
+
+- Invalid or incomplete detector schemas fail validation.
+- An unavailable Git inventory emits a warning and falls back to manual
+  technology selection.
+
+** Architecture impact
+
+*** Security impact
+
+- Threat boundary :: Detection reads only the bounded repository file list and
+  no longer sends project structure to an external model.
+- Data and secrets :: File contents and =.env= files are not read.
+- Access :: No additional authority is introduced.
+- Conclusion :: The change reduces external disclosure and model execution.
+
+*** Other relevant qualities
+
+- Reliability :: Deterministic rules make repeated recommendations stable.
+- Performance :: Removes one model startup from routine initialization.
+- Operability :: New switches are exposed through command help.
+- Accessibility :: Existing selectable, confirmable question layout remains.
+- Portability :: Detection is filesystem- and Git-based, without a model
+  provider dependency.
+- Maintainability :: New technologies add their standard and detector rule in
+  the same schema-controlled release.
+
+* Delivery Handoff
+:PROPERTIES:
+:CUSTOM_ID: delivery-handoff
+:END:
+
+- Required reading :: [[file:../../src/CODING.md][=src/CODING.md=]],
+  [[file:../../src/technologies/GO.md][=src/technologies/GO.md=]], and
+  [[file:../../src/technologies/LUA.md][=src/technologies/LUA.md=]]
+- First implementation step :: Already completed under the explicitly invoked
+  emergency route: detector and configuration tests were observed RED before
+  implementation.
+- Definition evidence :: [[file:audits.org][=audits.org=]]
+- Validation evidence :: [[file:validation.org][=validation.org=]]
+- Documentation impact :: README, quickstart, architecture, changelog, and
+  learnings are updated in this work package.
