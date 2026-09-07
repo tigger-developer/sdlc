@@ -129,6 +129,7 @@ type configurationChange struct {
 	afterLabel  string
 	contents    []byte
 	mode        os.FileMode
+	conflict    bool
 }
 
 type managedSync struct {
@@ -249,6 +250,7 @@ func RunInteractive(sourcePath, userHome, release string, input io.Reader, outpu
 		return err
 	}
 	plan.configurations = configurations
+	reader := bufio.NewReader(input)
 
 	fmt.Fprintln(output, "SDLC installer: INTERACTIVE")
 	if len(agents) == 0 {
@@ -258,14 +260,26 @@ func RunInteractive(sourcePath, userHome, release string, input io.Reader, outpu
 	}
 	if !installationHasChanges(plan) {
 		fmt.Fprintln(output, "All detected SDLC copies are current.")
+		if err := verifyHarnessGuards(commonHome, agents, output); err != nil {
+			return err
+		}
 		printHarnessReadiness(output, agents)
 		return nil
 	}
 	printInstallationPlan(output, plan, false)
 	for _, change := range plan.configurations {
 		printConfigurationChange(output, change)
+		if change.conflict {
+			accepted, confirmErr := confirm(reader, output, "Replace this unknown same-path conflict after creating a byte-for-byte backup? [yes/no]: ")
+			if confirmErr != nil {
+				return confirmErr
+			}
+			if !accepted {
+				return fmt.Errorf("declined replacement leaves the provider not SDLC-ready: %s", change.path)
+			}
+		}
 	}
-	accepted, confirmErr := confirm(bufio.NewReader(input), output, "Deploy all listed SDLC changes? [yes/no]: ")
+	accepted, confirmErr := confirm(reader, output, "Deploy all listed SDLC changes? [yes/no]: ")
 	if confirmErr != nil {
 		return confirmErr
 	}
@@ -289,6 +303,9 @@ func RunInteractive(sourcePath, userHome, release string, input io.Reader, outpu
 		return errors.New("deployment verification still reports changes")
 	}
 	if err := verifyCanonicalMain(commonHome); err != nil {
+		return err
+	}
+	if err := verifyHarnessGuards(commonHome, agents, output); err != nil {
 		return err
 	}
 	printHarnessReadiness(output, agents)
@@ -367,6 +384,38 @@ func printHarnessReadiness(output io.Writer, agents []string) {
 		}
 		fmt.Fprintf(output, "Harness %s: interactive=READY; external-audit=READY; initializer=%s\n", agent, initializer)
 	}
+}
+
+func verifyHarnessGuards(commonHome string, agents []string, output io.Writer) error {
+	guard := filepath.Join(commonHome, "sdlc", "hooks", "agent-command-guard.sh")
+	for _, agent := range agents {
+		payload := `{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{"command":"rm obsolete"}}`
+		if agent == agentCopilot {
+			payload = `{"hookEventName":"preToolUse","toolName":"shell","toolArgs":{"command":"rm obsolete"}}`
+		} else if agent == agentHermes {
+			payload = `{"hook_event_name":"pre_tool_call","tool_name":"terminal","tool_input":{"command":"rm obsolete"}}`
+		}
+		command := exec.Command(guard) // #nosec G204 -- guard is the exact managed installation path.
+		command.Stdin = strings.NewReader(payload)
+		var stdout bytes.Buffer
+		var stderr bytes.Buffer
+		command.Stdout = &stdout
+		command.Stderr = &stderr
+		err := command.Run()
+		verified := false
+		if agent == agentHermes {
+			var response map[string]any
+			verified = err == nil && json.Unmarshal(stdout.Bytes(), &response) == nil && response["decision"] == "block"
+		} else {
+			var exitError *exec.ExitError
+			verified = errors.As(err, &exitError) && exitError.ExitCode() == 2 && strings.Contains(stderr.String(), "Blocked by agent-command-guard")
+		}
+		if !verified {
+			fmt.Fprintf(output, "Harness %s: interactive=NOT_READY; external-audit=NOT_READY; initializer=NOT_READY; guard verification failed at %s\n", agent, guard)
+			return fmt.Errorf("%s native command-guard projection could not be verified", agent)
+		}
+	}
+	return nil
 }
 
 func installationHasChanges(plan installationPlan) bool {
@@ -1247,10 +1296,49 @@ func analyseCopilotConfiguration(agentHome string, output io.Writer) (*configura
 		return nil, nil
 	}
 	before := "managed hook file absent"
+	conflict := false
 	if exists {
-		before = "managed hook file differs and will be backed up"
+		if copilotManagedHook(original) {
+			before = "managed hook file differs and will be backed up"
+		} else {
+			before = "unknown same-path conflict; unrelated content is not presumed SDLC-owned"
+			conflict = true
+		}
 	}
-	return &configurationChange{path: path, beforeLabel: before, afterLabel: "preToolUse invokes the canonical SDLC command guard", contents: candidate, mode: mode}, nil
+	return &configurationChange{path: path, beforeLabel: before, afterLabel: "preToolUse invokes the canonical SDLC command guard", contents: candidate, mode: mode, conflict: conflict}, nil
+}
+
+func copilotManagedHook(contents []byte) bool {
+	var root map[string]any
+	if json.Unmarshal(contents, &root) != nil || !onlyKeys(root, "version", "hooks") || root["version"] != float64(1) {
+		return false
+	}
+	hooks, ok := root["hooks"].(map[string]any)
+	if !ok || !onlyKeys(hooks, "preToolUse") {
+		return false
+	}
+	entries, ok := hooks["preToolUse"].([]any)
+	if !ok || len(entries) != 1 {
+		return false
+	}
+	entry, ok := entries[0].(map[string]any)
+	if !ok || !onlyKeys(entry, "type", "command", "timeoutSec") || entry["type"] != "command" || entry["timeoutSec"] != float64(5) {
+		return false
+	}
+	command, ok := entry["command"].(string)
+	return ok && isManagedGuardCommand(command)
+}
+
+func onlyKeys(value map[string]any, allowed ...string) bool {
+	if len(value) != len(allowed) {
+		return false
+	}
+	for _, key := range allowed {
+		if _, exists := value[key]; !exists {
+			return false
+		}
+	}
+	return true
 }
 
 func configurationChanges(change *configurationChange) []*configurationChange {
@@ -1261,15 +1349,15 @@ func configurationChanges(change *configurationChange) []*configurationChange {
 }
 
 func isManagedGuardCommand(command string) bool {
-	command = strings.TrimSpace(command)
-	if command == toolGuardCommand {
-		return true
+	fields := strings.Fields(strings.TrimSpace(command))
+	if len(fields) != 2 || filepath.Base(strings.Trim(fields[0], "\"'")) != "bash" {
+		return false
 	}
-	unquoted := strings.Trim(command, "\"")
-	return strings.HasPrefix(unquoted, "bash ") &&
-		(strings.Contains(unquoted, "/.agents/sdlc/hooks/agent-command-guard.sh") ||
-			strings.Contains(unquoted, "/.hermes/sdlc/hooks/agent-command-guard.sh") ||
-			strings.Contains(unquoted, "/.claude/sdlc/hooks/agent-command-guard.sh"))
+	path := strings.Trim(fields[1], "\"'")
+	return path == "~/.agents/sdlc/hooks/agent-command-guard.sh" ||
+		strings.HasSuffix(path, "/.agents/sdlc/hooks/agent-command-guard.sh") ||
+		strings.HasSuffix(path, "/.hermes/sdlc/hooks/agent-command-guard.sh") ||
+		strings.HasSuffix(path, "/.claude/sdlc/hooks/agent-command-guard.sh")
 }
 
 func pathIsSymlink(path string) (bool, error) {
@@ -1599,11 +1687,21 @@ func offerConfigurationChanges(changes []*configurationChange, input io.Reader, 
 		fmt.Fprintln(output, "Configuration: no automatic change is available for this target.")
 		return nil
 	}
+	reader := bufio.NewReader(input)
 	for _, change := range changes {
 		printConfigurationChange(output, change)
+		if change.conflict {
+			accepted, err := confirm(reader, output, "Replace this unknown same-path conflict after creating a byte-for-byte backup? [yes/no]: ")
+			if err != nil {
+				return err
+			}
+			if !accepted {
+				return fmt.Errorf("declined replacement leaves the provider not SDLC-ready: %s", change.path)
+			}
+		}
 	}
 	fmt.Fprint(output, "Apply these configuration changes? Type yes to continue: ")
-	scanner := bufio.NewScanner(input)
+	scanner := bufio.NewScanner(reader)
 	if !scanner.Scan() {
 		if err := scanner.Err(); err != nil {
 			return fmt.Errorf("reading configuration confirmation: %w", err)

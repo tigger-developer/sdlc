@@ -150,6 +150,42 @@ func TestW004RunnerRejectsInvalidOutcomes(t *testing.T) {
 	}
 }
 
+func TestW004ExecuteReturnsTypedTimeoutAndExecutableIncidents(t *testing.T) {
+	root := t.TempDir()
+	bin := filepath.Join(root, "bin")
+	if err := os.MkdirAll(bin, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	command := filepath.Join(bin, "codex")
+	// #nosec G306 -- the fake harness must be executable.
+	if err := os.WriteFile(command, []byte("#!/bin/sh\nsleep 10\n"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("PATH", bin+string(os.PathListSeparator)+"/bin:/usr/bin")
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Millisecond)
+	defer cancel()
+	request := Request{Harness: "codex", Model: "model", Prompt: "prompt", Bundle: root, ResultFile: filepath.Join(root, "result")}
+	if _, err := Execute(ctx, request, false, nil, nil, io.Discard); err == nil {
+		t.Fatal("timed-out harness succeeded")
+	} else {
+		var incident *Incident
+		if !errors.As(err, &incident) || incident.Kind != "timeout" {
+			t.Fatalf("timeout incident = %#v, %v", incident, err)
+		}
+	}
+	t.Setenv("PATH", bin)
+	request.Harness = "claude"
+	request.SessionID = "00000000-0000-4000-8000-000000000000"
+	if _, err := Execute(context.Background(), request, false, nil, nil, io.Discard); err == nil {
+		t.Fatal("missing executable succeeded")
+	} else {
+		var incident *Incident
+		if !errors.As(err, &incident) || incident.Kind != "executable-unavailable" {
+			t.Fatalf("executable incident = %#v, %v", incident, err)
+		}
+	}
+}
+
 func TestW004ImmutableBundleDetectsMutation(t *testing.T) {
 	root := t.TempDir()
 	source := filepath.Join(root, "source.org")

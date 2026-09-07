@@ -47,3 +47,40 @@ hooks:
 		t.Fatalf("unrelated Hermes configuration was not preserved:\n%s", contents)
 	}
 }
+
+func TestW004ManagedGuardIdentityRequiresExactCommandVector(t *testing.T) {
+	for _, command := range []string{
+		"bash ~/.agents/sdlc/hooks/agent-command-guard.sh --extra",
+		"bash unrelated ~/.agents/sdlc/hooks/agent-command-guard.sh",
+		"printf ~/.agents/sdlc/hooks/agent-command-guard.sh",
+	} {
+		if isManagedGuardCommand(command) {
+			t.Fatalf("unrelated command was treated as SDLC-owned: %q", command)
+		}
+	}
+	for _, command := range []string{
+		"bash ~/.agents/sdlc/hooks/agent-command-guard.sh",
+		`bash "/Users/operator/.agents/sdlc/hooks/agent-command-guard.sh"`,
+		"/bin/bash /Users/operator/.hermes/sdlc/hooks/agent-command-guard.sh",
+	} {
+		if !isManagedGuardCommand(command) {
+			t.Fatalf("managed command was not recognized: %q", command)
+		}
+	}
+}
+
+func TestW004CopilotHookOwnershipIsExact(t *testing.T) {
+	managed := `{"version":1,"hooks":{"preToolUse":[{"type":"command","command":"bash ~/.agents/sdlc/hooks/agent-command-guard.sh","timeoutSec":5}]}}`
+	if !copilotManagedHook([]byte(managed)) {
+		t.Fatal("canonical Copilot hook was not recognized")
+	}
+	for _, conflicting := range []string{
+		`{}`,
+		`{"version":1,"personal":true,"hooks":{"preToolUse":[]}}`,
+		`{"version":1,"hooks":{"preToolUse":[{"type":"command","command":"bash ~/.agents/sdlc/hooks/agent-command-guard.sh --extra","timeoutSec":5}]}}`,
+	} {
+		if copilotManagedHook([]byte(conflicting)) {
+			t.Fatalf("unknown Copilot conflict was treated as managed: %s", conflicting)
+		}
+	}
+}

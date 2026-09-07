@@ -22,6 +22,7 @@ func TestW004CommandGuardCommandPosition(t *testing.T) {
 		{name: "env wrapper", command: "env MODE=test rm obsolete.txt", blocked: true},
 		{name: "command wrapper", command: "command rm obsolete.txt", blocked: true},
 		{name: "sudo option value", command: "sudo -u builder rm obsolete.txt", blocked: true},
+		{name: "unknown wrapper option", command: "sudo --mystery value rm obsolete.txt", blocked: true},
 		{name: "pipeline", command: "printf x | awk '{print $1}'", blocked: true},
 		{name: "compound", command: "printf x && python -V", blocked: true},
 		{name: "shell command string", command: "bash -lc 'printf x; python3 -V'", blocked: true},

@@ -19,7 +19,7 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 	writeFixtureFile(t, filepath.Join(source, "skills", "audit-test-code", "SKILL.md"), "---\nname: audit-test-code\ndescription: Review implemented tests.\n---\n")
 	writeFixtureFile(t, filepath.Join(source, "skills", "audit-test-definitions", "SKILL.md"), "---\nname: audit-test-definitions\ndescription: Review test definitions.\n---\n")
 	writeFixtureFile(t, filepath.Join(source, "skills", "define-change", "SKILL.md"), "---\nname: define-change\ndescription: Define a change.\n---\n")
-	writeFixtureFile(t, filepath.Join(source, "hooks", "agent-command-guard.sh"), "#!/usr/bin/env bash\n")
+	writeGuardFixture(t, filepath.Join(source, "hooks", "agent-command-guard.sh"))
 	writeFixtureFile(t, filepath.Join(source, "templates", "codex-sdlc.rules.example"), codexPythonRulesStart+"\nprefix_rule(pattern=[\"python3\"], decision=\"forbidden\")\n"+codexPythonRulesEnd+"\n")
 	writeCommandFixtures(t, source)
 
@@ -47,7 +47,7 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 	}
 
 	var output bytes.Buffer
-	if err := RunInteractive(source, root, "v3.0.0", strings.NewReader("yes\n"), &output); err != nil {
+	if err := RunInteractive(source, root, "v3.0.0", strings.NewReader("yes\nyes\n"), &output); err != nil {
 		t.Fatalf("install: %v\n%s", err, output.String())
 	}
 	for _, provider := range []string{"claude", "codex", "copilot", "hermes"} {
@@ -128,6 +128,10 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 			t.Fatalf("guard absent from %s: %s", path, contents)
 		}
 	}
+	copilotBackups, err := filepath.Glob(filepath.Join(root, ".copilot", "hooks", "sdlc-tool-guard.json.*.bak"))
+	if err != nil || len(copilotBackups) != 1 || readFixtureFile(t, copilotBackups[0]) != "{}\n" {
+		t.Fatalf("Copilot conflict backup = %v, %v", copilotBackups, err)
+	}
 	global := readFixtureFile(t, filepath.Join(root, ".agents", "sdlc.yaml"))
 	if !strings.Contains(global, "version: 3") || !strings.Contains(global, "release: v3.0.0") {
 		t.Fatalf("global configuration does not identify the schema and deployed release:\n%s", global)
@@ -141,7 +145,7 @@ func TestV3InteractiveInstallIsSilentNoOpAfterSynchronization(t *testing.T) {
 	writeFixtureFile(t, filepath.Join(source, "README.md"), "# SDLC\n")
 	writeFixtureFile(t, filepath.Join(source, "src", "MAIN.md"), "# Lean SDLC\n")
 	writeFixtureFile(t, filepath.Join(source, "skills", "audit-code", "SKILL.md"), "---\nname: audit-code\ndescription: Review code.\n---\n")
-	writeFixtureFile(t, filepath.Join(source, "hooks", "agent-command-guard.sh"), "#!/usr/bin/env bash\n")
+	writeGuardFixture(t, filepath.Join(source, "hooks", "agent-command-guard.sh"))
 	writeCommandFixtures(t, source)
 	if err := os.MkdirAll(filepath.Join(root, ".codex"), 0o755); err != nil {
 		t.Fatal(err)
@@ -225,6 +229,21 @@ func installHarnessExecutables(t *testing.T, root string, names ...string) {
 		}
 	}
 	t.Setenv("PATH", bin)
+}
+
+func writeGuardFixture(t *testing.T, path string) {
+	t.Helper()
+	contents := `#!/bin/sh
+IFS= read -r payload
+case "$payload" in
+*pre_tool_call*) printf '{"decision":"block","reason":"test"}\n'; exit 0 ;;
+*) printf 'Blocked by agent-command-guard: test\n' >&2; exit 2 ;;
+esac
+`
+	writeFixtureFile(t, path, contents)
+	if err := os.Chmod(path, 0o755); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func readFixtureFile(t *testing.T, path string) string {

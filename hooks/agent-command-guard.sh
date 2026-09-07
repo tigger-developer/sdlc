@@ -174,6 +174,9 @@ skip_wrapper_options() {
         command:-v | command:-V)
             return 2
             ;;
+        env:-i | env:--ignore-environment | env:-0 | env:--null | env:--debug | command:-p | sudo:-n | sudo:--non-interactive | sudo:-E | sudo:--preserve-env | sudo:-H | sudo:--set-home | sudo:-S | sudo:--stdin | sudo:-b | sudo:--background | sudo:-k | sudo:--reset-timestamp | sudo:-K | sudo:--remove-timestamp | sudo:-v | sudo:--validate | sudo:-l | sudo:--list | sudo:-V | sudo:--version | sudo:-e | sudo:--edit)
+            ((index += 1))
+            ;;
         env:-u | env:--unset | env:-C | env:--chdir | sudo:-u | sudo:--user | sudo:-g | sudo:--group | sudo:-h | sudo:--host | sudo:-p | sudo:--prompt | sudo:-C | sudo:--close-from | sudo:-R | sudo:--chroot | sudo:-T | sudo:--command-timeout)
             index=$((index + 2))
             ;;
@@ -185,7 +188,8 @@ skip_wrapper_options() {
             return 0
             ;;
         *:-*)
-            ((index += 1))
+            BLOCK_REASON="unrecognized $wrapper wrapper option prevents safe command classification."
+            return 3
             ;;
         *)
             return 0
@@ -199,7 +203,7 @@ segment_invokes_guarded_action() {
     local start="$1"
     local end="$2"
     local index="$start"
-    local executable basename argument subcommand
+    local executable basename argument subcommand wrapper_status
 
     while [[ "$index" -lt "$end" ]] && is_assignment "${TOKENS[index]}"; do
         ((index += 1))
@@ -222,8 +226,12 @@ segment_invokes_guarded_action() {
             ;;
         env | command | sudo)
             ((index += 1))
-            if ! skip_wrapper_options "$basename" "$end"; then
-                [[ "$?" -eq 2 ]] && return 1
+            if skip_wrapper_options "$basename" "$end"; then
+                :
+            else
+                wrapper_status="$?"
+                [[ "$wrapper_status" -eq 2 ]] && return 1
+                [[ "$wrapper_status" -eq 3 ]] && return 0
             fi
             continue
             ;;

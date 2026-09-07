@@ -102,7 +102,7 @@ func newCLIFixture(t *testing.T) (string, string) {
 		"templates/codex-sdlc.rules.example": "prefix_rule()\n",
 		"commands/build.md":                  "# Build\n",
 		"skills/audit-code/SKILL.md":         "# Audit\n",
-		"hooks/agent-command-guard.sh":       "#!/bin/sh\n",
+		"hooks/agent-command-guard.sh":       "#!/bin/sh\nIFS= read -r payload\ncase \"$payload\" in *pre_tool_call*) printf '{\"decision\":\"block\"}\\n'; exit 0 ;; *) printf 'Blocked by agent-command-guard: test\\n' >&2; exit 2 ;; esac\n",
 		"bin/sdlc-init":                      "initializer\n",
 		"bin/sdlc-preview":                   "previewer\n",
 		"bin/sdlc-harness":                   "runner\n",
