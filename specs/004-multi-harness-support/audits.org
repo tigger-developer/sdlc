@@ -230,6 +230,46 @@
   delivery handoff, and non-metered regression evidence.
 - *Supersedes:* The pending status recorded immediately above for this revision.
 
+** Command-guard amendment - external review round 1
+:PROPERTIES:
+:CONTEXT:  /root/audit_w004_command_guard
+:END:
+
+- *Artefact:* [[file:spec.org][W004 - Support Claude, Copilot, and Hermes Harnesses]]
+- *Revision:* Git commit =897d8a94cd91520bb89bb030bbea0bb4fa322687=
+- *Audits:* =audit-spec=, =audit-design=, and =audit-test-definitions= in one
+  retained context
+- *Verdict:* FAIL
+- *Findings:*
+  1. The exact restriction contract conflicted with current parser defects: data
+     arguments were over-blocked while option-bearing =sudo= wrappers bypassed
+     prohibited commands.
+  2. Provider hook ownership, conflict disposition, and the observable
+     SDLC-readiness result were not deterministic.
+  3. RT004.7 lacked per-harness payload and result contracts, invocation-count
+     evidence, malformed-input cases, exhaustive restriction vectors, allowed
+     neighbours, and option-bearing wrappers.
+- *Supersedes:* The command-guard amendment local review round 1.
+
+** Command-guard amendment - local review round 2
+:PROPERTIES:
+:ROUND:    2
+:END:
+
+- *Artefact:* [[file:spec.org][W004 - Support Claude, Copilot, and Hermes Harnesses]]
+- *Revision:* SHA-256
+  =98ca9faf58ccbea54eb0438ae2cfef9d34c11538201a7683c3be2df5ca2157a4=.
+- *Audits:* =audit-spec=, =audit-design=, and =audit-test-definitions=
+- *Verdict:* PASS
+- *Findings:* None after testing the external findings against the complete
+  definition.
+- *Remediation:* Distinguished command positions from ordinary argument data;
+  specified supported wrappers and positive and negative vectors; defined
+  exact provider payloads and results; made ownership, conflict handling, and
+  readiness reporting deterministic; and expanded RT004.7 to prove those
+  requirements without invoking a real provider.
+- *Supersedes:* Command-guard amendment external review round 1.
+
 * Implementation gate
 
 No implementation has been authorized or performed.

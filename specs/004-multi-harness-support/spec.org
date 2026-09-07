@@ -23,16 +23,17 @@
 - Changes :: Add *Claude*, *Copilot*, and *Hermes* harness adapters; expose the
   *canonical global skills* through each native skill location; make harness
   selection and headless execution *capability-aware*; register the *shared
-  command guard* through each harness's native hook mechanism; replace
-  hard-coded *Codex* language in the workflow and initializer.
+  command guard* through each harness's native hook mechanism; correct its
+  *command-position parsing*; replace hard-coded *Codex* language in the
+  workflow and initializer.
 - Unchanged :: The *standards*, *two-gate workflow*, *five-round limit*,
   *operator sign-off*, *Codex support*, and rule against *project-local skill
   copies* remain unchanged.
 - Edge cases :: Handle an *absent executable or provider home*, *unsupported or
   meaningless provider option*, *non-SDLC destination conflict*, *unprovable
-  read-only mode*, *unavailable or incompatible pre-tool hooks*, *timeout*,
-  *missing session identity*, and *malformed final response* without claiming
-  parity or PASS.
+  read-only mode*, *guarded words used only as data*, *option-bearing wrappers*,
+  *unavailable or incompatible pre-tool hooks*, *timeout*, *missing session
+  identity*, and *malformed final response* without claiming parity or PASS.
 - Decisions :: Keep one *provider-neutral source of truth* under =~/.agents=;
   use *fixed Go adapters*, not shell command templates; treat actual harness
   smoke checks as *bounded one-off tests*, never regression tests.
@@ -115,7 +116,9 @@ provider, permission, or output features*.
   [[file:../../internal/installer/installer.go][=internal/installer/installer.go=]]
   currently *retires non-Codex SDLC skills and command hooks*, and
   [[file:../../src/config/project-init.schema.yaml][=src/config/project-init.schema.yaml=]]
-  permits *only Codex and OpenAI*.
+  permits *only Codex and OpenAI*. The current guard also contains parser defects
+  that over-block words used as data and miss option-bearing command wrappers;
+  those defects are implementation inputs, not intended policy.
 - Observed harness interfaces :: The current command contracts are recorded in
   the [[#harness-capability-contract][harness capability contract]]. They must be
   *revalidated during implementation*, not treated as vendor guarantees.
@@ -146,6 +149,9 @@ provider, permission, or output features*.
 - An installed harness is *not SDLC-ready* unless its native pre-tool hook can
   invoke and enforce the canonical command guard without weakening unrelated
   provider configuration.
+- Command detection is *syntax-aware*: it blocks a prohibited executable only
+  in command position, follows supported wrappers to their invoked executable,
+  and does not treat ordinary argument text as a command.
 
 ** Unresolved blockers
 
@@ -424,11 +430,16 @@ provider, permission, or output features*.
   conflicting hook artefact. Supply each harness's command and file-read payload
   forms for every [[#command-guard-contract][guarded restriction]], permitted
   neighbouring commands and paths, shell-wrapper and command-chain forms, and
-  an unrecognized payload shape.
-- Action :: *Plan and apply installation twice*, then pass equivalent allowed
-  and prohibited command payloads through each native hook adapter.
+  invalid JSON, missing required fields, and an unrecognized payload shape. The
+  temporary guard wrapper records an *invocation count* before forwarding to the
+  canonical guard fixture.
+- Action :: *Plan and apply installation twice*, exercise accept and decline for
+  each conflict type, then pass every required command and path vector through
+  each harness's exact payload projection and result contract.
 - Expected :: Exactly one native hook invokes the *canonical guard* for each
-  harness; equivalent payloads produce the *same allow or block decision*;
+  event, proven by the invocation counter; equivalent payloads produce the
+  *same allow or block decision* and each provider receives its specified native
+  exit or JSON result;
   every guarded command and path is blocked while neighbouring input receives
   no block from the canonical guard; wrapper or chain syntax does not bypass the
   decision; payload-schema drift makes verification fail closed rather than
@@ -525,6 +536,29 @@ provider, permission, or output features*.
   enforcement]] and [[#rt-004-7][RT004.7 - Enforce the command guard across
   harnesses]].
 
+** Prohibited words occur only as data
+
+- Condition :: An allowed command receives =source=, =git remote add=,
+  =chmod 777=, =python3=, or another guarded token sequence as *ordinary
+  argument data*.
+- Required behaviour :: The guard returns *no block* because no prohibited
+  executable, option, or path is in its guarded syntactic position.
+- Covered by :: [[#ac-004-11][AC004.11 - Consistent command-policy
+  enforcement]] and [[#rt-004-7][RT004.7 - Enforce the command guard across
+  harnesses]].
+
+** Prohibited command follows an option-bearing wrapper
+
+- Condition :: A prohibited executable follows assignments or a supported
+  wrapper with options and option values, such as =sudo -u builder rm
+  obsolete.txt=.
+- Required behaviour :: The guard reaches the *invoked executable* and blocks
+  it. An unknown wrapper option fails closed with an actionable diagnostic; it
+  does not silently skip an uncertain token.
+- Covered by :: [[#ac-004-11][AC004.11 - Consistent command-policy
+  enforcement]] and [[#rt-004-7][RT004.7 - Enforce the command guard across
+  harnesses]].
+
 ** Harness cannot prove read-only execution
 
 - Condition :: A harness *cannot prevent external-auditor mutation*.
@@ -600,23 +634,79 @@ focused audit*.
 - Guarded bypasses and access changes :: Block =--no-verify=, =--no-hooks=,
   =--no-pre-commit-hook=, =chmod 777=, =git remote add=, force-push forms,
   =gh repo create=, =gh repo edit=, and arbitrary =source= or =.= file
-  execution. These remain operator actions where the governing rules permit
-  them; an agent does not bypass the hook.
+  execution when they occupy the relevant command or option position, not when
+  an allowed command prints or otherwise carries those words as data. These
+  remain operator actions where the governing rules permit them; an agent does
+  not bypass the hook.
 - Allowed neighbours :: The canonical guard returns *no block* for commands and
   paths outside that exact policy; provider-native restrictions still apply.
   The adapter does not add undocumented restrictions or turn a missing or
   unrecognized payload into silent policy success.
+- Command-position grammar :: Parse each simple command from its start or from
+  a shell control separator; skip leading assignments; follow =env=, =command=,
+  =sudo=, control-flow, and timing wrappers using an explicit option-arity
+  table; recursively parse only the command-string argument of
+  =bash=/=sh=/=zsh= with =-c=. Once an allowed executable is identified, its
+  remaining arguments are data except for the separate exact =.env= path and
+  guarded option checks. =command -v= and =command -V= inspect names rather than
+  invoke them and therefore receive no block.
+- Required command vectors :: Block direct and absolute prohibited executables,
+  leading assignments, pipelines, compound commands, nested shell command
+  strings, =env MODE=test rm obsolete.txt=, =command rm obsolete.txt=, and
+  =sudo -u builder rm obsolete.txt=. Return no block for =printf '%s\\n'
+  python3=, =echo source file=, =echo git remote add example=, =echo chmod 777
+  target=, =echo --no-verify=, =echo git push --force=, =echo gh repo create=,
+  =rg python3 README.md=, =command -v python3=, =pythonista --version=, and
+  =python3.14 --version=.
+- Required path vectors :: Block native reads and shell references to =.env=,
+  =config/.env=, =./.env=, and the equivalent backslash path. Return no block
+  for =.env.example=, =.env.local=, a search pattern containing =.env= against
+  another file, or a native write whose destination is =.env=.
 - Native registration :: Codex uses =~/.codex/hooks.json=, Claude uses
   =~/.claude/settings.json=, Copilot uses
   =~/.copilot/hooks/sdlc-tool-guard.json=, and Hermes uses
   =~/.hermes/config.yaml=.
+- Payload and result contract ::
+
+  | Harness | Accepted native input projected to the guard | Block result | Allowed result |
+  |---------+----------------------------------------------+--------------+----------------|
+  | Codex | =hook_event_name=, =tool_name=, =tool_input.command= or named file fields | exit 2 and reason on stderr | exit 0, no block response |
+  | Claude | =hook_event_name=PreToolUse=, =tool_name=, =tool_input.command= or named file fields | exit 2 and reason on stderr | exit 0, no block response |
+  | Copilot | =hookEventName=, =toolName=, =toolArgs.command= or named file fields | exit 2 and reason on stderr | exit 0, no block response |
+  | Hermes | =hook_event_name=pre_tool_call=, =tool_name=, =tool_input.command= or named file fields | exit 0 with JSON =decision:block= and reason | exit 0 with no response |
+
+  Implementation revalidates these native field and result contracts against
+  the installed harness versions. Invalid JSON, a recognized command or read
+  event missing its required command/path fields, or a changed native schema
+  produces a *non-success diagnostic*; it is never treated as an allowed event.
 - Absent configuration :: The Codex, Claude, and Copilot adapters may create
   only their *minimal managed hook artefact*. Hermes requires its existing
   first-run configuration and fails with an actionable prerequisite rather than
   synthesizing provider-owned state.
-- Ownership :: The installer owns only the *marked SDLC hook entry or managed
-  hook file*. It merges with unrelated configuration and requires operator
-  confirmation before replacing an unknown same-path artefact.
+- Ownership :: Embedded Codex, Claude, and Hermes entries are SDLC-owned only
+  when their parsed command vector is exactly =bash= plus the current user's
+  =~/.agents/sdlc/hooks/agent-command-guard.sh=, or =bash= plus that provider's
+  legacy =~/.<provider>/sdlc/hooks/agent-command-guard.sh=. Quoting differences
+  do not change that vector; prefixes, suffixes, or additional arguments make it
+  unrelated. Other entries remain untouched. The dedicated Copilot file is
+  SDLC-owned only when it parses as =version: 1= with a
+  =hooks.preToolUse= list containing exactly one command hook whose parsed vector
+  has that canonical or Copilot-legacy identity and only the documented =type=,
+  =command=, and =timeoutSec= fields. A malformed file or one outside that shape
+  is an *unknown same-path conflict*.
+- Conflict disposition :: For each unknown conflict, show its exact path and
+  intended managed replacement and ask once whether to replace it. Acceptance
+  creates an adjacent timestamped byte-for-byte backup before replacement.
+  Decline leaves it untouched and makes that harness not ready; independent
+  provider changes may proceed only through the final installation confirmation.
+- Observable readiness :: After verification, print one line per detected
+  harness in the form =Harness <name>: interactive=READY|NOT_READY;
+  external-audit=READY|UNAVAILABLE|NOT_READY;
+  initializer=READY|HANDOFF|NOT_READY=, followed by a path and reason for every
+  non-ready capability. A missing or unverified guard makes =interactive= and
+  all agent-execution capabilities =NOT_READY= and gives the installer a
+  non-zero final status. =UNAVAILABLE= is reserved for an optional capability
+  the native harness cannot provide and is not a successful substitute.
 - Verification :: Installation validates that an equivalent native pre-tool
   event reaches the canonical guard and receives its decision. Registration
   without a proven invocation path does *not* make the harness SDLC-ready.
