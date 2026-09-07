@@ -56,9 +56,9 @@ discovering scope while editing:
 - **Remove from active source:** `src/presets/sdlc-standards/` and all Spec Kit
   adapters, commands, and templates.
 - **Add:** installed Org templates and the public `sdlc-preview` source.
-- **Rewrite:** `Makefile`. Build and install only the v3 installer,
-  initializer, previewer, and any CLI with a proven v3 purpose. Remove the
-  `sdlc-project-update` installation and obsolete audit-runner wiring.
+- **Rewrite:** `Makefile`. Keep the installer repository-internal, and install
+  only the initializer, previewer, and any CLI with a proven v3 purpose. Remove
+  the `sdlc-project-update` installation and obsolete audit-runner wiring.
 - **Rewrite:** README, quickstart material, architecture, changelog, and
   learnings after the implementation behaviour is stable.
 

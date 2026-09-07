@@ -17,5 +17,8 @@ func TestHelpAndVersionExitSuccessfully(t *testing.T) {
 		if !strings.Contains(combined, "sdlc-merge-legacy-acs") {
 			t.Fatalf("%v output lacks command name: %s", arguments, combined)
 		}
+		if arguments[0] != "--version" && !strings.Contains(combined, "One-time migration helper") {
+			t.Fatalf("%v help lacks command purpose: %s", arguments, combined)
+		}
 	}
 }

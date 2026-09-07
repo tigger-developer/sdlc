@@ -9,6 +9,10 @@ legacy GitHub-ticket migration.
 make install
 ```
 
+This builds the repository-internal installer, deploys the public commands under
+`~/.agents/sdlc/bin`, and links those deployed copies onto the global path. The
+links do not point back into the source checkout.
+
 Use non-interactive application only when the listed variances have already been
 reviewed:
 

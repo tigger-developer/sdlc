@@ -16,6 +16,9 @@ func TestHelpDescribesSupportedInput(t *testing.T) {
 	if !strings.Contains(output.String(), "Markdown or Org") {
 		t.Fatalf("help = %q", output.String())
 	}
+	if !strings.Contains(output.String(), "does not modify the source document") {
+		t.Fatalf("help does not explain its source boundary: %q", output.String())
+	}
 }
 
 func TestCleanupRefusesArbitraryFiles(t *testing.T) {

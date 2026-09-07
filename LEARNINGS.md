@@ -585,6 +585,20 @@ specification audit rejects material violations. Treating presentation as a
 late cosmetic edit is too unreliable for an artefact that requires operator
 sign-off.
 
+## Executables belong to the deployed release
+
+A global command that links into a mutable source checkout can silently change
+when that checkout switches branch or advances beyond the installed standards.
+Its executable and governing documents then describe different releases.
+
+The installer must copy public commands into the canonical deployed SDLC tree
+and make global command links target those copies. The installer itself remains
+a repository-internal build artefact invoked by `make install`. Command files,
+links, retirements, standards, skills, and release metadata belong to one
+installation plan and one confirmation. Declining that confirmation makes no
+changes. The installer is recoverable and idempotent, but does not claim atomic
+rollback after application begins.
+
 ## Licence
 
 Apache License 2.0. See [`LICENSE`](LICENSE).

@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## v3.0.9 - 2026-09-07
+
+- Kept `sdlc-install` repository-internal and expanded the help for every
+  operator-facing command to explain its purpose, scope, and relationship to
+  the other SDLC commands.
+- Moved installed command binaries under `~/.agents/sdlc/bin` and made the
+  global `~/.local/bin` entries point to those deployed copies instead of the
+  mutable source checkout.
+- Moved global-command creation and retirement into the same confirmed
+  installation plan as standards and skills. Declining installation therefore
+  makes no command-path changes, and an unchanged rerun remains a no-op.
+
 ## v3.0.8 - 2026-09-07
 
 - Renamed the once-only project initialization command from

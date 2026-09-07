@@ -18,8 +18,16 @@ staging repository
   src/       -> ~/.agents/sdlc/
   skills/    -> ~/.agents/skills/
   hooks/     -> ~/.agents/sdlc/hooks/
-  CLI tools  -> ~/.local/bin/
+  bin/       -> ~/.agents/sdlc/bin/
+                 ^
+                 |
+  ~/.local/bin/sdlc-* symlinks
 ```
+
+`sdlc-install` remains a repository-internal build artefact invoked by
+`make install`; it is not deployed to the global path. The installed CLI tools
+operate on individual projects or documents. Their global links target the
+deployed release under `~/.agents/sdlc/bin`, never the mutable source checkout.
 
 `~/.agents/sdlc/MAIN.md` is the only standards bootstrap. It routes an agent to
 the minimum relevant universal, domain, technology, and workflow documents.

@@ -54,7 +54,7 @@ func runCommand(arguments []string, input io.Reader, output, errorOutput io.Writ
 	flags.SetOutput(errorOutput)
 	flags.Usage = func() {
 		fmt.Fprintln(errorOutput, "usage: sdlc-init [options]")
-		fmt.Fprintln(errorOutput, "Initialize or migrate one Git project to lean SDLC v3.")
+		printInitPurpose(errorOutput)
 		flags.PrintDefaults()
 		fmt.Fprintln(errorOutput, "  --version\n    \tprint the command version")
 	}
@@ -102,7 +102,7 @@ func requestsHelp(arguments []string) bool {
 
 func printBootstrapHelp(output io.Writer) {
 	fmt.Fprintln(output, "usage: sdlc-init [options]")
-	fmt.Fprintln(output, "Initialize or migrate one Git project to lean SDLC v3.")
+	printInitPurpose(output)
 	fmt.Fprintln(output, "")
 	fmt.Fprintln(output, "Core options:")
 	fmt.Fprintln(output, "  --project PATH        project root (default: current directory)")
@@ -111,6 +111,15 @@ func printBootstrapHelp(output io.Writer) {
 	fmt.Fprintln(output, "  --version             print the command version")
 	fmt.Fprintln(output, "")
 	fmt.Fprintln(output, "Project-setting options are generated from config/project-init.schema.yaml.")
+}
+
+func printInitPurpose(output io.Writer) {
+	fmt.Fprintln(output, "Initialize or migrate one Git project to the installed SDLC framework.")
+	fmt.Fprintln(output, "")
+	fmt.Fprintln(output, "Run it once from the project root. It creates the project profile and work")
+	fmt.Fprintln(output, "ledger, optionally migrates legacy tickets, and preserves prior SDLC state.")
+	fmt.Fprintln(output, "It does not install or update the global SDLC framework; run make install")
+	fmt.Fprintln(output, "from the SDLC source repository for that operation.")
 }
 
 func bootstrapSDLCRoot(arguments []string) (string, error) {

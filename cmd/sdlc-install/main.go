@@ -32,6 +32,18 @@ func run(arguments []string, input io.Reader, output io.Writer) error {
 	apply := flags.Bool("apply", false, "synchronize SDLC-owned copies for one provider")
 	configure := flags.Bool("configure", false, "offer supported provider configuration changes for confirmation")
 	version := flags.Bool("version", false, "print the command version")
+	flags.Usage = func() {
+		fmt.Fprintln(output, "usage: sdlc-install [options]")
+		fmt.Fprintln(output, "Install or update the global SDLC framework from this source repository.")
+		fmt.Fprintln(output, "")
+		fmt.Fprintln(output, "This repository-internal command is invoked by make install. It deploys the")
+		fmt.Fprintln(output, "shared standards, global skills, command guard, and supported provider")
+		fmt.Fprintln(output, "adapters. It does not initialize a software project; run sdlc-init from")
+		fmt.Fprintln(output, "that project's root instead.")
+		fmt.Fprintln(output, "")
+		fmt.Fprintln(output, "Options:")
+		flags.PrintDefaults()
+	}
 	if err := flags.Parse(arguments); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
 			return nil

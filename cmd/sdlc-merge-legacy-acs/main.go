@@ -34,7 +34,14 @@ func runCommand(arguments []string, output, errorOutput io.Writer) error {
 	version := flags.Bool("version", false, "print the command version")
 	flags.Usage = func() {
 		fmt.Fprintln(errorOutput, "usage: sdlc-merge-legacy-acs [--project PATH]")
-		fmt.Fprintln(errorOutput, "Merge docs/ACs.org into the folded legacy section of docs/work.org.")
+		fmt.Fprintln(errorOutput, "One-time migration helper for an initialized SDLC v3 project whose legacy")
+		fmt.Fprintln(errorOutput, "acceptance criteria still remain in docs/ACs.org.")
+		fmt.Fprintln(errorOutput, "")
+		fmt.Fprintln(errorOutput, "It validates and folds the complete legacy ledger into docs/work.org,")
+		fmt.Fprintln(errorOutput, "updates the project profile, then removes the redundant source ledger.")
+		fmt.Fprintln(errorOutput, "It does not initialize a project; ordinary migration belongs to sdlc-init.")
+		fmt.Fprintln(errorOutput, "")
+		fmt.Fprintln(errorOutput, "Options:")
 		flags.PrintDefaults()
 	}
 	if err := flags.Parse(arguments); err != nil {

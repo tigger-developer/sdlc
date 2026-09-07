@@ -32,6 +32,12 @@ func run(arguments []string, output, errorOutput io.Writer) int {
 	flags.Usage = func() {
 		fmt.Fprintln(errorOutput, "usage: sdlc-preview FILE")
 		fmt.Fprintln(errorOutput, "Render one Markdown or Org document with Pandoc and open it in a browser.")
+		fmt.Fprintln(errorOutput, "")
+		fmt.Fprintln(errorOutput, "The preview preserves document-relative links by creating temporary HTML")
+		fmt.Fprintln(errorOutput, "beside the source, then removes that HTML after opening it. It does not modify the source document.")
+		fmt.Fprintln(errorOutput, "")
+		fmt.Fprintln(errorOutput, "Options:")
+		fmt.Fprintln(errorOutput, "  --version  print the command version")
 	}
 	if err := flags.Parse(arguments); err != nil {
 		if errors.Is(err, flag.ErrHelp) {

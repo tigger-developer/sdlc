@@ -59,6 +59,11 @@ func TestRunHelpIsSuccessful(t *testing.T) {
 			t.Errorf("help output missing %q: %q", flagName, output.String())
 		}
 	}
+	for _, explanation := range []string{"repository-internal", "make install", "does not initialize a software project"} {
+		if !strings.Contains(output.String(), explanation) {
+			t.Errorf("help output missing %q: %q", explanation, output.String())
+		}
+	}
 }
 
 func TestRunVersionReportsEmbeddedRelease(t *testing.T) {
@@ -86,6 +91,9 @@ func newCLIFixture(t *testing.T) (string, string) {
 		"commands/build.md":                  "# Build\n",
 		"skills/audit-code/SKILL.md":         "# Audit\n",
 		"hooks/agent-command-guard.sh":       "#!/bin/sh\n",
+		"bin/sdlc-init":                      "initializer\n",
+		"bin/sdlc-preview":                   "previewer\n",
+		"bin/sdlc-merge-legacy-acs":          "ledger merger\n",
 	} {
 		fullPath := filepath.Join(source, filepath.FromSlash(path))
 		if err := os.MkdirAll(filepath.Dir(fullPath), 0o700); err != nil {

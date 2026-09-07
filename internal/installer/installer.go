@@ -94,6 +94,12 @@ var retiredGlobalSkillPaths = []string{
 	"draft-issue",
 }
 
+var deployedCommandNames = []string{
+	"sdlc-init",
+	"sdlc-merge-legacy-acs",
+	"sdlc-preview",
+}
+
 const (
 	codexPythonRulesStart = "# BEGIN SDLC MANAGED PYTHON RULES"
 	codexPythonRulesEnd   = "# END SDLC MANAGED PYTHON RULES"
@@ -131,8 +137,16 @@ type managedRetirement struct {
 	path string
 }
 
+type managedLink struct {
+	target            string
+	destination       string
+	needsSync         bool
+	destinationExists bool
+}
+
 type installationPlan struct {
 	syncs                 []managedSync
+	links                 []managedLink
 	retirements           []managedRetirement
 	managedConfigurations []*configurationChange
 	configurations        []*configurationChange
@@ -353,11 +367,17 @@ func installationHasChanges(plan installationPlan) bool {
 			return true
 		}
 	}
+	for _, link := range plan.links {
+		if link.needsSync {
+			return true
+		}
+	}
 	return false
 }
 
 func mergeInstallationPlan(plan *installationPlan, addition installationPlan) {
 	plan.syncs = append(plan.syncs, addition.syncs...)
+	plan.links = append(plan.links, addition.links...)
 	plan.retirements = append(plan.retirements, addition.retirements...)
 	plan.managedConfigurations = append(plan.managedConfigurations, addition.managedConfigurations...)
 }
@@ -501,6 +521,7 @@ func planInstallation(agent, source, agentHome, release string) (installationPla
 
 func planSharedInstallation(source, commonHome, release string) (installationPlan, error) {
 	liveSDLC := filepath.Join(commonHome, "sdlc")
+	localBin := filepath.Join(filepath.Dir(commonHome), ".local", "bin")
 	if sameLexicalPath(source, liveSDLC) {
 		return installationPlan{}, fmt.Errorf("source %q is the live SDLC directory; use a separate staging clone", source)
 	}
@@ -519,6 +540,25 @@ func planSharedInstallation(source, commonHome, release string) (installationPla
 			return installationPlan{}, err
 		}
 		plan.syncs = append(plan.syncs, files...)
+	}
+	for _, name := range deployedCommandNames {
+		sourcePath := filepath.Join(source, "bin", name)
+		if info, err := os.Stat(sourcePath); err != nil {
+			return installationPlan{}, fmt.Errorf("inspecting built command %q: %w", sourcePath, err)
+		} else if !info.Mode().IsRegular() {
+			return installationPlan{}, fmt.Errorf("built command %q is not a regular file", sourcePath)
+		}
+		deployedPath := filepath.Join(liveSDLC, "bin", name)
+		sync, err := planFileSync(sourcePath, deployedPath, filepath.Join(liveSDLC, "bin"))
+		if err != nil {
+			return installationPlan{}, err
+		}
+		plan.syncs = append(plan.syncs, sync)
+		link, err := planManagedLink(deployedPath, filepath.Join(localBin, name), localBin)
+		if err != nil {
+			return installationPlan{}, err
+		}
+		plan.links = append(plan.links, link)
 	}
 	for _, retirement := range []struct {
 		sourceRoot, destinationRoot string
@@ -544,6 +584,16 @@ func planSharedInstallation(source, commonHome, release string) (installationPla
 		return installationPlan{}, retirementErr
 	}
 	plan.retirements = append(plan.retirements, retirements...)
+	commandRetirements, err := planExactRetirements(localBin, []string{
+		"sdlc-audit",
+		"sdlc-install",
+		"sdlc-project-init",
+		"sdlc-project-update",
+	})
+	if err != nil {
+		return installationPlan{}, err
+	}
+	plan.retirements = append(plan.retirements, commandRetirements...)
 	releaseChange, err := planGlobalReleaseConfiguration(commonHome, release)
 	if err != nil {
 		return installationPlan{}, err
@@ -699,6 +749,25 @@ func printInstallationPlan(output io.Writer, plan installationPlan, apply bool) 
 		}
 		fmt.Fprintf(output, "Installation: %s %s\n", verb, retirement.path)
 	}
+	for _, link := range plan.links {
+		if !link.needsSync {
+			if os.Getenv("VERBOSE") == "1" {
+				fmt.Fprintf(output, "Installation: current %s -> %s\n", link.destination, link.target)
+			}
+			continue
+		}
+		verb := "would install command link"
+		if link.destinationExists {
+			verb = "would back up and replace command link"
+		}
+		if apply {
+			verb = "will install command link"
+			if link.destinationExists {
+				verb = "will back up and replace command link"
+			}
+		}
+		fmt.Fprintf(output, "Installation: %s %s -> %s\n", verb, link.destination, link.target)
+	}
 	for _, change := range plan.managedConfigurations {
 		verb := "would update managed configuration"
 		if apply {
@@ -726,6 +795,14 @@ func applyInstallation(plan installationPlan, output io.Writer) error {
 	}
 	for _, change := range plan.managedConfigurations {
 		if err := applyConfigurationChange(change, output); err != nil {
+			return err
+		}
+	}
+	for _, link := range plan.links {
+		if !link.needsSync {
+			continue
+		}
+		if err := synchronizeLink(link, epoch, output); err != nil {
 			return err
 		}
 	}
@@ -845,6 +922,40 @@ func planFileSync(source, destination, destinationRoot string) (managedSync, err
 	return sync, nil
 }
 
+func planManagedLink(target, destination, destinationRoot string) (managedLink, error) {
+	link := managedLink{target: target, destination: destination}
+	obstructed, err := destinationParentObstructed(destination, destinationRoot)
+	if err != nil {
+		return managedLink{}, err
+	}
+	if obstructed {
+		link.needsSync = true
+		return link, nil
+	}
+	info, err := os.Lstat(destination)
+	if errors.Is(err, os.ErrNotExist) {
+		link.needsSync = true
+		return link, nil
+	}
+	if err != nil {
+		return managedLink{}, fmt.Errorf("inspecting command link %q: %w", destination, err)
+	}
+	link.destinationExists = true
+	if info.Mode()&os.ModeSymlink == 0 {
+		link.needsSync = true
+		return link, nil
+	}
+	current, err := os.Readlink(destination)
+	if err != nil {
+		return managedLink{}, fmt.Errorf("reading command link %q: %w", destination, err)
+	}
+	if !filepath.IsAbs(current) {
+		current = filepath.Join(filepath.Dir(destination), current)
+	}
+	link.needsSync = !sameLexicalPath(current, target)
+	return link, nil
+}
+
 func destinationParentObstructed(destination, destinationRoot string) (bool, error) {
 	var unresolved error
 	reachedRoot := false
@@ -900,6 +1011,24 @@ func synchronizeFile(sync managedSync, epoch int64, output io.Writer) error {
 		return err
 	}
 	fmt.Fprintf(output, "Installation updated: %s\n", sync.destination)
+	return nil
+}
+
+func synchronizeLink(link managedLink, epoch int64, output io.Writer) error {
+	if err := ensureRegularDirectory(filepath.Dir(link.destination), epoch, output); err != nil {
+		return err
+	}
+	if _, err := os.Lstat(link.destination); err == nil {
+		if _, err := backupArtifact(output, link.destination, epoch); err != nil {
+			return err
+		}
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return fmt.Errorf("inspecting command link %q: %w", link.destination, err)
+	}
+	if err := os.Symlink(link.target, link.destination); err != nil {
+		return fmt.Errorf("installing command link %q: %w", link.destination, err)
+	}
+	fmt.Fprintf(output, "Installation linked: %s -> %s\n", link.destination, link.target)
 	return nil
 }
 

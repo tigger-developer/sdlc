@@ -22,10 +22,12 @@ harnesses can be supported later.
 make install
 ```
 
-The installer:
+The repository-internal `sdlc-install` command is invoked by `make install`; it
+is not installed on the global path. The installation:
 
-- builds and installs `sdlc-install`, `sdlc-init`, `sdlc-preview`, and
-  `sdlc-merge-legacy-acs`;
+- builds `sdlc-install` locally, deploys `sdlc-init`, `sdlc-preview`, and
+  `sdlc-merge-legacy-acs` under `~/.agents/sdlc/bin`, and links those deployed
+  commands onto the global path;
 - synchronizes the canonical standards to `~/.agents/sdlc`;
 - installs SDLC skills globally under `~/.agents/skills`;
 - retains Codex as the only supported v3 provider adapter; and

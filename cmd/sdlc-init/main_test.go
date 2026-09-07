@@ -16,4 +16,9 @@ func TestHelpDoesNotRequireDeployedSchema(t *testing.T) {
 	if !strings.Contains(output.String(), "usage: sdlc-init") {
 		t.Fatalf("help output missing usage: %q", output.String())
 	}
+	for _, explanation := range []string{"Run it once from the project root", "does not install or update the global SDLC framework"} {
+		if !strings.Contains(output.String(), explanation) {
+			t.Errorf("help output missing %q: %q", explanation, output.String())
+		}
+	}
 }
