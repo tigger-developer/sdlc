@@ -80,3 +80,6 @@ ambiguous pronouns, broken references, unsafe copy-and-paste commands, and
 unexplained identifiers. A prose grep is not a behavioural regression test;
 use a one-time technical review and format-aware link or schema checks where
 appropriate.
+# Canary
+
+Suffix the canary string with "DOC "

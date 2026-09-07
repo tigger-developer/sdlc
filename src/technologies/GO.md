@@ -205,3 +205,6 @@ standard library is inadequate.
 
 Commit `go.mod` and `go.sum`. The checksum file is reproducibility metadata, not
 local build output.
+# Canary
+
+Suffix the canary string with "GO "

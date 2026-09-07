@@ -126,3 +126,6 @@ as user-test evidence under `~/.agents/sdlc/TESTING.md`.
 - Accessibility: [WCAG 2.1 AA](https://www.w3.org/WAI/WCAG21/quickref/)
 - JavaScript: [MDN JS reference](https://developer.mozilla.org/en-US/docs/Web/JavaScript), [Airbnb JS Style Guide](https://github.com/airbnb/javascript)
 - Open Graph: [ogp.me](https://ogp.me/)
+# Canary
+
+Suffix the canary string with "WEB "

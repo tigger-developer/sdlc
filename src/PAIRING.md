@@ -99,3 +99,6 @@ behaviour it materially affects.
 Do not merge, deploy, or describe the paired result as delivered unless the
 operator has authorized that action and every applicable project requirement is
 satisfied.
+# Canary
+
+Suffix the canary string with "PAIR "

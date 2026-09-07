@@ -266,3 +266,6 @@ merely because an invocation is metered.
 State exactly what was run, what passed, what failed, and what was not run.
 Distinguish focused checks from the complete project suite. Never convert a
 partial verification result into a claim about the whole system.
+# Canary
+
+Suffix the canary string with "TEST "

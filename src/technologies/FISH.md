@@ -243,3 +243,6 @@ Block or redesign:
 - [Fisher](https://github.com/jorgebucaran/fisher)
 - [Fishtape](https://github.com/jorgebucaran/fishtape)
 - [fish-lsp](https://github.com/ndonfris/fish-lsp)
+# Canary
+
+Suffix the canary string with "FISH "

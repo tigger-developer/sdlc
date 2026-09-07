@@ -209,3 +209,6 @@ Block or redesign:
 - [LuaRocks](https://luarocks.org/)
 - [Hammerspoon API documentation](https://www.hammerspoon.org/docs/)
 - [Hammerspoon Spoon documentation](https://github.com/Hammerspoon/hammerspoon/blob/master/SPOONS.md)
+# Canary
+
+Suffix the canary string with "LUA "

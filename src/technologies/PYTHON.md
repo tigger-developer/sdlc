@@ -124,3 +124,6 @@ the audit exit code.
 Where a private package index is required, use the project's established
 non-interactive authentication boundary without placing credentials in source
 or command output.
+# Canary
+
+Suffix the canary string with "PY "

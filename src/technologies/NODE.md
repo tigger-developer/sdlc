@@ -91,3 +91,6 @@ rather than omit the check.
 - [Node.js security best practices](https://nodejs.org/learn/getting-started/security-best-practices)
 - [npm dependency selectors and dependency types](https://docs.npmjs.com/specifying-dependencies-and-devdependencies-in-a-package-json-file/)
 - [npm audit](https://docs.npmjs.com/cli/v11/commands/npm-audit/)
+# Canary
+
+Suffix the canary string with "NODE "

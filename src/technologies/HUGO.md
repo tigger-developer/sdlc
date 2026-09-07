@@ -88,3 +88,6 @@ private infrastructure paths in public project documentation.
 - [Hugo security model](https://gohugo.io/about/security/)
 - [Hugo Modules](https://gohugo.io/hugo-modules/)
 - [Hugo configuration](https://gohugo.io/configuration/)
+# Canary
+
+Suffix the canary string with "HUGO "

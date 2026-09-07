@@ -256,3 +256,6 @@ descriptor, magic numbers, boolean control parameters, circular dependencies,
 god objects, monkey-patching, reflective access bypasses, multiple complex
 return paths, tests without meaningful assertions, and temporary fixes without
 a removal condition.
+# Canary
+
+Suffix the canary string with "CODE "

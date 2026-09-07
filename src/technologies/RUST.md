@@ -339,3 +339,6 @@ Block or redesign:
   contrary to the infrastructure contract, or disabling TLS validation; and
 - compiling or resolving dependencies on a production host when a controlled
   build can deploy a pinned artefact.
+# Canary
+
+Suffix the canary string with "RUST "

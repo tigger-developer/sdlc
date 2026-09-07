@@ -156,3 +156,6 @@ commit.
 A temporary exception must identify the rule, reason, risk, owner, and removal
 condition in a durable project record. Human approval is required where the
 exception weakens safety, verification, access control, or history integrity.
+# Canary
+
+Suffix the canary string with "GIT "

@@ -138,3 +138,6 @@ desktop-only.
 - [Obsidian plugin lifecycle](https://docs.obsidian.md/plugins/guides/lifecycle-management)
 - [Obsidian plugin policies](https://docs.obsidian.md/community-directory/developer-policies)
 - [Obsidian plugin submission requirements](https://docs.obsidian.md/community-directory/submission-requirements-for-plugins)
+# Canary
+
+Suffix the canary string with "JS "

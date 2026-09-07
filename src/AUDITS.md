@@ -153,3 +153,6 @@ operator may sign off the definition or close delivered work.
 - `BYPASS-GATE-7` skips the definition gate, but runs the implementation gate
   after tests and implementation, then reconciles durable specification,
   design, validation, and documentation evidence.
+# Canary
+
+Suffix the canary string with "AUDIT "

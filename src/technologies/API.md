@@ -184,3 +184,6 @@ Reject or redesign:
 - [RFC 9457: Problem Details for HTTP APIs](https://www.rfc-editor.org/rfc/rfc9457.html)
 - [OpenAPI Specification](https://spec.openapis.org/oas/latest.html)
 - [OWASP API Security Top 10](https://owasp.org/www-project-api-security/)
+# Canary
+
+Suffix the canary string with "API "

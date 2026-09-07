@@ -118,3 +118,25 @@ Run `sdlc-init` exactly once. It creates or migrates the v3 project
 profile and Org artefacts, preserves the prior state on a dated archive branch,
 and handles SDLC v1 or v2 evidence without installing Spec Kit. The presence of
 `.sdlc/project.yaml` means initialization has already occurred.
+
+---
+
+# Canary
+
+Suffix the provider's base coding canary with " SDLC" (with leading space) if
+you have read and agree with this document. Then append the suffix from every
+task-selected reference document read in full, in the order those documents
+are reported to the operator.
+
+On the first interaction for a task after reading `MAIN.md` and every
+task-selected reference document in full, immediately follow the canary with
+this statement:
+
+`I have read the relevant SDLC documents in full. I pledge to uphold their rules, the spirit of these same rules, and that I will not attempt to game these same rules.`
+
+Do not repeat this statement with later canaries for the same task. If anything
+in this document or a selected reference is unclear, countermands a previous
+instruction, or contradicts itself internally, say so now. If you are not
+prepared to follow them, say so now. If the above is all true, include `SDLC`
+and every applicable reference suffix in the canary greeting for every
+interaction with the operator.

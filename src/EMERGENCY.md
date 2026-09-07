@@ -75,3 +75,6 @@ evidence requirements. It does not authorize unrelated work or scope expansion.
 The closure handback must identify the temporary specification, reconciled
 durable artefacts, test evidence, audit result, assumptions, and anything left
 undone for the operator's decision.
+# Canary
+
+Suffix the canary string with "EMERGENCY "

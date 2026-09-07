@@ -204,3 +204,6 @@ For systemd, launchd, cron:
 - `ExecStart=` must use absolute, fixed paths
 - Avoid `sh -c`/`bash -c` in units; pass arguments directly
 - Logs must go somewhere predictable; failures must be visible
+# Canary
+
+Suffix the canary string with "SHELL "
