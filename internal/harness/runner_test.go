@@ -62,8 +62,8 @@ func TestW004FixedStartAndResumeInvocations(t *testing.T) {
 		},
 		{
 			name: "hermes", provider: "provider", passesProvider: true,
-			start:  []string{"-z", "prompt", "-m", "model", "--provider", "provider", "-t", "", "--pass-session-id", "--safe-mode", "--in", "/bundle"},
-			resume: []string{"-z", "prompt", "-m", "model", "--provider", "provider", "-t", "", "--resume", "session", "--safe-mode", "--in", "/bundle"},
+			start:  []string{"-z", hermesPrompt("prompt"), "-m", "model", "--provider", "provider", "-t", "", "--pass-session-id", "--safe-mode", "--in", "/bundle"},
+			resume: []string{"-z", hermesPrompt("prompt"), "-m", "model", "--provider", "provider", "-t", "", "--resume", "session", "--safe-mode", "--in", "/bundle"},
 		},
 	}
 	for _, test := range tests {
@@ -88,6 +88,17 @@ func TestW004FixedStartAndResumeInvocations(t *testing.T) {
 				t.Fatalf("provider argument mismatch: %s", joined)
 			}
 		})
+	}
+}
+
+func TestW004SessionIdentityIsUUID(t *testing.T) {
+	identity, err := NewSessionIdentity()
+	if err != nil {
+		t.Fatal(err)
+	}
+	parts := strings.Split(identity, "-")
+	if len(parts) != 5 || len(identity) != 36 || parts[2][0] != '4' {
+		t.Fatalf("session identity = %q, want UUID v4", identity)
 	}
 }
 
@@ -166,6 +177,45 @@ func TestW004ImmutableBundleDetectsMutation(t *testing.T) {
 	}
 	if err := bundle.Verify(); err == nil || !strings.Contains(err.Error(), "changed") {
 		t.Fatalf("mutation verification = %v", err)
+	}
+}
+
+func TestW004ImmutableBundleDetectsSourceMutation(t *testing.T) {
+	root := t.TempDir()
+	source := filepath.Join(root, "source.org")
+	if err := os.WriteFile(source, []byte("source"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	bundle, err := CreateBundle(filepath.Join(root, "bundles"), []Input{{Name: "spec.org", Source: source}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		if err := bundle.Cleanup(); err != nil {
+			t.Error(err)
+		}
+	}()
+	if err := os.WriteFile(source, []byte("changed"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := bundle.Verify(); err == nil || !strings.Contains(err.Error(), "audit source") {
+		t.Fatalf("source mutation verification = %v", err)
+	}
+}
+
+func TestW004CompositeVerdictValidation(t *testing.T) {
+	valid := "GATE: implementation\nREVISION: abc123\nVERDICT: PASS\n"
+	if err := ValidateCompositeVerdict(valid); err != nil {
+		t.Fatal(err)
+	}
+	for _, invalid := range []string{
+		"VERDICT: PASS\n",
+		"GATE: implementation\nREVISION: abc123\nVERDICT: MAYBE\n",
+		"GATE: implementation\nREVISION: abc123\nVERDICT: PASS\nVERDICT: FAIL\n",
+	} {
+		if err := ValidateCompositeVerdict(invalid); err == nil {
+			t.Fatalf("malformed verdict succeeded: %q", invalid)
+		}
 	}
 }
 

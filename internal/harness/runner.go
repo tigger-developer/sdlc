@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"bytes"
 	"context"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -68,6 +69,17 @@ func newIncident(kind, harness, sessionID string, err error) error {
 	return &Incident{Kind: kind, Harness: harness, SessionID: sessionID, Err: err}
 }
 
+// NewSessionIdentity returns a UUID suitable for every supported harness.
+func NewSessionIdentity() (string, error) {
+	value := make([]byte, 16)
+	if _, err := rand.Read(value); err != nil {
+		return "", fmt.Errorf("creating harness session identity: %w", err)
+	}
+	value[6] = (value[6] & 0x0f) | 0x40
+	value[8] = (value[8] & 0x3f) | 0x80
+	return fmt.Sprintf("%x-%x-%x-%x-%x", value[0:4], value[4:6], value[6:8], value[8:10], value[10:16]), nil
+}
+
 // Input identifies one regular file copied into an isolated audit bundle.
 type Input struct {
 	Name   string
@@ -78,6 +90,7 @@ type Input struct {
 type Bundle struct {
 	Path    string
 	digests map[string]string
+	sources map[string]string
 }
 
 // Execute runs one start or resume invocation and validates its bounded result.
@@ -141,12 +154,27 @@ func executeCommand(ctx context.Context, command string, args []string, director
 	if err != nil {
 		return fmt.Errorf("executable unavailable: %w", err)
 	}
-	process := exec.CommandContext(ctx, path, args...)
+	process := exec.Command(path, args...)
 	process.Dir = directory
 	process.Stdin = stdin
 	process.Stdout = stdout
 	process.Stderr = stderr
-	return process.Run()
+	configureProcessGroup(process)
+	if err := process.Start(); err != nil {
+		return err
+	}
+	completed := make(chan error, 1)
+	go func() { completed <- process.Wait() }()
+	select {
+	case err := <-completed:
+		return err
+	case <-ctx.Done():
+		if err := terminateProcessGroup(process); err != nil {
+			return fmt.Errorf("terminating timed-out harness: %w", err)
+		}
+		<-completed
+		return ctx.Err()
+	}
 }
 
 // BuildStart constructs the fixed start vector for a supported harness.
@@ -165,7 +193,7 @@ func BuildStart(request Request) (Invocation, error) {
 	case "copilot":
 		invocation.Args = []string{"-p", request.Prompt, "-s", "--output-format", "json", "--model", request.Model, "--name", request.SessionID, "--available-tools="}
 	case "hermes":
-		invocation.Args = []string{"-z", request.Prompt, "-m", request.Model, "--provider", request.Provider, "-t", "", "--pass-session-id", "--safe-mode", "--in", request.Bundle}
+		invocation.Args = []string{"-z", hermesPrompt(request.Prompt), "-m", request.Model, "--provider", request.Provider, "-t", "", "--pass-session-id", "--safe-mode", "--in", request.Bundle}
 	}
 	return invocation, nil
 }
@@ -186,9 +214,13 @@ func BuildResume(request Request) (Invocation, error) {
 	case "copilot":
 		invocation.Args = []string{"-p", request.Prompt, "-s", "--output-format", "json", "--model", request.Model, "--resume=" + request.SessionID, "--available-tools="}
 	case "hermes":
-		invocation.Args = []string{"-z", request.Prompt, "-m", request.Model, "--provider", request.Provider, "-t", "", "--resume", request.SessionID, "--safe-mode", "--in", request.Bundle}
+		invocation.Args = []string{"-z", hermesPrompt(request.Prompt), "-m", request.Model, "--provider", request.Provider, "-t", "", "--resume", request.SessionID, "--safe-mode", "--in", request.Bundle}
 	}
 	return invocation, nil
+}
+
+func hermesPrompt(prompt string) string {
+	return "Return your native session identity on the first output line exactly as SESSION_ID: <id>, followed by the requested response.\n\n" + prompt
 }
 
 func validateRequest(request Request, resume bool) error {
@@ -263,6 +295,31 @@ func ParseResult(harness string, stdout, resultFile []byte, preassignedIdentity 
 	return result, nil
 }
 
+// ValidateCompositeVerdict enforces the audit gate's minimal result envelope.
+func ValidateCompositeVerdict(response string) error {
+	fields := map[string][]string{}
+	for _, line := range strings.Split(response, "\n") {
+		for _, key := range []string{"GATE", "REVISION", "VERDICT"} {
+			prefix := key + ":"
+			if strings.HasPrefix(line, prefix) {
+				fields[key] = append(fields[key], strings.TrimSpace(strings.TrimPrefix(line, prefix)))
+			}
+		}
+	}
+	for _, key := range []string{"GATE", "REVISION", "VERDICT"} {
+		if len(fields[key]) != 1 || fields[key][0] == "" {
+			return newIncident("response-malformed", "audit", "", fmt.Errorf("composite verdict requires exactly one non-empty %s field", key))
+		}
+	}
+	if fields["GATE"][0] != "definition" && fields["GATE"][0] != "implementation" {
+		return newIncident("response-malformed", "audit", "", fmt.Errorf("unsupported GATE %q", fields["GATE"][0]))
+	}
+	if fields["VERDICT"][0] != "PASS" && fields["VERDICT"][0] != "PROVISIONAL" && fields["VERDICT"][0] != "FAIL" {
+		return newIncident("response-malformed", "audit", "", fmt.Errorf("unsupported VERDICT %q", fields["VERDICT"][0]))
+	}
+	return nil
+}
+
 // ParseTimeout returns the typed diagnostic used when a harness exceeds its bound.
 func ParseTimeout(harness string, timeout time.Duration) (Result, error) {
 	return Result{}, fmt.Errorf("%s harness exceeded the %s timeout", harness, timeout)
@@ -280,7 +337,7 @@ func CreateBundle(parent string, inputs []Input) (Bundle, error) {
 	if err != nil {
 		return Bundle{}, fmt.Errorf("creating audit bundle: %w", err)
 	}
-	bundle := Bundle{Path: path, digests: map[string]string{}}
+	bundle := Bundle{Path: path, digests: map[string]string{}, sources: map[string]string{}}
 	fail := func(cause error) (Bundle, error) {
 		if cleanupErr := bundle.Cleanup(); cleanupErr != nil {
 			return Bundle{}, fmt.Errorf("%w; cleaning incomplete audit bundle: %v", cause, cleanupErr)
@@ -327,6 +384,7 @@ func CreateBundle(parent string, inputs []Input) (Bundle, error) {
 		}
 		checksum := digest(contents)
 		bundle.digests[input.Name] = checksum
+		bundle.sources[input.Name] = input.Source
 		manifest = append(manifest, manifestEntry{Source: input.Source, Destination: input.Name, Bytes: len(contents), SHA256: checksum})
 	}
 	manifestBytes, err := json.MarshalIndent(map[string]any{"version": 1, "files": manifest}, "", "  ")
@@ -353,6 +411,15 @@ func (bundle Bundle) Verify() error {
 		}
 		if got := digest(contents); got != want {
 			return fmt.Errorf("audit bundle input %q changed", name)
+		}
+		if source, exists := bundle.sources[name]; exists {
+			sourceContents, err := os.ReadFile(source)
+			if err != nil {
+				return fmt.Errorf("verifying audit source %q: %w", source, err)
+			}
+			if got := digest(sourceContents); got != want {
+				return fmt.Errorf("audit source %q changed", source)
+			}
 		}
 	}
 	return nil

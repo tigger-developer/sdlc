@@ -2,8 +2,6 @@ package projectinit
 
 import (
 	"bytes"
-	"crypto/rand"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
@@ -176,7 +174,7 @@ func runMigratedWorkClassification(options Options, sdlcRoot, projectRoot, works
 		return "", fmt.Errorf("creating migrated-work classification bundle: %w", err)
 	}
 	defer func() { _ = bundle.Cleanup() }()
-	identity, err := newHarnessIdentity()
+	identity, err := harness.NewSessionIdentity()
 	if err != nil {
 		return "", err
 	}
@@ -212,14 +210,6 @@ func runMigratedWorkClassification(options Options, sdlcRoot, projectRoot, works
 		}
 	}
 	return proposalPath, nil
-}
-
-func newHarnessIdentity() (string, error) {
-	value := make([]byte, 16)
-	if _, err := rand.Read(value); err != nil {
-		return "", fmt.Errorf("creating harness session identity: %w", err)
-	}
-	return "sdlc-" + hex.EncodeToString(value), nil
 }
 
 func readMigratedWorkProposal(path string) (migratedWorkProposal, error) {

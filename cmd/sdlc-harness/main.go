@@ -3,8 +3,6 @@ package main
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/hex"
 	"errors"
 	"flag"
 	"fmt"
@@ -33,7 +31,7 @@ func main() {
 	}
 }
 
-func run(arguments []string, input io.Reader, output, errorOutput io.Writer) error {
+func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (returnErr error) {
 	if len(arguments) == 1 && (arguments[0] == "-h" || arguments[0] == "--help") {
 		printTopLevelHelp(output)
 		return nil
@@ -111,7 +109,11 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) err
 	if err != nil {
 		return err
 	}
-	defer func() { _ = bundle.Cleanup() }()
+	defer func() {
+		if err := bundle.Cleanup(); err != nil && returnErr == nil {
+			returnErr = err
+		}
+	}()
 	resultFile, err := os.CreateTemp(os.TempDir(), "sdlc-harness-result-")
 	if err != nil {
 		return err
@@ -120,10 +122,14 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) err
 	if err := resultFile.Close(); err != nil {
 		return err
 	}
-	defer func() { _ = os.Remove(resultPath) }()
+	defer func() {
+		if err := os.Remove(resultPath); err != nil && !errors.Is(err, os.ErrNotExist) && returnErr == nil {
+			returnErr = fmt.Errorf("removing harness result file: %w", err)
+		}
+	}()
 	identity := *session
 	if action == "start" && identity == "" {
-		identity, err = sessionIdentity()
+		identity, err = harness.NewSessionIdentity()
 		if err != nil {
 			return err
 		}
@@ -138,6 +144,11 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) err
 	if err != nil {
 		return err
 	}
+	if config.Harness != "" && *phase == "audit" {
+		if err := harness.ValidateCompositeVerdict(result.Response); err != nil {
+			return err
+		}
+	}
 	fmt.Fprintf(errorOutput, "SESSION_ID: %s\n", result.SessionID)
 	_, err = fmt.Fprintln(output, result.Response)
 	return err
@@ -147,12 +158,4 @@ func printTopLevelHelp(output io.Writer) {
 	fmt.Fprintln(output, "usage: sdlc-harness start|resume [options]")
 	fmt.Fprintln(output, "Internal SDLC helper: run or resume one bounded provider harness with fixed arguments and an immutable evidence bundle.")
 	fmt.Fprintln(output, "This command is installed under ~/.agents/sdlc/bin for workflow skills; it is not an operator-facing global command.")
-}
-
-func sessionIdentity() (string, error) {
-	value := make([]byte, 16)
-	if _, err := rand.Read(value); err != nil {
-		return "", err
-	}
-	return "sdlc-" + hex.EncodeToString(value), nil
 }
