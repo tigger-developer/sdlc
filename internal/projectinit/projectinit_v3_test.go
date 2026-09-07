@@ -3,6 +3,7 @@ package projectinit
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -1000,6 +1001,81 @@ warnings: []
 	}
 	if exists(initializationWorkspacePath(project)) {
 		t.Fatal("successful initialization left its temporary working directory behind")
+	}
+}
+
+func TestW004MigratedWorkClassificationUsesSelectedHarness(t *testing.T) {
+	response := `version: 1
+migrated_work:
+  - path: docs/archive/sdlc-v2/specs/001-example/spec.md
+    descriptor: Example
+    disposition: unresolved
+    priority: unassigned
+    created: unknown
+    evidence: No delivery evidence.
+warnings: []`
+	for _, test := range []struct {
+		harness, provider string
+	}{
+		{harness: "claude"},
+		{harness: "copilot"},
+		{harness: "hermes", provider: "nous"},
+	} {
+		t.Run(test.harness, func(t *testing.T) {
+			project := t.TempDir()
+			workspace := filepath.Join(project, ".sdlc", ".init")
+			writeProjectTestFile(t, filepath.Join(project, "docs", "archive", "sdlc-v2", "specs", "001-example", "spec.md"), "# Example\n")
+			var calls int
+			options := Options{ErrorOutput: &bytes.Buffer{}, RunCommand: func(name string, arguments []string, directory string, input io.Reader, output, errorOutput io.Writer) error {
+				calls++
+				if name != test.harness || directory == project {
+					return fmt.Errorf("unexpected %s invocation in %s: %v", name, directory, arguments)
+				}
+				joined := strings.Join(arguments, " ")
+				if strings.Contains(joined, "--provider") != (test.harness == "hermes") {
+					return fmt.Errorf("provider applicability mismatch: %v", arguments)
+				}
+				switch test.harness {
+				case "claude":
+					payload, _ := json.Marshal(map[string]string{"result": response})
+					_, _ = output.Write(payload)
+				case "copilot":
+					payload, _ := json.Marshal(map[string]string{"type": "assistant.message", "content": response})
+					_, _ = fmt.Fprintln(output, string(payload))
+				case "hermes":
+					_, _ = fmt.Fprintln(output, "SESSION_ID: native-session")
+					_, _ = fmt.Fprintln(output, response)
+				}
+				return nil
+			}}
+			proposal, err := runMigratedWorkClassification(options, testSDLCRoot(t), project, workspace, test.harness, test.provider, "fast-model", []string{"001-example"})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if calls != 1 {
+				t.Fatalf("harness calls = %d, want 1", calls)
+			}
+			if _, err := readMigratedWorkProposal(proposal); err != nil {
+				t.Fatal(err)
+			}
+		})
+	}
+}
+
+func TestW004UnsupportedMutationAdapterReturnsExactHandoff(t *testing.T) {
+	var output bytes.Buffer
+	options := Options{Output: &output, RunCommand: func(string, []string, string, io.Reader, io.Writer, io.Writer) error {
+		t.Fatal("handoff attempted a harness call")
+		return nil
+	}}
+	err := runConfiguredMutationSkill(options, "/project", map[string]string{"SDLC_AUDIT_HARNESS": "claude"}, "migration-skill", "prompt")
+	if err == nil {
+		t.Fatal("unsupported mutation adapter succeeded")
+	}
+	for _, expected := range []string{"Harness: claude", "Project: /project", "Skill: $migration-skill", "Recovery record: .sdlc/.init", "Resume command: sdlc-init"} {
+		if !strings.Contains(output.String(), expected) {
+			t.Fatalf("handoff lacks %q:\n%s", expected, output.String())
+		}
 	}
 }
 

@@ -31,7 +31,8 @@ The authoring context applies `audit-spec`, `audit-design`, and
 
 1. Review locally, remediate, and repeat for at most five local rounds.
 2. Start no external auditor until all three local reviews pass.
-3. Start one external Codex context and run all three audits there in one turn.
+3. Start one context through the configured external audit harness and run all
+   three audits there in one turn.
 4. If it fails, remediate locally, rerun all affected local reviews, then resume
    the same external context. Never create another auditor for the same gate.
 5. Stop at PASS, five failed gate rounds, or a human-controlled decision.
@@ -60,7 +61,8 @@ delivery context has started.
 
 1. Review locally, remediate, and repeat for at most five local rounds.
 2. Start no external auditor until both local reviews pass.
-3. Start one external Codex context and run both audits there in one turn.
+3. Start one context through the configured external audit harness and run both
+   audits there in one turn.
 4. If it fails, remediate locally, rerun affected tests and local reviews, then
    resume the same external context.
 5. Stop at PASS, five failed gate rounds, or a human-controlled decision.

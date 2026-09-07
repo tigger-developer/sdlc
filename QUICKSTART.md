@@ -2,7 +2,8 @@
 
 ## 1. Install the framework
 
-Prerequisites are Go, Git, Codex, and Pandoc. GitHub CLI is required only for
+Prerequisites are Go, Git, Pandoc, and at least one supported harness: Codex,
+Claude Code, GitHub Copilot CLI, or Hermes. GitHub CLI is required only for
 legacy GitHub-ticket migration.
 
 ```sh
@@ -60,7 +61,7 @@ automatically as the sole requirement authority rather than offered as a
 choice. Any canonical legacy AC ledger is folded into it first.
 
 An SDLC v2 project with archived Spec Kit specifications starts one additional
-headless Codex context. The configured audit model classifies those
+headless context through the configured audit harness and model. It classifies those
 specifications in one bounded read-only pass. The initializer removes their
 obsolete top-level Status fields and renders their lifecycle into
 `docs/work.org`. Projects without archived specifications skip this second
@@ -97,8 +98,9 @@ creating another branch. The initializer records `.init/` in
   `docs/ticket-migration.org`, refreshes stale documentation, archives the old
   implementation plan, commits the evidence, then closes the legacy tickets.
 - If the resulting `docs/ACs.org` cannot be interpreted safely by the canonical
-  importer, initialization invokes one headless Codex repair using the
-  configured audit model. It continues only when the repaired ledger validates.
+  importer, initialization invokes one confined repair when the configured
+  harness supports it. Otherwise it prints an exact interactive handoff and
+  remains resumable. It continues only when the repaired ledger validates.
 - The initializer folds `docs/ACs.org` beneath the initially collapsed `Legacy
   Acceptance Criteria (SDLC v1)` section of `docs/work.org`, removes the
   redundant file, then records unresolved defects and undelivered ideas without
@@ -141,7 +143,7 @@ $define-change
 Review the generated `spec.org` in the browser. It must be sufficient for a new
 agent with no drafting-conversation context. The same skill runs the combined
 specification, design, and test-definition gate locally, then in one retained
-external Codex context. Sign off only after `spec.org` records the resulting
+context through the configured audit harness. Sign off only after `spec.org` records the resulting
 PASS and `docs/work.org` places the item in `REVIEW`.
 
 ## 5. Deliver the signed-off change

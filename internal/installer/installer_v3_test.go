@@ -10,6 +10,7 @@ import (
 
 func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing.T) {
 	root := t.TempDir()
+	installHarnessExecutables(t, root, "claude", "codex", "copilot", "hermes")
 	source := filepath.Join(root, "source")
 	writeFixtureFile(t, filepath.Join(source, "README.md"), "# SDLC\n")
 	writeFixtureFile(t, filepath.Join(source, "src", "MAIN.md"), "# Lean SDLC\n")
@@ -48,6 +49,11 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 	var output bytes.Buffer
 	if err := RunInteractive(source, root, "v3.0.0", strings.NewReader("yes\n"), &output); err != nil {
 		t.Fatalf("install: %v\n%s", err, output.String())
+	}
+	for _, provider := range []string{"claude", "codex", "copilot", "hermes"} {
+		if !strings.Contains(output.String(), "Harness "+provider+": interactive=READY; external-audit=READY") {
+			t.Fatalf("missing %s readiness result:\n%s", provider, output.String())
+		}
 	}
 	assertFixtureContent(t, filepath.Join(root, ".agents", "sdlc", "MAIN.md"), "# Lean SDLC\n")
 	assertFixtureContent(t, filepath.Join(root, ".agents", "skills", "audit-code", "SKILL.md"), "---\nname: audit-code\ndescription: Review code.\n---\n")
@@ -130,6 +136,7 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 
 func TestV3InteractiveInstallIsSilentNoOpAfterSynchronization(t *testing.T) {
 	root := t.TempDir()
+	installHarnessExecutables(t, root, "codex")
 	source := filepath.Join(root, "source")
 	writeFixtureFile(t, filepath.Join(source, "README.md"), "# SDLC\n")
 	writeFixtureFile(t, filepath.Join(source, "src", "MAIN.md"), "# Lean SDLC\n")
@@ -160,6 +167,21 @@ func TestV3InteractiveInstallIsSilentNoOpAfterSynchronization(t *testing.T) {
 	}
 }
 
+func TestW004DetectionUsesExecutableNotProviderHome(t *testing.T) {
+	root := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(root, ".claude"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	installHarnessExecutables(t, root, "hermes")
+	agents, err := detectedAgents(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Join(agents, ",") != "hermes" {
+		t.Fatalf("detected agents = %v, want executable-backed Hermes only", agents)
+	}
+}
+
 func writeFixtureFile(t *testing.T, path, contents string) {
 	t.Helper()
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
@@ -187,6 +209,22 @@ func writeCommandFixtures(t *testing.T, source string) {
 			t.Fatal(err)
 		}
 	}
+}
+
+func installHarnessExecutables(t *testing.T, root string, names ...string) {
+	t.Helper()
+	bin := filepath.Join(root, "fake-bin")
+	if err := os.MkdirAll(bin, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range names {
+		path := filepath.Join(bin, name)
+		writeFixtureFile(t, path, "#!/bin/sh\nexit 0\n")
+		if err := os.Chmod(path, 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
+	t.Setenv("PATH", bin)
 }
 
 func readFixtureFile(t *testing.T, path string) string {

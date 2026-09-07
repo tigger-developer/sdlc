@@ -29,6 +29,18 @@ func TestRunParsesUserFacingFlags(t *testing.T) {
 // RT-7.2
 func TestDefaultRunDetectsInstalledProviderSubset_RT4_4(t *testing.T) {
 	root, source := newCLIFixture(t)
+	bin := filepath.Join(root, "fake-bin")
+	if err := os.MkdirAll(bin, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{"codex", "hermes"} {
+		path := filepath.Join(bin, name)
+		// #nosec G306 -- executable fixtures require an execute bit.
+		if err := os.WriteFile(path, []byte("#!/bin/sh\nexit 0\n"), 0o700); err != nil {
+			t.Fatal(err)
+		}
+	}
+	t.Setenv("PATH", bin)
 	for _, name := range []string{".codex", ".hermes"} {
 		if err := os.MkdirAll(filepath.Join(root, name), 0o700); err != nil {
 			t.Fatal(err)
@@ -93,6 +105,7 @@ func newCLIFixture(t *testing.T) (string, string) {
 		"hooks/agent-command-guard.sh":       "#!/bin/sh\n",
 		"bin/sdlc-init":                      "initializer\n",
 		"bin/sdlc-preview":                   "previewer\n",
+		"bin/sdlc-harness":                   "runner\n",
 		"bin/sdlc-merge-legacy-acs":          "ledger merger\n",
 	} {
 		fullPath := filepath.Join(source, filepath.FromSlash(path))

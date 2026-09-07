@@ -1,9 +1,9 @@
 # Lean Software Delivery Standards
 
 This repository is a standalone standards and delivery framework for coding
-agents. The project and human operator retain authority. The first SDLC v3
-release supports Codex as its delivery harness; the engineering standards are
-provider-neutral.
+agents. The project and human operator retain authority. SDLC v3 supports Codex,
+Claude Code, GitHub Copilot CLI, and Hermes through provider-neutral standards,
+canonical global skills, and capability-aware adapters.
 
 The canonical installed root is exactly `~/.agents/sdlc`. Never search the
 filesystem to locate it. If `~/.agents/sdlc/MAIN.md` is absent or unreadable,

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -257,6 +258,7 @@ func RunInteractive(sourcePath, userHome, release string, input io.Reader, outpu
 	}
 	if !installationHasChanges(plan) {
 		fmt.Fprintln(output, "All detected SDLC copies are current.")
+		printHarnessReadiness(output, agents)
 		return nil
 	}
 	printInstallationPlan(output, plan, false)
@@ -289,6 +291,7 @@ func RunInteractive(sourcePath, userHome, release string, input io.Reader, outpu
 	if err := verifyCanonicalMain(commonHome); err != nil {
 		return err
 	}
+	printHarnessReadiness(output, agents)
 	fmt.Fprintln(output, "All listed SDLC changes were installed.")
 	return nil
 }
@@ -349,18 +352,21 @@ func confirmationAccepted(response string) bool {
 func detectedAgents(userHome string) ([]string, error) {
 	var detected []string
 	for _, provider := range providerDefinitions {
-		path := filepath.Join(userHome, "."+provider.name)
-		info, err := os.Stat(path)
-		switch {
-		case errors.Is(err, os.ErrNotExist):
-			continue
-		case err != nil:
-			return nil, fmt.Errorf("detecting agent home %q: %w", path, err)
-		case info.IsDir():
+		if _, err := exec.LookPath(provider.name); err == nil {
 			detected = append(detected, provider.name)
 		}
 	}
 	return detected, nil
+}
+
+func printHarnessReadiness(output io.Writer, agents []string) {
+	for _, agent := range agents {
+		initializer := "HANDOFF"
+		if agent == agentCodex {
+			initializer = "READY"
+		}
+		fmt.Fprintf(output, "Harness %s: interactive=READY; external-audit=READY; initializer=%s\n", agent, initializer)
+	}
 }
 
 func installationHasChanges(plan installationPlan) bool {

@@ -34,6 +34,10 @@ func main() {
 }
 
 func run(arguments []string, input io.Reader, output, errorOutput io.Writer) error {
+	if len(arguments) == 1 && (arguments[0] == "-h" || arguments[0] == "--help") {
+		printTopLevelHelp(output)
+		return nil
+	}
 	if len(arguments) == 1 && (arguments[0] == "--version" || arguments[0] == "-version") {
 		version := buildRelease
 		if version == "" {
@@ -62,11 +66,13 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) err
 	var inputs inputList
 	flags.Var(&inputs, "input", "exact evidence file to include; repeat as needed")
 	flags.Usage = func() {
-		fmt.Fprintln(errorOutput, "usage: sdlc-harness start|resume [options]")
-		fmt.Fprintln(errorOutput, "Run one bounded provider harness with fixed arguments and an immutable evidence bundle.")
+		printTopLevelHelp(errorOutput)
 		flags.PrintDefaults()
 	}
 	if err := flags.Parse(arguments[1:]); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			return nil
+		}
 		return err
 	}
 	if flags.NArg() != 0 {
@@ -135,6 +141,12 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) err
 	fmt.Fprintf(errorOutput, "SESSION_ID: %s\n", result.SessionID)
 	_, err = fmt.Fprintln(output, result.Response)
 	return err
+}
+
+func printTopLevelHelp(output io.Writer) {
+	fmt.Fprintln(output, "usage: sdlc-harness start|resume [options]")
+	fmt.Fprintln(output, "Internal SDLC helper: run or resume one bounded provider harness with fixed arguments and an immutable evidence bundle.")
+	fmt.Fprintln(output, "This command is installed under ~/.agents/sdlc/bin for workflow skills; it is not an operator-facing global command.")
 }
 
 func sessionIdentity() (string, error) {

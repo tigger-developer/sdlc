@@ -2,6 +2,7 @@ package harness
 
 import (
 	"context"
+	"errors"
 	"io"
 	"os"
 	"path/filepath"
@@ -127,6 +128,11 @@ func TestW004RunnerRejectsInvalidOutcomes(t *testing.T) {
 	}
 	if _, err := BuildStart(Request{Harness: "missing", Model: "model"}); err == nil {
 		t.Error("unsupported harness succeeded")
+	} else {
+		var incident *Incident
+		if !errors.As(err, &incident) || incident.Kind != "capability-unsupported" {
+			t.Fatalf("unsupported harness incident = %#v, %v", incident, err)
+		}
 	}
 	if _, err := ParseTimeout("codex", 4*time.Minute); err == nil || !strings.Contains(err.Error(), "codex") {
 		t.Fatalf("timeout incident = %v", err)
@@ -160,5 +166,49 @@ func TestW004ImmutableBundleDetectsMutation(t *testing.T) {
 	}
 	if err := bundle.Verify(); err == nil || !strings.Contains(err.Error(), "changed") {
 		t.Fatalf("mutation verification = %v", err)
+	}
+}
+
+func TestW004IncompleteBundleIsRemoved(t *testing.T) {
+	parent := filepath.Join(t.TempDir(), "bundles")
+	_, err := CreateBundle(parent, []Input{{Name: "../invalid", Source: "unused"}})
+	if err == nil {
+		t.Fatal("invalid bundle input succeeded")
+	}
+	entries, readErr := os.ReadDir(parent)
+	if readErr != nil {
+		t.Fatal(readErr)
+	}
+	if len(entries) != 0 {
+		t.Fatalf("incomplete bundle was retained: %v", entries)
+	}
+}
+
+func TestW004BundleManifestAndDuplicateRejection(t *testing.T) {
+	root := t.TempDir()
+	source := filepath.Join(root, "source.org")
+	if err := os.WriteFile(source, []byte("evidence\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	bundle, err := CreateBundle(filepath.Join(root, "bundles"), []Input{{Name: "spec.org", Source: source}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		if err := bundle.Cleanup(); err != nil {
+			t.Error(err)
+		}
+	}()
+	manifest, err := os.ReadFile(filepath.Join(bundle.Path, "manifest.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, expected := range []string{source, `"destination": "spec.org"`, `"bytes": 9`, `"sha256"`} {
+		if !strings.Contains(string(manifest), expected) {
+			t.Fatalf("manifest lacks %q:\n%s", expected, manifest)
+		}
+	}
+	if _, err := CreateBundle(filepath.Join(root, "duplicates"), []Input{{Name: "spec.org", Source: source}, {Name: "spec.org", Source: source}}); err == nil {
+		t.Fatal("duplicate bundle destination succeeded")
 	}
 }

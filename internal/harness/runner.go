@@ -46,6 +46,28 @@ type Result struct {
 	Response  string
 }
 
+// Incident is a fail-closed harness operation failure with a stable kind.
+type Incident struct {
+	Kind      string
+	Harness   string
+	SessionID string
+	Err       error
+}
+
+func (incident *Incident) Error() string {
+	identity := ""
+	if incident.SessionID != "" {
+		identity = " (session " + incident.SessionID + ")"
+	}
+	return fmt.Sprintf("%s harness %s%s: %v", incident.Harness, incident.Kind, identity, incident.Err)
+}
+
+func (incident *Incident) Unwrap() error { return incident.Err }
+
+func newIncident(kind, harness, sessionID string, err error) error {
+	return &Incident{Kind: kind, Harness: harness, SessionID: sessionID, Err: err}
+}
+
 // Input identifies one regular file copied into an isolated audit bundle.
 type Input struct {
 	Name   string
@@ -84,9 +106,16 @@ func Execute(ctx context.Context, request Request, resume bool, bundle *Bundle, 
 	var stdout bytes.Buffer
 	if err := executor(ctx, invocation.Command, invocation.Args, invocation.Dir, strings.NewReader(invocation.Stdin), &stdout, errorOutput); err != nil {
 		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-			return Result{}, fmt.Errorf("%s harness timed out: %w", request.Harness, ctx.Err())
+			return Result{}, newIncident("timeout", request.Harness, request.SessionID, ctx.Err())
 		}
-		return Result{}, fmt.Errorf("running %s harness: %w", request.Harness, err)
+		kind := "start-failed"
+		if resume {
+			kind = "resume-failed"
+		}
+		if errors.Is(err, exec.ErrNotFound) {
+			kind = "executable-unavailable"
+		}
+		return Result{}, newIncident(kind, request.Harness, request.SessionID, err)
 	}
 	if bundle != nil {
 		if err := bundle.Verify(); err != nil {
@@ -100,7 +129,11 @@ func Execute(ctx context.Context, request Request, resume bool, bundle *Bundle, 
 			return Result{}, fmt.Errorf("reading %s final response: %w", request.Harness, err)
 		}
 	}
-	return ParseResult(request.Harness, stdout.Bytes(), resultFile, request.SessionID)
+	result, err := ParseResult(request.Harness, stdout.Bytes(), resultFile, request.SessionID)
+	if err != nil {
+		return Result{}, err
+	}
+	return result, nil
 }
 
 func executeCommand(ctx context.Context, command string, args []string, directory string, stdin io.Reader, stdout, stderr io.Writer) error {
@@ -118,6 +151,7 @@ func executeCommand(ctx context.Context, command string, args []string, director
 
 // BuildStart constructs the fixed start vector for a supported harness.
 func BuildStart(request Request) (Invocation, error) {
+	request.Harness = strings.ToLower(strings.TrimSpace(request.Harness))
 	if err := validateRequest(request, false); err != nil {
 		return Invocation{}, err
 	}
@@ -138,6 +172,7 @@ func BuildStart(request Request) (Invocation, error) {
 
 // BuildResume constructs the fixed resume vector for an existing identity.
 func BuildResume(request Request) (Invocation, error) {
+	request.Harness = strings.ToLower(strings.TrimSpace(request.Harness))
 	if err := validateRequest(request, true); err != nil {
 		return Invocation{}, err
 	}
@@ -161,16 +196,16 @@ func validateRequest(request Request, resume bool) error {
 	switch request.Harness {
 	case "codex", "claude", "copilot", "hermes":
 	default:
-		return fmt.Errorf("unsupported harness %q", request.Harness)
+		return newIncident("capability-unsupported", request.Harness, request.SessionID, fmt.Errorf("unsupported harness %q", request.Harness))
 	}
 	if strings.TrimSpace(request.Model) == "" {
-		return errors.New("harness invocation requires a model")
+		return newIncident("configuration-invalid", request.Harness, request.SessionID, errors.New("invocation requires a model"))
 	}
 	if request.Harness == "hermes" && strings.TrimSpace(request.Provider) == "" {
-		return errors.New("Hermes invocation requires a provider")
+		return newIncident("configuration-invalid", request.Harness, request.SessionID, errors.New("Hermes invocation requires a provider"))
 	}
 	if (resume || request.Harness == "claude" || request.Harness == "copilot") && strings.TrimSpace(request.SessionID) == "" {
-		return errors.New("harness invocation requires a stable session identity")
+		return newIncident("identity-missing", request.Harness, request.SessionID, errors.New("invocation requires a stable session identity"))
 	}
 	return nil
 }
@@ -194,7 +229,7 @@ func ParseResult(harness string, stdout, resultFile []byte, preassignedIdentity 
 			Result string `json:"result"`
 		}
 		if err := json.Unmarshal(stdout, &envelope); err != nil {
-			return Result{}, fmt.Errorf("parsing Claude result: %w", err)
+			return Result{}, newIncident("response-malformed", harness, result.SessionID, fmt.Errorf("parsing Claude result: %w", err))
 		}
 		result.Response = strings.TrimSpace(envelope.Result)
 	case "copilot":
@@ -217,13 +252,13 @@ func ParseResult(harness string, stdout, resultFile []byte, preassignedIdentity 
 			result.Response = strings.TrimSpace(strings.Join(lines[1:], "\n"))
 		}
 	default:
-		return Result{}, fmt.Errorf("unsupported harness %q", harness)
+		return Result{}, newIncident("capability-unsupported", harness, result.SessionID, fmt.Errorf("unsupported harness %q", harness))
 	}
 	if result.SessionID == "" {
-		return Result{}, fmt.Errorf("%s result omitted the stable session identity", harness)
+		return Result{}, newIncident("identity-missing", harness, "", errors.New("result omitted the stable session identity"))
 	}
 	if result.Response == "" {
-		return Result{}, fmt.Errorf("%s result omitted the final response", harness)
+		return Result{}, newIncident("response-empty", harness, result.SessionID, errors.New("result omitted the final response"))
 	}
 	return result, nil
 }
@@ -246,29 +281,65 @@ func CreateBundle(parent string, inputs []Input) (Bundle, error) {
 		return Bundle{}, fmt.Errorf("creating audit bundle: %w", err)
 	}
 	bundle := Bundle{Path: path, digests: map[string]string{}}
+	fail := func(cause error) (Bundle, error) {
+		if cleanupErr := bundle.Cleanup(); cleanupErr != nil {
+			return Bundle{}, fmt.Errorf("%w; cleaning incomplete audit bundle: %v", cause, cleanupErr)
+		}
+		return Bundle{}, cause
+	}
+	type manifestEntry struct {
+		Source      string `json:"source"`
+		Destination string `json:"destination"`
+		Bytes       int    `json:"bytes"`
+		SHA256      string `json:"sha256"`
+	}
+	const maximumInputBytes = 16 * 1024 * 1024
+	const maximumBundleBytes = 64 * 1024 * 1024
+	seen := map[string]bool{}
+	totalBytes := 0
+	manifest := make([]manifestEntry, 0, len(inputs))
 	for _, input := range inputs {
 		if filepath.Base(input.Name) != input.Name || input.Name == "." || input.Name == "" {
-			return Bundle{}, fmt.Errorf("invalid bundle input name %q", input.Name)
+			return fail(fmt.Errorf("invalid bundle input name %q", input.Name))
 		}
+		if input.Name == "manifest.json" || seen[input.Name] {
+			return fail(fmt.Errorf("duplicate or reserved bundle input name %q", input.Name))
+		}
+		seen[input.Name] = true
 		info, statErr := os.Lstat(input.Source)
 		if statErr != nil {
-			return Bundle{}, fmt.Errorf("inspecting bundle input %q: %w", input.Source, statErr)
+			return fail(fmt.Errorf("inspecting bundle input %q: %w", input.Source, statErr))
 		}
 		if !info.Mode().IsRegular() || info.Mode()&os.ModeSymlink != 0 {
-			return Bundle{}, fmt.Errorf("bundle input %q must be a regular non-symlink file", input.Source)
+			return fail(fmt.Errorf("bundle input %q must be a regular non-symlink file", input.Source))
 		}
 		contents, readErr := os.ReadFile(input.Source)
 		if readErr != nil {
-			return Bundle{}, fmt.Errorf("reading bundle input %q: %w", input.Source, readErr)
+			return fail(fmt.Errorf("reading bundle input %q: %w", input.Source, readErr))
 		}
+		if len(contents) > maximumInputBytes || totalBytes+len(contents) > maximumBundleBytes {
+			return fail(fmt.Errorf("bundle input %q exceeds the bounded evidence size", input.Source))
+		}
+		totalBytes += len(contents)
 		destination := filepath.Join(path, input.Name)
 		if writeErr := os.WriteFile(destination, contents, 0o400); writeErr != nil {
-			return Bundle{}, fmt.Errorf("writing bundle input %q: %w", destination, writeErr)
+			return fail(fmt.Errorf("writing bundle input %q: %w", destination, writeErr))
 		}
-		bundle.digests[input.Name] = digest(contents)
+		checksum := digest(contents)
+		bundle.digests[input.Name] = checksum
+		manifest = append(manifest, manifestEntry{Source: input.Source, Destination: input.Name, Bytes: len(contents), SHA256: checksum})
 	}
+	manifestBytes, err := json.MarshalIndent(map[string]any{"version": 1, "files": manifest}, "", "  ")
+	if err != nil {
+		return fail(fmt.Errorf("rendering audit bundle manifest: %w", err))
+	}
+	manifestBytes = append(manifestBytes, '\n')
+	if err := os.WriteFile(filepath.Join(path, "manifest.json"), manifestBytes, 0o400); err != nil {
+		return fail(fmt.Errorf("writing audit bundle manifest: %w", err))
+	}
+	bundle.digests["manifest.json"] = digest(manifestBytes)
 	if err := os.Chmod(path, 0o500); err != nil {
-		return Bundle{}, fmt.Errorf("making audit bundle read-only: %w", err)
+		return fail(fmt.Errorf("making audit bundle read-only: %w", err))
 	}
 	return bundle, nil
 }

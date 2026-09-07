@@ -75,18 +75,22 @@ func ensureHermesCommandGuard(root *yaml.Node) (bool, error) {
 
 	changed := false
 	found := false
+	normalized := make([]*yaml.Node, 0, len(entries.Content))
 	for _, entry := range entries.Content {
 		if entry.Kind != yaml.MappingNode {
 			return false, fmt.Errorf("hooks.pre_tool_call contains %s, not a mapping", hermesYAMLKind(entry))
 		}
 		command, _ := hermesScalarValue(entry, "command")
 		if !isManagedGuardCommand(command) {
+			normalized = append(normalized, entry)
 			continue
 		}
 		if found {
+			changed = true
 			continue
 		}
 		found = true
+		normalized = append(normalized, entry)
 		matcher, matcherOK := hermesScalarValue(entry, "matcher")
 		timeout, timeoutOK := hermesIntegerValue(entry, "timeout")
 		if command != toolGuardCommand || !matcherOK || matcher != ".*" || !timeoutOK || timeout != 5 {
@@ -103,6 +107,8 @@ func ensureHermesCommandGuard(root *yaml.Node) (bool, error) {
 		hermesSetScalar(entry, "timeout", "!!int", "5")
 		entries.Content = append(entries.Content, entry)
 		changed = true
+	} else if changed {
+		entries.Content = normalized
 	}
 	return changed, nil
 }

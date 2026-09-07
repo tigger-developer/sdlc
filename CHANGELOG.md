@@ -2,6 +2,24 @@
 
 ## Unreleased
 
+## v3.1.0 - 2026-09-07
+
+- Added native SDLC v3 support for Codex, Claude Code, GitHub Copilot CLI, and
+  Hermes through one canonical global skill source and provider-native links.
+- Added fixed, capability-aware Go harness adapters with YAML configuration
+  precedence, model and provider filtering, immutable evidence bundles, stable
+  session identities, exact-context resume, bounded timeouts, and fail-closed
+  result parsing.
+- Restored the canonical command guard across all four native hook mechanisms;
+  corrected command-position parsing, option-bearing wrappers, false positives
+  in ordinary argument data, exact `.env` reads, and malformed payload handling.
+- Routed archived Spec Kit classification through the selected audit harness and
+  added an explicit interactive handoff where initializer mutation cannot be
+  confined by the selected adapter.
+- Deployed `sdlc-harness` as an internal framework helper without exposing it on
+  the global command path, and made both composite audit skills use it for their
+  single retained external context.
+
 ## v3.0.10 - 2026-09-07
 
 - Replaced the routine model-backed technology assessment in `sdlc-init` with

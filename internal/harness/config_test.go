@@ -44,6 +44,24 @@ func TestW004ProviderIsRequiredOnlyForHermes(t *testing.T) {
 	if _, err := ResolveConfig(ConfigOptions{Phase: "audit", GlobalPath: filepath.Join(t.TempDir(), "absent.yaml"), Harness: "hermes", Model: "model", LookupEnv: noEnvironment}); err == nil {
 		t.Fatal("Hermes without provider succeeded")
 	}
+	if _, err := ResolveConfig(ConfigOptions{Phase: "audit", GlobalPath: filepath.Join(t.TempDir(), "absent.yaml"), Harness: "codex", Provider: "unsupported", Model: "model", LookupEnv: noEnvironment}); err == nil {
+		t.Fatal("Codex accepted an explicit provider")
+	}
+}
+
+func TestW004LowerPrecedenceProviderIsIgnoredWhenHarnessChanges(t *testing.T) {
+	root := t.TempDir()
+	global := filepath.Join(root, "global.yaml")
+	writeHarnessConfig(t, global, "hermes", "global-provider", "global-model", "4m")
+	config, err := ResolveConfig(ConfigOptions{
+		Phase: "audit", GlobalPath: global, Harness: "claude", Model: "model", LookupEnv: noEnvironment,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if config.Provider != "" {
+		t.Fatalf("inherited provider was passed to Claude: %#v", config)
+	}
 }
 
 func writeHarnessConfig(t *testing.T, path, harnessName, provider, model, timeout string) {

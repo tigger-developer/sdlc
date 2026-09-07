@@ -96,8 +96,8 @@ The implementation gate applies implemented-test and code criteria.
 Each gate uses at most two contexts:
 
 1. the authoring context performs and remediates up to five local rounds; and
-2. one external Codex context applies all component audits and is resumed after
-   any remediation.
+2. one context on the configured external audit harness applies all component
+   audits and is resumed after any remediation.
 
 Focused audit skills define reusable review criteria. They never spawn their own
 contexts. `define-change` and `deliver-change` own their normal composite gates;
@@ -151,8 +151,8 @@ existing `docs/work.org`, adds only missing migration structure and records,
 folds any canonical `docs/ACs.org` into it, and records only `docs/work.org` as
 the requirement authority. A remaining separate AC ledger is an error.
 
-The other bounded headless Codex operation applies only to an SDLC v2 migration
-with archived specifications. The configured audit model receives the exact
+The other bounded headless harness operation applies only to an SDLC v2 migration
+with archived specifications. The configured audit harness and model receive the exact
 specification paths and may read only their feature directories. Its temporary
 structured YAML classifies each specification as delivered, approved but
 undelivered, abandoned, or unresolved, with priority, creation date, and

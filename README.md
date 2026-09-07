@@ -4,15 +4,17 @@ This public repository provides a standalone, provider-neutral engineering
 standards library and a lean delivery workflow for coding agents. SDLC v3 uses
 one definition artefact and two human gates. It does not require GitHub Spec Kit.
 
-The first v3 release supports **Codex with OpenAI models** for delivery and
-external audit contexts. The standards themselves are written so additional
-harnesses can be supported later.
+SDLC v3 supports **Codex**, **Claude Code**, **GitHub Copilot CLI**, and
+**Hermes**. One canonical skill source is exposed through each harness's native
+global skill location; fixed adapters preserve their different model, provider,
+output, and resumable-session contracts.
 
 ## Prerequisites
 
 - Go 1.23 or later to build the installer and helper commands.
 - Git for recoverability, migration branches, and delivery checkpoints.
-- Codex for the initial v3 agent workflow.
+- At least one supported coding-agent harness: Codex, Claude Code, GitHub
+  Copilot CLI, or Hermes.
 - Pandoc for browser previews of Markdown and Org documents.
 - GitHub CLI only when migrating an SDLC v1 project's GitHub tickets.
 
@@ -26,13 +28,16 @@ The repository-internal `sdlc-install` command is invoked by `make install`; it
 is not installed on the global path. The installation:
 
 - builds `sdlc-install` locally, deploys `sdlc-init`, `sdlc-preview`, and
-  `sdlc-merge-legacy-acs` under `~/.agents/sdlc/bin`, and links those deployed
+  `sdlc-merge-legacy-acs` under `~/.agents/sdlc/bin`, and links those operator
   commands onto the global path;
+- deploys the internal `sdlc-harness` runner under `~/.agents/sdlc/bin` without
+  adding it to the global path;
 - synchronizes the canonical standards to `~/.agents/sdlc`;
 - installs SDLC skills globally under `~/.agents/skills`;
-- retains Codex as the only supported v3 provider adapter; and
-- retires known public SDLC v1 and v2 commands, skills, prompts, and hooks from
-  Claude, Hermes, and Copilot without removing unrelated provider configuration.
+- links canonical skills into the native Claude, Copilot, and Hermes skill
+  locations; and
+- registers the same canonical command guard through all four native hook
+  mechanisms without replacing unrelated provider configuration.
 
 It lists only missing or differing artefacts. An unchanged rerun writes nothing
 and asks no question. Set `VERBOSE=1` to include matching artefacts. Interactive
@@ -48,7 +53,7 @@ confirmation accepts `y` or `yes`.
 | `src/templates/v3/` | Unified specification, work, audit, validation, and preview templates |
 | `src/prompts/` | Saved prompts used by bounded headless initializer analysis |
 | `skills/` | Globally installed workflow and focused audit skills |
-| `cmd/` and `internal/` | Installer, initializer, ledger merger, and preview implementation |
+| `cmd/` and `internal/` | Installer, initializer, harness adapters, ledger merger, and preview implementation |
 
 ## Initialize a project once
 
@@ -79,7 +84,7 @@ The initializer:
 10. folds any canonical `docs/ACs.org` into a preserved or newly created
    `docs/work.org`, which becomes the sole requirement authority;
 11. for v2 projects with archived specifications, runs one bounded read-only
-    classification with the configured audit model, removes their obsolete
+    classification with the configured audit harness and model, removes their obsolete
     top-level Status fields, and renders their lifecycle into `docs/work.org`;
 12. creates `.sdlc/project.yaml` and commits the migration with a concise
     commit summary; and
@@ -192,7 +197,8 @@ Invoke `$define-change`. It asks only the clarification needed and creates one
 
 The same skill applies the specification, design, and test-definition audits,
 remediating for at most five local rounds. Only after local PASS does one
-retained external Codex context run all three audits. On effective PASS,
+retained context on the configured external audit harness run all three audits.
+On effective PASS,
 `spec.org` records the gate PASS and `docs/work.org` moves the item to `REVIEW`;
 explicit operator sign-off records its authority in the specification and moves
 the work item to `ACTIVE`. `$audit-definition` remains available for a
