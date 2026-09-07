@@ -4,7 +4,7 @@
 
 * Definition gate
 
-** Local review
+** Local review - round 1
 :PROPERTIES:
 :ROUND:    1
 :END:
@@ -20,18 +20,63 @@
   test reproducible, prohibited external execution before local PASS, and
   recorded rejected designs.
 
-** External review
+** External review - round 1
 :PROPERTIES:
-:CONTEXT:  Pending
+:CONTEXT:  /root/audit_w004_definition
 :END:
 
 - *Artefact:* [[file:spec.org][W004 - Support Claude, Copilot, and Hermes Harnesses]]
-- *Revision:* Pending
+- *Revision:* Git commit =68299b943e3d26ff6d3953e60b7bb1e5a9f02794=
 - *Audits:* =audit-spec=, =audit-design=, and =audit-test-definitions= in one
   context
+- *Verdict:* FAIL
+- *Findings:*
+  1. DEF-W004-001 incorrectly compared the recorded file SHA-256 with Git's blob
+     SHA-1. Recalculation from the committed blob confirms the recorded SHA-256
+     is exact; no artefact correction was required.
+  2. DEF-W004-002, DEF-W004-003, DEF-W004-006, and DEF-W004-009 required an
+     exact per-harness capability, invocation, response, and resume contract.
+  3. DEF-W004-004 and DEF-W004-010 required a concrete immutable audit boundary
+     and adversarial verification.
+  4. DEF-W004-005 required initializer mutation, recovery, and unsupported-
+     capability boundaries.
+  5. DEF-W004-007 required acceptance coverage for workflow instructions and
+     public documentation.
+  6. DEF-W004-008 required the validation ledger named by OT004.1 and OT004.2.
+  7. DEF-W004-011 required an observable Codex compatibility baseline.
+  8. DEF-W004-012 required all material edge cases in the opening summary.
+  9. DEF-W004-013 required a clearer semantic emphasis spine.
+- *Supersedes:* None.
+
+** Local review - round 2
+:PROPERTIES:
+:ROUND:    2
+:END:
+
+- *Artefact:* [[file:spec.org][W004 - Support Claude, Copilot, and Hermes Harnesses]]
+- *Revision:* SHA-256
+  =df44991763f6cb35e9b9e023bfd3847265f07aadc732e483e14fd9e14e61513c=
+- *Audits:* =audit-spec=, =audit-design=, and =audit-test-definitions=
+- *Verdict:* PASS
+- *Findings:* None after rechecking the external findings against the revised
+  specification.
+- *Remediation:* Added the capability matrix, immutable audit bundle, response
+  and incident grammar, initializer mutation boundary, documentation AC and UT,
+  validation ledger, adversarial isolation check, exact Codex baseline, complete
+  summary edge cases, and semantic emphasis.
+
+** External review - round 2
+:PROPERTIES:
+:CONTEXT:  /root/audit_w004_definition
+:END:
+
+- *Artefact:* [[file:spec.org][W004 - Support Claude, Copilot, and Hermes Harnesses]]
+- *Revision:* Pending checkpoint commit.
+- *Audits:* =audit-spec=, =audit-design=, and =audit-test-definitions= in one
+  retained context
 - *Verdict:* Pending
 - *Findings:* Pending
-- *Supersedes:* None.
+- *Supersedes:* External review round 1.
 
 * Implementation gate
 

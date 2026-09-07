@@ -25,9 +25,10 @@
 - Unchanged :: The *standards*, *two-gate workflow*, *five-round limit*,
   *operator sign-off*, *Codex support*, and rule against *project-local skill
   copies* remain unchanged.
-- Edge cases :: Handle an *absent executable*, *unsupported provider option*,
-  *non-SDLC destination conflict*, *timeout*, *missing session identity*, and
-  *malformed final response* without claiming parity or PASS.
+- Edge cases :: Handle an *absent executable or provider home*, *unsupported or
+  meaningless provider option*, *non-SDLC destination conflict*, *unprovable
+  read-only mode*, *timeout*, *missing session identity*, and *malformed final
+  response* without claiming parity or PASS.
 - Decisions :: Keep one *provider-neutral source of truth* under =~/.agents=;
   use *fixed Go adapters*, not shell command templates; treat actual harness
   smoke checks as *bounded one-off tests*, never regression tests.
@@ -45,12 +46,11 @@ specification below.
 
 ** Problem
 
-SDLC v3 was deliberately restored with one supported harness so the lean
-workflow could be stabilized. The current installer now removes its workflow
-skills from Claude, Copilot, and Hermes, the project schema accepts only Codex,
-and the audit contract names Codex rather than a configured harness. Those
-constraints now prevent the same established workflow from being used through
-the other installed coding agents.
+SDLC v3 was deliberately restored with *one supported harness* so the lean
+workflow could be stabilized. The current installer *removes workflow skills*
+from Claude, Copilot, and Hermes, the project schema *accepts only Codex*, and
+the audit contract *hard-codes Codex*. The same established workflow therefore
+cannot be used through the other installed coding agents.
 
 ** Outcome
 
@@ -112,11 +112,10 @@ provider, permission, or output features.
   currently retires SDLC skills from non-Codex homes, and
   [[file:../../src/config/project-init.schema.yaml][=src/config/project-init.schema.yaml=]]
   permits only Codex and OpenAI choices.
-- Observed harness interfaces :: The installed =claude=, =copilot=, and =hermes=
-  help contracts expose non-interactive execution, model selection, and session
-  resume. Only Hermes exposes a separate provider argument. These observations
-  must be revalidated during implementation rather than treated as permanent
-  vendor guarantees.
+- Observed harness interfaces :: The current command contracts are recorded in
+  the [[#harness-capability-contract][harness capability contract]]. They must be
+  revalidated during implementation rather than treated as permanent vendor
+  guarantees.
 - External contract :: None.
 
 ** Constraints and dependencies
@@ -208,10 +207,10 @@ provider, permission, or output features.
 :CUSTOM_ID: ac-004-5
 :END:
 
-- Criterion :: Given an external audit invocation, the adapter constrains the
-  harness to *read-only review* of the named project, canonical SDLC, and exact
-  additional authority paths; it cannot edit the audited artefact or broaden
-  filesystem access silently.
+- Criterion :: Given an external audit invocation, the runner supplies a
+  *bounded immutable audit bundle*, enables no mutation tools, verifies the
+  source and bundle after execution, and rejects any harness for which the
+  read-only boundary cannot be demonstrated.
 - Proven by :: [[#rt-004-3][RT004.3 - Construct bounded harness invocations]] and
   [[#ot-004-2][OT004.2 - Resume a real external audit context]].
 
@@ -252,11 +251,24 @@ provider, permission, or output features.
 :CUSTOM_ID: ac-004-9
 :END:
 
-- Criterion :: Given an SDLC v1 or v2 project whose initialization requires a
-  bounded agent migration, repair, or classification, =sdlc-init= uses the
-  *resolved audit harness and model* rather than hard-coded Codex; deterministic
-  and greenfield initialization starts no agent.
+- Criterion :: Given an SDLC v1 or v2 project whose initialization requires
+  agent classification, =sdlc-init= uses the *resolved audit harness and model*;
+  an authorized mutation uses that harness only when its adapter can confine
+  writes to the migration project, otherwise initialization gives an exact
+  interactive handoff and remains resumable. Deterministic and greenfield
+  initialization starts no agent.
 - Proven by :: [[#rt-004-6][RT004.6 - Route initializer agent operations]].
+
+** AC004.10 - Provider-neutral workflow contract
+:PROPERTIES:
+:CUSTOM_ID: ac-004-10
+:END:
+
+- Criterion :: Given any supported harness, public workflow instructions, skill
+  bodies, CLI help, and architecture describe the *configured external harness*
+  and its exact capability limits without retaining a hard-coded Codex gate.
+- Proven by :: [[#ut-004-1][UT004.1 - Review provider-neutral workflow
+  documentation]].
 
 * Test Definitions
 :PROPERTIES:
@@ -277,10 +289,9 @@ provider, permission, or output features.
   non-managed same-name entry.
 - Action :: Plan and apply installation twice, then change one canonical skill
   fixture and apply once more.
-- Expected :: Native adapters resolve canonical content, unrelated files remain
-  byte-identical, the conflict is reported without silent replacement, the
-  managed update is recoverable, and the second unchanged application has no
-  plan.
+- Expected :: Native adapters *resolve canonical content*, unrelated files
+  remain *byte-identical*, conflicts stop *without silent replacement*, managed
+  updates are *recoverable*, and an unchanged second run is a *no-op*.
 - Retention :: Persistent Go regression suite under =make test=.
 
 ** RT004.2 - Resolve harness configuration
@@ -294,9 +305,10 @@ provider, permission, or output features.
 - Setup :: Table-driven configurations for every harness and phase, including
   inherited values and explicit incompatible provider overrides.
 - Action :: Parse and resolve each configuration without starting a harness.
-- Expected :: Supported harnesses remain selected, precedence is deterministic,
-  applicable model/provider values remain exact, inapplicable provider values
-  are not passed, and incompatible explicit values produce a diagnostic.
+- Expected :: Supported harnesses remain *selected*, precedence is
+  *deterministic*, applicable model/provider values remain *exact*, inapplicable
+  providers are *not passed*, and incompatible explicit values produce a
+  *diagnostic*.
 - Retention :: Persistent Go regression suite under =make test=.
 
 ** RT004.3 - Construct bounded harness invocations
@@ -309,12 +321,14 @@ provider, permission, or output features.
   [[#ac-004-5][AC004.5 - Read-only audit boundary]].
 - Boundary :: Harness runner using fake executables that record argument vectors,
   stdin, environment, working directory, output, and session identity.
-- Setup :: One deterministic fake for each adapter with representative
-  successful start and resume responses.
+- Setup :: One deterministic fake for each row in the
+  [[#harness-capability-contract][harness capability contract]], with captured
+  successful start, final-response, identity, and resume fixtures.
 - Action :: Start a read-only audit and resume it once through each adapter.
-- Expected :: Each invocation uses fixed native arguments, exact configured
-  model controls, Hermes-only provider forwarding, scoped read access, no write
-  permission, and the same recorded session identity on resume.
+- Expected :: Each invocation matches its *fixed start and resume grammar*,
+  parses the *identity and final response*, forwards a provider *only to
+  Hermes*, makes no source artefact writable, detects a *changed bundle*, and
+  resumes the *same identity*.
 - Retention :: Persistent Go regression suite under =make test=; fake harnesses
   make no network or model calls.
 
@@ -330,8 +344,9 @@ provider, permission, or output features.
   missing session identity, non-zero exit, empty final response, and malformed
   composite verdict.
 - Action :: Attempt an external gate through the selected adapter.
-- Expected :: The operation returns a typed runner incident naming the harness
-  and failure, preserves any usable context identity, and never records PASS.
+- Expected :: The operation returns a *typed runner incident* naming the
+  harness and failure, preserves any usable *context identity*, and *never
+  records PASS*.
 - Retention :: Persistent Go regression suite under =make test=.
 
 ** RT004.5 - Preserve Codex workflow behaviour
@@ -342,12 +357,14 @@ provider, permission, or output features.
 - Covers :: [[#ac-004-8][AC004.8 - Existing Codex behaviour preserved]].
 - Boundary :: Current installer, initializer, and composite audit paths using
   Codex defaults.
-- Setup :: Existing Codex-only installer, initializer, and audit-runner fixtures
-  with no harness override.
+- Setup :: Fixtures that assert the current Codex defaults, installer
+  plan/apply/verify transitions, initializer no-agent path, =codex exec= start
+  vector, =thread.started.thread_id= identity, final-message output, and exact-ID
+  resume vector.
 - Action :: Run the supported paths after registering the additional adapters.
-- Expected :: They select Codex, construct the established Codex invocation,
-  preserve state transitions, and differ only where user-facing discovery now
-  lists additional supported harnesses.
+- Expected :: They *select Codex*, construct the *established invocation*,
+  preserve *state transitions*, and differ only where discovery lists the new
+  supported harnesses.
 - Retention :: Persistent Go regression suite under =make test=.
 
 ** RT004.6 - Route initializer agent operations
@@ -364,11 +381,27 @@ provider, permission, or output features.
   and greenfield path.
 - Action :: Run initialization through the point at which it completes or would
   invoke the fake harness.
-- Expected :: Agent-required paths call the selected adapter with the resolved
-  audit model and applicable provider; deterministic and greenfield paths make
-  no harness call; failures retain resumable initializer state.
+- Expected :: Read-only classification calls the *selected adapter* with the
+  *resolved audit model* and applicable provider; mutation uses a *confined
+  adapter* or an *exact interactive handoff*; deterministic and greenfield
+  paths make *no harness call*; failures preserve *resumable migration state*
+  without repeating completed work.
 - Retention :: Persistent Go regression suite under =make test=; fake harnesses
   make no network or model calls.
+
+** UT004.1 - Review provider-neutral workflow documentation
+:PROPERTIES:
+:CUSTOM_ID: ut-004-1
+:END:
+
+- Covers :: [[#ac-004-10][AC004.10 - Provider-neutral workflow contract]].
+- Reviewer :: Operator.
+- Procedure :: Review the installed skills, =README.md=, =QUICKSTART.md=,
+  =docs/ARCHITECTURE.md=, command help, and one generated project profile.
+- Expected :: The material names all four supported harnesses, distinguishes
+  interactive, external-audit, and initializer capabilities, and contains no
+  claim that an external gate must use Codex.
+- Record :: Write the dated result to =validation.org=.
 
 ** OT004.1 - Exercise native skill discovery
 :PROPERTIES:
@@ -395,11 +428,13 @@ provider, permission, or output features.
   [[#ac-004-5][AC004.5 - Read-only audit boundary]].
 - Boundary :: Each locally installed harness's real headless and resume
   interface.
-- Procedure :: Audit a disposable unchanged artefact, record the returned
-  session identity, then resume that exact context with a second read-only
-  prompt.
-- Expected :: The second response demonstrates retained context, neither call
-  changes the project, and the runner records one context identity.
+- Procedure :: Audit a disposable artefact, require the auditor to report the
+  unique token embedded in its bundle, and ask it to attempt one exact marker
+  write in both the bundle and source project. Resume that exact context and
+  require it to recall the token and repeat the denied write check.
+- Expected :: Both write attempts are unavailable or denied, source and bundle
+  hashes remain unchanged, the second response reports the original token, and
+  the runner records one context identity.
 - Bounds :: At most two metered calls per harness; fixed disposable data; no
   secrets, live services, or production project; do not retain in regression or
   CI.
@@ -468,23 +503,57 @@ provider, permission, or output features.
 
 *** Flow
 
-1. A compiled registry declares the four supported harness names and stable
-   capabilities needed by configuration and routing.
-2. =sdlc-install= exposes canonical skills through each detected harness's
-   native global skill path and preserves provider-owned material.
-3. Interactive harnesses invoke the same canonical skill bodies, which load the
-   selected standards and project authorities normally.
-4. When a bounded headless operation is required, a fixed adapter starts the
-   configured harness with exact scope, model, provider where supported,
-   timeout, and output contract.
-5. An external composite audit records the first session identity and supplies
-   it to the same adapter for any permitted resume.
+1. A *compiled registry* declares four supported harnesses and their stable
+   configuration and routing capabilities.
+2. =sdlc-install= exposes *canonical skills* through each native global skill
+   path while preserving provider-owned material.
+3. Interactive harnesses invoke the *same skill bodies*, selected standards,
+   and project authorities.
+4. A bounded headless operation uses one *fixed adapter* with exact scope,
+   model, applicable provider, timeout, and output contract.
+5. An external composite audit records one *stable session identity* and uses
+   the *same adapter and identity* for every permitted resume.
 
 The runner is used only after all required *same-context local audits pass*.
 It never replaces local review and never starts one external context per focused
 audit.
 
 *** Interfaces and configuration
+
+**** Harness capability contract
+:PROPERTIES:
+:CUSTOM_ID: harness-capability-contract
+:END:
+
+The following table is the current implementation target. =PROMPT= is supplied
+as data, never evaluated by a shell. =BUNDLE= is an isolated temporary audit
+directory. Implementation first rechecks each installed command's help and
+fails visibly if its contract has drifted.
+
+| Harness | Native global skill path | Audit start | Stable identity | Audit resume | Model | Provider | Final response |
+|---------+--------------------------+-------------+-----------------+--------------+-------+----------+----------------|
+| Codex | =~/.agents/skills= | =codex exec -m MODEL -s read-only -C BUNDLE --json -o RESULT -= | =thread.started.thread_id= from JSONL | =codex exec resume -m MODEL --json -o RESULT SESSION -= from =BUNDLE= | =-m= | none | non-empty =RESULT= |
+| Claude | =~/.claude/skills= | preassigned UUID with =claude -p --output-format json --model MODEL --session-id UUID --tools "" --permission-mode plan PROMPT= | preassigned UUID | replace =--session-id UUID= with =--resume UUID= | =--model= | none | JSON =result= |
+| Copilot | =~/.copilot/skills= | unique name with =copilot -p PROMPT -s --output-format json --model MODEL --name NAME --available-tools== | preassigned name | replace =--name NAME= with =--resume=NAME= | =--model= | none | final assistant event from JSONL |
+| Hermes | =~/.hermes/skills= | =hermes -z PROMPT -m MODEL --provider PROVIDER -t "" --pass-session-id --safe-mode --in BUNDLE= | validated =SESSION_ID= field in the response | replace =--pass-session-id= with =--resume SESSION= | =-m= | =--provider= | non-empty stdout minus the identity envelope |
+
+For Claude, Copilot, and Hermes, the empty tool selection must be proven to
+expose *no tools*. If a current version cannot do that, its adapter may still
+provide interactive skills but must report external audit as unavailable.
+Codex runs against the audit bundle with its documented read-only sandbox.
+
+- Response envelope :: The runner requires a non-empty final response and one
+  valid stable identity. Hermes additionally returns
+  =SESSION_ID: <native-id>= before the composite gate verdict. Missing,
+  duplicated, or malformed fields are runner incidents.
+- Incident kinds :: =executable-unavailable=, =capability-unsupported=,
+  =configuration-invalid=, =start-failed=, =identity-missing=,
+  =response-empty=, =response-malformed=, =timeout=, =resume-failed=, and
+  =audit-input-mutated=.
+- Process control :: Start each command directly from a Go argument slice,
+  stream progress through the runner's stderr channel, capture only structured
+  protocol output, and on timeout terminate the process group before returning
+  partial output as diagnostic evidence rather than a verdict.
 
 - Harness registry :: A Go interface and fixed registrations for =codex=,
   =claude=, =copilot=, and =hermes=. Capabilities include native skill root,
@@ -503,6 +572,35 @@ audit.
 - CLI help :: =sdlc-install= and =sdlc-init= name supported harnesses, explain
   provider applicability, and distinguish workflow installation from harness
   or credential installation.
+
+**** Immutable audit bundle
+
+Before external audit, the runner creates one *temporary audit bundle* containing
+plain, non-symlink copies of the exact specification, project profile, named
+authorities, applicable standards, and focused evidence. It *rejects traversal,
+symlinks, devices, missing files, duplicates, and oversize input*. A manifest
+records source path, destination, byte count, and SHA-256.
+
+The runner makes the *bundle read-only*, includes its contents in the audit
+prompt, enables *no tools* where supported, and grants no additional directory.
+It verifies *bundle and source hashes* after every call; any change invalidates
+the response. Cleanup removes only the exact temporary directory through
+program-owned teardown.
+
+**** Initializer mutation boundary
+
+=sdlc-init= requests a typed *project mutation* only after the operator selects
+migration or deterministic ledger validation requests one repair. The
+initializer first creates the *archived-state branch*, *migration branch*, and
+=.sdlc/.init= *recovery record*. The request names one skill, the *project-only
+writable root*, expected artefacts, completed stage, and deterministic validator.
+
+An adapter automates the request only with *project-scoped writes* and no
+unrestricted filesystem or shell approval. Otherwise the initializer prints an
+*exact native skill handoff*, leaves the stage pending, and resumes after
+deterministic validation. It *never substitutes a harness*. Failure preserves
+the migration branch and recovery record; the archived-state branch remains the
+rollback point.
 
 *** Alternatives rejected
 

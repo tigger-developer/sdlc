@@ -1,0 +1,42 @@
+#+TITLE: W004 - Support Claude, Copilot, and Hermes Harnesses - Validation Evidence
+#+STARTUP: content
+#+OPTIONS: toc:2 num:nil
+
+* User tests
+
+** UT004.1 - Review provider-neutral workflow documentation
+:PROPERTIES:
+:CUSTOM_ID: ut-004-1-result
+:DATE:      NOT-RUN
+:END:
+
+- *Criterion:* [[file:spec.org::#ac-004-10][AC004.10 - Provider-neutral workflow contract]]
+- *Reviewer:* Operator
+- *Result:* NOT RUN
+- *Evidence:* Awaiting implementation and operator review.
+
+* One-off tests
+
+** OT004.1 - Exercise native skill discovery
+:PROPERTIES:
+:CUSTOM_ID: ot-004-1-result
+:DATE:      NOT-RUN
+:END:
+
+- *Criterion:* [[file:spec.org::#ac-004-1][AC004.1 - Native workflow availability]]
+- *Boundary:* Locally installed Codex, Claude, Copilot, and Hermes CLIs.
+- *Result:* NOT RUN
+- *Evidence:* Awaiting implementation.
+- *Cleanup:* Not applicable until execution.
+
+** OT004.2 - Resume a real external audit context
+:PROPERTIES:
+:CUSTOM_ID: ot-004-2-result
+:DATE:      NOT-RUN
+:END:
+
+- *Criterion:* [[file:spec.org::#ac-004-4][AC004.4 - Retained external audit context]] and [[file:spec.org::#ac-004-5][AC004.5 - Read-only audit boundary]]
+- *Boundary:* Each locally installed harness's real headless and resume interface.
+- *Result:* NOT RUN
+- *Evidence:* Awaiting implementation.
+- *Cleanup:* Not applicable until execution.
