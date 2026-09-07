@@ -1,4 +1,4 @@
-#+TITLE: WNNN - Short descriptive title
+#+TITLE: WNNN - [Concise change-specific title]
 #+SUBTITLE: Unified change specification
 #+STARTUP: overview
 #+OPTIONS: toc:2 num:nil
@@ -9,10 +9,31 @@
 This is the canonical SDLC v3 specification template.
 
 Use a new project-wide work number and never reuse an identifier. Replace every
-instructional placeholder before definition sign-off. Keep the document concise,
-but make it sufficient for a new agent to deliver without the drafting
-conversation. Use Org emphasis sparingly: bold functional nouns, states, values,
-and consequences that support rapid scanning. Do not bold structural words.
+instructional placeholder before definition sign-off. The document title must
+name the change as =WNNN - [concise change-specific title]=. Generic titles such
+as =Spec sheet=, =Specification=, =Change=, or =Untitled= are invalid.
+
+Apply the ABC presentation contract in =ISSUES.md=. Use the fixed level-one
+headlines below for the major sections, level-two headlines for addressable
+subsections or records, and level-three headlines only for genuine children of
+those records. Use native description lists for labelled facts; never simulate
+a headline or label with bold text.
+
+Keep the document concise, but sufficient for a new agent to deliver without
+the drafting conversation. Within substantive text, use native Org emphasis to
+bold the smallest functional words or phrases that carry the distinctive state,
+action, qualifier, quantity, boundary, or outcome. Read in order, those bold
+fragments alone must communicate the statement's functional meaning. Include
+enough of the subject or context to make that bold-only reading understandable;
+a headline or preceding line does not replace it. Do not bold headlines,
+labels, identifiers, structural words, whole sentences, or every occurrence of
+a term. Use the smallest sufficient set of fragments; if most of a sentence is
+bold, reduce it until the emphasis is selective again. For example:
+
+- A *report schedule* *declares* an *output format* and may declare a
+  *recipient list*.
+- An *empty recipient list* *disables delivery* without disabling report
+  generation.
 
 The work item's TODO keyword in =docs/work.org= is its sole lifecycle state.
 Only an effective definition-gate PASS may set =DEFINITION_GATE= to =PASS=.
@@ -27,14 +48,14 @@ to =REVIEW=. Detailed audit evidence remains in =audits.org=.
 :CUSTOM_ID: summary
 :END:
 
-- *Outcome:* [One sentence describing the user-visible or operator-visible result.]
-- *Before:* [The relevant current behaviour.]
-- *After:* [The required behaviour after delivery.]
-- *Changes:* [Short bullets naming the changed behaviour or interfaces.]
-- *Unchanged:* [Important boundaries and behaviours that remain unchanged.]
-- *Edge cases:* [The material edge cases covered below.]
-- *Decisions:* [Resolved operator decisions that constrain delivery.]
-- *Next step:* Definition gate, then operator sign-off.
+- Outcome :: [One sentence describing the user-visible or operator-visible result.]
+- Before :: [The relevant current behaviour.]
+- After :: [The required behaviour after delivery.]
+- Changes :: [Short bullets naming the changed behaviour or interfaces.]
+- Unchanged :: [Important boundaries and behaviours that remain unchanged.]
+- Edge cases :: [The material edge cases covered below.]
+- Decisions :: [Resolved operator decisions that constrain delivery.]
+- Next step :: Definition gate, then operator sign-off.
 
 The summary above must accurately and completely represent the detailed
 specification below.
@@ -71,13 +92,13 @@ implementation as the requirement.]
 
 ** Authority and starting point
 
-- *Project profile:* [[file:../../.sdlc/project.yaml][=.sdlc/project.yaml=]]
-- *Product authority:* [Link to the exact document and relevant section.]
-- *Architecture authority:* [Link to the exact document and relevant section.]
-- *Historical requirement or evidence:* [Link only when relevant.]
-- *Current implementation fact:* [Link to the exact file or component when it
+- Project profile :: [[file:../../.sdlc/project.yaml][=.sdlc/project.yaml=]]
+- Product authority :: [Link to the exact document and relevant section.]
+- Architecture authority :: [Link to the exact document and relevant section.]
+- Historical requirement or evidence :: [Link only when relevant.]
+- Current implementation fact :: [Link to the exact file or component when it
   materially constrains the change.]
-- *External contract:* [Link when another project owns an integration or runtime
+- External contract :: [Link when another project owns an integration or runtime
   boundary.]
 
 ** Constraints and dependencies
@@ -114,17 +135,17 @@ conditions. Every AC links to at least one test definition.
 :CUSTOM_ID: ac-nnn-1
 :END:
 
-- *Criterion:* Given [context], the system [required observable state].
-- *Proven by:* [[#rt-nnn-1][RTNNN.1 - Descriptive regression test]]
+- Criterion :: Given [context], the system [required observable state].
+- Proven by :: [[#rt-nnn-1][RTNNN.1 - Descriptive regression test]]
 
 ** ACNNN.2 - Descriptive boundary
 :PROPERTIES:
 :CUSTOM_ID: ac-nnn-2
 :END:
 
-- *Criterion:* Given [boundary condition], the system [required observable
+- Criterion :: Given [boundary condition], the system [required observable
   state].
-- *Proven by:* [[#ut-nnn-1][UTNNN.1 - Descriptive user validation]] and
+- Proven by :: [[#ut-nnn-1][UTNNN.1 - Descriptive user validation]] and
   [[#ot-nnn-1][OTNNN.1 - Descriptive one-off verification]]
 
 * Test Definitions
@@ -151,35 +172,35 @@ system or use source-text greps as behavioural evidence.
 :CUSTOM_ID: rt-nnn-1
 :END:
 
-- *Covers:* [[#ac-nnn-1][ACNNN.1 - Descriptive outcome]]
-- *Boundary:* [Public interface or system boundary exercised.]
-- *Setup:* [Only the state required for the test.]
-- *Action:* [One reproducible action.]
-- *Expected:* [Observable result that proves the criterion.]
-- *Retention:* Persistent regression suite under the supported test command.
+- Covers :: [[#ac-nnn-1][ACNNN.1 - Descriptive outcome]]
+- Boundary :: [Public interface or system boundary exercised.]
+- Setup :: [Only the state required for the test.]
+- Action :: [One reproducible action.]
+- Expected :: [Observable result that proves the criterion.]
+- Retention :: Persistent regression suite under the supported test command.
 
 ** UTNNN.1 - Descriptive user validation
 :PROPERTIES:
 :CUSTOM_ID: ut-nnn-1
 :END:
 
-- *Covers:* [[#ac-nnn-2][ACNNN.2 - Descriptive boundary]]
-- *Reviewer:* Operator or named user role.
-- *Procedure:* [Short human validation procedure.]
-- *Expected:* [What the reviewer must observe or decide.]
-- *Record:* Write the dated result to =validation.org=.
+- Covers :: [[#ac-nnn-2][ACNNN.2 - Descriptive boundary]]
+- Reviewer :: Operator or named user role.
+- Procedure :: [Short human validation procedure.]
+- Expected :: [What the reviewer must observe or decide.]
+- Record :: Write the dated result to =validation.org=.
 
 ** OTNNN.1 - Descriptive one-off verification
 :PROPERTIES:
 :CUSTOM_ID: ot-nnn-1
 :END:
 
-- *Covers:* [[#ac-nnn-2][ACNNN.2 - Descriptive boundary]]
-- *Boundary:* [Live API, deployment, migration, or other bounded target.]
-- *Procedure:* [Exact bounded action or command, if known.]
-- *Expected:* [Observable result.]
-- *Bounds:* [Invocation, data, cost, and cleanup limits.]
-- *Record:* Write the dated result to =validation.org=; do not add this check to
+- Covers :: [[#ac-nnn-2][ACNNN.2 - Descriptive boundary]]
+- Boundary :: [Live API, deployment, migration, or other bounded target.]
+- Procedure :: [Exact bounded action or command, if known.]
+- Expected :: [Observable result.]
+- Bounds :: [Invocation, data, cost, and cleanup limits.]
+- Record :: Write the dated result to =validation.org=; do not add this check to
   automated regression, CI, build, or scheduled execution.
 
 * Edge Cases
@@ -189,9 +210,9 @@ system or use source-text greps as behavioural evidence.
 
 ** [Descriptive edge case]
 
-- *Condition:* [Boundary or failure condition.]
-- *Required behaviour:* [Deterministic outcome.]
-- *Covered by:* [[#ac-nnn-2][ACNNN.2 - Descriptive boundary]] and
+- Condition :: [Boundary or failure condition.]
+- Required behaviour :: [Deterministic outcome.]
+- Covered by :: [[#ac-nnn-2][ACNNN.2 - Descriptive boundary]] and
   [[#ot-nnn-1][OTNNN.1 - Descriptive one-off verification]]
 
 * Solution Design
@@ -208,9 +229,9 @@ task list or duplicate stable architecture documents.
 
 ** Architecture context
 
-- *Relevant components:* [Existing components and responsibilities.]
-- *Ownership boundary:* [What this project owns and what another system owns.]
-- *Existing pattern:* [Pattern to preserve or intentionally replace.]
+- Relevant components :: [Existing components and responsibilities.]
+- Ownership boundary :: [What this project owns and what another system owns.]
+- Existing pattern :: [Pattern to preserve or intentionally replace.]
 
 ** High-level design
 
@@ -222,9 +243,9 @@ task list or duplicate stable architecture documents.
 
 *** Interfaces and configuration
 
-- *Interface:* [After-state contract, function, command, endpoint, schema, or
+- Interface :: [After-state contract, function, command, endpoint, schema, or
   configuration key.]
-- *Compatibility:* [How existing callers, data, or deployments behave.]
+- Compatibility :: [How existing callers, data, or deployments behave.]
 
 *** Data and state
 
@@ -238,33 +259,33 @@ task list or duplicate stable architecture documents.
 
 *** Security impact
 
-- *Threat boundary:* [Changed or unchanged trust boundary.]
-- *Data and secrets:* [Exposure, minimization, storage, and logging impact.]
-- *Access:* [Authorization and least-privilege impact.]
-- *Conclusion:* [Required mitigation, explicit no-change rationale, or blocker.]
+- Threat boundary :: [Changed or unchanged trust boundary.]
+- Data and secrets :: [Exposure, minimization, storage, and logging impact.]
+- Access :: [Authorization and least-privilege impact.]
+- Conclusion :: [Required mitigation, explicit no-change rationale, or blocker.]
 
 *** Other relevant qualities
 
-- *Reliability:* [Impact or not applicable with reason.]
-- *Performance:* [Impact or not applicable with reason.]
-- *Operability:* [Deployment, rollback, monitoring, or support impact.]
-- *Accessibility:* [Impact or not applicable with reason.]
-- *Portability:* [Impact or not applicable with reason.]
-- *Maintainability:* [Complexity and future-change impact.]
+- Reliability :: [Impact or not applicable with reason.]
+- Performance :: [Impact or not applicable with reason.]
+- Operability :: [Deployment, rollback, monitoring, or support impact.]
+- Accessibility :: [Impact or not applicable with reason.]
+- Portability :: [Impact or not applicable with reason.]
+- Maintainability :: [Complexity and future-change impact.]
 
 * Delivery Handoff
 :PROPERTIES:
 :CUSTOM_ID: delivery-handoff
 :END:
 
-- *Required reading:* [Only the exact additional sources needed beyond this
+- Required reading :: [Only the exact additional sources needed beyond this
   specification and =.sdlc/project.yaml=.]
-- *First implementation step:* Write [[#rt-nnn-1][RTNNN.1 - Descriptive
+- First implementation step :: Write [[#rt-nnn-1][RTNNN.1 - Descriptive
   regression test]] and observe the expected RED result.
-- *Definition evidence:* [[file:audits.org][=audits.org=]]
-- *Validation evidence:* [[file:validation.org][=validation.org=]] when UT or OT
+- Definition evidence :: [[file:audits.org][=audits.org=]]
+- Validation evidence :: [[file:validation.org][=validation.org=]] when UT or OT
   execution occurs.
-- *Documentation impact:* [Files to update, or none with reason.]
+- Documentation impact :: [Files to update, or none with reason.]
 
 #+begin_comment
 Before definition sign-off, test the handoff: could a new agent deliver this

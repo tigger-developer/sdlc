@@ -18,7 +18,10 @@ Allocate the next never-used project work number. Create
 criteria, traced RT/UT/OT test definitions, edge cases, solution design,
 mandatory security impact, and a context-independent delivery handoff. Create
 `audits.org` from its canonical template. Create `validation.org` only when
-needed. Add or update the descriptive work item in `docs/work.org`.
+needed. Add or update the descriptive work item in `docs/work.org`. Apply the
+change-specific title, Org hierarchy, description-list, and semantic-emphasis
+requirements in `ISSUES.md`; generic titles and visually unscannable drafts are
+not ready for audit.
 
 The opening summary must accurately and completely represent the detail below
 its section break. Apply the complete definition gate from `AUDITS.md` in this

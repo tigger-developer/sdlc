@@ -70,14 +70,22 @@ means the specification is not ready for audit or approval.
   conditions and name actors, states, boundaries, and outcomes precisely.
 
 Prefer scan-friendly bullets to a paragraph containing several facts. Keep one
-primary fact per bullet. Use ordinary Markdown headings without additional
-emphasis. Within prose and bullets, bold the semantic spine: the smallest words
-or phrases that carry the distinctive state, action, qualifier, quantity,
+primary fact per bullet. In `spec.org`, use native Org headlines for document
+hierarchy and native description lists for labelled facts. Do not simulate
+either with bold text. Keep the fixed major sections at level one, use level two
+for addressable subsections or records, and use deeper levels only for genuine
+children.
+
+Within substantive prose and bullets, bold the semantic spine: the smallest
+words or phrases that carry the distinctive state, action, qualifier, quantity,
 boundary, or outcome. Include a verb or modifier when it conveys the important
 change; do not default mechanically to nouns. Read in order, the bold fragments
-should give an accurate compressed summary of the statement. Do not bold
-context already supplied by its heading or preceding line, whole sentences,
-generic labels, identifiers, modal verbs, or every occurrence of a term.
+alone must communicate the statement's functional meaning. Include enough of
+the subject or context to make that bold-only reading understandable; a
+headline or preceding line does not replace it. In Org, use native `*bold*`
+syntax. Do not bold whole sentences, generic labels, identifiers, modal verbs,
+or every occurrence of a term. Use the smallest sufficient set of fragments; if
+most of a sentence is bold, reduce it until the emphasis is selective again.
 
 In acceptance scenarios, put `GIVEN`, `WHEN`, `THEN`, and `AND` in unbolded
 capitals on separate lines. Their position and capitalization provide the
@@ -89,14 +97,16 @@ requirements state the authoritative generalized rules demonstrated by those
 scenarios. Success criteria measure overall feature success rather than
 retelling individual requirements.
 
-For example:
+For example, an Org specification may contain:
 
-- A report **schedule** **declares** an **output format** and may declare a
-  **recipient list**.
-- An **empty recipient list** **disables delivery** without disabling report
+```org
+- A report *schedule* *declares* an *output format* and may declare a
+  *recipient list*.
+- An *empty recipient list* *disables delivery* without disabling report
   generation.
-- Repeating a scheduled run with the **same execution identifier** creates **no
-  duplicate report** or **notification**.
+- Repeating a scheduled run with the *same execution identifier* creates *no
+  duplicate report* or *notification*.
+```
 
 Prefer concise authoritative requirements and boundaries over narrative
 restatements of the same behaviour. Length follows the complexity of the
@@ -122,6 +132,10 @@ and derive the opening summary from it. The summary introduces nothing absent
 below its section break, contradicts nothing, and omits no material change,
 unchanged boundary, decision, or edge case. A mismatch blocks the definition
 gate.
+
+Set `#+TITLE:` to the work identifier followed by a concise, change-specific
+title. Generic titles such as `Spec sheet`, `Specification`, `Change`, or
+`Untitled` fail the definition gate.
 
 ## Acceptance criteria
 

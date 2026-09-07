@@ -565,6 +565,26 @@ The pilot tested the boundary without pretending that documentation design alone
 proved better agent behaviour. The validated model was merged for the v2.0.0
 release; release tags now provide the stable rollback points.
 
+## Presentation is part of specification correctness
+
+A specification is both an authority document and a human approval surface. A
+generic title, dense multi-claim prose, or emphasis consumed by labels makes the
+change harder to identify and review even when all required sections are
+present.
+
+Org already provides structural semantics for these jobs. Headlines express
+the document hierarchy and description lists label facts. Bold emphasis can
+therefore be reserved for the smallest functional phrases that identify the
+distinctive state, action, qualifier, quantity, boundary, or outcome. Read in
+sequence, those phrases provide a compressed view without creating a second
+summary that can drift.
+
+Presentation requirements must be enforced at three points: the canonical
+template demonstrates them, the authoring skill applies them, and the
+specification audit rejects material violations. Treating presentation as a
+late cosmetic edit is too unreliable for an artefact that requires operator
+sign-off.
+
 ## Licence
 
 Apache License 2.0. See [`LICENSE`](LICENSE).

@@ -5,8 +5,9 @@ replace operator approval, test execution, or implementation evidence.
 
 ## Audit roles
 
-- `audit-spec` challenges context, scope, requirements, acceptance criteria,
-  edge cases, authority, and context-independent handoff.
+- `audit-spec` challenges the change-specific title, ABC presentation, context,
+  scope, requirements, acceptance criteria, edge cases, authority, and
+  context-independent handoff.
 - `audit-design` challenges traceability, architecture fit, boundaries,
   trade-offs, security, operability, and failure behaviour.
 - `audit-test-definitions` challenges proposed RT/UT/OT coverage,

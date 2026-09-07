@@ -8,4 +8,8 @@ specification without modifying it. Challenge scope, requirements, acceptance
 criteria, edge cases, authority, contradictions, ambiguity, and whether a new
 agent could deliver without the drafting conversation. For brownfield work,
 check the named design, history, regression, and implementation evidence. Return
-findings under the verdict contract in `AUDITS.md`.
+findings under the verdict contract in `AUDITS.md`. Treat a generic document
+title, broken Org headline hierarchy, inaccurate opening summary, dense
+multi-claim prose, over-bolding, or a bold-only reading that does not
+communicate the functional meaning as a specification presentation failure
+under the ABC contract.

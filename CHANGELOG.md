@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+## v3.0.7 - 2026-09-07
+
+- Made the canonical Org specification template enforce a concise,
+  change-specific title instead of permitting generic titles such as "Spec
+  sheet".
+- Baked the ADHD-oriented ABC presentation contract into specification
+  authoring and audit: native Org headline hierarchy, description lists for
+  labelled facts, bullets for distinct claims, and sparse bold emphasis on the
+  functional semantic spine.
+- Converted the template's bold pseudo-labels to native Org description lists,
+  reserving visual emphasis for the states, actions, qualifiers, boundaries,
+  and outcomes needed for rapid scanning.
+
 ## v3.0.6 - 2026-09-07
 
 - Corrected the Fish CLI requirements to state the complete SDLC switch

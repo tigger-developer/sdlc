@@ -15,7 +15,7 @@ descriptors. A timeout, missing verdict, or malformed verdict is not a PASS.
 :ROUND:    1
 :END:
 
-- *Artefact:* [[file:spec.org][WNNN - Short descriptive title]]
+- *Artefact:* [[file:spec.org][WNNN - Concise change-specific title]]
 - *Revision:* [Git commit or SHA-256]
 - *Audits:* =audit-spec=, =audit-design=, and =audit-test-definitions=
 - *Verdict:* [PASS, PROVISIONAL, or FAIL]
@@ -27,7 +27,7 @@ descriptors. A timeout, missing verdict, or malformed verdict is not a PASS.
 :CONTEXT:  [Retained Codex context identifier]
 :END:
 
-- *Artefact:* [[file:spec.org][WNNN - Short descriptive title]]
+- *Artefact:* [[file:spec.org][WNNN - Concise change-specific title]]
 - *Revision:* [Git commit or SHA-256]
 - *Audits:* =audit-spec=, =audit-design=, and =audit-test-definitions= in one
   context
