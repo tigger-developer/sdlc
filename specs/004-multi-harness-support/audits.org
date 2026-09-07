@@ -148,12 +148,43 @@
 :END:
 
 - *Artefact:* [[file:spec.org][W004 - Support Claude, Copilot, and Hermes Harnesses]]
+- *Revision:* Git commit =681ac58e92e0921bbf8b25d4ff0612fcdc280273=
+- *Audits:* =audit-spec=, =audit-design=, and =audit-test-definitions= in one
+  retained context
+- *Verdict:* FAIL
+- *Findings:* DEF-W004-013 required semantic emphasis across the remaining user
+  and one-off test definitions, edge cases, architecture records, and delivery
+  handoff.
+- *Supersedes:* External review round 3.
+
+** Local review - round 5
+:PROPERTIES:
+:ROUND:    5
+:END:
+
+- *Artefact:* [[file:spec.org][W004 - Support Claude, Copilot, and Hermes Harnesses]]
+- *Revision:* SHA-256
+  =bcf5005a7d4f20b6198d1ad684688c13aef3345ae2d9bee61b8b6597ab9defad=
+- *Audits:* =audit-spec=, =audit-design=, and =audit-test-definitions=
+- *Verdict:* PASS
+- *Findings:* None after a complete semantic-spine pass over every substantive
+  section.
+- *Remediation:* Added selective functional emphasis to the remaining scope,
+  authority, constraints, decisions, validation definitions, edge cases,
+  interface records, state, failures, quality impacts, and handoff.
+
+** External review - round 5
+:PROPERTIES:
+:CONTEXT:  /root/audit_w004_definition
+:END:
+
+- *Artefact:* [[file:spec.org][W004 - Support Claude, Copilot, and Hermes Harnesses]]
 - *Revision:* Pending checkpoint commit.
 - *Audits:* =audit-spec=, =audit-design=, and =audit-test-definitions= in one
   retained context
 - *Verdict:* Pending
 - *Findings:* Pending
-- *Supersedes:* External review round 3.
+- *Supersedes:* External review round 4.
 
 * Implementation gate
 
