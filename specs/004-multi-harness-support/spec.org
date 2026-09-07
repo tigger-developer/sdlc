@@ -18,7 +18,8 @@
 - After :: Each supported harness can *discover the global SDLC skills*, run
   the *same definition and delivery workflows*, and start or resume the *single
   external audit context* through an explicit capability adapter. Its native
-  pre-tool hook also enforces the *canonical SDLC command guard*.
+  pre-tool hook also enforces the *canonical SDLC command and path
+  restrictions*.
 - Changes :: Add *Claude*, *Copilot*, and *Hermes* harness adapters; expose the
   *canonical global skills* through each native skill location; make harness
   selection and headless execution *capability-aware*; register the *shared
@@ -274,10 +275,12 @@ provider, permission, or output features*.
 :END:
 
 - Criterion :: Given any installed supported harness, its native *pre-tool hook*
-  invokes the canonical SDLC command guard before command execution, applies the
-  *same allow or block decision* to an equivalent command, preserves unrelated
-  provider configuration, and reports the harness as *not SDLC-ready* if the
-  hook cannot be installed or verified.
+  invokes the canonical SDLC command guard before command or file-read
+  execution, applies the *same established allow or block decision* to
+  equivalent command and file-read payloads, preserves unrelated provider
+  configuration, and reports the harness as *not SDLC-ready* if the hook cannot
+  be installed or verified. The guarded restrictions are the exact set defined
+  under the [[#command-guard-contract][command guard contract]].
 - Proven by :: [[#rt-004-7][RT004.7 - Enforce the command guard across
   harnesses]].
 
@@ -418,15 +421,22 @@ provider, permission, or output features*.
   Hermes.
 - Setup :: Create provider configurations containing *unrelated settings*, a
   current managed hook, a legacy managed hook, an absent hook, and an unknown
-  conflicting hook artefact.
+  conflicting hook artefact. Supply each harness's command and file-read payload
+  forms for every [[#command-guard-contract][guarded restriction]], permitted
+  neighbouring commands and paths, shell-wrapper and command-chain forms, and
+  an unrecognized payload shape.
 - Action :: *Plan and apply installation twice*, then pass equivalent allowed
   and prohibited command payloads through each native hook adapter.
 - Expected :: Exactly one native hook invokes the *canonical guard* for each
   harness; equivalent payloads produce the *same allow or block decision*;
-  unrelated configuration remains *byte-equivalent in meaning*; confirmed
-  replacements have recoverable backups; unknown conflicts and unsupported
-  hook capability leave the harness *not SDLC-ready* with an actionable
-  diagnostic; and the unchanged second installation is a *no-op*.
+  every guarded command and path is blocked while neighbouring input receives
+  no block from the canonical guard; wrapper or chain syntax does not bypass the
+  decision; payload-schema drift makes verification fail closed rather than
+  silently disabling policy; unrelated parsed configuration keys and values
+  remain *semantically identical*; any rewritten provider document has a
+  *byte-identical backup*; unknown conflicts and unsupported hook capability
+  leave the harness *not SDLC-ready* with an actionable diagnostic; and the
+  unchanged second installation is a *no-op*.
 - Retention :: *Persistent Go regression* under =make test=; fixtures make *no
   provider, network, or metered calls*.
 
@@ -541,7 +551,8 @@ provider, permission, or output features*.
 ** Architecture context
 
 - Relevant components :: *Installer*, *initializer*, *YAML schema*, *global
-  skills*, *composite audits*, and a new *internal harness runner*.
+  skills*, *canonical command guard*, *composite audits*, and a new *internal
+  harness runner*.
 - Ownership boundary :: This repository owns *SDLC adapters and invocation
   semantics*; each harness owns *authentication, models, sessions, and CLI
   compatibility*.
@@ -572,11 +583,29 @@ focused audit*.
 *** Interfaces and configuration
 
 **** Command guard contract
+:PROPERTIES:
+:CUSTOM_ID: command-guard-contract
+:END:
 
 - Canonical implementation ::
   =~/.agents/sdlc/hooks/agent-command-guard.sh= remains the *only policy
   implementation*. Provider integrations adapt native hook payloads to it; they
   do not fork its decisions.
+- Guarded paths :: Block reads of any file whose *exact basename is =.env=*,
+  whether supplied to a shell command or a recognized native file-reading tool.
+  Do not broaden this into a ban on similarly named files.
+- Guarded commands :: Block direct =python=, =python3=, =rm=, =sed=, and =awk=
+  invocations, including command chains, =env=/=command=/=sudo= prefixes, and
+  =bash=/=sh=/=zsh= command-string wrappers.
+- Guarded bypasses and access changes :: Block =--no-verify=, =--no-hooks=,
+  =--no-pre-commit-hook=, =chmod 777=, =git remote add=, force-push forms,
+  =gh repo create=, =gh repo edit=, and arbitrary =source= or =.= file
+  execution. These remain operator actions where the governing rules permit
+  them; an agent does not bypass the hook.
+- Allowed neighbours :: The canonical guard returns *no block* for commands and
+  paths outside that exact policy; provider-native restrictions still apply.
+  The adapter does not add undocumented restrictions or turn a missing or
+  unrecognized payload into silent policy success.
 - Native registration :: Codex uses =~/.codex/hooks.json=, Claude uses
   =~/.claude/settings.json=, Copilot uses
   =~/.copilot/hooks/sdlc-tool-guard.json=, and Hermes uses
@@ -757,10 +786,11 @@ that the *pending stage is unchanged until deterministic validation succeeds*.
 :END:
 
 - Required reading :: The *installer*, *initializer*, *configuration schema*,
-  *audit contract*, and four CLI help contracts:
+  *command guard*, *audit contract*, and four CLI help contracts:
   [[file:../../internal/installer/installer.go][installer]],
   [[file:../../internal/projectinit/projectinit.go][initializer]],
   [[file:../../src/config/project-init.schema.yaml][configuration schema]],
+  [[file:../../hooks/agent-command-guard.sh][command guard]],
   [[file:../../src/AUDITS.md][audit contract]], and the four current CLI help
   contracts captured during implementation.
 - First implementation step :: Write [[#rt-004-1][RT004.1 - Install native

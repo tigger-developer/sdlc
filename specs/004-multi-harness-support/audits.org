@@ -209,10 +209,26 @@
   installation design, and security boundaries after the operator identified
   the omission.
 - *Current specification:* SHA-256
-  =889da1aa5eea805efd6a490f4cc78af21f35395c4fad869c4a269882bf66f994=.
+  =822e18383b9ff2258b047569b42f749a5c76ddbccdb4cec702cae0a1556bf9ac=.
 - *Effect:* The preceding PASS applies only to its recorded specification hash.
   The current definition gate is =PENDING= until this substantive revision is
   reviewed.
+
+** Command-guard amendment - local review round 1
+:PROPERTIES:
+:ROUND:    1
+:END:
+
+- *Artefact:* [[file:spec.org][W004 - Support Claude, Copilot, and Hermes Harnesses]]
+- *Revision:* SHA-256
+  =822e18383b9ff2258b047569b42f749a5c76ddbccdb4cec702cae0a1556bf9ac=
+- *Audits:* =audit-spec=, =audit-design=, and =audit-test-definitions=
+- *Verdict:* PASS
+- *Findings:* None. The amendment now defines the exact canonical restrictions,
+  native provider registrations, absent configuration and conflict behaviour,
+  fail-closed payload handling, configuration preservation, security boundary,
+  delivery handoff, and non-metered regression evidence.
+- *Supersedes:* The pending status recorded immediately above for this revision.
 
 * Implementation gate
 
