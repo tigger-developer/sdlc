@@ -349,6 +349,35 @@
 - *Status:* Local implementation gate PASS. One retained external implementation
   audit remains required.
 
+** External review preflight incident 2
+
+- *Attempted revision:* Git commit =fc088d8=
+- *Result:* Codex stopped before creating an external context or making a
+  metered model call.
+- *Incident:* The fixed Codex adapter changed into the immutable temporary
+  bundle but omitted =--skip-git-repo-check=, so Codex rejected the deliberately
+  non-repository directory.
+- *Effect:* The local round 4 PASS remains revision-specific but is no longer
+  current after remediation.
+
+** Local review - round 5
+:PROPERTIES:
+:ROUND:    5
+:END:
+
+- *Revision:* Git commit =9d23b40=
+- *Audits:* =audit-test-code= and =audit-code=
+- *Verdict:* PASS
+- *Findings:* No required correction remains.
+- *Remediation:* The Codex start and resume vectors now use the documented
+  =--skip-git-repo-check= option while retaining the read-only sandbox and
+  immutable bundle. Definition remains on the operator-selected branch;
+  implementation branching is now owned explicitly by =deliver-change=.
+- *Evidence:* =make test= passed all static checks and Go regression packages on
+  2026-09-08.
+- *Status:* Local implementation gate PASS at the five-round limit. One retained
+  external implementation audit remains required.
+
 ** External review preflight incident
 
 - *Attempted revision:* Git commit
