@@ -2,7 +2,7 @@
 #+SUBTITLE: Unified change specification
 #+STARTUP: overview
 #+OPTIONS: toc:2 num:nil
-#+DEFINITION_GATE: PASS
+#+DEFINITION_GATE: PENDING
 #+OPERATOR_SIGNOFF: PENDING
 
 * Support Claude, Copilot, and Hermes Harnesses
@@ -17,18 +17,21 @@
   deliberately retires SDLC workflow artefacts from the other three harnesses.
 - After :: Each supported harness can *discover the global SDLC skills*, run
   the *same definition and delivery workflows*, and start or resume the *single
-  external audit context* through an explicit capability adapter.
+  external audit context* through an explicit capability adapter. Its native
+  pre-tool hook also enforces the *canonical SDLC command guard*.
 - Changes :: Add *Claude*, *Copilot*, and *Hermes* harness adapters; expose the
   *canonical global skills* through each native skill location; make harness
-  selection and headless execution *capability-aware*; replace hard-coded
-  *Codex* language in the workflow and initializer.
+  selection and headless execution *capability-aware*; register the *shared
+  command guard* through each harness's native hook mechanism; replace
+  hard-coded *Codex* language in the workflow and initializer.
 - Unchanged :: The *standards*, *two-gate workflow*, *five-round limit*,
   *operator sign-off*, *Codex support*, and rule against *project-local skill
   copies* remain unchanged.
 - Edge cases :: Handle an *absent executable or provider home*, *unsupported or
   meaningless provider option*, *non-SDLC destination conflict*, *unprovable
-  read-only mode*, *timeout*, *missing session identity*, and *malformed final
-  response* without claiming parity or PASS.
+  read-only mode*, *unavailable or incompatible pre-tool hooks*, *timeout*,
+  *missing session identity*, and *malformed final response* without claiming
+  parity or PASS.
 - Decisions :: Keep one *provider-neutral source of truth* under =~/.agents=;
   use *fixed Go adapters*, not shell command templates; treat actual harness
   smoke checks as *bounded one-off tests*, never regression tests.
@@ -48,9 +51,10 @@ specification below.
 
 SDLC v3 was deliberately restored with *one supported harness* so the lean
 workflow could be stabilized. The current installer *removes workflow skills*
-from Claude, Copilot, and Hermes, the project schema *accepts only Codex*, and
-the audit contract *hard-codes Codex*. The same established workflow therefore
-cannot be used through the other installed coding agents.
+and *SDLC command hooks* from Claude, Copilot, and Hermes, the project schema
+*accepts only Codex*, and the audit contract *hard-codes Codex*. The same
+established workflow and command-policy enforcement therefore cannot be used
+through the other installed coding agents.
 
 ** Outcome
 
@@ -68,6 +72,8 @@ provider, permission, or output features*.
 
 - *Native global-skill exposure* for Claude Code, GitHub Copilot CLI, and
   Hermes, while retaining Codex.
+- *Native pre-tool hook registration* of the canonical SDLC command guard for
+  all four supported harnesses.
 - *Harness selection* in global and project YAML configuration.
 - *Fixed adapters* for bounded headless start and resume operations.
 - *Provider-neutral routing* in the initializer and composite audit workflow.
@@ -101,10 +107,12 @@ provider, permission, or output features*.
 - Architecture authority :: [[file:../../docs/ARCHITECTURE.md][=docs/ARCHITECTURE.md=]]
   defines the *runtime tree, provider boundary, and two-context gates*.
 - Historical evidence :: Tag =v2.0.0= shows prior *multi-provider copied skills*,
-  not one canonical global source.
+  not one canonical global source. Commit =b534241= demonstrates the canonical
+  *command guard integrated with all four harnesses* before the v3 emergency
+  rollback.
 - Current implementation fact ::
   [[file:../../internal/installer/installer.go][=internal/installer/installer.go=]]
-  currently *retires non-Codex SDLC skills*, and
+  currently *retires non-Codex SDLC skills and command hooks*, and
   [[file:../../src/config/project-init.schema.yaml][=src/config/project-init.schema.yaml=]]
   permits *only Codex and OpenAI*.
 - Observed harness interfaces :: The current command contracts are recorded in
@@ -121,6 +129,8 @@ provider, permission, or output features*.
   model or real provider mutation*.
 - Installation *preserves unrelated provider material* and never assumes a
   same-named artefact is SDLC-owned.
+- Hook integration uses each harness's *native pre-tool mechanism* and the one
+  canonical =~/.agents/sdlc/hooks/agent-command-guard.sh= implementation.
 
 ** Decisions
 
@@ -132,6 +142,9 @@ provider, permission, or output features*.
   inherited values and *reject conflicting explicit overrides*.
 - External audit obtains one *stable session identity* and *resumes that exact
   context*; otherwise the gate stops.
+- An installed harness is *not SDLC-ready* unless its native pre-tool hook can
+  invoke and enforce the canonical command guard without weakening unrelated
+  provider configuration.
 
 ** Unresolved blockers
 
@@ -254,6 +267,19 @@ provider, permission, or output features*.
   and its exact capability limits without retaining a hard-coded Codex gate.
 - Proven by :: [[#ut-004-1][UT004.1 - Review provider-neutral workflow
   documentation]].
+
+** AC004.11 - Consistent command-policy enforcement
+:PROPERTIES:
+:CUSTOM_ID: ac-004-11
+:END:
+
+- Criterion :: Given any installed supported harness, its native *pre-tool hook*
+  invokes the canonical SDLC command guard before command execution, applies the
+  *same allow or block decision* to an equivalent command, preserves unrelated
+  provider configuration, and reports the harness as *not SDLC-ready* if the
+  hook cannot be installed or verified.
+- Proven by :: [[#rt-004-7][RT004.7 - Enforce the command guard across
+  harnesses]].
 
 * Test Definitions
 :PROPERTIES:
@@ -381,6 +407,29 @@ provider, permission, or output features*.
 - Retention :: *Persistent Go regression* under =make test=; fake harnesses
   make *no network or model calls*.
 
+** RT004.7 - Enforce the command guard across harnesses
+:PROPERTIES:
+:CUSTOM_ID: rt-004-7
+:END:
+
+- Covers :: [[#ac-004-11][AC004.11 - Consistent command-policy enforcement]].
+- Boundary :: *Temporary provider homes*, the canonical command-guard fixture,
+  and representative native pre-tool payloads for Codex, Claude, Copilot, and
+  Hermes.
+- Setup :: Create provider configurations containing *unrelated settings*, a
+  current managed hook, a legacy managed hook, an absent hook, and an unknown
+  conflicting hook artefact.
+- Action :: *Plan and apply installation twice*, then pass equivalent allowed
+  and prohibited command payloads through each native hook adapter.
+- Expected :: Exactly one native hook invokes the *canonical guard* for each
+  harness; equivalent payloads produce the *same allow or block decision*;
+  unrelated configuration remains *byte-equivalent in meaning*; confirmed
+  replacements have recoverable backups; unknown conflicts and unsupported
+  hook capability leave the harness *not SDLC-ready* with an actionable
+  diagnostic; and the unchanged second installation is a *no-op*.
+- Retention :: *Persistent Go regression* under =make test=; fixtures make *no
+  provider, network, or metered calls*.
+
 ** UT004.1 - Review provider-neutral workflow documentation
 :PROPERTIES:
 :CUSTOM_ID: ut-004-1
@@ -437,10 +486,14 @@ provider, permission, or output features*.
 - Condition :: An *installed harness executable* has *no native skill home*.
 - Required behaviour :: Automatic detection uses the *installed executable*.
   When it exists, installation creates the documented native skill directory
-  and managed links but *never invents provider configuration*. A configured
-  harness whose executable is absent stops with the exact prerequisite.
+  and managed links. Codex, Claude, and Copilot may gain only their documented
+  *minimal managed hook artefact* after it appears in the installation plan;
+  Hermes requires its provider-owned first-run configuration and *stops rather
+  than inventing authentication or model state*. A configured harness whose
+  executable is absent stops with the exact prerequisite.
 - Covered by :: [[#ac-004-6][AC004.6 - Safe and idempotent installation]] and
-  [[#rt-004-1][RT004.1 - Install native global skill adapters]].
+  [[#rt-004-1][RT004.1 - Install native global skill adapters]], and
+  [[#rt-004-7][RT004.7 - Enforce the command guard across harnesses]].
 
 ** Native skill name conflicts
 
@@ -449,6 +502,18 @@ provider, permission, or output features*.
   *operator disposition*; it does *not overwrite, merge, or retire* the path.
 - Covered by :: [[#ac-004-6][AC004.6 - Safe and idempotent installation]] and
   [[#rt-004-1][RT004.1 - Install native global skill adapters]].
+
+** Native command-hook integration is unavailable
+
+- Condition :: A harness has *no compatible pre-tool hook*, its provider-owned
+  configuration is unavailable, or an *unknown same-path artefact* prevents
+  safe registration.
+- Required behaviour :: Preserve the existing provider state, report the exact
+  capability or path conflict, and mark that harness *not SDLC-ready*. Do not
+  silently omit the guard or claim equivalent support.
+- Covered by :: [[#ac-004-11][AC004.11 - Consistent command-policy
+  enforcement]] and [[#rt-004-7][RT004.7 - Enforce the command guard across
+  harnesses]].
 
 ** Harness cannot prove read-only execution
 
@@ -491,11 +556,13 @@ provider, permission, or output features*.
    configuration and routing capabilities.
 2. =sdlc-install= exposes *canonical skills* through each native global skill
    path while preserving provider-owned material.
-3. Interactive harnesses invoke the *same skill bodies*, selected standards,
+3. =sdlc-install= registers the *canonical command guard* through each
+   harness's native pre-tool hook while preserving unrelated configuration.
+4. Interactive harnesses invoke the *same skill bodies*, selected standards,
    and project authorities.
-4. A bounded headless operation uses one *fixed adapter* with exact scope,
+5. A bounded headless operation uses one *fixed adapter* with exact scope,
    model, applicable provider, timeout, and output contract.
-5. An external composite audit records one *stable session identity* and uses
+6. An external composite audit records one *stable session identity* and uses
    the *same adapter and identity* for every permitted resume.
 
 The runner is used only after all required *same-context local audits pass*.
@@ -503,6 +570,27 @@ It *never replaces local review* and *never starts one external context per
 focused audit*.
 
 *** Interfaces and configuration
+
+**** Command guard contract
+
+- Canonical implementation ::
+  =~/.agents/sdlc/hooks/agent-command-guard.sh= remains the *only policy
+  implementation*. Provider integrations adapt native hook payloads to it; they
+  do not fork its decisions.
+- Native registration :: Codex uses =~/.codex/hooks.json=, Claude uses
+  =~/.claude/settings.json=, Copilot uses
+  =~/.copilot/hooks/sdlc-tool-guard.json=, and Hermes uses
+  =~/.hermes/config.yaml=.
+- Absent configuration :: The Codex, Claude, and Copilot adapters may create
+  only their *minimal managed hook artefact*. Hermes requires its existing
+  first-run configuration and fails with an actionable prerequisite rather than
+  synthesizing provider-owned state.
+- Ownership :: The installer owns only the *marked SDLC hook entry or managed
+  hook file*. It merges with unrelated configuration and requires operator
+  confirmation before replacing an unknown same-path artefact.
+- Verification :: Installation validates that an equivalent native pre-tool
+  event reaches the canonical guard and receives its decision. Registration
+  without a proven invocation path does *not* make the harness SDLC-ready.
 
 **** Harness capability contract
 :PROPERTIES:
@@ -609,6 +697,8 @@ that the *pending stage is unchanged until deterministic validation succeeds*.
   gate evidence records only the *non-secret session identity*.
 - Installer state :: Keep *adjacent recoverability backups*; project repositories
   receive *no provider skills*.
+- Command-hook state :: Keep one *provider-native registration* that resolves
+  the canonical guard; preserve unrelated hook entries and provider settings.
 - Managed-link identity requires *exact destination and canonical target*.
   Every regular file or directory is a *conflict requiring one operator
   confirmation*; without confirmation it remains untouched. *No heuristic
@@ -628,6 +718,8 @@ that the *pending stage is unchanged until deterministic validation succeeds*.
 - *Never fall back* to another harness, provider, or model without explicit
   configured authority.
 - *Fail closed on CLI drift* with harness version and expected capability.
+- If native hook registration or verification fails, preserve recoverable state,
+  name the affected harness and path, and report it as *not SDLC-ready*.
 
 ** Architecture impact
 
@@ -639,6 +731,9 @@ that the *pending stage is unchanged until deterministic validation succeeds*.
   adapters never dump *environment, credentials, config, or unrelated files*.
 - Access :: External auditors receive *read-only bounded input*; initializer
   mutations remain *separately typed and authorized*.
+- Command policy :: Every supported harness invokes the *same canonical guard*
+  before command execution; no provider-specific adapter may weaken its block
+  decisions.
 - Conclusion :: *Fixed arguments*, *exact roots*, *no shell evaluation*,
   *capability checks*, and *fail-closed outcomes* are mandatory.
 
@@ -669,8 +764,8 @@ that the *pending stage is unchanged until deterministic validation succeeds*.
   [[file:../../src/AUDITS.md][audit contract]], and the four current CLI help
   contracts captured during implementation.
 - First implementation step :: Write [[#rt-004-1][RT004.1 - Install native
-  global skill adapters]] and observe *RED against current non-Codex
-  retirement*.
+  global skill adapters]] and [[#rt-004-7][RT004.7 - Enforce the command guard
+  across harnesses]], then observe *RED against current non-Codex retirement*.
 - Definition evidence :: *[[file:audits.org][audits.org]]*
 - Validation evidence :: *[[file:validation.org][validation.org]]* for bounded
   real-harness checks.

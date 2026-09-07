@@ -203,6 +203,17 @@
   =PASS= and the work item is =REVIEW=.
 - *Effective verdict:* PASS
 
+** Subsequent definition change
+
+- *Change:* Added cross-harness command-guard requirements, regression evidence,
+  installation design, and security boundaries after the operator identified
+  the omission.
+- *Current specification:* SHA-256
+  =889da1aa5eea805efd6a490f4cc78af21f35395c4fad869c4a269882bf66f994=.
+- *Effect:* The preceding PASS applies only to its recorded specification hash.
+  The current definition gate is =PENDING= until this substantive revision is
+  reviewed.
+
 * Implementation gate
 
 No implementation has been authorized or performed.
