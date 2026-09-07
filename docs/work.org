@@ -78,7 +78,7 @@ classification; it is provenance, not current state.
 
 * Work items
 
-** REVIEW W004 - Support Claude, Copilot, and Hermes harnesses :feature:
+** ACTIVE W004 - Support Claude, Copilot, and Hermes harnesses :feature:
 :PROPERTIES:
 :CUSTOM_ID: w-004
 :PRIORITY: P1

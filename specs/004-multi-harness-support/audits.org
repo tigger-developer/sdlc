@@ -287,4 +287,6 @@
 
 * Implementation gate
 
-No implementation has been authorized or performed.
+- *Authorization:* Taḋg approved W004 for implementation on 2026-09-07 after
+  reviewing the definition-gate PASS.
+- *Status:* Implementation audit evidence has not yet been recorded.
