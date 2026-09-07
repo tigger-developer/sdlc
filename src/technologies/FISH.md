@@ -116,10 +116,12 @@ inspect, verify, and install through a controlled project or user-owned process.
   substitutions, arrays, or parameter expansions into Fish.
 - Use `argparse` for a non-trivial script or function interface. Reject unknown
   options and validate required values before causing side effects.
-- Follow the common CLI contract: equivalent `-h` and `--help`, `--version`,
-  documented output, diagnostics on stderr, and exit status 0 for success, 1
-  for operational failure, and 2 for invalid invocation unless an established
-  interface requires otherwise.
+- Follow the complete common CLI switch contract: equivalent `-h` and `--help`,
+  `--version`, and `--dry-run` where the command's effects can be previewed
+  faithfully. Help and version requests exit successfully without side effects.
+  Document normal output, send diagnostics to stderr, and use exit status 0 for
+  success, 1 for operational failure, and 2 for invalid invocation unless an
+  established interface requires otherwise.
 - Capture `$status` immediately after the command it describes. Inspect
   `$pipestatus` when every pipeline component matters; the last command's status
   alone does not prove the whole pipeline succeeded.

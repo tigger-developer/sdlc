@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## v3.0.6 - 2026-09-07
+
+- Corrected the Fish CLI requirements to state the complete SDLC switch
+  contract: equivalent `-h` and `--help`, `--version`, and `--dry-run` where a
+  command's effects can be previewed faithfully.
+
 ## v3.0.5 - 2026-09-07
 
 - Added Fish as an automatically discoverable technology standard covering its
