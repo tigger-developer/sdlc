@@ -47,8 +47,8 @@ func TestW004FixedStartAndResumeInvocations(t *testing.T) {
 	}{
 		{
 			name:   "codex",
-			start:  []string{"exec", "-m", "model", "-s", "read-only", "-C", "/bundle", "--json", "-o", "/result", "-"},
-			resume: []string{"exec", "resume", "-m", "model", "--json", "-o", "/result", "session", "-"},
+			start:  []string{"exec", "-m", "model", "-s", "read-only", "-C", "/bundle", "--skip-git-repo-check", "--json", "-o", "/result", "-"},
+			resume: []string{"exec", "resume", "-m", "model", "--skip-git-repo-check", "--json", "-o", "/result", "session", "-"},
 		},
 		{
 			name:   "claude",

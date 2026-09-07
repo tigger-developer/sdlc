@@ -186,7 +186,7 @@ func BuildStart(request Request) (Invocation, error) {
 	invocation := Invocation{Command: request.Harness, Dir: request.Bundle}
 	switch request.Harness {
 	case "codex":
-		invocation.Args = []string{"exec", "-m", request.Model, "-s", "read-only", "-C", request.Bundle, "--json", "-o", request.ResultFile, "-"}
+		invocation.Args = []string{"exec", "-m", request.Model, "-s", "read-only", "-C", request.Bundle, "--skip-git-repo-check", "--json", "-o", request.ResultFile, "-"}
 		invocation.Stdin = request.Prompt
 	case "claude":
 		invocation.Args = []string{"-p", "--output-format", "json", "--model", request.Model, "--session-id", request.SessionID, "--tools", "", "--permission-mode", "plan", request.Prompt}
@@ -207,7 +207,7 @@ func BuildResume(request Request) (Invocation, error) {
 	invocation := Invocation{Command: request.Harness, Dir: request.Bundle}
 	switch request.Harness {
 	case "codex":
-		invocation.Args = []string{"exec", "resume", "-m", request.Model, "--json", "-o", request.ResultFile, request.SessionID, "-"}
+		invocation.Args = []string{"exec", "resume", "-m", request.Model, "--skip-git-repo-check", "--json", "-o", request.ResultFile, request.SessionID, "-"}
 		invocation.Stdin = request.Prompt
 	case "claude":
 		invocation.Args = []string{"-p", "--output-format", "json", "--model", request.Model, "--resume", request.SessionID, "--tools", "", "--permission-mode", "plan", request.Prompt}
