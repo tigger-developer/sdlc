@@ -22,18 +22,58 @@
 
 - *Artefacts:* Deterministic initializer, Lua standard, tests, and related
   documentation.
-- *Revision:* Pending checkpoint commit.
+- *Revision:* =77f04dc=
 - *Audits:* =audit-test-code= and =audit-code=
-- *Verdict:* PENDING
-- *Findings:* Pending local review.
-- *Remediation:* None yet.
+- *Verdict:* PASS
+- *Findings:* None. Tests trace the new boundaries, the implementation preserves
+  schema and operator authority, and the Lua guidance covers the requested
+  selection and engineering concerns without requiring a runtime.
+- *Remediation:* None.
 
 ** External review
+:PROPERTIES:
+:CONTEXT:  /root/audit_w003_implementation
+:ROUND:    1
+:END:
 
 - *Artefacts:* Deterministic initializer, Lua standard, tests, and related
   documentation.
-- *Revision:* Pending checkpoint commit.
+- *Revision:* =77f04dc=
 - *Audits:* =audit-test-code= and =audit-code= in one context
-- *Verdict:* PENDING
-- *Findings:* Pending external review.
+- *Verdict:* FAIL
+- *Findings:* RT003.4 exercised only its helper rather than the model-free CLI
+  migration path. Installed standards without a detector rule fell back to
+  manual selection instead of failing schema validation.
 - *Supersedes:* None.
+
+** Local review after remediation
+:PROPERTIES:
+:ROUND:    2
+:END:
+
+- *Artefacts:* Deterministic initializer, Lua standard, tests, and related
+  documentation.
+- *Revision:* =aa980c5=
+- *Audits:* =audit-test-code= and =audit-code=
+- *Verdict:* PASS
+- *Findings:* None. The end-to-end v2 migration test rejects any Codex call and
+  verifies unresolved =REVIEW= output; installed-standard coverage now fails
+  before configuration or migration begins.
+- *Remediation:* Added the bounded migration-path regression and promoted
+  detector-to-standard consistency to fail-closed startup validation.
+
+** External review after remediation
+:PROPERTIES:
+:CONTEXT:  /root/audit_w003_implementation
+:ROUND:    2
+:END:
+
+- *Artefacts:* Deterministic initializer, Lua standard, tests, and related
+  documentation.
+- *Revision:* =aa980c5=
+- *Audits:* =audit-test-code= and =audit-code= in the retained context
+- *Verdict:* PASS
+- *Findings:* None blocking. The retained auditor confirmed that the integration
+  regression rejects a Codex invocation, verifies unresolved =REVIEW= output,
+  and that detector consistency fails before configuration or migration.
+- *Supersedes:* External review round 1.

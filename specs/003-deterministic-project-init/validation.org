@@ -7,7 +7,7 @@
 ** 2026-09-07 - Focused RED and GREEN
 
 - *Command:* =go test ./internal/projectinit ./cmd/sdlc-init=
-- *Revision:* Working tree before checkpoint commit.
+- *Revision:* =77f04dc=
 - *Result:* PASS
 - *Evidence:* The first run failed because the generic detector did not exist;
   the second failed because the global-override and scan-skip controls did not
@@ -16,10 +16,19 @@
 ** 2026-09-07 - Supported regression suite
 
 - *Command:* =make test=
-- *Revision:* Pending checkpoint commit.
+- *Revision:* =77f04dc=
 - *Result:* PASS
 - *Evidence:* =go vet=, =golangci-lint=, ShellCheck, =shfmt -d=, and all Go
   package tests completed successfully.
+
+** 2026-09-07 - Audit remediation regression
+
+- *Command:* =go test ./internal/projectinit ./cmd/sdlc-init= followed by
+  =make test=
+- *Revision:* =aa980c5=
+- *Result:* PASS
+- *Evidence:* The end-to-end model-free migration path and fail-closed detector
+  coverage tests passed with the complete repository suite.
 
 * User tests
 

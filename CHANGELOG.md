@@ -7,7 +7,8 @@
 - Replaced the routine model-backed technology assessment in `sdlc-init` with
   deterministic YAML heuristics over the bounded Git inventory. Detected
   technologies remain preselected recommendations requiring operator
-  confirmation.
+  confirmation. Every installed technology standard must have a valid detector
+  rule before initialization may mutate a project.
 - Added `--override-global-config`; populated user-level defaults are now
   inherited silently and remain absent from the project profile unless the
   operator requests and selects an override.
