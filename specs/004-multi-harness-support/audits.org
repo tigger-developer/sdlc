@@ -270,6 +270,21 @@
   requirements without invoking a real provider.
 - *Supersedes:* Command-guard amendment external review round 1.
 
+** Command-guard amendment - external review round 2
+:PROPERTIES:
+:CONTEXT:  /root/audit_w004_command_guard
+:END:
+
+- *Artefact:* [[file:spec.org][W004 - Support Claude, Copilot, and Hermes Harnesses]]
+- *Revision:* Git commit =d53ad02ea10ea42d4deff3b574e3134cdbb24c45=.
+- *Audits:* =audit-spec=, =audit-design=, and =audit-test-definitions= in one
+  retained context
+- *Verdict:* PASS
+- *Findings:* None.
+- *Supersedes:* Command-guard amendment external review round 1.
+- *Lifecycle result:* The definition gate is =PASS=. Operator sign-off remains
+  =PENDING=; implementation is not authorized.
+
 * Implementation gate
 
 No implementation has been authorized or performed.
