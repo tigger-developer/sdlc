@@ -2,6 +2,7 @@ package projectinit
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -102,7 +103,7 @@ func resolvePostMigrationConfiguration(
 		fmt.Fprintln(options.Output, "Skipped archived Spec Kit classification; migrated work is marked REVIEW for later operator classification.")
 		return nil
 	}
-	proposalPath, err := runMigratedWorkClassification(options, sdlcRoot, projectRoot, workspace, values["SDLC_AUDIT_HARNESS"], values["SDLC_AUDIT_PROVIDER"], values["SDLC_AUDIT_MODEL"], generation.legacyV2)
+	proposalPath, err := runMigratedWorkClassification(options, sdlcRoot, projectRoot, workspace, values["SDLC_AUDIT_HARNESS"], values["SDLC_AUDIT_PROVIDER"], values["SDLC_AUDIT_MODEL"], values["SDLC_AUDIT_TIMEOUT"], generation.legacyV2)
 	if err != nil {
 		return err
 	}
@@ -139,7 +140,7 @@ func unresolvedMigratedWork(legacyV2 []string) []migratedWorkCandidate {
 	return items
 }
 
-func runMigratedWorkClassification(options Options, sdlcRoot, projectRoot, workspace, harnessName, provider, model string, legacyV2 []string) (string, error) {
+func runMigratedWorkClassification(options Options, sdlcRoot, projectRoot, workspace, harnessName, provider, model, timeoutValue string, legacyV2 []string) (string, error) {
 	promptPath := filepath.Join(sdlcRoot, filepath.FromSlash(authorityDiscoveryPromptPath))
 	prompt, err := os.ReadFile(promptPath)
 	if err != nil {
@@ -180,29 +181,20 @@ func runMigratedWorkClassification(options Options, sdlcRoot, projectRoot, works
 	}
 	request := harness.Request{
 		Harness: harnessName, Provider: provider, Model: model, Prompt: string(prompt),
-		Bundle: bundle.Path, ResultFile: proposalPath, SessionID: identity,
+		Bundle: bundle.Path, SessionID: identity,
 	}
-	invocation, err := harness.BuildStart(request)
-	if err != nil {
-		return "", fmt.Errorf("preparing migrated-work classification: %w", err)
-	}
-	var stdout bytes.Buffer
-	if err := options.RunCommand(invocation.Command, invocation.Args, invocation.Dir, strings.NewReader(invocation.Stdin), &stdout, options.ErrorOutput); err != nil {
-		return "", fmt.Errorf("classifying archived Spec Kit work with %s: %w", harnessName, err)
-	}
-	if err := bundle.Verify(); err != nil {
-		return "", fmt.Errorf("verifying migrated-work classification bundle: %w", err)
-	}
-	var resultFile []byte
 	if harnessName == "codex" {
-		resultFile, err = os.ReadFile(proposalPath)
-		if err != nil {
-			return "", fmt.Errorf("reading Codex classification result: %w", err)
-		}
+		request.ResultFile = proposalPath
 	}
-	result, err := harness.ParseResult(harnessName, stdout.Bytes(), resultFile, identity)
+	timeout, err := time.ParseDuration(timeoutValue)
 	if err != nil {
-		return "", fmt.Errorf("parsing migrated-work classification result: %w", err)
+		return "", fmt.Errorf("parsing migrated-work classification timeout %q: %w", timeoutValue, err)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	result, err := harness.Execute(ctx, request, false, &bundle, options.RunHarness, options.ErrorOutput)
+	if err != nil {
+		return "", fmt.Errorf("classifying archived Spec Kit work with %s: %w", harnessName, err)
 	}
 	if harnessName != "codex" {
 		if err := os.WriteFile(proposalPath, []byte(result.Response+"\n"), 0o600); err != nil {

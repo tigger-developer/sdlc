@@ -3,6 +3,7 @@ package projectinit
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -760,7 +761,10 @@ warnings: []
 		Input:  strings.NewReader("\n\n\nn\nn\n"),
 		Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{},
 		RunCommand: runner,
-		Now:        func() time.Time { return time.Date(2026, 9, 6, 0, 0, 0, 0, time.UTC) },
+		RunHarness: func(_ context.Context, name string, arguments []string, directory string, input io.Reader, output, errorOutput io.Writer) error {
+			return runner(name, arguments, directory, input, output, errorOutput)
+		},
+		Now: func() time.Time { return time.Date(2026, 9, 6, 0, 0, 0, 0, time.UTC) },
 	}
 	if err := Run(options); err != nil {
 		t.Fatal(err)
@@ -950,6 +954,9 @@ warnings: []
 		ProjectRoot: project, SDLCRoot: testSDLCRoot(t), Overrides: overrides,
 		Input:  strings.NewReader("n\n\n\nn\n"),
 		Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{}, RunCommand: runner,
+		RunHarness: func(_ context.Context, name string, arguments []string, directory string, input io.Reader, output, errorOutput io.Writer) error {
+			return runner(name, arguments, directory, input, output, errorOutput)
+		},
 		Now: func() time.Time { return time.Date(2026, 9, 6, 0, 0, 0, 0, time.UTC) },
 	}
 	if err := Run(options); err != nil {
@@ -1026,7 +1033,7 @@ warnings: []`
 			workspace := filepath.Join(project, ".sdlc", ".init")
 			writeProjectTestFile(t, filepath.Join(project, "docs", "archive", "sdlc-v2", "specs", "001-example", "spec.md"), "# Example\n")
 			var calls int
-			options := Options{ErrorOutput: &bytes.Buffer{}, RunCommand: func(name string, arguments []string, directory string, input io.Reader, output, errorOutput io.Writer) error {
+			options := Options{ErrorOutput: &bytes.Buffer{}, RunHarness: func(_ context.Context, name string, arguments []string, directory string, input io.Reader, output, errorOutput io.Writer) error {
 				calls++
 				if name != test.harness || directory == project {
 					return fmt.Errorf("unexpected %s invocation in %s: %v", name, directory, arguments)
@@ -1048,7 +1055,7 @@ warnings: []`
 				}
 				return nil
 			}}
-			proposal, err := runMigratedWorkClassification(options, testSDLCRoot(t), project, workspace, test.harness, test.provider, "fast-model", []string{"001-example"})
+			proposal, err := runMigratedWorkClassification(options, testSDLCRoot(t), project, workspace, test.harness, test.provider, "fast-model", "5s", []string{"001-example"})
 			if err != nil {
 				t.Fatal(err)
 			}

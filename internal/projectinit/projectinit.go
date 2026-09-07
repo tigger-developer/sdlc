@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/tigger-developer/sdlc/internal/configenv"
+	"github.com/tigger-developer/sdlc/internal/harness"
 	"gopkg.in/yaml.v3"
 )
 
@@ -43,6 +44,7 @@ type Options struct {
 	ErrorOutput          io.Writer
 	Now                  func() time.Time
 	RunCommand           func(string, []string, string, io.Reader, io.Writer, io.Writer) error
+	RunHarness           harness.Executor
 	inputReader          *bufio.Reader
 }
 
