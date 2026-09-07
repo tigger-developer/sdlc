@@ -378,6 +378,39 @@
 - *Status:* Local implementation gate PASS at the five-round limit. One retained
   external implementation audit remains required.
 
+** External review - round 1
+:PROPERTIES:
+:CONTEXT:  01a07e47-4e3b-7ff0-a7fb-835f802413e8
+:END:
+
+- *Revision:* Git commit
+  =4933cb5eda8483b1ea737f76a4af635eee3b7ade=
+- *Audits:* =audit-test-code= and =audit-code= in one retained context
+- *Verdict:* FAIL
+- *Findings:*
+  1. [audit-code] [BLOCKING] AC004.3, AC004.4, AC004.5, AC004.11, RT004.3,
+     and RT004.7: installer readiness reports more than its one guard probe
+     proves; the guard also mishandles =.env= used as data and an unknown tool
+     payload.
+  2. [audit-code] [BLOCKING] AC004.6 and RT004.1: an existing non-symlink skill
+     path lacks managed-ownership evidence and a distinct unknown-conflict
+     decision before replacement.
+  3. [audit-code] [BLOCKING] AC004.7 and RT004.4: uppercase =--phase AUDIT= can
+     bypass composite-verdict validation.
+  4. [audit-test-code] [BLOCKING] AC004.4, AC004.7, RT004.3, RT004.4, and
+     RT004.5: fake-executable start and resume coverage does not exercise the
+     complete four-harness identity, timeout, exit, and response-failure matrix.
+  5. [audit-test-code] [BLOCKING] AC004.6, AC004.11, RT004.1, and RT004.7:
+     installer coverage does not fully prove installed native payloads,
+     invocation counts, unrelated-byte preservation, restoration, conflict
+     decline, and all-provider no-op behaviour.
+  6. [audit-code] [BLOCKING] AC004.7, AC004.9, and Go error handling: bundle
+     cleanup and configuration-backup restoration errors are discarded.
+  7. [audit-code] [BLOCKING] AC004.10: =docs/ARCHITECTURE.md= still says v3
+     installs no workflow into Claude, Hermes, or Copilot.
+- *Disposition:* The five local rounds are exhausted. No remediation has been
+  attempted after this verdict; operator direction is required.
+
 ** External review preflight incident
 
 - *Attempted revision:* Git commit
