@@ -136,6 +136,38 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 	if !strings.Contains(global, "version: 3") || !strings.Contains(global, "release: v3.0.0") {
 		t.Fatalf("global configuration does not identify the schema and deployed release:\n%s", global)
 	}
+
+	writeFixtureFile(t, filepath.Join(source, "skills", "audit-code", "SKILL.md"), "updated canonical skill\n")
+	var refreshOutput bytes.Buffer
+	if err := RunInteractive(source, root, "v3.0.0", strings.NewReader("yes\n"), &refreshOutput); err != nil {
+		t.Fatalf("refresh install: %v\n%s", err, refreshOutput.String())
+	}
+	assertFixtureContent(t, filepath.Join(root, ".agents", "skills", "audit-code", "SKILL.md"), "updated canonical skill\n")
+	for _, provider := range []string{"claude", "copilot", "hermes"} {
+		assertFixtureContent(t, filepath.Join(root, "."+provider, "skills", "audit-code", "SKILL.md"), "updated canonical skill\n")
+	}
+}
+
+func TestW004UnknownCopilotHookDeclinePreservesBytes(t *testing.T) {
+	root := t.TempDir()
+	path := filepath.Join(root, ".copilot", "hooks", "sdlc-tool-guard.json")
+	original := "{\"personal\":true}\n"
+	writeFixtureFile(t, path, original)
+	change, err := analyseCopilotConfiguration(filepath.Join(root, ".copilot"), &bytes.Buffer{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if change == nil || !change.conflict {
+		t.Fatalf("unknown hook was not classified as a conflict: %#v", change)
+	}
+	if err := offerConfigurationChanges([]*configurationChange{change}, strings.NewReader("no\n"), &bytes.Buffer{}); err == nil {
+		t.Fatal("declined unknown conflict returned success")
+	}
+	assertFixtureContent(t, path, original)
+	backups, err := filepath.Glob(path + ".*.bak")
+	if err != nil || len(backups) != 0 {
+		t.Fatalf("declined conflict backups = %v, %v", backups, err)
+	}
 }
 
 func TestV3InteractiveInstallIsSilentNoOpAfterSynchronization(t *testing.T) {

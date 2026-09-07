@@ -24,6 +24,10 @@ block() {
     exit 2
 }
 
+if [[ -z "$hook_event" || -z "$tool_name" ]]; then
+    block 'unrecognized pre-tool payload shape is missing its event or tool name.'
+fi
+
 names_exact_env_file() {
     local value="$1"
 
@@ -337,12 +341,78 @@ command_invokes_prohibited() {
 
 command_references_env_file() {
     local command="$1"
-    local token
+    local token executable basename
+    local index=0
+    local pattern_seen=false
+    local option_value=""
     local -a command_tokens
 
     tokenize_shell_command "$command"
     command_tokens=("${TOKENS[@]}")
-    for token in "${command_tokens[@]}"; do
+    while [[ "$index" -lt ${#command_tokens[@]} ]] && is_assignment "${command_tokens[index]}"; do
+        ((index += 1))
+    done
+    [[ "$index" -lt ${#command_tokens[@]} ]] || return 1
+    executable="${command_tokens[index]}"
+    basename="${executable##*/}"
+    ((index += 1))
+
+    if [[ "$basename" == "echo" || "$basename" == "printf" ]]; then
+        return 1
+    fi
+    if [[ "$basename" == "bash" || "$basename" == "sh" || "$basename" == "zsh" ]]; then
+        while [[ "$index" -lt ${#command_tokens[@]} ]]; do
+            token="${command_tokens[index]}"
+            if [[ "$token" =~ ^-[a-zA-Z]*c[a-zA-Z]*$ && $((index + 1)) -lt ${#command_tokens[@]} ]]; then
+                command_references_env_file "${command_tokens[index + 1]}"
+                return
+            fi
+            ((index += 1))
+        done
+        return 1
+    fi
+    if [[ "$basename" == "rg" || "$basename" == "grep" ]]; then
+        while [[ "$index" -lt ${#command_tokens[@]} ]]; do
+            token="${command_tokens[index]}"
+            if [[ -n "$option_value" ]]; then
+                if [[ "$option_value" == "file" ]] && names_exact_env_file "$token"; then
+                    return 0
+                fi
+                pattern_seen=true
+                option_value=""
+                ((index += 1))
+                continue
+            fi
+            case "$token" in
+            -e | --regexp)
+                option_value="pattern"
+                ;;
+            -f | --file)
+                option_value="file"
+                ;;
+            --regexp=*)
+                pattern_seen=true
+                ;;
+            --file=*)
+                names_exact_env_file "${token#*=}" && return 0
+                ;;
+            -*)
+                ;;
+            *)
+                if [[ "$pattern_seen" == false ]]; then
+                    pattern_seen=true
+                elif names_exact_env_file "$token"; then
+                    return 0
+                fi
+                ;;
+            esac
+            ((index += 1))
+        done
+        return 1
+    fi
+
+    for (( ; index < ${#command_tokens[@]}; index++)); do
+        token="${command_tokens[index]}"
         if names_exact_env_file "$token"; then
             return 0
         fi

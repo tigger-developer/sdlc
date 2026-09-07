@@ -71,6 +71,31 @@ func TestW004CommandGuardExactRestrictions(t *testing.T) {
 	}
 }
 
+func TestW004CommandGuardEnvPathVectors(t *testing.T) {
+	for _, path := range []string{".env", "config/.env", "./.env", `'config\.env'`} {
+		blocked, _, _ := runGuard(t, map[string]any{
+			"hook_event_name": "PreToolUse", "tool_name": "Bash",
+			"tool_input": map[string]any{"command": "cat " + path},
+		})
+		if !blocked {
+			t.Errorf("shell read was not blocked: %s", path)
+		}
+	}
+	for _, command := range []string{
+		"cat .env.example",
+		"cat .env.local",
+		`rg '\.env' README.md`,
+	} {
+		blocked, _, _ := runGuard(t, map[string]any{
+			"hook_event_name": "PreToolUse", "tool_name": "Bash",
+			"tool_input": map[string]any{"command": command},
+		})
+		if blocked {
+			t.Errorf("permitted shell command was blocked: %s", command)
+		}
+	}
+}
+
 func TestW004CommandGuardNativePayloads(t *testing.T) {
 	tests := []struct {
 		name       string
@@ -100,6 +125,92 @@ func TestW004CommandGuardNativePayloads(t *testing.T) {
 	}
 }
 
+func TestW004CommandGuardAppliesEquivalentCommandPolicy(t *testing.T) {
+	payloads := []struct {
+		name    string
+		payload func(string) map[string]any
+	}{
+		{name: "codex", payload: func(command string) map[string]any {
+			return map[string]any{"hook_event_name": "PreToolUse", "tool_name": "Bash", "tool_input": map[string]any{"command": command}}
+		}},
+		{name: "claude", payload: func(command string) map[string]any {
+			return map[string]any{"hook_event_name": "PreToolUse", "tool_name": "Bash", "tool_input": map[string]any{"command": command}}
+		}},
+		{name: "copilot", payload: func(command string) map[string]any {
+			return map[string]any{"hookEventName": "preToolUse", "toolName": "shell", "toolArgs": map[string]any{"command": command}}
+		}},
+		{name: "hermes", payload: func(command string) map[string]any {
+			return map[string]any{"hook_event_name": "pre_tool_call", "tool_name": "terminal", "tool_input": map[string]any{"command": command}}
+		}},
+	}
+	blockedCommands := []string{
+		"python -V", "python3 -V", "rm obsolete", "sed -n 1p README.md", "awk '{print $1}' README.md",
+		"git commit --no-verify", "tool --no-hooks", "tool --no-pre-commit-hook", "chmod 777 target",
+		"git remote add origin example", "git push --force origin master", "gh repo create example", "gh repo edit",
+		"source config.sh", ". config.sh", "sudo -u builder rm obsolete",
+	}
+	allowedCommands := []string{
+		"printf '%s\\n' python3", "echo source file", "echo git remote add example", "echo chmod 777 target",
+		"echo --no-verify", "echo git push --force", "echo gh repo create", "rg python3 README.md",
+		"command -v python3", "pythonista --version", "python3.14 --version",
+	}
+	for _, adapter := range payloads {
+		t.Run(adapter.name, func(t *testing.T) {
+			for _, command := range blockedCommands {
+				blocked, _, _ := runGuard(t, adapter.payload(command))
+				if !blocked {
+					t.Errorf("command was not blocked: %s", command)
+				}
+			}
+			for _, command := range allowedCommands {
+				blocked, _, _ := runGuard(t, adapter.payload(command))
+				if blocked {
+					t.Errorf("permitted command was blocked: %s", command)
+				}
+			}
+		})
+	}
+}
+
+func TestW004CommandGuardAppliesEquivalentNativeReadPolicy(t *testing.T) {
+	for _, test := range []struct {
+		name    string
+		payload func(tool string, input map[string]any) map[string]any
+	}{
+		{name: "codex", payload: func(tool string, input map[string]any) map[string]any {
+			return map[string]any{"hook_event_name": "PreToolUse", "tool_name": tool, "tool_input": input}
+		}},
+		{name: "claude", payload: func(tool string, input map[string]any) map[string]any {
+			return map[string]any{"hook_event_name": "PreToolUse", "tool_name": tool, "tool_input": input}
+		}},
+		{name: "copilot", payload: func(tool string, input map[string]any) map[string]any {
+			return map[string]any{"hookEventName": "preToolUse", "toolName": tool, "toolArgs": input}
+		}},
+		{name: "hermes", payload: func(tool string, input map[string]any) map[string]any {
+			return map[string]any{"hook_event_name": "pre_tool_call", "tool_name": tool, "tool_input": input}
+		}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			for _, path := range []string{".env", "config/.env", "./.env", `config\.env`} {
+				blocked, _, _ := runGuard(t, test.payload("read_file", map[string]any{"path": path}))
+				if !blocked {
+					t.Errorf("native read was not blocked: %s", path)
+				}
+			}
+			for _, path := range []string{".env.example", ".env.local"} {
+				blocked, _, _ := runGuard(t, test.payload("read_file", map[string]any{"path": path}))
+				if blocked {
+					t.Errorf("neighbouring native read was blocked: %s", path)
+				}
+			}
+			blocked, _, _ := runGuard(t, test.payload("write_file", map[string]any{"path": ".env", "content": "example"}))
+			if blocked {
+				t.Error("native .env write was blocked")
+			}
+		})
+	}
+}
+
 func TestW004CommandGuardRejectsMalformedRecognizedPayload(t *testing.T) {
 	for _, test := range []struct {
 		payload    []byte
@@ -108,6 +219,7 @@ func TestW004CommandGuardRejectsMalformedRecognizedPayload(t *testing.T) {
 		{payload: []byte("not-json")},
 		{payload: []byte(`{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}`)},
 		{payload: []byte(`{"hook_event_name":"pre_tool_call","tool_name":"terminal","tool_input":{}}`), hermesJSON: true},
+		{payload: []byte(`{"unexpected":"shape"}`)},
 	} {
 		// #nosec G204 -- the command and repository fixture path are constants.
 		command := exec.Command("bash", filepath.Join("..", "..", "hooks", "agent-command-guard.sh"))
