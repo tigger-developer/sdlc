@@ -348,3 +348,32 @@
   implementation without weakening the single canonical policy.
 - *Status:* Local implementation gate PASS. One retained external implementation
   audit remains required.
+
+** External review preflight incident
+
+- *Attempted revision:* Git commit
+  =a148c28409c007e1bcdff4e0c2a7af5190cd9584=
+- *Result:* No external context or metered model call was created.
+- *Incident:* The runner rejected a provider inherited from the global audit
+  configuration even though the selected Codex adapter does not accept that
+  parameter. W004 requires inherited irrelevant provider values to be ignored.
+- *Effect:* The local round 3 PASS remains revision-specific but is no longer
+  current after remediation.
+
+** Local review - round 4
+:PROPERTIES:
+:ROUND:    4
+:END:
+
+- *Revision:* Git commit =18e4669=
+- *Audits:* =audit-test-code= and =audit-code=
+- *Verdict:* PASS
+- *Findings:* No required correction remains.
+- *Remediation:* Configuration now ignores inherited provider values for Codex,
+  Claude, and Copilot while continuing to reject a directly supplied
+  conflicting runner override. A regression covers the global Codex provider
+  configuration that exposed the defect.
+- *Evidence:* =make test= passed all static checks and Go regression packages on
+  2026-09-08.
+- *Status:* Local implementation gate PASS. One retained external implementation
+  audit remains required.
