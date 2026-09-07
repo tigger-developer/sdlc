@@ -35,10 +35,19 @@ func TestTechnologyAssessmentUsesSchemaHeuristics(t *testing.T) {
 }
 
 func TestTechnologyAssessmentRejectsRuleWithoutInstalledStandard(t *testing.T) {
-	_, err := detectProjectTechnologies(TechnologyDetection{
+	err := validateTechnologyDetectionStandards(TechnologyDetection{
 		Rules: []TechnologyDetectionRule{{Technology: "RUST", Basenames: []string{"Cargo.toml"}}},
-	}, []Technology{{Name: "GO"}}, map[string]bool{"Cargo.toml": true})
+	}, []Technology{{Name: "GO"}})
 	if err == nil || !strings.Contains(err.Error(), "has no installed standard") {
+		t.Fatalf("validation error = %v", err)
+	}
+}
+
+func TestTechnologyAssessmentRejectsInstalledStandardWithoutRule(t *testing.T) {
+	err := validateTechnologyDetectionStandards(TechnologyDetection{
+		Rules: []TechnologyDetectionRule{{Technology: "GO", Basenames: []string{"go.mod"}}},
+	}, []Technology{{Name: "GO"}, {Name: "LUA"}})
+	if err == nil || !strings.Contains(err.Error(), "installed technology standard LUA has no detection rule") {
 		t.Fatalf("validation error = %v", err)
 	}
 }

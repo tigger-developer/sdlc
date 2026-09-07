@@ -124,6 +124,9 @@ func Run(options Options) error {
 	if err != nil {
 		return err
 	}
+	if err := validateTechnologyDetectionStandards(schema.TechnologyDetection, technologies); err != nil {
+		return fmt.Errorf("validating technology detection against installed standards: %w", err)
+	}
 	globalPath := options.GlobalConfigPath
 	if globalPath == "" {
 		userHome, homeErr := os.UserHomeDir()

@@ -978,6 +978,46 @@ warnings: []
 	}
 }
 
+func TestRunSkipsV2AgentClassificationAndWritesReviewWork(t *testing.T) {
+	project := t.TempDir()
+	runGitTest(t, project, "init")
+	runGitTest(t, project, "config", "user.name", "Test Operator")
+	runGitTest(t, project, "config", "user.email", "operator@example.invalid")
+	writeProjectTestFile(t, filepath.Join(project, "README.md"), "# Project\n")
+	writeProjectTestFile(t, filepath.Join(project, ".specify", "memory", "constitution.md"), "legacy constitution\n")
+	writeProjectTestFile(t, filepath.Join(project, "specs", "001-old-feature", "spec.md"), "# Old feature\n\nStatus: Draft\n")
+	runGitTest(t, project, "add", "-A")
+	runGitTest(t, project, "commit", "-m", "v2 state")
+
+	var output bytes.Buffer
+	err := Run(Options{
+		ProjectRoot: project, SDLCRoot: testSDLCRoot(t), Overrides: v3TestOverrides(t),
+		SkipAgentScans: true,
+		Input:          strings.NewReader("n\nn\n"),
+		Output:         &output, ErrorOutput: &bytes.Buffer{}, RunCommand: localOnlyTestRunner,
+		Now: func() time.Time { return time.Date(2026, 9, 7, 0, 0, 0, 0, time.UTC) },
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	work, err := os.ReadFile(filepath.Join(project, "docs", "work.org"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{
+		"** REVIEW W001 - old feature :feature:migration:",
+		":MIGRATION_DISPOSITION: unresolved",
+		"Semantic classification skipped by operator request.",
+	} {
+		if !strings.Contains(string(work), want) {
+			t.Fatalf("model-free migrated work lacks %q:\n%s", want, work)
+		}
+	}
+	if !strings.Contains(output.String(), "Skipped archived Spec Kit classification") {
+		t.Fatalf("skip decision was not reported:\n%s", output.String())
+	}
+}
+
 func TestRunRejectsUnrelatedInitializationWorkspace(t *testing.T) {
 	project := t.TempDir()
 	runGitTest(t, project, "init")

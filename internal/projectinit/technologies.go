@@ -51,26 +51,17 @@ func schemaField(schema ConfigSchema, key string) (ConfigField, bool) {
 }
 
 func detectProjectTechnologies(detection TechnologyDetection, technologies []Technology, files map[string]bool) (technologyAssessment, error) {
+	if err := validateTechnologyDetectionStandards(detection, technologies); err != nil {
+		return technologyAssessment{}, err
+	}
+
 	installed := make(map[string]bool, len(technologies))
 	for _, technology := range technologies {
 		installed[technology.Name] = true
 	}
 	rules := make(map[string]TechnologyDetectionRule, len(detection.Rules))
 	for _, rule := range detection.Rules {
-		if !installed[rule.Technology] {
-			return technologyAssessment{}, fmt.Errorf("technology detection rule %s has no installed standard", rule.Technology)
-		}
-		for _, implied := range rule.Implies {
-			if !installed[implied] {
-				return technologyAssessment{}, fmt.Errorf("technology detection rule %s implies unavailable standard %s", rule.Technology, implied)
-			}
-		}
 		rules[rule.Technology] = rule
-	}
-	for technology := range installed {
-		if _, ok := rules[technology]; !ok {
-			return technologyAssessment{}, fmt.Errorf("installed technology standard %s has no detection rule", technology)
-		}
 	}
 
 	matches := map[string][]string{}
@@ -111,6 +102,31 @@ func detectProjectTechnologies(detection TechnologyDetection, technologies []Tec
 		}
 	}
 	return assessment, nil
+}
+
+func validateTechnologyDetectionStandards(detection TechnologyDetection, technologies []Technology) error {
+	installed := make(map[string]bool, len(technologies))
+	for _, technology := range technologies {
+		installed[technology.Name] = true
+	}
+	rules := make(map[string]bool, len(detection.Rules))
+	for _, rule := range detection.Rules {
+		if !installed[rule.Technology] {
+			return fmt.Errorf("technology detection rule %s has no installed standard", rule.Technology)
+		}
+		for _, implied := range rule.Implies {
+			if !installed[implied] {
+				return fmt.Errorf("technology detection rule %s implies unavailable standard %s", rule.Technology, implied)
+			}
+		}
+		rules[rule.Technology] = true
+	}
+	for technology := range installed {
+		if !rules[technology] {
+			return fmt.Errorf("installed technology standard %s has no detection rule", technology)
+		}
+	}
+	return nil
 }
 
 func excludedTechnologyPath(path string, detection TechnologyDetection) bool {
