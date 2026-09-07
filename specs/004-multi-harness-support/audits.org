@@ -111,12 +111,49 @@
 :END:
 
 - *Artefact:* [[file:spec.org][W004 - Support Claude, Copilot, and Hermes Harnesses]]
+- *Revision:* Git commit =96120ade81d67140d5c3ab6cb6dfb8907f7f77f3=
+- *Audits:* =audit-spec=, =audit-design=, and =audit-test-definitions= in one
+  retained context
+- *Verdict:* FAIL
+- *Findings:*
+  1. DEF-W004-013 required semantic emphasis in unchanged boundaries and test
+     definitions.
+  2. DEF-W004-017 required executable detection cases independent of provider
+     home presence.
+  3. DEF-W004-018 required observable fields and continuation evidence for the
+     initializer's interactive fallback.
+  4. DEF-W004-019 required deterministic backup location, ownership, restore
+     procedure, and byte-level recovery evidence.
+- *Supersedes:* External review round 2.
+
+** Local review - round 4
+:PROPERTIES:
+:ROUND:    4
+:END:
+
+- *Artefact:* [[file:spec.org][W004 - Support Claude, Copilot, and Hermes Harnesses]]
+- *Revision:* SHA-256
+  =af58c14c5052dfb9c768bb0e1136745e016ab2cc9500e97cf513b6a827c24a68=
+- *Audits:* =audit-spec=, =audit-design=, and =audit-test-definitions=
+- *Verdict:* PASS
+- *Findings:* None after rechecking the retained auditor's third-round findings.
+- *Remediation:* Completed the semantic spine; separated executable and home
+  fixtures; defined every fallback-handoff field and resumption check; and
+  specified adjacent backup naming, ownership, restoration, and byte-level
+  evidence.
+
+** External review - round 4
+:PROPERTIES:
+:CONTEXT:  /root/audit_w004_definition
+:END:
+
+- *Artefact:* [[file:spec.org][W004 - Support Claude, Copilot, and Hermes Harnesses]]
 - *Revision:* Pending checkpoint commit.
 - *Audits:* =audit-spec=, =audit-design=, and =audit-test-definitions= in one
   retained context
 - *Verdict:* Pending
 - *Findings:* Pending
-- *Supersedes:* External review round 2.
+- *Supersedes:* External review round 3.
 
 * Implementation gate
 

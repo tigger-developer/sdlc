@@ -86,12 +86,12 @@ provider, permission, or output features.
 
 *** Unchanged
 
-- =~/.agents/sdlc= remains the canonical deployed standards root.
-- =~/.agents/skills= remains the canonical global skill source.
-- The authoring context still performs local audits before one retained
-  external audit context.
-- A timeout, silence, malformed result, or unavailable harness remains a runner
-  incident and never becomes an audit PASS.
+- =~/.agents/sdlc= remains the *canonical standards root*.
+- =~/.agents/skills= remains the *canonical global skill source*.
+- The authoring context still performs *local audits first*, followed by at
+  most *one retained external audit context*.
+- A timeout, silence, malformed result, or unavailable harness remains a
+  *runner incident* and *never becomes PASS*.
 
 ** Authority and starting point
 
@@ -280,17 +280,22 @@ provider, permission, or output features.
 - Covers :: [[#ac-004-1][AC004.1 - Native workflow availability]],
   [[#ac-004-2][AC004.2 - One canonical skill source]], and
   [[#ac-004-6][AC004.6 - Safe and idempotent installation]].
-- Boundary :: Installer against temporary canonical and provider home trees.
+- Boundary :: *Temporary canonical and provider home trees*; no real provider
+  home is read or written.
 - Setup :: Create *canonical skill fixtures*; present and absent provider homes;
-  unrelated provider files; a current managed link; a legacy copied skill; and
-  a conflicting same-name entry.
+  independently present and absent fake executables; a mismatched executable
+  and home; unrelated provider files; a current managed link; a legacy copied
+  skill; and a conflicting same-name entry.
 - Action :: *Plan and apply twice*, confirm replacement of the legacy copy,
   reject replacement of the unknown conflict, then change one canonical skill
   fixture and apply again.
 - Expected :: Native adapters *resolve canonical content*, unrelated files
-  remain *byte-identical*, conflicts stop *without silent replacement*, managed
-  updates are *recoverable*, and an unchanged second run is a *no-op*.
-- Retention :: Persistent Go regression suite under =make test=.
+  are installed *only for detected executables*, absent homes gain only the
+  native skill path, mismatched homes are preserved, unrelated files remain
+  *byte-identical*, conflicts stop *without silent replacement*, confirmed
+  backups restore *byte-for-byte state*, and an unchanged second run is a
+  *no-op*.
+- Retention :: *Persistent Go regression* under =make test=.
 
 ** RT004.2 - Resolve harness configuration
 :PROPERTIES:
@@ -298,7 +303,7 @@ provider, permission, or output features.
 :END:
 
 - Covers :: [[#ac-004-3][AC004.3 - Capability-aware phase configuration]].
-- Boundary :: YAML schema, global/project precedence, and CLI override
+- Boundary :: *YAML schema*, *global/project precedence*, and CLI override
   resolution.
 - Setup :: Use *table-driven configurations* for every harness and phase,
   including inheritance and incompatible provider overrides.
@@ -307,7 +312,7 @@ provider, permission, or output features.
   *deterministic*, applicable model/provider values remain *exact*, inapplicable
   providers are *not passed*, and incompatible explicit values produce a
   *diagnostic*.
-- Retention :: Persistent Go regression suite under =make test=.
+- Retention :: *Persistent Go regression* under =make test=.
 
 ** RT004.3 - Construct bounded harness invocations
 :PROPERTIES:
@@ -317,8 +322,8 @@ provider, permission, or output features.
 - Covers :: [[#ac-004-3][AC004.3 - Capability-aware phase configuration]],
   [[#ac-004-4][AC004.4 - Retained external audit context]], and
   [[#ac-004-5][AC004.5 - Read-only audit boundary]].
-- Boundary :: Harness runner using fake executables that record argument vectors,
-  stdin, environment, working directory, output, and session identity.
+- Boundary :: *Harness runner with fake executables* recording arguments, stdin,
+  environment, working directory, output, and session identity.
 - Setup :: Use one *deterministic fake* for each row in the
   [[#harness-capability-contract][harness capability contract]], with captured
   successful start, final-response, identity, and resume fixtures.
@@ -328,8 +333,8 @@ provider, permission, or output features.
   parses the *identity and final response*, forwards a provider *only to
   Hermes*, makes no source artefact writable, detects a *changed bundle*, and
   resumes the *same identity*.
-- Retention :: Persistent Go regression suite under =make test=; fake harnesses
-  make no network or model calls.
+- Retention :: *Persistent Go regression* under =make test=; fake harnesses
+  make *no network or model calls*.
 
 ** RT004.4 - Reject invalid audit runner outcomes
 :PROPERTIES:
@@ -338,7 +343,7 @@ provider, permission, or output features.
 
 - Covers :: [[#ac-004-4][AC004.4 - Retained external audit context]] and
   [[#ac-004-7][AC004.7 - Honest failure and compatibility]].
-- Boundary :: Harness runner failure handling.
+- Boundary :: *Harness runner failure handling*.
 - Setup :: Fake each *absent executable*, unsupported explicit provider, timeout,
   missing session identity, non-zero exit, empty final response, and malformed
   composite verdict.
@@ -346,7 +351,7 @@ provider, permission, or output features.
 - Expected :: The operation returns a *typed runner incident* naming the
   harness and failure, preserves any usable *context identity*, and *never
   records PASS*.
-- Retention :: Persistent Go regression suite under =make test=.
+- Retention :: *Persistent Go regression* under =make test=.
 
 ** RT004.5 - Preserve Codex workflow behaviour
 :PROPERTIES:
@@ -354,8 +359,8 @@ provider, permission, or output features.
 :END:
 
 - Covers :: [[#ac-004-8][AC004.8 - Existing Codex behaviour preserved]].
-- Boundary :: Current installer, initializer, and composite audit paths using
-  Codex defaults.
+- Boundary :: Current *installer*, *initializer*, and *composite audit* paths
+  using Codex defaults.
 - Setup :: Use *Codex baseline fixtures* that assert current defaults, installer
   plan/apply/verify transitions, initializer no-agent path, =codex exec= start
   vector, =thread.started.thread_id= identity, final-message output, and exact-ID
@@ -365,7 +370,7 @@ provider, permission, or output features.
 - Expected :: They *select Codex*, construct the *established invocation*,
   preserve *state transitions*, and differ only where discovery lists the new
   supported harnesses.
-- Retention :: Persistent Go regression suite under =make test=.
+- Retention :: *Persistent Go regression* under =make test=.
 
 ** RT004.6 - Route initializer agent operations
 :PROPERTIES:
@@ -374,8 +379,8 @@ provider, permission, or output features.
 
 - Covers :: [[#ac-004-9][AC004.9 - Initializer automation uses the selected
   harness]].
-- Boundary :: =sdlc-init= orchestration with fake harness executables and
-  temporary v1, v2, and greenfield projects.
+- Boundary :: =sdlc-init= *orchestration with fake harnesses* and temporary v1,
+  v2, and greenfield projects.
 - Setup :: Use *table-driven harness selections* for migration, ledger repair,
   archived-spec classification, deterministic-only, and greenfield paths,
   including adapters with and without confined project-write capability.
@@ -385,8 +390,8 @@ provider, permission, or output features.
   adapter* or an *exact interactive handoff*; deterministic and greenfield
   paths make *no harness call*; failures preserve *resumable migration state*
   without repeating completed work.
-- Retention :: Persistent Go regression suite under =make test=; fake harnesses
-  make no network or model calls.
+- Retention :: *Persistent Go regression* under =make test=; fake harnesses
+  make *no network or model calls*.
 
 ** UT004.1 - Review provider-neutral workflow documentation
 :PROPERTIES:
@@ -603,6 +608,14 @@ deterministic validation. It *never substitutes a harness*. Failure preserves
 the migration branch and recovery record; the archived-state branch remains the
 rollback point.
 
+The handoff prints these labelled fields: =Harness=, =Executable=, =Project=,
+=Skill=, =Scope=, =Expected artefacts=, =Pending stage=, =Recovery record=, and
+=Resume command=. The resume command is exactly =sdlc-init= from the named
+project. It does not embed an invented provider command: the operator opens the
+named interactive harness in that directory, invokes the named global skill,
+then reruns the initializer. RT004.6 asserts every field and confirms that the
+pending stage is unchanged until deterministic validation succeeds.
+
 *** Alternatives rejected
 
 - Copied provider skills :: Rejected because four deployed bodies can drift and
@@ -630,6 +643,12 @@ rollback point.
   confirmation*. On confirmation it is backed up and replaced; without
   confirmation it remains untouched. No content or name heuristic asserts
   ownership.
+- Confirmed replacement renames the exact prior path to an adjacent
+  =<basename>.<Unix-seconds>.bak= sibling before creating the managed link. The
+  backup remains operator-owned and is never auto-deleted. Recovery removes only
+  the exact managed link and renames the selected backup to its original path.
+  RT004.1 performs that recovery and requires the restored tree, file modes, and
+  symlink targets to match the pre-install fixture byte for byte.
 
 *** Failure behaviour
 
