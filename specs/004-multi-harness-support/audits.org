@@ -179,12 +179,29 @@
 :END:
 
 - *Artefact:* [[file:spec.org][W004 - Support Claude, Copilot, and Hermes Harnesses]]
-- *Revision:* Pending checkpoint commit.
+- *Revision:* Git commit =bb44b7d31287b6608b39b8da7b9469060e2f720e=
 - *Audits:* =audit-spec=, =audit-design=, and =audit-test-definitions= in one
   retained context
-- *Verdict:* Pending
-- *Findings:* Pending
+- *Verdict:* PROVISIONAL
+- *Findings:* DEF-W004-013 was reclassified under the verdict contract as one
+  mechanical condition: add selective semantic emphasis to the exact passages
+  at then-lines 501-503, 523-526, and 585-591 without changing their functional
+  wording, then verify each bold-only reading.
 - *Supersedes:* External review round 4.
+
+** Condition receipt - effective PASS
+
+- *Condition source:* External review round 5 on commit =bb44b7d=.
+- *Resulting specification:* SHA-256
+  =61f96f56dcef971c72b3e5032ebc17011579e92039afaceec584568cfd2362e8=.
+- *Check:* The three identified passages retain their wording and now have a
+  functional bold-only reading: local audits remain first and consolidated;
+  tool-free capability is proven or external audit is unavailable; and the
+  initializer handoff names every field, exact resume command, interactive
+  harness, global skill, unchanged pending stage, and deterministic validation.
+- *Changes outside condition:* Only lifecycle recording: =DEFINITION_GATE= is
+  =PASS= and the work item is =REVIEW=.
+- *Effective verdict:* PASS
 
 * Implementation gate
 

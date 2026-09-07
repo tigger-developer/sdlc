@@ -2,7 +2,7 @@
 #+SUBTITLE: Unified change specification
 #+STARTUP: overview
 #+OPTIONS: toc:2 num:nil
-#+DEFINITION_GATE: PENDING
+#+DEFINITION_GATE: PASS
 #+OPERATOR_SIGNOFF: PENDING
 
 * Specification Summary
@@ -499,8 +499,8 @@ provider, permission, or output features*.
    the *same adapter and identity* for every permitted resume.
 
 The runner is used only after all required *same-context local audits pass*.
-It never replaces local review and never starts one external context per focused
-audit.
+It *never replaces local review* and *never starts one external context per
+focused audit*.
 
 *** Interfaces and configuration
 
@@ -520,10 +520,10 @@ installed command and *fails visibly on CLI drift*.
 | Copilot | =~/.copilot/skills= | unique name with =copilot -p PROMPT -s --output-format json --model MODEL --name NAME --available-tools== | preassigned name | replace =--name NAME= with =--resume=NAME= | =--model= | none | final assistant event from JSONL |
 | Hermes | =~/.hermes/skills= | =hermes -z PROMPT -m MODEL --provider PROVIDER -t "" --pass-session-id --safe-mode --in BUNDLE= | validated =SESSION_ID= field in the response | replace =--pass-session-id= with =--resume SESSION= | =-m= | =--provider= | non-empty stdout minus the identity envelope |
 
-For Claude, Copilot, and Hermes, the empty tool selection must be proven to
+For Claude, Copilot, and Hermes, the *empty tool selection must be proven* to
 expose *no tools*. If a current version cannot do that, its adapter may still
-provide interactive skills but must report external audit as unavailable.
-Codex runs against the audit bundle with its documented read-only sandbox.
+provide *interactive skills* but must report *external audit as unavailable*.
+Codex runs against the audit bundle with its documented *read-only sandbox*.
 
 - Response envelope :: Require a *non-empty final response* and *one stable
   identity*. Hermes additionally returns
@@ -582,13 +582,13 @@ deterministic validation. It *never substitutes a harness*. Failure preserves
 the migration branch and recovery record; the archived-state branch remains the
 rollback point.
 
-The handoff prints these labelled fields: =Harness=, =Executable=, =Project=,
+The handoff *prints these labelled fields*: =Harness=, =Executable=, =Project=,
 =Skill=, =Scope=, =Expected artefacts=, =Pending stage=, =Recovery record=, and
-=Resume command=. The resume command is exactly =sdlc-init= from the named
-project. It does not embed an invented provider command: the operator opens the
-named interactive harness in that directory, invokes the named global skill,
-then reruns the initializer. RT004.6 asserts every field and confirms that the
-pending stage is unchanged until deterministic validation succeeds.
+=Resume command=. The *resume command is exactly =sdlc-init=* from the named
+project. It *does not embed an invented provider command*: the operator opens
+the *named interactive harness* in that directory, invokes the *named global
+skill*, then *reruns the initializer*. RT004.6 asserts every field and confirms
+that the *pending stage is unchanged until deterministic validation succeeds*.
 
 *** Alternatives rejected
 
