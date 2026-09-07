@@ -67,25 +67,22 @@ provider, permission, or output features.
 
 *** In scope
 
-- Native global-skill exposure for *Claude Code*, *GitHub Copilot CLI*, and
-  *Hermes*, while retaining *Codex*.
-- Harness selection in global and project YAML configuration.
-- Fixed adapters for bounded headless start and resume operations.
-- Replacement of hard-coded Codex routing in the initializer and composite
-  audit workflow.
-- Provider-specific capability checks, least-privilege audit execution,
-  installation safety, help text, and public documentation.
+- *Native global-skill exposure* for Claude Code, GitHub Copilot CLI, and
+  Hermes, while retaining Codex.
+- *Harness selection* in global and project YAML configuration.
+- *Fixed adapters* for bounded headless start and resume operations.
+- *Provider-neutral routing* in the initializer and composite audit workflow.
+- *Capability checks*, *least-privilege audits*, *safe installation*, accurate
+  help, and public documentation.
 
 *** Out of scope
 
-- Installing a harness, model, authentication credential, subscription, or
-  external provider.
-- Guaranteeing that all models are offered by every harness.
-- Copying SDLC skills into individual software projects.
-- Restoring Spec Kit commands or artefacts.
-- Supporting an undocumented fifth harness or a generic user-authored command
-  template in this change.
-- Replacing private provider configuration with public defaults.
+- *No installation* of a harness, model, credential, subscription, or provider.
+- *No guarantee* that every harness offers every model.
+- *No project-local copies* of SDLC skills.
+- *No Spec Kit restoration*.
+- *No fifth harness* or user-authored command template.
+- *No replacement* of private provider configuration with public defaults.
 
 *** Unchanged
 
@@ -284,11 +281,12 @@ provider, permission, or output features.
   [[#ac-004-2][AC004.2 - One canonical skill source]], and
   [[#ac-004-6][AC004.6 - Safe and idempotent installation]].
 - Boundary :: Installer against temporary canonical and provider home trees.
-- Setup :: Create fixtures containing canonical skills, all four provider homes,
-  unrelated provider files, an old managed adapter, and a conflicting
-  non-managed same-name entry.
-- Action :: Plan and apply installation twice, then change one canonical skill
-  fixture and apply once more.
+- Setup :: Create *canonical skill fixtures*; present and absent provider homes;
+  unrelated provider files; a current managed link; a legacy copied skill; and
+  a conflicting same-name entry.
+- Action :: *Plan and apply twice*, confirm replacement of the legacy copy,
+  reject replacement of the unknown conflict, then change one canonical skill
+  fixture and apply again.
 - Expected :: Native adapters *resolve canonical content*, unrelated files
   remain *byte-identical*, conflicts stop *without silent replacement*, managed
   updates are *recoverable*, and an unchanged second run is a *no-op*.
@@ -302,9 +300,9 @@ provider, permission, or output features.
 - Covers :: [[#ac-004-3][AC004.3 - Capability-aware phase configuration]].
 - Boundary :: YAML schema, global/project precedence, and CLI override
   resolution.
-- Setup :: Table-driven configurations for every harness and phase, including
-  inherited values and explicit incompatible provider overrides.
-- Action :: Parse and resolve each configuration without starting a harness.
+- Setup :: Use *table-driven configurations* for every harness and phase,
+  including inheritance and incompatible provider overrides.
+- Action :: *Parse and resolve* each configuration without starting a harness.
 - Expected :: Supported harnesses remain *selected*, precedence is
   *deterministic*, applicable model/provider values remain *exact*, inapplicable
   providers are *not passed*, and incompatible explicit values produce a
@@ -321,10 +319,11 @@ provider, permission, or output features.
   [[#ac-004-5][AC004.5 - Read-only audit boundary]].
 - Boundary :: Harness runner using fake executables that record argument vectors,
   stdin, environment, working directory, output, and session identity.
-- Setup :: One deterministic fake for each row in the
+- Setup :: Use one *deterministic fake* for each row in the
   [[#harness-capability-contract][harness capability contract]], with captured
   successful start, final-response, identity, and resume fixtures.
-- Action :: Start a read-only audit and resume it once through each adapter.
+- Action :: *Start and resume* a read-only audit through each adapter; in a
+  separate case, the fake changes one bundle byte before returning.
 - Expected :: Each invocation matches its *fixed start and resume grammar*,
   parses the *identity and final response*, forwards a provider *only to
   Hermes*, makes no source artefact writable, detects a *changed bundle*, and
@@ -340,10 +339,10 @@ provider, permission, or output features.
 - Covers :: [[#ac-004-4][AC004.4 - Retained external audit context]] and
   [[#ac-004-7][AC004.7 - Honest failure and compatibility]].
 - Boundary :: Harness runner failure handling.
-- Setup :: Fake each absent executable, unsupported explicit provider, timeout,
+- Setup :: Fake each *absent executable*, unsupported explicit provider, timeout,
   missing session identity, non-zero exit, empty final response, and malformed
   composite verdict.
-- Action :: Attempt an external gate through the selected adapter.
+- Action :: *Attempt an external gate* through the selected adapter.
 - Expected :: The operation returns a *typed runner incident* naming the
   harness and failure, preserves any usable *context identity*, and *never
   records PASS*.
@@ -357,11 +356,12 @@ provider, permission, or output features.
 - Covers :: [[#ac-004-8][AC004.8 - Existing Codex behaviour preserved]].
 - Boundary :: Current installer, initializer, and composite audit paths using
   Codex defaults.
-- Setup :: Fixtures that assert the current Codex defaults, installer
+- Setup :: Use *Codex baseline fixtures* that assert current defaults, installer
   plan/apply/verify transitions, initializer no-agent path, =codex exec= start
   vector, =thread.started.thread_id= identity, final-message output, and exact-ID
   resume vector.
-- Action :: Run the supported paths after registering the additional adapters.
+- Action :: *Run the supported Codex paths* after registering the additional
+  adapters.
 - Expected :: They *select Codex*, construct the *established invocation*,
   preserve *state transitions*, and differ only where discovery lists the new
   supported harnesses.
@@ -376,11 +376,10 @@ provider, permission, or output features.
   harness]].
 - Boundary :: =sdlc-init= orchestration with fake harness executables and
   temporary v1, v2, and greenfield projects.
-- Setup :: Table-driven global and project audit-harness selections for each
-  migration, ledger repair, archived-spec classification, deterministic-only,
-  and greenfield path.
-- Action :: Run initialization through the point at which it completes or would
-  invoke the fake harness.
+- Setup :: Use *table-driven harness selections* for migration, ledger repair,
+  archived-spec classification, deterministic-only, and greenfield paths,
+  including adapters with and without confined project-write capability.
+- Action :: *Run initialization* through completion or fake-harness invocation.
 - Expected :: Read-only classification calls the *selected adapter* with the
   *resolved audit model* and applicable provider; mutation uses a *confined
   adapter* or an *exact interactive handoff*; deterministic and greenfield
@@ -449,8 +448,10 @@ provider, permission, or output features.
 
 - Condition :: A supported harness executable exists but its native skill home
   has not been initialized.
-- Required behaviour :: Installation creates only the documented skill path or
-  stops with the exact prerequisite; it does not invent provider configuration.
+- Required behaviour :: Automatic detection uses the *installed executable*.
+  When it exists, installation creates the documented native skill directory
+  and managed links but *never invents provider configuration*. A configured
+  harness whose executable is absent stops with the exact prerequisite.
 - Covered by :: [[#ac-004-6][AC004.6 - Safe and idempotent installation]] and
   [[#rt-004-1][RT004.1 - Install native global skill adapters]].
 
@@ -623,8 +624,12 @@ rollback point.
   records the non-secret session identity needed to resume.
 - Installer backups remain adjacent recoverability artefacts under the existing
   managed-install contract; project repositories receive no provider skills.
-- Recognized v1/v2 SDLC-owned provider copies are backed up and replaced by
-  canonical links. A same-named path not proven SDLC-owned is a conflict.
+- A current managed link is recognized only when its destination and canonical
+  target match. Every pre-existing regular file or directory, including a
+  likely v1/v2 copied skill, is presented as a *conflict requiring one operator
+  confirmation*. On confirmation it is backed up and replaced; without
+  confirmation it remains untouched. No content or name heuristic asserts
+  ownership.
 
 *** Failure behaviour
 

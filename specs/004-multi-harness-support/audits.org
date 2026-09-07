@@ -71,12 +71,52 @@
 :END:
 
 - *Artefact:* [[file:spec.org][W004 - Support Claude, Copilot, and Hermes Harnesses]]
+- *Revision:* Git commit =c45c518342fcdd62cd4f6797399e215fd97589c3=
+- *Audits:* =audit-spec=, =audit-design=, and =audit-test-definitions= in one
+  retained context
+- *Verdict:* FAIL
+- *Findings:*
+  1. DEF-W004-008 required =PENDING= validation records with planned procedures
+     and expected results.
+  2. DEF-W004-014 required deterministic ownership treatment for old provider
+     skill paths.
+  3. DEF-W004-015 required one decision for an absent provider home.
+  4. DEF-W004-009 required RT004.3 to induce the changed bundle it expects to
+     detect.
+  5. DEF-W004-016 required absent-home and legacy-copy installer cases.
+  6. DEF-W004-013 required semantic emphasis in remaining scope and test
+     definition material.
+- *Supersedes:* External review round 1.
+
+** Local review - round 3
+:PROPERTIES:
+:ROUND:    3
+:END:
+
+- *Artefact:* [[file:spec.org][W004 - Support Claude, Copilot, and Hermes Harnesses]]
+- *Revision:* SHA-256
+  =a1b762e84ab0834dfc02514740192acbd574f8bf0de971475ba9de5f2cc990d9=
+- *Audits:* =audit-spec=, =audit-design=, and =audit-test-definitions=
+- *Verdict:* PASS
+- *Findings:* None after rechecking the retained auditor's second-round
+  findings.
+- *Remediation:* Completed planned validation records; made native executable
+  detection and skill-conflict confirmation deterministic; added absent-home,
+  legacy-copy, confined-mutation, and bundle-mutation cases; and completed the
+  semantic emphasis spine.
+
+** External review - round 3
+:PROPERTIES:
+:CONTEXT:  /root/audit_w004_definition
+:END:
+
+- *Artefact:* [[file:spec.org][W004 - Support Claude, Copilot, and Hermes Harnesses]]
 - *Revision:* Pending checkpoint commit.
 - *Audits:* =audit-spec=, =audit-design=, and =audit-test-definitions= in one
   retained context
 - *Verdict:* Pending
 - *Findings:* Pending
-- *Supersedes:* External review round 1.
+- *Supersedes:* External review round 2.
 
 * Implementation gate
 

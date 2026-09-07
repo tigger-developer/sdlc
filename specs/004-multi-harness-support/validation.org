@@ -7,12 +7,17 @@
 ** UT004.1 - Review provider-neutral workflow documentation
 :PROPERTIES:
 :CUSTOM_ID: ut-004-1-result
-:DATE:      NOT-RUN
+:STATUS:    PENDING
 :END:
 
 - *Criterion:* [[file:spec.org::#ac-004-10][AC004.10 - Provider-neutral workflow contract]]
 - *Reviewer:* Operator
-- *Result:* NOT RUN
+- *Procedure:* Read the installed workflow skills, public documentation, command
+  help, and one generated project profile using the viewing conditions in
+  UT004.1.
+- *Expected:* All four harnesses and their exact capability limits are clear;
+  no external gate is hard-coded to Codex.
+- *Result:* PENDING
 - *Evidence:* Awaiting implementation and operator review.
 
 * One-off tests
@@ -20,23 +25,29 @@
 ** OT004.1 - Exercise native skill discovery
 :PROPERTIES:
 :CUSTOM_ID: ot-004-1-result
-:DATE:      NOT-RUN
+:STATUS:    PENDING
 :END:
 
 - *Criterion:* [[file:spec.org::#ac-004-1][AC004.1 - Native workflow availability]]
 - *Boundary:* Locally installed Codex, Claude, Copilot, and Hermes CLIs.
-- *Result:* NOT RUN
+- *Procedure:* In one disposable project per harness, invoke one non-mutating
+  canonical SDLC advisory skill by its native name.
+- *Expected:* The harness discovers and follows the global skill without a
+  project-local copy.
+- *Result:* PENDING
 - *Evidence:* Awaiting implementation.
-- *Cleanup:* Not applicable until execution.
 
 ** OT004.2 - Resume a real external audit context
 :PROPERTIES:
 :CUSTOM_ID: ot-004-2-result
-:DATE:      NOT-RUN
+:STATUS:    PENDING
 :END:
 
 - *Criterion:* [[file:spec.org::#ac-004-4][AC004.4 - Retained external audit context]] and [[file:spec.org::#ac-004-5][AC004.5 - Read-only audit boundary]]
 - *Boundary:* Each locally installed harness's real headless and resume interface.
-- *Result:* NOT RUN
+- *Procedure:* Start and resume one external audit context using the bounded
+  token-recall and denied-write procedure in OT004.2.
+- *Expected:* The context retains the token and identity while bundle and source
+  hashes remain unchanged after denied write attempts.
+- *Result:* PENDING
 - *Evidence:* Awaiting implementation.
-- *Cleanup:* Not applicable until execution.
