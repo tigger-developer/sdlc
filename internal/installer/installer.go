@@ -28,13 +28,14 @@ const (
 type providerDefinition struct {
 	name        string
 	commandPath string
+	skills      bool
 }
 
 var providerDefinitions = []providerDefinition{
-	{name: agentClaude, commandPath: "commands"},
+	{name: agentClaude, commandPath: "commands", skills: true},
 	{name: agentCodex, commandPath: "prompts-commands"},
-	{name: agentCopilot, commandPath: "prompts-commands"},
-	{name: agentHermes},
+	{name: agentCopilot, commandPath: "prompts-commands", skills: true},
+	{name: agentHermes, skills: true},
 }
 
 var retiredCommandFiles = []string{
@@ -634,34 +635,45 @@ func planProviderInstallation(agent, source, agentHome string) (installationPlan
 		}
 		plan.retirements = append(plan.retirements, retirements...)
 	}
-	if agent != agentCodex {
-		paths := append([]string{}, retiredProviderArtifacts...)
+	if provider.skills {
 		currentSkills, planErr := sourceDirectoryNames(filepath.Join(source, "skills"))
 		if planErr != nil {
 			return installationPlan{}, planErr
 		}
-		paths = append(paths, currentSkills...)
+		canonicalSkills := filepath.Join(filepath.Dir(agentHome), ".agents", "skills")
+		providerSkills := filepath.Join(agentHome, "skills")
+		for _, skill := range currentSkills {
+			link, linkErr := planManagedLink(filepath.Join(canonicalSkills, skill), filepath.Join(providerSkills, skill), providerSkills)
+			if linkErr != nil {
+				return installationPlan{}, linkErr
+			}
+			plan.links = append(plan.links, link)
+		}
+		paths := append([]string{}, retiredProviderArtifacts...)
 		for _, relative := range retiredSkillFiles {
 			paths = append(paths, filepath.Dir(relative))
 		}
-		retirements, planErr := planExactRetirements(filepath.Join(agentHome, "skills"), paths)
+		for _, current := range currentSkills {
+			for index, path := range paths {
+				if path == current {
+					paths = append(paths[:index], paths[index+1:]...)
+					break
+				}
+			}
+		}
+		retirements, planErr := planExactRetirements(providerSkills, paths)
 		if planErr != nil {
 			return installationPlan{}, planErr
 		}
 		plan.retirements = append(plan.retirements, retirements...)
+	}
+	if agent != agentCodex {
 		if provider.commandPath != "" {
 			commandRetirements, commandErr := planExactRetirements(filepath.Join(agentHome, provider.commandPath), retiredCommandFiles)
 			if commandErr != nil {
 				return installationPlan{}, commandErr
 			}
 			plan.retirements = append(plan.retirements, commandRetirements...)
-		}
-		if agent == agentCopilot {
-			hookRetirements, hookErr := planExactRetirements(agentHome, []string{filepath.Join("hooks", "sdlc-tool-guard.json")})
-			if hookErr != nil {
-				return installationPlan{}, hookErr
-			}
-			plan.retirements = append(plan.retirements, hookRetirements...)
 		}
 	}
 	return plan, nil
@@ -1087,21 +1099,134 @@ func backupArtifact(output io.Writer, path string, epoch int64) (string, error) 
 func analyseConfiguration(agent, agentHome, source string, output io.Writer) ([]*configurationChange, error) {
 	switch agent {
 	case agentClaude:
-		change, err := analyseClaudeRetirement(agentHome, output)
+		change, err := analyseClaudeConfiguration(agentHome, output)
 		return configurationChanges(change), err
 	case agentCodex:
 		return analyseCodexConfigurations(agentHome, source, output)
 	case agentHermes:
-		change, err := analyseHermesRetirement(agentHome, output)
+		change, err := analyseHermesConfiguration(agentHome, source, output)
 		return configurationChanges(change), err
 	case agentCopilot:
-		return nil, nil
+		change, err := analyseCopilotConfiguration(agentHome, output)
+		return configurationChanges(change), err
 	case agentCustom:
 		fmt.Fprintln(output, "Configuration: custom target; no provider configuration assumptions were made.")
 		return nil, nil
 	default:
 		return nil, fmt.Errorf("analysing unsupported agent %q", agent)
 	}
+}
+
+func analyseClaudeConfiguration(agentHome string, output io.Writer) (*configurationChange, error) {
+	path := filepath.Join(agentHome, "settings.json")
+	settingsSymlink, err := pathIsSymlink(path)
+	if err != nil {
+		return nil, err
+	}
+	settings, _, mode, err := readClaudeSettings(path)
+	if err != nil {
+		return nil, err
+	}
+	changed, err := normalizeClaudeToolGuard(settings)
+	if err != nil {
+		return nil, fmt.Errorf("analysing %s: %w", path, err)
+	}
+	if !changed {
+		fmt.Fprintln(output, "Configuration: Claude settings already contain the SDLC tool guard.")
+		return nil, nil
+	}
+	if settingsSymlink {
+		return nil, fmt.Errorf("Claude configuration %s is a symlink; update its target explicitly", path)
+	}
+	candidate, err := json.MarshalIndent(settings, "", "  ")
+	if err != nil {
+		return nil, fmt.Errorf("encoding proposed %s: %w", path, err)
+	}
+	candidate = append(candidate, '\n')
+	return &configurationChange{
+		path: path, beforeLabel: "existing configuration; unrelated values preserved",
+		afterLabel: "PreToolUse invokes the canonical SDLC command guard", contents: candidate, mode: mode,
+	}, nil
+}
+
+func normalizeClaudeToolGuard(root map[string]any) (bool, error) {
+	hooks, err := objectField(root, "hooks")
+	if err != nil {
+		return false, err
+	}
+	value, exists := hooks["PreToolUse"]
+	var entries []any
+	if exists {
+		var ok bool
+		entries, ok = value.([]any)
+		if !ok {
+			return false, errors.New("hooks.PreToolUse must be a JSON array")
+		}
+	}
+	found := false
+	changed := false
+	for _, item := range entries {
+		group, ok := item.(map[string]any)
+		if !ok {
+			return false, errors.New("hooks.PreToolUse entries must be JSON objects")
+		}
+		handlers, _ := group["hooks"].([]any)
+		for _, raw := range handlers {
+			handler, ok := raw.(map[string]any)
+			if !ok {
+				continue
+			}
+			command, _ := handler["command"].(string)
+			if !isManagedGuardCommand(command) {
+				continue
+			}
+			found = true
+			if command != toolGuardCommand || group["matcher"] != "*" || handler["type"] != "command" || handler["timeout"] != float64(5) {
+				handler["command"] = toolGuardCommand
+				group["matcher"] = "*"
+				handler["type"] = "command"
+				handler["timeout"] = 5
+				changed = true
+			}
+		}
+	}
+	if !found {
+		entries = append(entries, map[string]any{
+			"matcher": "*",
+			"hooks":   []any{map[string]any{"type": "command", "command": toolGuardCommand, "timeout": 5}},
+		})
+		changed = true
+	}
+	hooks["PreToolUse"] = entries
+	root["hooks"] = hooks
+	return changed, nil
+}
+
+func analyseCopilotConfiguration(agentHome string, output io.Writer) (*configurationChange, error) {
+	path := filepath.Join(agentHome, "hooks", "sdlc-tool-guard.json")
+	original, mode, exists, err := readOptionalRegularFile(path)
+	if err != nil {
+		return nil, err
+	}
+	candidate, err := json.MarshalIndent(map[string]any{
+		"version": 1,
+		"hooks": map[string]any{"preToolUse": []any{map[string]any{
+			"type": "command", "command": toolGuardCommand, "timeoutSec": 5,
+		}}},
+	}, "", "  ")
+	if err != nil {
+		return nil, err
+	}
+	candidate = append(candidate, '\n')
+	if exists && bytes.Equal(original, candidate) {
+		fmt.Fprintln(output, "Configuration: Copilot hooks already contain the SDLC tool guard.")
+		return nil, nil
+	}
+	before := "managed hook file absent"
+	if exists {
+		before = "managed hook file differs and will be backed up"
+	}
+	return &configurationChange{path: path, beforeLabel: before, afterLabel: "preToolUse invokes the canonical SDLC command guard", contents: candidate, mode: mode}, nil
 }
 
 func configurationChanges(change *configurationChange) []*configurationChange {

@@ -10,11 +10,11 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func analyseHermesRetirement(agentHome string, output io.Writer) (*configurationChange, error) {
+func analyseHermesConfiguration(agentHome, _ string, output io.Writer) (*configurationChange, error) {
 	path := filepath.Join(agentHome, "config.yaml")
 	current, err := os.ReadFile(path)
 	if os.IsNotExist(err) {
-		return nil, nil
+		return nil, fmt.Errorf("Hermes first-run configuration is required before SDLC integration: %s", path)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("reading Hermes configuration %s: %w", path, err)
@@ -34,7 +34,7 @@ func analyseHermesRetirement(agentHome string, output io.Writer) (*configuration
 	if err != nil {
 		return nil, err
 	}
-	changed, err := removeHermesCommandGuard(root)
+	changed, err := ensureHermesCommandGuard(root)
 	if err != nil {
 		return nil, err
 	}
@@ -50,11 +50,61 @@ func analyseHermesRetirement(agentHome string, output io.Writer) (*configuration
 	if err := encoder.Close(); err != nil {
 		return nil, err
 	}
-	fmt.Fprintf(output, "Recommendation: retire the SDLC v1/v2 tool guard in %s.\n", path)
+	fmt.Fprintf(output, "Recommendation: install the canonical SDLC tool guard in %s.\n", path)
 	return &configurationChange{
 		path: path, beforeLabel: "existing configuration; unrelated values preserved",
-		afterLabel: "SDLC v1/v2 tool guard removed", contents: candidate.Bytes(), mode: info.Mode().Perm(),
+		afterLabel: "pre_tool_call invokes the canonical SDLC command guard", contents: candidate.Bytes(), mode: info.Mode().Perm(),
 	}, nil
+}
+
+func ensureHermesCommandGuard(root *yaml.Node) (bool, error) {
+	hooks, exists := hermesMappingValue(root, "hooks")
+	if !exists || hooks.Tag == "!!null" {
+		hooks = &yaml.Node{Kind: yaml.MappingNode, Tag: "!!map"}
+		hermesSetMappingValue(root, "hooks", hooks)
+	} else if hooks.Kind != yaml.MappingNode {
+		return false, fmt.Errorf("hooks is %s, not a mapping", hermesYAMLKind(hooks))
+	}
+	entries, exists := hermesMappingValue(hooks, "pre_tool_call")
+	if !exists || entries.Tag == "!!null" {
+		entries = &yaml.Node{Kind: yaml.SequenceNode, Tag: "!!seq"}
+		hermesSetMappingValue(hooks, "pre_tool_call", entries)
+	} else if entries.Kind != yaml.SequenceNode {
+		return false, fmt.Errorf("hooks.pre_tool_call is %s, not a list", hermesYAMLKind(entries))
+	}
+
+	changed := false
+	found := false
+	for _, entry := range entries.Content {
+		if entry.Kind != yaml.MappingNode {
+			return false, fmt.Errorf("hooks.pre_tool_call contains %s, not a mapping", hermesYAMLKind(entry))
+		}
+		command, _ := hermesScalarValue(entry, "command")
+		if !isManagedGuardCommand(command) {
+			continue
+		}
+		if found {
+			continue
+		}
+		found = true
+		matcher, matcherOK := hermesScalarValue(entry, "matcher")
+		timeout, timeoutOK := hermesIntegerValue(entry, "timeout")
+		if command != toolGuardCommand || !matcherOK || matcher != ".*" || !timeoutOK || timeout != 5 {
+			hermesSetScalar(entry, "command", "!!str", toolGuardCommand)
+			hermesSetScalar(entry, "matcher", "!!str", ".*")
+			hermesSetScalar(entry, "timeout", "!!int", "5")
+			changed = true
+		}
+	}
+	if !found {
+		entry := &yaml.Node{Kind: yaml.MappingNode, Tag: "!!map"}
+		hermesSetScalar(entry, "command", "!!str", toolGuardCommand)
+		hermesSetScalar(entry, "matcher", "!!str", ".*")
+		hermesSetScalar(entry, "timeout", "!!int", "5")
+		entries.Content = append(entries.Content, entry)
+		changed = true
+	}
+	return changed, nil
 }
 
 func removeHermesCommandGuard(root *yaml.Node) (bool, error) {
@@ -125,12 +175,48 @@ func hermesMappingValue(mapping *yaml.Node, key string) (*yaml.Node, bool) {
 	return nil, false
 }
 
+func hermesSetMappingValue(mapping *yaml.Node, key string, value *yaml.Node) {
+	for index := 0; index+1 < len(mapping.Content); index += 2 {
+		if mapping.Content[index].Value == key {
+			mapping.Content[index+1] = value
+			return
+		}
+	}
+	mapping.Content = append(mapping.Content,
+		&yaml.Node{Kind: yaml.ScalarNode, Tag: "!!str", Value: key},
+		value,
+	)
+}
+
 func hermesScalarValue(mapping *yaml.Node, key string) (string, bool) {
 	value, exists := hermesMappingValue(mapping, key)
 	if !exists || value.Kind != yaml.ScalarNode || value.Tag == "!!null" {
 		return "", false
 	}
 	return value.Value, true
+}
+
+func hermesIntegerValue(mapping *yaml.Node, key string) (int, bool) {
+	value, exists := hermesMappingValue(mapping, key)
+	if !exists || value.Kind != yaml.ScalarNode {
+		return 0, false
+	}
+	var result int
+	if err := value.Decode(&result); err != nil {
+		return 0, false
+	}
+	return result, true
+}
+
+func hermesSetScalar(mapping *yaml.Node, key, tag, value string) {
+	existing, exists := hermesMappingValue(mapping, key)
+	if exists {
+		existing.Kind = yaml.ScalarNode
+		existing.Tag = tag
+		existing.Value = value
+		return
+	}
+	hermesSetMappingValue(mapping, key, &yaml.Node{Kind: yaml.ScalarNode, Tag: tag, Value: value})
 }
 
 func hermesYAMLKind(node *yaml.Node) string {

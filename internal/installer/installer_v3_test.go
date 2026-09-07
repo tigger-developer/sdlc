@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestV3InteractiveInstallUsesOneGlobalTreeAndRetiresUnsupportedCopies(t *testing.T) {
+func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing.T) {
 	root := t.TempDir()
 	source := filepath.Join(root, "source")
 	writeFixtureFile(t, filepath.Join(source, "README.md"), "# SDLC\n")
@@ -95,18 +95,32 @@ func TestV3InteractiveInstallUsesOneGlobalTreeAndRetiresUnsupportedCopies(t *tes
 	}
 	for _, provider := range []string{"claude", "copilot", "hermes"} {
 		for _, skill := range []string{"audit-code", "define-change"} {
-			if _, err := os.Lstat(filepath.Join(root, "."+provider, "skills", skill)); !os.IsNotExist(err) {
-				t.Fatalf("unsupported provider skill %s remains for %s: %v", skill, provider, err)
+			path := filepath.Join(root, "."+provider, "skills", skill)
+			target, err := os.Readlink(path)
+			if err != nil {
+				t.Fatalf("reading %s skill link %s: %v", provider, skill, err)
+			}
+			want := filepath.Join(root, ".agents", "skills", skill)
+			if target != want {
+				t.Fatalf("%s -> %s, want %s", path, target, want)
 			}
 		}
 	}
 	claude := readFixtureFile(t, filepath.Join(root, ".claude", "settings.json"))
-	if !strings.Contains(claude, `"personal": true`) || strings.Contains(claude, "agent-command-guard") {
-		t.Fatalf("Claude cleanup did not preserve personal data and remove guard: %s", claude)
+	if !(strings.Contains(claude, `"personal": true`) || strings.Contains(claude, `"personal":true`)) || !strings.Contains(claude, "agent-command-guard") {
+		t.Fatalf("Claude configuration did not preserve personal data and install guard: %s", claude)
 	}
 	hermes := readFixtureFile(t, filepath.Join(root, ".hermes", "config.yaml"))
-	if !strings.Contains(hermes, "personal: true") || strings.Contains(hermes, "agent-command-guard") {
-		t.Fatalf("Hermes cleanup did not preserve personal data and remove guard: %s", hermes)
+	if !strings.Contains(hermes, "personal: true") || !strings.Contains(hermes, "agent-command-guard") {
+		t.Fatalf("Hermes configuration did not preserve personal data and install guard: %s", hermes)
+	}
+	for _, path := range []string{
+		filepath.Join(root, ".codex", "hooks.json"),
+		filepath.Join(root, ".copilot", "hooks", "sdlc-tool-guard.json"),
+	} {
+		if contents := readFixtureFile(t, path); !strings.Contains(contents, "agent-command-guard") {
+			t.Fatalf("guard absent from %s: %s", path, contents)
+		}
 	}
 	global := readFixtureFile(t, filepath.Join(root, ".agents", "sdlc.yaml"))
 	if !strings.Contains(global, "version: 3") || !strings.Contains(global, "release: v3.0.0") {

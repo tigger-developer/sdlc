@@ -49,6 +49,29 @@ func TestSchemaAndTechnologyDiscoveryAreDeterministic(t *testing.T) {
 	t.Fatal("audit timeout field was not found")
 }
 
+func TestW004SchemaOffersEverySupportedHarness(t *testing.T) {
+	schema, err := LoadConfigSchema(testSDLCRoot(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []string{"codex", "claude", "copilot", "hermes"}
+	for _, key := range []string{"SDLC_SPEC_HARNESS", "SDLC_BUILD_HARNESS", "SDLC_AUDIT_HARNESS"} {
+		var found *ConfigField
+		for index := range schema.Fields {
+			if schema.Fields[index].Key == key {
+				found = &schema.Fields[index]
+				break
+			}
+		}
+		if found == nil {
+			t.Fatalf("field %s is absent", key)
+		}
+		if strings.Join(found.Choices, ",") != strings.Join(want, ",") {
+			t.Fatalf("%s choices = %v, want %v", key, found.Choices, want)
+		}
+	}
+}
+
 func TestPromptFieldRendersQuestionBeforeDefault(t *testing.T) {
 	var output bytes.Buffer
 	value, explicit, err := promptField(

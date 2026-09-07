@@ -1,0 +1,137 @@
+package harness
+
+import (
+	"os"
+	"path/filepath"
+	"reflect"
+	"strings"
+	"testing"
+	"time"
+)
+
+func TestW004FixedStartAndResumeInvocations(t *testing.T) {
+	tests := []struct {
+		name           string
+		provider       string
+		start          []string
+		resume         []string
+		passesProvider bool
+	}{
+		{
+			name:   "codex",
+			start:  []string{"exec", "-m", "model", "-s", "read-only", "-C", "/bundle", "--json", "-o", "/result", "-"},
+			resume: []string{"exec", "resume", "-m", "model", "--json", "-o", "/result", "session", "-"},
+		},
+		{
+			name:   "claude",
+			start:  []string{"-p", "--output-format", "json", "--model", "model", "--session-id", "session", "--tools", "", "--permission-mode", "plan", "prompt"},
+			resume: []string{"-p", "--output-format", "json", "--model", "model", "--resume", "session", "--tools", "", "--permission-mode", "plan", "prompt"},
+		},
+		{
+			name:   "copilot",
+			start:  []string{"-p", "prompt", "-s", "--output-format", "json", "--model", "model", "--name", "session", "--available-tools="},
+			resume: []string{"-p", "prompt", "-s", "--output-format", "json", "--model", "model", "--resume=session", "--available-tools="},
+		},
+		{
+			name: "hermes", provider: "provider", passesProvider: true,
+			start:  []string{"-z", "prompt", "-m", "model", "--provider", "provider", "-t", "", "--pass-session-id", "--safe-mode", "--in", "/bundle"},
+			resume: []string{"-z", "prompt", "-m", "model", "--provider", "provider", "-t", "", "--resume", "session", "--safe-mode", "--in", "/bundle"},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			request := Request{Harness: test.name, Model: "model", Provider: test.provider, Prompt: "prompt", Bundle: "/bundle", ResultFile: "/result", SessionID: "session"}
+			start, err := BuildStart(request)
+			if err != nil {
+				t.Fatal(err)
+			}
+			resume, err := BuildResume(request)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if start.Command != test.name || !reflect.DeepEqual(start.Args, test.start) {
+				t.Fatalf("start = %s %#v, want %s %#v", start.Command, start.Args, test.name, test.start)
+			}
+			if !reflect.DeepEqual(resume.Args, test.resume) {
+				t.Fatalf("resume = %#v, want %#v", resume.Args, test.resume)
+			}
+			joined := strings.Join(start.Args, " ")
+			if strings.Contains(joined, "--provider") != test.passesProvider {
+				t.Fatalf("provider argument mismatch: %s", joined)
+			}
+		})
+	}
+}
+
+func TestW004ParseNativeFinalResponses(t *testing.T) {
+	tests := []struct {
+		name, stdout, resultFile, identity, response string
+	}{
+		{name: "codex", stdout: "{\"type\":\"thread.started\",\"thread_id\":\"codex-id\"}\n", resultFile: "final", identity: "codex-id", response: "final"},
+		{name: "claude", stdout: `{"result":"final"}`, identity: "session", response: "final"},
+		{name: "copilot", stdout: "{\"type\":\"assistant.message\",\"content\":\"final\"}\n", identity: "session", response: "final"},
+		{name: "hermes", stdout: "SESSION_ID: hermes-id\nfinal\n", identity: "hermes-id", response: "final"},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result, err := ParseResult(test.name, []byte(test.stdout), []byte(test.resultFile), "session")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if result.SessionID != test.identity || result.Response != test.response {
+				t.Fatalf("result = %#v", result)
+			}
+		})
+	}
+}
+
+func TestW004RunnerRejectsInvalidOutcomes(t *testing.T) {
+	for _, test := range []struct {
+		name, stdout string
+	}{
+		{name: "codex", stdout: `{}`},
+		{name: "claude", stdout: `{}`},
+		{name: "copilot", stdout: `{}`},
+		{name: "hermes", stdout: "final"},
+	} {
+		if _, err := ParseResult(test.name, []byte(test.stdout), nil, ""); err == nil {
+			t.Errorf("%s malformed result succeeded", test.name)
+		}
+	}
+	if _, err := BuildStart(Request{Harness: "missing", Model: "model"}); err == nil {
+		t.Error("unsupported harness succeeded")
+	}
+	if _, err := ParseTimeout("codex", 4*time.Minute); err == nil || !strings.Contains(err.Error(), "codex") {
+		t.Fatalf("timeout incident = %v", err)
+	}
+}
+
+func TestW004ImmutableBundleDetectsMutation(t *testing.T) {
+	root := t.TempDir()
+	source := filepath.Join(root, "source.org")
+	if err := os.WriteFile(source, []byte("source"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	bundle, err := CreateBundle(filepath.Join(root, "bundles"), []Input{{Name: "spec.org", Source: source}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		if err := bundle.Cleanup(); err != nil {
+			t.Error(err)
+		}
+	}()
+	if err := bundle.Verify(); err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(bundle.Path, "spec.org")
+	if err := os.Chmod(path, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, []byte("changed"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := bundle.Verify(); err == nil || !strings.Contains(err.Error(), "changed") {
+		t.Fatalf("mutation verification = %v", err)
+	}
+}

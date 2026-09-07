@@ -117,7 +117,7 @@ fields:
     flag: spec-harness
     help: Definition agent harness
     type: choice
-    choices: [codex]
+    choices: &supported_harnesses [codex, claude, copilot, hermes]
     prompt: "Select definition harness:"
     default: codex
     allow_global: true
@@ -127,8 +127,7 @@ fields:
     path: delivery.definition.provider
     flag: spec-provider
     help: Definition model provider
-    type: choice
-    choices: [openai]
+    type: string
     prompt: "Select definition provider:"
     default: openai
     allow_global: true
@@ -138,8 +137,7 @@ fields:
     path: delivery.definition.model
     flag: spec-model
     help: Definition model
-    type: choice
-    choices: &supported_openai_models [gpt-5.6-sol, gpt-5.6-terra, gpt-5.6-luna]
+    type: string
     prompt: "Select definition model:"
     default: gpt-5.6-sol
     allow_global: true
@@ -150,7 +148,7 @@ fields:
     flag: build-harness
     help: Delivery agent harness
     type: choice
-    choices: [codex]
+    choices: *supported_harnesses
     prompt: "Select delivery harness:"
     default: codex
     allow_global: true
@@ -160,8 +158,7 @@ fields:
     path: delivery.build.provider
     flag: build-provider
     help: Delivery model provider
-    type: choice
-    choices: [openai]
+    type: string
     prompt: "Select delivery provider:"
     default: openai
     allow_global: true
@@ -170,8 +167,7 @@ fields:
     path: delivery.build.model
     flag: build-model
     help: Delivery model
-    type: choice
-    choices: *supported_openai_models
+    type: string
     prompt: "Select delivery model:"
     default: gpt-5.6-terra
     allow_global: true
@@ -181,7 +177,7 @@ fields:
     flag: audit-harness
     help: External audit harness
     type: choice
-    choices: [codex]
+    choices: *supported_harnesses
     prompt: "Select external audit harness:"
     default: codex
     allow_global: true
@@ -191,8 +187,7 @@ fields:
     path: delivery.audit.provider
     flag: audit-provider
     help: External audit model provider
-    type: choice
-    choices: [openai]
+    type: string
     prompt: "Select external audit provider:"
     default: openai
     allow_global: true
@@ -201,8 +196,7 @@ fields:
     path: delivery.audit.model
     flag: audit-model
     help: External audit model
-    type: choice
-    choices: *supported_openai_models
+    type: string
     prompt: "Select external audit model:"
     default: gpt-5.6-luna
     allow_global: true

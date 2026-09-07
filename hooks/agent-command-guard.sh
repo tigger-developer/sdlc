@@ -4,6 +4,10 @@
 set -eo pipefail
 
 command_json="$(cat)"
+if ! printf '%s' "$command_json" | jq -e 'type == "object"' >/dev/null 2>&1; then
+    printf 'agent-command-guard: invalid JSON object payload.\n' >&2
+    exit 2
+fi
 command_text="$(printf '%s' "$command_json" | jq -r '.tool_input.command // .toolInput.command // .toolArgs.command // .command // empty')"
 hook_event="$(printf '%s' "$command_json" | jq -r '.hook_event_name // .hookEventName // empty')"
 tool_name="$(printf '%s' "$command_json" | jq -r '.tool_name // .toolName // empty')"
@@ -43,8 +47,10 @@ tool_reads_files() {
     return 1
 }
 
+read_candidate_count=0
 if [[ -z "$command_text" ]] && tool_reads_files; then
     while IFS= read -r candidate; do
+        ((read_candidate_count += 1))
         if names_exact_env_file "$candidate"; then
             block 'reading a file whose exact basename is .env is prohibited.'
         fi
@@ -65,9 +71,17 @@ if [[ -z "$command_text" ]] && tool_reads_files; then
         (.tool_input // .toolInput // .toolArgs // {}) |
         if type == "string" then . else file_values end
     ')
+    if [[ "$read_candidate_count" -eq 0 ]]; then
+        block 'recognized file-reading event is missing a file or path field.'
+    fi
 fi
 
 if [[ -z "$command_text" ]]; then
+    case "$(printf '%s' "$tool_name" | tr '[:upper:]' '[:lower:]')" in
+    bash | shell | terminal | exec | execute | command)
+        block 'recognized command event is missing its command field.'
+        ;;
+    esac
     exit 0
 fi
 
@@ -145,11 +159,47 @@ is_assignment() {
     [[ "$1" =~ ^[a-zA-Z_][a-zA-Z0-9_]*= ]]
 }
 
-segment_invokes_prohibited_command() {
+skip_wrapper_options() {
+    local wrapper="$1"
+    local end="$2"
+    local option
+
+    while [[ "$index" -lt "$end" ]]; do
+        option="${TOKENS[index]}"
+        if is_assignment "$option"; then
+            ((index += 1))
+            continue
+        fi
+        case "$wrapper:$option" in
+        command:-v | command:-V)
+            return 2
+            ;;
+        env:-u | env:--unset | env:-C | env:--chdir | sudo:-u | sudo:--user | sudo:-g | sudo:--group | sudo:-h | sudo:--host | sudo:-p | sudo:--prompt | sudo:-C | sudo:--close-from | sudo:-R | sudo:--chroot | sudo:-T | sudo:--command-timeout)
+            index=$((index + 2))
+            ;;
+        env:--unset=* | env:--chdir=* | sudo:--user=* | sudo:--group=* | sudo:--host=* | sudo:--prompt=* | sudo:--close-from=* | sudo:--chroot=* | sudo:--command-timeout=*)
+            ((index += 1))
+            ;;
+        *:--)
+            ((index += 1))
+            return 0
+            ;;
+        *:-*)
+            ((index += 1))
+            ;;
+        *)
+            return 0
+            ;;
+        esac
+    done
+    return 0
+}
+
+segment_invokes_guarded_action() {
     local start="$1"
     local end="$2"
     local index="$start"
-    local executable basename argument
+    local executable basename argument subcommand
 
     while [[ "$index" -lt "$end" ]] && is_assignment "${TOKENS[index]}"; do
         ((index += 1))
@@ -172,9 +222,9 @@ segment_invokes_prohibited_command() {
             ;;
         env | command | sudo)
             ((index += 1))
-            while [[ "$index" -lt "$end" && ("${TOKENS[index]}" == -* || "${TOKENS[index]}" =~ ^[a-zA-Z_][a-zA-Z0-9_]*=) ]]; do
-                ((index += 1))
-            done
+            if ! skip_wrapper_options "$basename" "$end"; then
+                [[ "$?" -eq 2 ]] && return 1
+            fi
             continue
             ;;
         if | then | elif | else | while | until | do | time | "!")
@@ -196,7 +246,63 @@ segment_invokes_prohibited_command() {
             done
             return 1
             ;;
+        source | .)
+            BLOCK_REASON='sourcing arbitrary files bypasses command policy; run an explicit command instead.'
+            return 0
+            ;;
+        chmod)
+            for ((index += 1; index < end; index++)); do
+                [[ "${TOKENS[index]}" == "777" ]] || continue
+                BLOCK_REASON='chmod 777 is prohibited; use the least permissive mode that works.'
+                return 0
+            done
+            return 1
+            ;;
+        git)
+            ((index += 1))
+            while [[ "$index" -lt "$end" && "${TOKENS[index]}" == -* ]]; do
+                ((index += 1))
+            done
+            [[ "$index" -lt "$end" ]] || return 1
+            subcommand="${TOKENS[index]}"
+            if [[ "$subcommand" == "remote" && $((index + 1)) -lt "$end" && "${TOKENS[index + 1]}" == "add" ]]; then
+                BLOCK_REASON='git remote add widens repository access; ask the user first.'
+                return 0
+            fi
+            for ((index += 1; index < end; index++)); do
+                case "${TOKENS[index]}" in
+                --no-verify | --no-hooks | --no-pre-commit-hook)
+                    BLOCK_REASON='git hook bypass flags are prohibited; run the hooks or surface the failing hook.'
+                    return 0
+                    ;;
+                -f | --force | --force-with-lease | --force-with-lease=*)
+                    if [[ "$subcommand" == "push" ]]; then
+                        BLOCK_REASON='force-push is prohibited unless the user explicitly authorizes it.'
+                        return 0
+                    fi
+                    ;;
+                esac
+            done
+            return 1
+            ;;
+        gh)
+            if [[ $((index + 2)) -lt "$end" && "${TOKENS[index + 1]}" == "repo" && ("${TOKENS[index + 2]}" == "create" || "${TOKENS[index + 2]}" == "edit") ]]; then
+                BLOCK_REASON='GitHub repository create/edit widens or changes access; ask the user first.'
+                return 0
+            fi
+            return 1
+            ;;
         *)
+            if [[ "$basename" != "echo" && "$basename" != "printf" && "$basename" != "rg" ]]; then
+                for ((index += 1; index < end; index++)); do
+                    case "${TOKENS[index]}" in
+                    --no-hooks | --no-pre-commit-hook)
+                        BLOCK_REASON='hook bypass flags are prohibited; run the hooks or surface the failing hook.'
+                        return 0
+                        ;;
+                    esac
+                done
+            fi
             return 1
             ;;
         esac
@@ -212,7 +318,7 @@ command_invokes_prohibited() {
     tokenize_shell_command "$command"
     for ((index = 0; index <= ${#TOKENS[@]}; index++)); do
         if [[ "$index" -eq ${#TOKENS[@]} || "${TOKEN_TYPES[index]}" == "separator" ]]; then
-            if segment_invokes_prohibited_command "$segment_start" "$index"; then
+            if segment_invokes_guarded_action "$segment_start" "$index"; then
                 return 0
             fi
             segment_start=$((index + 1))
@@ -245,36 +351,4 @@ fi
 
 if command_invokes_prohibited "$command_text"; then
     block "$BLOCK_REASON"
-fi
-
-if [[ "$command_text" =~ (^|[[:space:]])--no-verify([[:space:]]|$) ]]; then
-    block 'git hook bypass flags are prohibited; run the hooks or surface the failing hook.'
-fi
-
-if [[ "$command_text" =~ (^|[[:space:]])--no-hooks([[:space:]]|$) ]]; then
-    block 'hook bypass flags are prohibited; run the hooks or surface the failing hook.'
-fi
-
-if [[ "$command_text" =~ (^|[[:space:]])--no-pre-commit-hook([[:space:]]|$) ]]; then
-    block 'pre-commit hook bypass flags are prohibited; run the hook or surface the failure.'
-fi
-
-if [[ "$command_text" =~ (^|[[:space:];|&])chmod[[:space:]]+777([[:space:]]|$) ]]; then
-    block 'chmod 777 is prohibited; use the least permissive mode that works.'
-fi
-
-if [[ "$command_text" =~ (^|[[:space:];|&])git[[:space:]]+remote[[:space:]]+add([[:space:]]|$) ]]; then
-    block 'git remote add widens repository access; ask the user first.'
-fi
-
-if [[ "$command_text" =~ (^|[[:space:];|&])git[[:space:]]+push[[:space:]]+([^;&|]*[[:space:]])?(-f|--force|--force-with-lease)([[:space:]]|$) ]]; then
-    block 'force-push is prohibited unless the user explicitly authorizes it.'
-fi
-
-if [[ "$command_text" =~ (^|[[:space:];|&])gh[[:space:]]+repo[[:space:]]+(create|edit)([[:space:]]|$) ]]; then
-    block 'GitHub repository create/edit widens or changes access; ask the user first.'
-fi
-
-if [[ "$command_text" =~ (^|[[:space:];|&])(source|\.)[[:space:]]+ ]]; then
-    block 'sourcing arbitrary files bypasses command policy; run an explicit command instead.'
 fi

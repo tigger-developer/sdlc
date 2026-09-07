@@ -615,10 +615,7 @@ func initialValue(field ConfigField, overrides, legacy map[string]string, global
 func normalizeLegacyValue(field ConfigField, value string) string {
 	value = strings.TrimSpace(value)
 	if strings.HasSuffix(field.Key, "_HARNESS") {
-		switch value {
-		case "claude", "codex", "hermes":
-			return "codex"
-		}
+		return strings.ToLower(value)
 	}
 	if strings.HasSuffix(field.Key, "_PROVIDER") && value == "openai-codex" {
 		return "openai"
