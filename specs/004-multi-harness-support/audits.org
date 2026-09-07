@@ -1,0 +1,38 @@
+#+TITLE: W004 - Support Claude, Copilot, and Hermes Harnesses - Audit Evidence
+#+STARTUP: content
+#+OPTIONS: toc:2 num:nil
+
+* Definition gate
+
+** Local review
+:PROPERTIES:
+:ROUND:    1
+:END:
+
+- *Artefact:* [[file:spec.org][W004 - Support Claude, Copilot, and Hermes Harnesses]]
+- *Revision:* SHA-256
+  =da5d0c61439c9455c7c96564c12d1cd877d8db77074615cde479831680aef095=
+- *Audits:* =audit-spec=, =audit-design=, and =audit-test-definitions=
+- *Verdict:* PASS
+- *Findings:* None. The specification, solution design, and RT/OT definitions
+  meet their focused audit contracts in the authoring context.
+- *Remediation:* Clarified initializer routing, made the Codex compatibility
+  test reproducible, prohibited external execution before local PASS, and
+  recorded rejected designs.
+
+** External review
+:PROPERTIES:
+:CONTEXT:  Pending
+:END:
+
+- *Artefact:* [[file:spec.org][W004 - Support Claude, Copilot, and Hermes Harnesses]]
+- *Revision:* Pending
+- *Audits:* =audit-spec=, =audit-design=, and =audit-test-definitions= in one
+  context
+- *Verdict:* Pending
+- *Findings:* Pending
+- *Supersedes:* None.
+
+* Implementation gate
+
+No implementation has been authorized or performed.

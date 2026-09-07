@@ -78,6 +78,16 @@ classification; it is provenance, not current state.
 
 * Work items
 
+** TODO W004 - Support Claude, Copilot, and Hermes harnesses :feature:
+:PROPERTIES:
+:CUSTOM_ID: w-004
+:PRIORITY: P1
+:SOURCE: operator
+:CREATED: 2026-09-07
+:END:
+
+- *Specification:* [[file:../specs/004-multi-harness-support/spec.org][W004 - Support Claude, Copilot, and Hermes Harnesses]]
+
 ** REVIEW W003 - Deterministic project initialization :maintenance:
 :PROPERTIES:
 :CUSTOM_ID: w-003
