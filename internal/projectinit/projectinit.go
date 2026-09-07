@@ -205,7 +205,7 @@ func Run(options Options) error {
 		return err
 	}
 	if exists(filepath.Join(projectRoot, "docs", "ACs.org")) {
-		if err := repairLegacyLedgerIfRequired(options, sdlcRoot, projectRoot, values["SDLC_AUDIT_MODEL"]); err != nil {
+		if err := repairLegacyLedgerIfRequired(options, sdlcRoot, projectRoot, values); err != nil {
 			return err
 		}
 		merged, mergeErr := MergeLegacyAcceptanceCriteria(projectRoot)
@@ -890,12 +890,12 @@ func chooseTicketMigration(options Options, projectRoot string) (bool, error) {
 
 func prepareLegacyProject(options Options, projectRoot string, values map[string]string, runTicketMigration bool) error {
 	if runTicketMigration {
-		if err := runCodexSkill(options, projectRoot, values["SDLC_AUDIT_MODEL"], "Use $migrate-legacy-acs-to-sdlc-v1 to prepare this project for SDLC v3 initialization. Complete the authorized migration before returning."); err != nil {
+		if err := runConfiguredMutationSkill(options, projectRoot, values, "migrate-legacy-acs-to-sdlc-v1", "Use $migrate-legacy-acs-to-sdlc-v1 to prepare this project for SDLC v3 initialization. Complete the authorized migration before returning."); err != nil {
 			return fmt.Errorf("running legacy ticket migration: %w", err)
 		}
 	}
 	if exists(filepath.Join(projectRoot, "docs", "ACs.md")) {
-		if err := runCodexSkill(options, projectRoot, values["SDLC_AUDIT_MODEL"], "Use $convert-migrated-acs-to-org to convert docs/ACs.md losslessly to the canonical docs/ACs.org before SDLC v3 initialization. Do not change requirements."); err != nil {
+		if err := runConfiguredMutationSkill(options, projectRoot, values, "convert-migrated-acs-to-org", "Use $convert-migrated-acs-to-org to convert docs/ACs.md losslessly to the canonical docs/ACs.org before SDLC v3 initialization. Do not change requirements."); err != nil {
 			return fmt.Errorf("converting the legacy AC ledger: %w", err)
 		}
 	}
@@ -905,16 +905,32 @@ func prepareLegacyProject(options Options, projectRoot string, values map[string
 	return nil
 }
 
-func runCodexSkill(options Options, projectRoot, model, prompt string) error {
+func runConfiguredMutationSkill(options Options, projectRoot string, values map[string]string, skill, prompt string) error {
+	harnessName := strings.TrimSpace(values["SDLC_AUDIT_HARNESS"])
+	if harnessName == "" {
+		harnessName = "codex"
+	}
+	if harnessName != "codex" {
+		fmt.Fprintf(options.Output, "Harness: %s\n", harnessName)
+		fmt.Fprintf(options.Output, "Executable: %s\n", harnessName)
+		fmt.Fprintf(options.Output, "Project: %s\n", projectRoot)
+		fmt.Fprintf(options.Output, "Skill: $%s\n", skill)
+		fmt.Fprintln(options.Output, "Scope: mutate only the named migration artefacts in this project")
+		fmt.Fprintln(options.Output, "Expected artefacts: the files required by the named skill")
+		fmt.Fprintln(options.Output, "Pending stage: project initialization")
+		fmt.Fprintln(options.Output, "Recovery record: .sdlc/.init")
+		fmt.Fprintln(options.Output, "Resume command: sdlc-init")
+		return fmt.Errorf("%s has no proven confined project-write adapter; complete the handoff and rerun sdlc-init", harnessName)
+	}
 	arguments := []string{"exec"}
-	if model != "" {
+	if model := values["SDLC_AUDIT_MODEL"]; model != "" {
 		arguments = append(arguments, "--model", model)
 	}
 	arguments = append(arguments, prompt)
 	return options.RunCommand("codex", arguments, projectRoot, nil, options.Output, options.ErrorOutput)
 }
 
-func repairLegacyLedgerIfRequired(options Options, sdlcRoot, projectRoot, model string) error {
+func repairLegacyLedgerIfRequired(options Options, sdlcRoot, projectRoot string, values map[string]string) error {
 	ledgerPath := filepath.Join(projectRoot, "docs", "ACs.org")
 	ledger, err := readRegularFile(ledgerPath)
 	if err != nil {
@@ -929,9 +945,12 @@ func repairLegacyLedgerIfRequired(options Options, sdlcRoot, projectRoot, model 
 			return fmt.Errorf("reading legacy-ledger repair prompt: %w", readErr)
 		}
 		fmt.Fprintf(options.Output, "Legacy AC ledger is non-canonical; invoking one repair agent.\n")
+		if harnessName := strings.TrimSpace(values["SDLC_AUDIT_HARNESS"]); harnessName != "" && harnessName != "codex" {
+			return runConfiguredMutationSkill(options, projectRoot, values, "convert-migrated-acs-to-org", string(prompt))
+		}
 		prompt = append(prompt, []byte("\n\nCanonical template: "+filepath.Join(sdlcRoot, "templates", "migration", "ACs.org")+"\nInitial validation failure: "+validationErr.Error()+"\n")...)
 		arguments := []string{"exec", "--ephemeral", "--sandbox", "workspace-write"}
-		if strings.TrimSpace(model) != "" {
+		if model := strings.TrimSpace(values["SDLC_AUDIT_MODEL"]); model != "" {
 			arguments = append(arguments, "--model", model)
 		}
 		arguments = append(arguments, "-")

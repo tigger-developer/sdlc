@@ -1,6 +1,8 @@
 package harness
 
 import (
+	"context"
+	"io"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -8,6 +10,31 @@ import (
 	"testing"
 	"time"
 )
+
+func TestW004ExecuteUsesFixedVectorAndReturnsOnlyParsedResult(t *testing.T) {
+	resultPath := filepath.Join(t.TempDir(), "result.txt")
+	request := Request{Harness: "codex", Model: "model", Prompt: "prompt", Bundle: t.TempDir(), ResultFile: resultPath}
+	result, err := Execute(context.Background(), request, false, nil, func(_ context.Context, command string, args []string, directory string, stdin io.Reader, stdout, _ io.Writer) error {
+		if command != "codex" || directory != request.Bundle {
+			t.Fatalf("invocation = %s in %s", command, directory)
+		}
+		contents, readErr := io.ReadAll(stdin)
+		if readErr != nil || string(contents) != "prompt" {
+			t.Fatalf("stdin = %q, %v", contents, readErr)
+		}
+		if err := os.WriteFile(resultPath, []byte("final"), 0o600); err != nil {
+			return err
+		}
+		_, err := io.WriteString(stdout, "{\"type\":\"thread.started\",\"thread_id\":\"id\"}\n")
+		return err
+	}, io.Discard)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result != (Result{SessionID: "id", Response: "final"}) {
+		t.Fatalf("result = %#v", result)
+	}
+}
 
 func TestW004FixedStartAndResumeInvocations(t *testing.T) {
 	tests := []struct {

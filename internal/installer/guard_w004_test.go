@@ -108,6 +108,7 @@ func TestW004CommandGuardRejectsMalformedRecognizedPayload(t *testing.T) {
 		{payload: []byte(`{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{}}`)},
 		{payload: []byte(`{"hook_event_name":"pre_tool_call","tool_name":"terminal","tool_input":{}}`), hermesJSON: true},
 	} {
+		// #nosec G204 -- the command and repository fixture path are constants.
 		command := exec.Command("bash", filepath.Join("..", "..", "hooks", "agent-command-guard.sh"))
 		command.Stdin = bytes.NewReader(test.payload)
 		output, err := command.CombinedOutput()
@@ -127,6 +128,7 @@ func runGuard(t *testing.T, payload map[string]any) (bool, []byte, []byte) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	// #nosec G204 -- the command and repository fixture path are constants.
 	command := exec.Command("bash", filepath.Join("..", "..", "hooks", "agent-command-guard.sh"))
 	command.Stdin = bytes.NewReader(encoded)
 	var stdout, stderr bytes.Buffer

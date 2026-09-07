@@ -4,16 +4,22 @@ package harness
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
 )
+
+// Executor runs one fixed argument vector without a shell.
+type Executor func(ctx context.Context, command string, args []string, directory string, stdin io.Reader, stdout, stderr io.Writer) error
 
 // Request is the bounded input to one harness start or resume operation.
 type Request struct {
@@ -50,6 +56,64 @@ type Input struct {
 type Bundle struct {
 	Path    string
 	digests map[string]string
+}
+
+// Execute runs one start or resume invocation and validates its bounded result.
+func Execute(ctx context.Context, request Request, resume bool, bundle *Bundle, executor Executor, errorOutput io.Writer) (Result, error) {
+	if executor == nil {
+		executor = executeCommand
+	}
+	if errorOutput == nil {
+		errorOutput = io.Discard
+	}
+	if bundle != nil {
+		if err := bundle.Verify(); err != nil {
+			return Result{}, err
+		}
+	}
+	var invocation Invocation
+	var err error
+	if resume {
+		invocation, err = BuildResume(request)
+	} else {
+		invocation, err = BuildStart(request)
+	}
+	if err != nil {
+		return Result{}, err
+	}
+	var stdout bytes.Buffer
+	if err := executor(ctx, invocation.Command, invocation.Args, invocation.Dir, strings.NewReader(invocation.Stdin), &stdout, errorOutput); err != nil {
+		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+			return Result{}, fmt.Errorf("%s harness timed out: %w", request.Harness, ctx.Err())
+		}
+		return Result{}, fmt.Errorf("running %s harness: %w", request.Harness, err)
+	}
+	if bundle != nil {
+		if err := bundle.Verify(); err != nil {
+			return Result{}, err
+		}
+	}
+	var resultFile []byte
+	if request.ResultFile != "" {
+		resultFile, err = os.ReadFile(request.ResultFile)
+		if err != nil {
+			return Result{}, fmt.Errorf("reading %s final response: %w", request.Harness, err)
+		}
+	}
+	return ParseResult(request.Harness, stdout.Bytes(), resultFile, request.SessionID)
+}
+
+func executeCommand(ctx context.Context, command string, args []string, directory string, stdin io.Reader, stdout, stderr io.Writer) error {
+	path, err := exec.LookPath(command)
+	if err != nil {
+		return fmt.Errorf("executable unavailable: %w", err)
+	}
+	process := exec.CommandContext(ctx, path, args...)
+	process.Dir = directory
+	process.Stdin = stdin
+	process.Stdout = stdout
+	process.Stderr = stderr
+	return process.Run()
 }
 
 // BuildStart constructs the fixed start vector for a supported harness.

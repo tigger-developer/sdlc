@@ -738,7 +738,7 @@ func TestRunMigratesV2WithoutRenumberingOrDeletingUnrelatedIntegrations(t *testi
 	runGitTest(t, project, "commit", "-m", "v2 state")
 	runner := func(name string, arguments []string, directory string, input io.Reader, output, errorOutput io.Writer) error {
 		if name == "codex" {
-			writeProjectTestFile(t, argumentValue(arguments, "--output-last-message"), `version: 1
+			writeProjectTestFile(t, argumentValue(arguments, "-o"), `version: 1
 migrated_work:
   - path: docs/archive/sdlc-v2/specs/001-old-feature/spec.md
     descriptor: Old feature
@@ -748,7 +748,8 @@ migrated_work:
     evidence: Approval and delivery are not recorded.
 warnings: []
 `)
-			return nil
+			_, err := io.WriteString(output, "{\"type\":\"thread.started\",\"thread_id\":\"test-session\"}\n")
+			return err
 		}
 		return localOnlyTestRunner(name, arguments, directory, input, output, errorOutput)
 	}
@@ -881,7 +882,7 @@ func TestRunClassifiesV2WorkAndResolvesAuthoritiesAfterArchival(t *testing.T) {
 	runner := func(name string, arguments []string, directory string, input io.Reader, output, errorOutput io.Writer) error {
 		if name == "codex" {
 			discoveryCalls++
-			if argumentValue(arguments, "--sandbox") != "read-only" || argumentValue(arguments, "--model") != overrides["SDLC_AUDIT_MODEL"] || !containsArgument(arguments, "--ephemeral") {
+			if argumentValue(arguments, "-s") != "read-only" || argumentValue(arguments, "-m") != overrides["SDLC_AUDIT_MODEL"] {
 				return fmt.Errorf("unsafe or misconfigured authority discovery invocation: %v", arguments)
 			}
 			if exists(filepath.Join(project, ".specify")) {
@@ -913,7 +914,7 @@ func TestRunClassifiesV2WorkAndResolvesAuthoritiesAfterArchival(t *testing.T) {
 			if strings.Contains(string(prompt), "authorities:") || !strings.Contains(string(prompt), "docs/archive/sdlc-v2/specs/001-delivered-feature/spec.md") || !strings.Contains(string(prompt), "docs/archive/sdlc-v2/specs/002-unresolved-feature/spec.md") {
 				return fmt.Errorf("unexpected discovery prompt: %s", prompt)
 			}
-			outputPath := argumentValue(arguments, "--output-last-message")
+			outputPath := argumentValue(arguments, "-o")
 			if outputPath == "" {
 				return fmt.Errorf("missing migrated-work proposal output path: %v", arguments)
 			}
@@ -933,7 +934,8 @@ migrated_work:
     evidence: No operator approval or delivery is recorded.
 warnings: []
 `)
-			return nil
+			_, err = io.WriteString(output, "{\"type\":\"thread.started\",\"thread_id\":\"test-session\"}\n")
+			return err
 		}
 		command := exec.Command(name, arguments...)
 		command.Dir = directory
@@ -1141,7 +1143,7 @@ func TestRepairLegacyLedgerInvokesOneBoundedAgentAndRevalidates(t *testing.T) {
 			writeProjectTestFile(t, ledgerPath, canonicalLegacyLedger("*** AC7.1 - Existing result\n\n**** Status\n\nHOLD\n"))
 			return nil
 		},
-	}, testSDLCRoot(t), project, "gpt-5.6-luna")
+	}, testSDLCRoot(t), project, map[string]string{"SDLC_AUDIT_HARNESS": "codex", "SDLC_AUDIT_MODEL": "gpt-5.6-luna"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1170,7 +1172,7 @@ func TestRepairLegacyLedgerSkipsAgentWhenCanonical(t *testing.T) {
 			t.Fatalf("canonical ledger invoked %s", name)
 			return nil
 		},
-	}, testSDLCRoot(t), project, "gpt-5.6-luna")
+	}, testSDLCRoot(t), project, map[string]string{"SDLC_AUDIT_HARNESS": "codex", "SDLC_AUDIT_MODEL": "gpt-5.6-luna"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1185,7 +1187,7 @@ func TestRepairLegacyLedgerFailsClosedAfterInvalidRepair(t *testing.T) {
 		RunCommand: func(name string, arguments []string, directory string, input io.Reader, stdout, stderr io.Writer) error {
 			return nil
 		},
-	}, testSDLCRoot(t), project, "gpt-5.6-luna")
+	}, testSDLCRoot(t), project, map[string]string{"SDLC_AUDIT_HARNESS": "codex", "SDLC_AUDIT_MODEL": "gpt-5.6-luna"})
 	if err == nil || !strings.Contains(err.Error(), "left docs/ACs.org non-canonical") {
 		t.Fatalf("invalid repair error = %v", err)
 	}

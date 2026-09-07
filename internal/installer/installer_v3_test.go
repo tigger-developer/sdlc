@@ -180,6 +180,13 @@ func writeCommandFixtures(t *testing.T, source string) {
 			t.Fatal(err)
 		}
 	}
+	for _, name := range deployedInternalCommandNames {
+		path := filepath.Join(source, "bin", name)
+		writeFixtureFile(t, path, name+" executable\n")
+		if err := os.Chmod(path, 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
 }
 
 func readFixtureFile(t *testing.T, path string) string {

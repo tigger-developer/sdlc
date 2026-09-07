@@ -101,6 +101,10 @@ var deployedCommandNames = []string{
 	"sdlc-preview",
 }
 
+var deployedInternalCommandNames = []string{
+	"sdlc-harness",
+}
+
 const (
 	codexPythonRulesStart = "# BEGIN SDLC MANAGED PYTHON RULES"
 	codexPythonRulesEnd   = "# END SDLC MANAGED PYTHON RULES"
@@ -560,6 +564,20 @@ func planSharedInstallation(source, commonHome, release string) (installationPla
 			return installationPlan{}, err
 		}
 		plan.links = append(plan.links, link)
+	}
+	for _, name := range deployedInternalCommandNames {
+		sourcePath := filepath.Join(source, "bin", name)
+		if info, err := os.Stat(sourcePath); err != nil {
+			return installationPlan{}, fmt.Errorf("inspecting built internal command %q: %w", sourcePath, err)
+		} else if !info.Mode().IsRegular() {
+			return installationPlan{}, fmt.Errorf("built internal command %q is not a regular file", sourcePath)
+		}
+		deployedPath := filepath.Join(liveSDLC, "bin", name)
+		sync, err := planFileSync(sourcePath, deployedPath, filepath.Join(liveSDLC, "bin"))
+		if err != nil {
+			return installationPlan{}, err
+		}
+		plan.syncs = append(plan.syncs, sync)
 	}
 	for _, retirement := range []struct {
 		sourceRoot, destinationRoot string
@@ -1234,99 +1252,6 @@ func configurationChanges(change *configurationChange) []*configurationChange {
 		return nil
 	}
 	return []*configurationChange{change}
-}
-
-func analyseClaudeRetirement(agentHome string, output io.Writer) (*configurationChange, error) {
-	path := filepath.Join(agentHome, "settings.json")
-	settingsSymlink, err := pathIsSymlink(path)
-	if err != nil {
-		return nil, err
-	}
-	settings, original, mode, err := readClaudeSettings(path)
-	if err != nil {
-		return nil, err
-	}
-	if len(original) == 0 {
-		return nil, nil
-	}
-	changed, err := removeClaudeToolGuard(settings)
-	if err != nil {
-		return nil, fmt.Errorf("analysing %s: %w", path, err)
-	}
-	if !changed {
-		return nil, nil
-	}
-	if settingsSymlink {
-		fmt.Fprintf(output, "Configuration: %s is a symlink; remove its SDLC tool guard manually.\n", path)
-		return nil, nil
-	}
-	candidate, err := json.MarshalIndent(settings, "", "  ")
-	if err != nil {
-		return nil, fmt.Errorf("encoding proposed %s: %w", path, err)
-	}
-	candidate = append(candidate, '\n')
-	return &configurationChange{
-		path: path, beforeLabel: "existing configuration; unrelated values preserved",
-		afterLabel: "SDLC v1/v2 tool guard removed", contents: candidate, mode: mode,
-	}, nil
-}
-
-func removeClaudeToolGuard(settings map[string]any) (bool, error) {
-	value, exists := settings["hooks"]
-	if !exists {
-		return false, nil
-	}
-	hooks, ok := value.(map[string]any)
-	if !ok {
-		return false, errors.New("hooks must be a JSON object")
-	}
-	value, exists = hooks["PreToolUse"]
-	if !exists {
-		return false, nil
-	}
-	entries, ok := value.([]any)
-	if !ok {
-		return false, errors.New("hooks.PreToolUse must be a JSON array")
-	}
-	changed := false
-	filteredGroups := make([]any, 0, len(entries))
-	for _, item := range entries {
-		group, ok := item.(map[string]any)
-		if !ok {
-			return false, errors.New("hooks.PreToolUse entries must be JSON objects")
-		}
-		handlerValue, ok := group["hooks"].([]any)
-		if !ok {
-			filteredGroups = append(filteredGroups, item)
-			continue
-		}
-		filteredHandlers := make([]any, 0, len(handlerValue))
-		for _, raw := range handlerValue {
-			handler, ok := raw.(map[string]any)
-			command, commandOK := handler["command"].(string)
-			if ok && commandOK && isManagedGuardCommand(command) {
-				changed = true
-				continue
-			}
-			filteredHandlers = append(filteredHandlers, raw)
-		}
-		if len(filteredHandlers) != 0 {
-			group["hooks"] = filteredHandlers
-			filteredGroups = append(filteredGroups, group)
-		}
-	}
-	if !changed {
-		return false, nil
-	}
-	if len(filteredGroups) == 0 {
-		delete(hooks, "PreToolUse")
-	} else {
-		hooks["PreToolUse"] = filteredGroups
-	}
-	if len(hooks) == 0 {
-		delete(settings, "hooks")
-	}
-	return true, nil
 }
 
 func isManagedGuardCommand(command string) bool {

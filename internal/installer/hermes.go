@@ -107,54 +107,6 @@ func ensureHermesCommandGuard(root *yaml.Node) (bool, error) {
 	return changed, nil
 }
 
-func removeHermesCommandGuard(root *yaml.Node) (bool, error) {
-	hooks, exists := hermesMappingValue(root, "hooks")
-	if !exists {
-		return false, nil
-	}
-	if hooks.Kind != yaml.MappingNode {
-		return false, fmt.Errorf("hooks is %s, not a mapping", hermesYAMLKind(hooks))
-	}
-	entries, exists := hermesMappingValue(hooks, "pre_tool_call")
-	if !exists {
-		return false, nil
-	}
-	if entries.Kind != yaml.SequenceNode {
-		return false, fmt.Errorf("hooks.pre_tool_call is %s, not a list", hermesYAMLKind(entries))
-	}
-	filtered := make([]*yaml.Node, 0, len(entries.Content))
-	changed := false
-	for _, entry := range entries.Content {
-		command, _ := hermesScalarValue(entry, "command")
-		if isManagedGuardCommand(command) {
-			changed = true
-			continue
-		}
-		filtered = append(filtered, entry)
-	}
-	if !changed {
-		return false, nil
-	}
-	if len(filtered) == 0 {
-		hermesDeleteMappingValue(hooks, "pre_tool_call")
-	} else {
-		entries.Content = filtered
-	}
-	if len(hooks.Content) == 0 {
-		hermesDeleteMappingValue(root, "hooks")
-	}
-	return true, nil
-}
-
-func hermesDeleteMappingValue(mapping *yaml.Node, key string) {
-	for index := 0; index+1 < len(mapping.Content); index += 2 {
-		if mapping.Content[index].Value == key {
-			mapping.Content = append(mapping.Content[:index], mapping.Content[index+2:]...)
-			return
-		}
-	}
-}
-
 func hermesDocumentMapping(document *yaml.Node) (*yaml.Node, error) {
 	if document.Kind != yaml.DocumentNode || len(document.Content) != 1 {
 		return nil, fmt.Errorf("configuration root is not a single YAML document")

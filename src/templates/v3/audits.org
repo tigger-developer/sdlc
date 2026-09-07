@@ -24,7 +24,7 @@ descriptors. A timeout, missing verdict, or malformed verdict is not a PASS.
 
 ** External review
 :PROPERTIES:
-:CONTEXT:  [Retained Codex context identifier]
+:CONTEXT:  [Retained external harness context identifier]
 :END:
 
 - *Artefact:* [[file:spec.org][WNNN - Concise change-specific title]]
@@ -51,7 +51,7 @@ descriptors. A timeout, missing verdict, or malformed verdict is not a PASS.
 
 ** External review
 :PROPERTIES:
-:CONTEXT:  [Retained Codex context identifier]
+:CONTEXT:  [Retained external harness context identifier]
 :END:
 
 - *Artefacts:* [Descriptive implementation and test paths]

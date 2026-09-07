@@ -4,17 +4,20 @@ INSTALLER ?= bin/sdlc-install
 PROJECT_INITIALIZER ?= bin/sdlc-init
 PREVIEWER ?= bin/sdlc-preview
 LEGACY_AC_MERGER ?= bin/sdlc-merge-legacy-acs
+HARNESS_RUNNER ?= bin/sdlc-harness
 INSTALL_FLAGS ?=
 SDLC_RELEASE ?= $(shell git for-each-ref --merged=HEAD --count=1 --sort=-version:refname --format='%(refname:short)' 'refs/tags/v*')
 INSTALLER_BUILD_FLAGS :=
 PROJECT_INITIALIZER_BUILD_FLAGS :=
 PREVIEWER_BUILD_FLAGS :=
 LEGACY_AC_MERGER_BUILD_FLAGS :=
+HARNESS_RUNNER_BUILD_FLAGS :=
 ifneq ($(strip $(SDLC_RELEASE)),)
 INSTALLER_BUILD_FLAGS += -ldflags "-X main.buildRelease=$(SDLC_RELEASE)"
 PROJECT_INITIALIZER_BUILD_FLAGS += -ldflags "-X main.buildRelease=$(SDLC_RELEASE)"
 PREVIEWER_BUILD_FLAGS += -ldflags "-X main.buildRelease=$(SDLC_RELEASE)"
 LEGACY_AC_MERGER_BUILD_FLAGS += -ldflags "-X main.buildRelease=$(SDLC_RELEASE)"
+HARNESS_RUNNER_BUILD_FLAGS += -ldflags "-X main.buildRelease=$(SDLC_RELEASE)"
 endif
 
 build:
@@ -22,6 +25,7 @@ build:
 	go build $(PROJECT_INITIALIZER_BUILD_FLAGS) -o $(PROJECT_INITIALIZER) ./cmd/sdlc-init
 	go build $(PREVIEWER_BUILD_FLAGS) -o $(PREVIEWER) ./cmd/sdlc-preview
 	go build $(LEGACY_AC_MERGER_BUILD_FLAGS) -o $(LEGACY_AC_MERGER) ./cmd/sdlc-merge-legacy-acs
+	go build $(HARNESS_RUNNER_BUILD_FLAGS) -o $(HARNESS_RUNNER) ./cmd/sdlc-harness
 
 test: lint
 	go test ./...
