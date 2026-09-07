@@ -43,7 +43,7 @@ specification change resets both specification fields and moves the work item
 to =REVIEW=. Detailed audit evidence remains in =audits.org=.
 #+end_comment
 
-* Specification Summary
+* [Concise change-specific title]
 :PROPERTIES:
 :CUSTOM_ID: summary
 :END:
