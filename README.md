@@ -24,7 +24,7 @@ make install
 
 The installer:
 
-- builds and installs `sdlc-install`, `sdlc-project-init`, `sdlc-preview`, and
+- builds and installs `sdlc-install`, `sdlc-init`, `sdlc-preview`, and
   `sdlc-merge-legacy-acs`;
 - synchronizes the canonical standards to `~/.agents/sdlc`;
 - installs SDLC skills globally under `~/.agents/skills`;
@@ -53,7 +53,7 @@ confirmation accepts `y` or `yes`.
 Run from a clean, named Git branch:
 
 ```sh
-sdlc-project-init
+sdlc-init
 ```
 
 The initializer:
@@ -132,7 +132,7 @@ v1)`. It then records only `docs/work.org` as the requirement authority.
 Technology assessment and archived v2 specification disposition require a
 model. Their temporary YAML contains recommendations or status evidence rather
 than authority decisions. A temporary `.sdlc/.init/` working directory remains
-if initialization is interrupted. Rerunning `sdlc-project-init` on the migration
+if initialization is interrupted. Rerunning `sdlc-init` on the migration
 branch resumes when the dated archive and original primary branch are
 unambiguous. A tracked `.sdlc/.gitignore` excludes that temporary directory from
 commits. The initializer never uses private `.git` paths as application storage.
@@ -252,7 +252,7 @@ archives the old
 implementation plan, and closes tickets only after durable evidence is
 committed.
 
-`sdlc-project-init` then validates that intermediate ledger against the
+`sdlc-init` then validates that intermediate ledger against the
 canonical Org structure and folds it into `docs/work.org` before importing
 unresolved legacy work or archived Spec Kit specifications. If deterministic
 validation cannot safely interpret the ledger, the initializer invokes one

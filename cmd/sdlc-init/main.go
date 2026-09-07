@@ -25,7 +25,7 @@ func commandStatus(arguments []string, input io.Reader, output, errorOutput io.W
 	if err == nil {
 		return 0
 	}
-	fmt.Fprintf(errorOutput, "sdlc-project-init: %v\n", err)
+	fmt.Fprintf(errorOutput, "sdlc-init: %v\n", err)
 	return 1
 }
 
@@ -35,7 +35,7 @@ func runCommand(arguments []string, input io.Reader, output, errorOutput io.Writ
 		if version == "" {
 			version = "devel"
 		}
-		fmt.Fprintf(output, "sdlc-project-init %s\n", version)
+		fmt.Fprintf(output, "sdlc-init %s\n", version)
 		return nil
 	}
 	if requestsHelp(arguments) {
@@ -50,10 +50,10 @@ func runCommand(arguments []string, input io.Reader, output, errorOutput io.Writ
 	if err != nil {
 		return err
 	}
-	flags := flag.NewFlagSet("sdlc-project-init", flag.ContinueOnError)
+	flags := flag.NewFlagSet("sdlc-init", flag.ContinueOnError)
 	flags.SetOutput(errorOutput)
 	flags.Usage = func() {
-		fmt.Fprintln(errorOutput, "usage: sdlc-project-init [options]")
+		fmt.Fprintln(errorOutput, "usage: sdlc-init [options]")
 		fmt.Fprintln(errorOutput, "Initialize or migrate one Git project to lean SDLC v3.")
 		flags.PrintDefaults()
 		fmt.Fprintln(errorOutput, "  --version\n    \tprint the command version")
@@ -101,7 +101,7 @@ func requestsHelp(arguments []string) bool {
 }
 
 func printBootstrapHelp(output io.Writer) {
-	fmt.Fprintln(output, "usage: sdlc-project-init [options]")
+	fmt.Fprintln(output, "usage: sdlc-init [options]")
 	fmt.Fprintln(output, "Initialize or migrate one Git project to lean SDLC v3.")
 	fmt.Fprintln(output, "")
 	fmt.Fprintln(output, "Core options:")

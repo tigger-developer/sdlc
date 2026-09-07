@@ -105,7 +105,7 @@ new context.
 
 ## Initialization and migration
 
-`sdlc-project-init` is a once-only migration controller. It requires a clean Git
+`sdlc-init` is a once-only migration controller. It requires a clean Git
 worktree, creates a dated archive branch before mutation, and performs all work
 on a dedicated migration branch.
 

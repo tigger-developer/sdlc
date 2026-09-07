@@ -23,7 +23,7 @@ Deliver a lean, standalone SDLC that:
 The implementation should begin from this explicit inventory rather than
 discovering scope while editing:
 
-- **Rewrite:** `cmd/sdlc-project-init/main.go` and
+- **Rewrite:** `cmd/sdlc-init/main.go` and
   `internal/projectinit/`. Replace constitution and Spec Kit setup with the
   once-only v3 initialization and migration controller.
 - **Rewrite:** `src/config/project-init.schema.yaml`. Replace the environment
@@ -255,7 +255,7 @@ migration:
 
 Inherited defaults and empty sections are omitted from project YAML.
 
-### 8. Rewrite `sdlc-project-init`
+### 8. Rewrite `sdlc-init`
 
 - [X] Run exactly once. Refuse when `.sdlc/project.yaml` already exists.
 - [X] Verify the project is a Git repository and inspect its working tree

@@ -1,7 +1,7 @@
 .PHONY: build test lint install install-cli uninstall
 
 INSTALLER ?= bin/sdlc-install
-PROJECT_INITIALIZER ?= bin/sdlc-project-init
+PROJECT_INITIALIZER ?= bin/sdlc-init
 PREVIEWER ?= bin/sdlc-preview
 LEGACY_AC_MERGER ?= bin/sdlc-merge-legacy-acs
 INSTALL_FLAGS ?=
@@ -19,7 +19,7 @@ endif
 
 build:
 	go build $(INSTALLER_BUILD_FLAGS) -o $(INSTALLER) ./cmd/sdlc-install
-	go build $(PROJECT_INITIALIZER_BUILD_FLAGS) -o $(PROJECT_INITIALIZER) ./cmd/sdlc-project-init
+	go build $(PROJECT_INITIALIZER_BUILD_FLAGS) -o $(PROJECT_INITIALIZER) ./cmd/sdlc-init
 	go build $(PREVIEWER_BUILD_FLAGS) -o $(PREVIEWER) ./cmd/sdlc-preview
 	go build $(LEGACY_AC_MERGER_BUILD_FLAGS) -o $(LEGACY_AC_MERGER) ./cmd/sdlc-merge-legacy-acs
 
@@ -39,13 +39,14 @@ install-cli: build
 	mkdir -p "$(HOME)/.local/bin"
 	@path="$(HOME)/.local/bin/sdlc-project-update"; if [ -e "$$path" ] || [ -L "$$path" ]; then backup="$$path.sdlc-v2-retired"; suffix=2; while [ -e "$$backup" ] || [ -L "$$backup" ]; do backup="$$path.sdlc-v2-retired-$$suffix"; suffix=$$((suffix + 1)); done; mv "$$path" "$$backup"; echo "Retired $$path -> $$backup"; fi
 	@path="$(HOME)/.local/bin/sdlc-audit"; if [ -e "$$path" ] || [ -L "$$path" ]; then backup="$$path.sdlc-v2-retired"; suffix=2; while [ -e "$$backup" ] || [ -L "$$backup" ]; do backup="$$path.sdlc-v2-retired-$$suffix"; suffix=$$((suffix + 1)); done; mv "$$path" "$$backup"; echo "Retired $$path -> $$backup"; fi
+	@path="$(HOME)/.local/bin/sdlc-project-init"; if [ -e "$$path" ] || [ -L "$$path" ]; then backup="$$path.sdlc-v3-retired"; suffix=2; while [ -e "$$backup" ] || [ -L "$$backup" ]; do backup="$$path.sdlc-v3-retired-$$suffix"; suffix=$$((suffix + 1)); done; mv "$$path" "$$backup"; echo "Retired $$path -> $$backup"; fi
 	@target="$(CURDIR)/$(INSTALLER)"; path="$(HOME)/.local/bin/sdlc-install"; if [ ! -L "$$path" ] || [ "$$(readlink "$$path")" != "$$target" ]; then if [ -e "$$path" ] || [ -L "$$path" ]; then backup="$$path.sdlc-retired"; suffix=2; while [ -e "$$backup" ] || [ -L "$$backup" ]; do backup="$$path.sdlc-retired-$$suffix"; suffix=$$((suffix + 1)); done; mv "$$path" "$$backup"; echo "Backed up $$path -> $$backup"; fi; ln -s "$$target" "$$path"; echo "Installed $$path"; fi
-	@target="$(CURDIR)/$(PROJECT_INITIALIZER)"; path="$(HOME)/.local/bin/sdlc-project-init"; if [ ! -L "$$path" ] || [ "$$(readlink "$$path")" != "$$target" ]; then if [ -e "$$path" ] || [ -L "$$path" ]; then backup="$$path.sdlc-retired"; suffix=2; while [ -e "$$backup" ] || [ -L "$$backup" ]; do backup="$$path.sdlc-retired-$$suffix"; suffix=$$((suffix + 1)); done; mv "$$path" "$$backup"; echo "Backed up $$path -> $$backup"; fi; ln -s "$$target" "$$path"; echo "Installed $$path"; fi
+	@target="$(CURDIR)/$(PROJECT_INITIALIZER)"; path="$(HOME)/.local/bin/sdlc-init"; if [ ! -L "$$path" ] || [ "$$(readlink "$$path")" != "$$target" ]; then if [ -e "$$path" ] || [ -L "$$path" ]; then backup="$$path.sdlc-retired"; suffix=2; while [ -e "$$backup" ] || [ -L "$$backup" ]; do backup="$$path.sdlc-retired-$$suffix"; suffix=$$((suffix + 1)); done; mv "$$path" "$$backup"; echo "Backed up $$path -> $$backup"; fi; ln -s "$$target" "$$path"; echo "Installed $$path"; fi
 	@target="$(CURDIR)/$(PREVIEWER)"; path="$(HOME)/.local/bin/sdlc-preview"; if [ ! -L "$$path" ] || [ "$$(readlink "$$path")" != "$$target" ]; then if [ -e "$$path" ] || [ -L "$$path" ]; then backup="$$path.sdlc-retired"; suffix=2; while [ -e "$$backup" ] || [ -L "$$backup" ]; do backup="$$path.sdlc-retired-$$suffix"; suffix=$$((suffix + 1)); done; mv "$$path" "$$backup"; echo "Backed up $$path -> $$backup"; fi; ln -s "$$target" "$$path"; echo "Installed $$path"; fi
 	@target="$(CURDIR)/$(LEGACY_AC_MERGER)"; path="$(HOME)/.local/bin/sdlc-merge-legacy-acs"; if [ ! -L "$$path" ] || [ "$$(readlink "$$path")" != "$$target" ]; then if [ -e "$$path" ] || [ -L "$$path" ]; then backup="$$path.sdlc-retired"; suffix=2; while [ -e "$$backup" ] || [ -L "$$backup" ]; do backup="$$path.sdlc-retired-$$suffix"; suffix=$$((suffix + 1)); done; mv "$$path" "$$backup"; echo "Backed up $$path -> $$backup"; fi; ln -s "$$target" "$$path"; echo "Installed $$path"; fi
 
 uninstall:
 	unlink "$(HOME)/.local/bin/sdlc-install"
-	unlink "$(HOME)/.local/bin/sdlc-project-init"
+	unlink "$(HOME)/.local/bin/sdlc-init"
 	unlink "$(HOME)/.local/bin/sdlc-preview"
 	unlink "$(HOME)/.local/bin/sdlc-merge-legacy-acs"

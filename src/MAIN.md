@@ -113,7 +113,7 @@ repository. Uncaptured conversation or hidden assumptions fail the gate.
 
 ## Project initialization
 
-Run `sdlc-project-init` exactly once. It creates or migrates the v3 project
+Run `sdlc-init` exactly once. It creates or migrates the v3 project
 profile and Org artefacts, preserves the prior state on a dated archive branch,
 and handles SDLC v1 or v2 evidence without installing Spec Kit. The presence of
 `.sdlc/project.yaml` means initialization has already occurred.

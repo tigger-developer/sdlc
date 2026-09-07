@@ -74,7 +74,7 @@ func runTechnologyAssessment(options Options, sdlcRoot, projectRoot, model strin
 	prompt = append(prompt, choiceDocument...)
 	prompt = append(prompt, []byte("```\n")...)
 
-	workspace, err := os.MkdirTemp("", "sdlc-project-init-technologies-")
+	workspace, err := os.MkdirTemp("", "sdlc-init-technologies-")
 	if err != nil {
 		return technologyAssessment{}, fmt.Errorf("creating temporary technology-assessment workspace: %w", err)
 	}

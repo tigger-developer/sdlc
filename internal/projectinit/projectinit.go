@@ -81,7 +81,7 @@ func Run(options Options) error {
 		return err
 	}
 	if _, err := os.Stat(filepath.Join(projectRoot, projectProfilePath)); err == nil && resume == nil {
-		return fmt.Errorf("%s already exists; sdlc-project-init runs exactly once", projectProfilePath)
+		return fmt.Errorf("%s already exists; sdlc-init runs exactly once", projectProfilePath)
 	} else if !errors.Is(err, os.ErrNotExist) {
 		if err != nil {
 			return fmt.Errorf("checking project profile: %w", err)

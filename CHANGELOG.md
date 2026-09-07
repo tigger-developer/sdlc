@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## v3.0.8 - 2026-09-07
+
+- Renamed the once-only project initialization command from
+  `sdlc-project-init` to `sdlc-init` across the executable, help and error
+  output, installer, current documentation, architecture, and migration skill.
+- `make install` now installs `sdlc-init` and retires an existing
+  `sdlc-project-init` command to an adjacent recoverable backup.
+
 ## v3.0.7 - 2026-09-07
 
 - Made the canonical Org specification template enforce a concise,

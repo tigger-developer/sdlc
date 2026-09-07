@@ -13,7 +13,7 @@ func TestHelpDoesNotRequireDeployedSchema(t *testing.T) {
 	if err := runCommand([]string{"--help"}, strings.NewReader(""), &output, &output); err != nil {
 		t.Fatalf("runCommand(--help): %v", err)
 	}
-	if !strings.Contains(output.String(), "usage: sdlc-project-init") {
+	if !strings.Contains(output.String(), "usage: sdlc-init") {
 		t.Fatalf("help output missing usage: %q", output.String())
 	}
 }

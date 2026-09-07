@@ -31,7 +31,7 @@ produces:
    when the source exists; and
 6. closure of every legacy issue after the archive is committed.
 
-Do not invoke `sdlc-project-init`, create SDLC v3 artefacts, change tests or
+Do not invoke `sdlc-init`, create SDLC v3 artefacts, change tests or
 implementation, or migrate undelivered scope into `docs/ACs.org`. Do not inspect
 old code, search Git history ticket by ticket, re-litigate design, reproduce
 historical verification, or add migration comments to tickets.
@@ -332,5 +332,5 @@ screen, present `docs/ticket-migration.org` with `HTML_PREVIEW_TOOL` when that
 variable names an available command; otherwise use an available text editor.
 Presentation is not an approval gate.
 
-The operator decides whether the project is ready for `sdlc-project-init`, which
+The operator decides whether the project is ready for `sdlc-init`, which
 creates the v3 profile and work ledger after this ticket migration is committed.

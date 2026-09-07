@@ -28,11 +28,11 @@ Start on the branch that represents the project state to preserve. Ensure the
 worktree is clean, then run:
 
 ```sh
-sdlc-project-init
+sdlc-init
 ```
 
 The initializer prints a concise migration commit summary. Use
-`VERBOSE=1 sdlc-project-init` only when the complete Git changed-file inventory
+`VERBOSE=1 sdlc-init` only when the complete Git changed-file inventory
 is useful.
 
 Before the technology question, the configured audit model performs one
@@ -61,7 +61,7 @@ model operation.
 
 If initialization is interrupted during or after authority selection, its
 temporary working directory remains at `.sdlc/.init/`. Rerun
-`sdlc-project-init` on the migration branch. It resumes when the matching dated
+`sdlc-init` on the migration branch. It resumes when the matching dated
 archive and original primary branch are unambiguous; otherwise it stops without
 creating another branch. The initializer records `.init/` in
 `.sdlc/.gitignore` so ordinary Git operations cannot commit the temporary state.

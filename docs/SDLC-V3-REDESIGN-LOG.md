@@ -222,7 +222,7 @@ an application's own root configuration.
 
 ## Global commands
 
-### `sdlc-project-init`
+### `sdlc-init`
 
 - Run exactly once for a project. The presence of `.sdlc/project.yaml` means the
   project is initialized and prevents repeated migration.
