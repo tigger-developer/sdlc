@@ -357,9 +357,6 @@ command_references_env_file() {
     basename="${executable##*/}"
     ((index += 1))
 
-    if [[ "$basename" == "echo" || "$basename" == "printf" ]]; then
-        return 1
-    fi
     if [[ "$basename" == "bash" || "$basename" == "sh" || "$basename" == "zsh" ]]; then
         while [[ "$index" -lt ${#command_tokens[@]} ]]; do
             token="${command_tokens[index]}"

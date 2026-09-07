@@ -72,13 +72,13 @@ func TestW004CommandGuardExactRestrictions(t *testing.T) {
 }
 
 func TestW004CommandGuardEnvPathVectors(t *testing.T) {
-	for _, path := range []string{".env", "config/.env", "./.env", `'config\.env'`} {
+	for _, command := range []string{"cat .env", "cat config/.env", "cat ./.env", `cat 'config\.env'`, "echo safe && cat .env"} {
 		blocked, _, _ := runGuard(t, map[string]any{
 			"hook_event_name": "PreToolUse", "tool_name": "Bash",
-			"tool_input": map[string]any{"command": "cat " + path},
+			"tool_input": map[string]any{"command": command},
 		})
 		if !blocked {
-			t.Errorf("shell read was not blocked: %s", path)
+			t.Errorf("shell read was not blocked: %s", command)
 		}
 	}
 	for _, command := range []string{
