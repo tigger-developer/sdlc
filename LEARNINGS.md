@@ -451,6 +451,17 @@ added. The current shell standards also reject `IFS=$'\n\t'` as a universal
 "strict mode" rule because it changes correct parsing semantics; quoted
 expansions and arrays provide safer command construction.
 
+Fish demonstrates why a broad "shell" category is not always a useful context
+boundary. It is intentionally not POSIX-compatible, and its variables, lists,
+expansion, functions, startup files, formatter, and parser differ materially
+from Bash. Loading a Bash-focused standard for Fish-only work adds irrelevant
+instructions and risks invalid mechanical translation.
+
+Technology routing should therefore follow the maintained source language, not
+an umbrella label. Fish has its own automatically discoverable standard;
+`SHELL.md` remains the Bash and POSIX-style authority. A mixed project selects
+both explicitly.
+
 ## Reproducibility files are source inputs
 
 Lockfiles and dependency checksum files make builds repeatable and dependencies

@@ -23,7 +23,8 @@ standard and record it in project configuration.
 
 | Language | Default baseline |
 |---|---|
-| Shell | Google Shell Style Guide, ShellCheck, shfmt |
+| Bash or POSIX-style shell | Google Shell Style Guide, ShellCheck, shfmt |
+| Fish shell | Fish language documentation, `fish --no-execute`, `fish_indent --check` |
 | Python | PEP 8, Ruff |
 | Perl | `perlstyle`, Perl::Critic, perltidy |
 | Swift | Swift API Design Guidelines, SwiftLint, swift-format |

@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## v3.0.5 - 2026-09-07
+
+- Added Fish as an automatically discoverable technology standard covering its
+  non-POSIX language boundary, complexity limits, preferred builtins and
+  ecosystem tools, startup configuration, functions, variables and lists,
+  command failure, file and service safety, formatting, testing, and common
+  anti-patterns.
+- Split progressive routing and the default tooling table between Fish and
+  Bash or POSIX-style shell work. Fish no longer requires agents to load the
+  Bash-focused `SHELL.md` unless a project maintains both languages.
+
 ## v3.0.4 - 2026-09-06
 
 - When the deterministic legacy-ledger importer cannot safely interpret

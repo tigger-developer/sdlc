@@ -66,7 +66,8 @@ Read this file first, then only the standards relevant to the work.
 | Go | `~/.agents/sdlc/technologies/GO.md` |
 | JavaScript or TypeScript | `~/.agents/sdlc/technologies/JAVASCRIPT.md` |
 | Python | `~/.agents/sdlc/technologies/PYTHON.md` |
-| Shell | `~/.agents/sdlc/technologies/SHELL.md` |
+| Bash or POSIX-style shell | `~/.agents/sdlc/technologies/SHELL.md` |
+| Fish shell | `~/.agents/sdlc/technologies/FISH.md` |
 | Perl | `~/.agents/sdlc/technologies/PERL.md` |
 | Rust | `~/.agents/sdlc/technologies/RUST.md` |
 | Swift | `~/.agents/sdlc/technologies/SWIFT.md` |
