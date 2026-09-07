@@ -64,6 +64,21 @@ func TestW004LowerPrecedenceProviderIsIgnoredWhenHarnessChanges(t *testing.T) {
 	}
 }
 
+func TestW004ConfiguredProviderIsIgnoredWhenHarnessDoesNotAcceptIt(t *testing.T) {
+	root := t.TempDir()
+	global := filepath.Join(root, "global.yaml")
+	writeHarnessConfig(t, global, "codex", "openai-codex", "global-model", "4m")
+	config, err := ResolveConfig(ConfigOptions{
+		Phase: "audit", GlobalPath: global, LookupEnv: noEnvironment,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if config.Provider != "" {
+		t.Fatalf("configured provider was passed to Codex: %#v", config)
+	}
+}
+
 func TestW004EveryHarnessResolvesForEveryPhase(t *testing.T) {
 	for _, phase := range []string{"definition", "build", "audit"} {
 		for _, harnessName := range []string{"codex", "claude", "copilot", "hermes"} {

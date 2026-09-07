@@ -53,9 +53,8 @@ func ResolveConfig(options ConfigOptions) (Config, error) {
 		return Config{}, fmt.Errorf("unsupported SDLC phase %q", options.Phase)
 	}
 	config := Config{}
-	harnessSource := 0
-	providerSource := 0
-	applyDocument := func(path string, source int) error {
+	explicitProvider := false
+	applyDocument := func(path string) error {
 		if path == "" {
 			return nil
 		}
@@ -81,11 +80,9 @@ func ResolveConfig(options ConfigOptions) (Config, error) {
 		}
 		if value.Harness != "" {
 			config.Harness = value.Harness
-			harnessSource = source
 		}
 		if value.Provider != "" {
 			config.Provider = value.Provider
-			providerSource = source
 		}
 		if value.Model != "" {
 			config.Model = value.Model
@@ -105,11 +102,11 @@ func ResolveConfig(options ConfigOptions) (Config, error) {
 			globalPath = filepath.Join(home, ".agents", "sdlc.yaml")
 		}
 	}
-	if err := applyDocument(globalPath, 1); err != nil {
+	if err := applyDocument(globalPath); err != nil {
 		return Config{}, err
 	}
 	if options.ProjectRoot != "" {
-		if err := applyDocument(filepath.Join(options.ProjectRoot, ".sdlc", "project.yaml"), 2); err != nil {
+		if err := applyDocument(filepath.Join(options.ProjectRoot, ".sdlc", "project.yaml")); err != nil {
 			return Config{}, err
 		}
 	}
@@ -120,11 +117,9 @@ func ResolveConfig(options ConfigOptions) (Config, error) {
 	prefix := map[string]string{"definition": "SPEC", "build": "BUILD", "audit": "AUDIT"}[phase]
 	if value, ok := lookup("SDLC_" + prefix + "_HARNESS"); ok && strings.TrimSpace(value) != "" {
 		config.Harness = value
-		harnessSource = 3
 	}
 	if value, ok := lookup("SDLC_" + prefix + "_PROVIDER"); ok && strings.TrimSpace(value) != "" {
 		config.Provider = value
-		providerSource = 3
 	}
 	if value, ok := lookup("SDLC_" + prefix + "_MODEL"); ok && strings.TrimSpace(value) != "" {
 		config.Model = value
@@ -138,11 +133,10 @@ func ResolveConfig(options ConfigOptions) (Config, error) {
 	}
 	if options.Harness != "" {
 		config.Harness = options.Harness
-		harnessSource = 4
 	}
 	if options.Provider != "" {
 		config.Provider = options.Provider
-		providerSource = 4
+		explicitProvider = true
 	}
 	if options.Model != "" {
 		config.Model = options.Model
@@ -169,7 +163,7 @@ func ResolveConfig(options ConfigOptions) (Config, error) {
 			return Config{}, errors.New("Hermes harness configuration requires a provider")
 		}
 	case "codex", "claude", "copilot":
-		if strings.TrimSpace(config.Provider) != "" && providerSource >= harnessSource {
+		if strings.TrimSpace(config.Provider) != "" && explicitProvider {
 			return Config{}, fmt.Errorf("%s does not accept an explicit provider", config.Harness)
 		}
 		config.Provider = ""
