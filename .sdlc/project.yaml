@@ -1,0 +1,24 @@
+version: 3
+
+project:
+  kind: other
+  primary_branch: master
+
+standards:
+  technologies:
+    - GO
+    - SHELL
+    - WEB
+
+authorities:
+  product:
+    - README.md
+    - QUICKSTART.md
+    - src/MAIN.md
+  requirements:
+    - docs/work.org
+  architecture:
+    - docs/ARCHITECTURE.md
+
+infrastructure:
+  role: none
