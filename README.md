@@ -216,14 +216,14 @@ change, returns the suite to GREEN, and applies the implemented-test and
 production-code audits locally before one retained external audit context.
 After PASS, required OT and UT evidence is recorded in `validation.org`,
 affected documentation is reconciled, and the operator decides closure.
-`$audit-implementation` remains available for a separately requested combined
-review.
 
 Audit results live in `audits.yaml`. They are evidence for an exact revision, not
 human approval.
 
 Audit criteria are selected by the composite audit harness; individual audit
-skills are not deployed.
+skills are not deployed. The harness-invoked prompt returns findings; only the
+harness writes audit state. Duplicated audit state in a supplied artefact is a
+gate failure.
 
 ## Variant workflows
 

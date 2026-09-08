@@ -8,6 +8,11 @@ registry, while the harness owns timeout, round limits, start/resume selection,
 and the durable `audits.yaml` session mapping. This keeps audit policy
 inspectable without deploying a separate skill for every criterion.
 
+The external prompt must return findings only; it must not edit the project or
+the audit record. The harness persists the response, and one-way migration
+preserves any legacy `audits.org` content in YAML before removing the duplicate.
+This keeps audit state canonical without discarding historical evidence.
+
 This document records why the public SDLC is structured as a standards library
 and how its harder rules were derived. Normative requirements live under
 [`src/`](src/).

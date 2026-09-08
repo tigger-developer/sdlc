@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## v3.2.4 - 2026-09-08
+
+- Updated the README and learnings to document harness-only audit persistence,
+  legacy `audits.org` conversion, and failure on duplicated audit state.
+
 ## v3.2.3 - 2026-09-08
 
 - Clarified that the external audit prompt returns findings to the harness and
