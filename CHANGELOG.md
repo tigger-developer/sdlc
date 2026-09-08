@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## v3.2.1 - 2026-09-08
+
+- Refuse audit-session resumption once `delivery.audit.max_rounds` has been
+  reached; the harness now returns control for an operator decision.
+
 ## v3.2.0 - 2026-09-08
 
 - Replaced deployable individual audit skills with YAML-configured composite

@@ -170,6 +170,9 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 			if !found || entry.SessionID == "" {
 				return fmt.Errorf("no recorded audit session for %s/%s; start a new audit first", *workItem, normalizedGate)
 			}
+			if entry.ExternalRound >= config.MaxRounds {
+				return fmt.Errorf("audit session for %s/%s has reached max_rounds=%d; operator decision required", *workItem, normalizedGate, config.MaxRounds)
+			}
 			if identity == "" {
 				identity = entry.SessionID
 			} else if identity != entry.SessionID {
