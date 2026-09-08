@@ -75,6 +75,21 @@ Each gate therefore spans at most two contexts: its authoring context and one
 retained external auditor context. Do not invoke each focused audit in a new
 context and do not replace an unfavourable auditor.
 
+### Round accounting and remediation
+
+Audit limits are scoped to the invoking session. The authoring or delivery
+context counts only the local audit rounds it performs in the current session;
+audits from an earlier session do not consume that limit. The retained external
+auditor follows the same rule: count only external audit rounds performed in
+the current session of its invoking context. A new session starts a new count,
+while its evidence must still be recorded as a new revision-specific round.
+
+A failed round requires remediation before any rerun. The authoring or delivery
+context must address **all** findings from that round, not one finding at a
+time, and record the remediation. It must not submit an unchanged artefact for
+another audit. The next round audits the remediated revision and may identify
+new findings.
+
 Use the external-audit timeout resolved from `.sdlc/project.yaml`, then
 `~/.agents/sdlc.yaml`; the default is five minutes. A timeout is a runner
 incident, not an audit finding or PASS. Interrupt the retained auditor when the

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v3.1.16 - 2026-09-08
+
+- Clarified per-session audit-round accounting and required complete remediation before reruns.
+
 ## v3.1.15 - 2026-09-08
 
 - Allow explicitly invoked HANDS-OFF definition runs while retaining ATTENDED as the default.

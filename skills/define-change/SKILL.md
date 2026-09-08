@@ -44,8 +44,12 @@ not ready for audit.
 The opening summary must accurately and completely represent the detail below
 its section break. Apply the complete definition gate from `AUDITS.md` in this
 context: review and remediate locally for at most five rounds, then use one
-retained external context for the composite independent audit. Do not invoke
-the focused auditors through separate agents or scripts.
+retained external context for the composite independent audit. The five-round
+limit is for this invoking session only; do not carry counts over from an
+earlier session. After any failed round, remediate **all** findings before
+auditing again; never rerun an unchanged candidate or remediate findings
+piecemeal. Do not invoke the focused auditors through separate agents or
+scripts.
 
 On effective PASS, set the specification's definition-gate status to `PASS` and
 move its `docs/work.org` item to `REVIEW`, preserving the detailed evidence in
