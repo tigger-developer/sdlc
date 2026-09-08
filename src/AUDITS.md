@@ -36,6 +36,10 @@ If supplied artefacts duplicate audit findings or state, the auditor MUST return
 The external auditor returns its envelope and findings only; it does not edit
 files. The harness persists that response in `audits.yaml`.
 
+While waiting, the harness emits a start message and 30-second liveness
+heartbeats to stderr. A heartbeat is not provider progress, a verdict, or
+evidence that the audit has completed.
+
 ## Verdict contract
 
 The harness response contains exactly one envelope:

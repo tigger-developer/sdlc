@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## v3.2.5 - 2026-09-08
+
+- Added explicit harness liveness output at start and every 30 seconds while an
+  external context is running, without treating silence as a verdict.
+
 ## v3.2.4 - 2026-09-08
 
 - Updated the README and learnings to document harness-only audit persistence,

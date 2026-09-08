@@ -45,6 +45,8 @@ Output
 ======
 
 - **stderr:** provider progress, diagnostics, and `SESSION_ID`.
+- The harness also emits a liveness line at start and every 30 seconds while
+  waiting; this is not provider progress or a verdict.
 - **stdout:** the provider's final response.
 
 Start example

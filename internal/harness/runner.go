@@ -117,7 +117,10 @@ func Execute(ctx context.Context, request Request, resume bool, bundle *Bundle, 
 		return Result{}, err
 	}
 	var stdout bytes.Buffer
+	stopHeartbeat := make(chan struct{})
+	go reportHeartbeat(errorOutput, request.Harness, request.SessionID, stopHeartbeat)
 	if err := executor(ctx, invocation.Command, invocation.Args, invocation.Dir, strings.NewReader(invocation.Stdin), &stdout, errorOutput); err != nil {
+		close(stopHeartbeat)
 		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
 			return Result{}, newIncident("timeout", request.Harness, request.SessionID, ctx.Err())
 		}
@@ -130,6 +133,7 @@ func Execute(ctx context.Context, request Request, resume bool, bundle *Bundle, 
 		}
 		return Result{}, newIncident(kind, request.Harness, request.SessionID, err)
 	}
+	close(stopHeartbeat)
 	if bundle != nil {
 		if err := bundle.Verify(); err != nil {
 			return Result{}, err
@@ -147,6 +151,24 @@ func Execute(ctx context.Context, request Request, resume bool, bundle *Bundle, 
 		return Result{}, err
 	}
 	return result, nil
+}
+
+// reportHeartbeat gives the invoking agent visible liveness without implying
+// provider progress or an audit verdict. Provider output still flows directly
+// to errorOutput.
+func reportHeartbeat(output io.Writer, harness, session string, stop <-chan struct{}) {
+	started := time.Now()
+	fmt.Fprintf(output, "sdlc-harness: external context started (harness=%s session=%s); waiting for final response\n", harness, session)
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ticker.C:
+			fmt.Fprintf(output, "sdlc-harness: external context still running (harness=%s session=%s elapsed=%s)\n", harness, session, time.Since(started).Round(time.Second))
+		case <-stop:
+			return
+		}
+	}
 }
 
 func executeCommand(ctx context.Context, command string, args []string, directory string, stdin io.Reader, stdout, stderr io.Writer) error {
