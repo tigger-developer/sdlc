@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v3.1.19 - 2026-09-08
+
+- Reject supplied session IDs on fresh harness starts; resume requires the captured external session ID.
+
 ## v3.1.18 - 2026-09-08
 
 - Clarified that `start` must omit `--session` and that `resume` requires the exact external `SESSION_ID`.

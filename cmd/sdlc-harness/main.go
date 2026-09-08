@@ -80,6 +80,9 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 	if flags.NArg() != 0 {
 		return fmt.Errorf("unexpected positional arguments: %v", flags.Args())
 	}
+	if action == "start" && strings.TrimSpace(*session) != "" {
+		return errors.New("start must not receive --session; start creates a fresh external session identity")
+	}
 	normalizedPhase := strings.ToLower(strings.TrimSpace(*phase))
 	projectRoot, err := filepath.Abs(*project)
 	if err != nil {

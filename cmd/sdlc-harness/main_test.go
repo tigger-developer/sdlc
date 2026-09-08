@@ -79,6 +79,13 @@ func TestW004InternalCLIRejectsIncompleteRequests(t *testing.T) {
 	}
 }
 
+func TestW004StartRejectsSuppliedSession(t *testing.T) {
+	err := run([]string{"start", "--session", "agent-owned-id"}, strings.NewReader("prompt"), &bytes.Buffer{}, &bytes.Buffer{})
+	if err == nil || !strings.Contains(err.Error(), "start must not receive --session") {
+		t.Fatalf("start with supplied session error = %v", err)
+	}
+}
+
 func TestW004UppercaseAuditPhaseStillValidatesVerdict(t *testing.T) {
 	root := t.TempDir()
 	bin := filepath.Join(root, "bin")
