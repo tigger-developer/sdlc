@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## v3.1.9 - 2026-09-08
+
+- Foundation audits now use the configured specification harness, provider, and
+  model rather than the ordinary audit configuration.
+
 ## v3.1.8 - 2026-09-08
 
 - Added `audit-project-foundation`, a bounded two-context gate for greenfield
