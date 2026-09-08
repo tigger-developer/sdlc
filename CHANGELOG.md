@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## v3.1.8 - 2026-09-08
+
+- Added `audit-project-foundation`, a bounded two-context gate for greenfield
+  Vision and Architecture before feature definition.
+
 ## v3.1.7 - 2026-09-08
 
 - Added `define-project-foundation` for greenfield projects. It asks bounded,
