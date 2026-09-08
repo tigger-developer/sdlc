@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## v3.1.7 - 2026-09-08
+
+- Added `define-project-foundation` for greenfield projects. It asks bounded,
+  categorized discovery questions, loads technology standards as technologies
+  are identified, drafts Vision and Architecture authorities, and records a
+  foundation review before operator sign-off.
+
 ## v3.1.6 - 2026-09-08
 
 - Strengthened Web and Node standards: Node.js/npm are last-choice architectural
