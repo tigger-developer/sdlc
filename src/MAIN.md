@@ -115,15 +115,19 @@ in **HANDS-OFF** mode. Hands-off is therefore an invoked delivery mode, not a
 global default. The agent must declare `DELIVERY MODE: HANDS-OFF` when entering
 it and advise the operator that any interruption or resumed interaction changes
 the mode to **ATTENDED** until the operator invokes `HANDS-OFF` again. The cost
-of stopping prematurely is high: progress reports, commits, warnings, partial
-milestones, and ordinary audit remediation are not terminal handbacks while
-safe, authorized, executable work remains.
+of stopping prematurely is high: a question, uncertainty, or need for routine
+interpretation is not a stopping condition. Make and record a sensible,
+reversible assumption whenever it remains inside the signed-off specification,
+design, standards, and safety boundaries. Progress reports, commits, warnings,
+partial milestones, and ordinary audit remediation are not terminal handbacks
+while safe, authorized, executable work remains.
 
 Hands-off delivery records material routine assumptions in the specification's
-`Decision Log (Hands-off delivery only)`. It stops only for a human decision or
-genuine blocker, a failed mandatory check that cannot be safely remediated, or
-the configured audit limit without `PASS` or `PROVISIONAL`. It never authorizes
-new product behaviour, scope, architecture, security, access, data, external
+`Decision Log (Hands-off delivery only)`. It stops only when no sensible
+reversible assumption can avoid a human-only decision, a genuine blocker, a
+failed mandatory check that cannot be safely remediated, or the configured
+audit limit is reached without `PASS` or `PROVISIONAL`. It never authorizes new
+product behaviour, scope, architecture, security, access, data, external
 contract, or irreversible decisions.
 
 ## Variant workflows

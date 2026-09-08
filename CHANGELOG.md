@@ -11,6 +11,9 @@
 - Hands-off delivery now declares its active mode and warns that an interruption
   or resumed interaction returns it to attended mode until `HANDS-OFF` is
   invoked again.
+- Hands-off delivery now treats questions and routine uncertainty as
+  non-terminal: the agent must make and record a sensible reversible assumption
+  within the signed-off boundaries whenever possible.
 - Added a `Decision Log (Hands-off delivery only)` section to the canonical
   specification template for recording bounded, reversible runtime assumptions.
 

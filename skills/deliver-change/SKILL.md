@@ -25,18 +25,22 @@ workflow, and it does not authorize changes to signed-off behaviour or other
 human-only decisions.
 
 Hands-off delivery is a continuation contract. The cost of stopping
-prematurely is high, so a progress report, commit, warning, completed test,
-audit result, or partial milestone is not a terminal handback while safe,
-authorized, executable work remains. Continue through TDD, remediation,
-documentation, validation, and evidence recording. Record every material
-routine assumption in the specification's `Decision Log (Hands-off delivery
-only)` section.
+prematurely is high, especially when the operator may be unavailable for the
+delivery window. A question, uncertainty, or routine interpretation is not a
+terminal handback: make a sensible, reversible assumption within the signed-
+off specification, design, standards, and safety boundaries and record it in
+the specification's `Decision Log (Hands-off delivery only)` section. A
+progress report, commit, warning, completed test, audit result, or partial
+milestone is likewise not terminal while safe, authorized, executable work
+remains. Continue through TDD, remediation, documentation, validation, and
+evidence recording.
 
-Valid reasons to stop include a required human decision or genuine blocker, a
-failed mandatory test or verification that cannot be safely remediated, or
-reaching the configured maximum number of audit rounds without `PASS` or
-`PROVISIONAL`. In those cases return the exact state, evidence, assumptions,
-and next human action; do not imply completion.
+Valid reasons to stop are limited to a human-only decision that no sensible
+reversible assumption can avoid, a genuine blocker, a failed mandatory test or
+verification that cannot be safely remediated, or reaching the configured
+maximum number of audit rounds without `PASS` or `PROVISIONAL`. In those cases
+return the exact state, evidence, assumptions, and next human action; do not
+imply completion.
 
 After admission, apply the implementation branch strategy from the project and
 global configuration. Under `current`, remain on the operator-selected branch.
