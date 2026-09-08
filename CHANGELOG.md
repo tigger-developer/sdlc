@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v3.1.18 - 2026-09-08
+
+- Clarified that `start` must omit `--session` and that `resume` requires the exact external `SESSION_ID`.
+
 ## v3.1.17 - 2026-09-08
 
 - Added embedded, detailed `sdlc-harness` help with explicit external-session resume examples.

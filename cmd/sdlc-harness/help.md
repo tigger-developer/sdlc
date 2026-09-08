@@ -14,9 +14,11 @@ operator-facing global command.
 Operations
 ==========
 
-`start` creates a new retained external context. Omit `--session` and the
-runner creates an identity. Capture the exact `SESSION_ID` line it prints on
-stderr; that is the value required for a later resume.
+`start` creates a new retained external context. **Do not pass `--session` to
+`start`**: the runner creates the external identity. Capture the exact
+`SESSION_ID` line it prints on stderr; that is the value required for a later
+resume. The invoking agent's own conversation or task ID is not an external
+session identity.
 
 `resume` sends a revised evidence bundle to the same retained external context.
 It requires `--session` set to the exact previously reported `SESSION_ID`. Do
