@@ -13,6 +13,12 @@ evidence that remains current. Do not begin by rerunning definition audits. A
 material specification change resets the definition gate and sign-off to
 `PENDING` and moves the work item to `REVIEW`.
 
+In **HANDS-OFF** mode, a user-facing progress report is not a permitted
+response boundary. Do not end the turn after reporting progress, checkpoints,
+warnings, or partial completion. Continue with the next executable action in
+the same invocation. Ending the turn while executable work remains is a
+HANDS-OFF contract violation.
+
 At the beginning of delivery, determine whether any information is required
 from the operator before implementation can safely start. Ask that one bounded
 set of questions once. If the operator deliberately selects `ATTENDED`, remain

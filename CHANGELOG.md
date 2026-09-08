@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v3.1.22 - 2026-09-08
+
+- Marked HANDS-OFF progress handbacks as explicit contract violations while executable work remains.
+
 ## v3.1.21 - 2026-09-08
 
 - Standardized composite audit success as `PASS` or `PROVISIONAL PASS` and rejected standalone `PROVISIONAL`.
