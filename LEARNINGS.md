@@ -614,6 +614,17 @@ installation plan and one confirmation. Declining that confirmation makes no
 changes. The installer is recoverable and idempotent, but does not claim atomic
 rollback after application begins.
 
+## Preferred linters still require reproducible CI provisioning
+
+Developer convenience is not a CI contract. For web projects, the preferred
+tools are `tidy-html5`/`tidy` for HTML, `oxlint` for JavaScript and TypeScript,
+and Biome for CSS. Their availability through Homebrew on one workstation does
+not establish that a build or deployment environment can run the same checks.
+CI must provision and pin the selected versions through its declared toolchain,
+using a pinned Nixpkgs input or a documented Debian/Ubuntu package or source
+where available. This preserves the no-casual-Node/npm rule while making the
+chosen checks reproducible.
+
 ## Licence
 
 Apache License 2.0. See [`LICENSE`](LICENSE).

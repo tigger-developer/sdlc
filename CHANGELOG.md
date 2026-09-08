@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## v3.1.11 - 2026-09-08
+
+- Recorded the CI reproducibility lesson for the preferred Web linters in
+  `LEARNINGS.md`.
+
 ## v3.1.10 - 2026-09-08
 
 - Set preferred Web linters to `tidy-html5`/`tidy`, `oxlint`, and Biome, with
