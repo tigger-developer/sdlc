@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v3.1.21 - 2026-09-08
+
+- Standardized composite audit success as `PASS` or `PROVISIONAL PASS` and rejected standalone `PROVISIONAL`.
+
 ## v3.1.20 - 2026-09-08
 
 - Rewrote `sdlc-harness` help for concise, explicit start/resume and session-ID usage.

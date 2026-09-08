@@ -56,7 +56,7 @@ with an executable next action means delivery remains active.
 Valid reasons to stop are limited to a human-only decision that no sensible
 reversible assumption can avoid, a genuine blocker, a failed mandatory test or
 verification that cannot be safely remediated, or reaching the configured
-maximum number of audit rounds without `PASS` or `PROVISIONAL`. In those cases
+maximum number of audit rounds without `PASS` or `PROVISIONAL PASS`. In those cases
 return the exact state, evidence, assumptions, and next human action; do not
 imply completion.
 

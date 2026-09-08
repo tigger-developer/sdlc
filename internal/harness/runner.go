@@ -320,7 +320,7 @@ func ValidateCompositeVerdict(response string) error {
 	if fields["GATE"][0] != "definition" && fields["GATE"][0] != "implementation" {
 		return newIncident("response-malformed", "audit", "", fmt.Errorf("unsupported GATE %q", fields["GATE"][0]))
 	}
-	if fields["VERDICT"][0] != "PASS" && fields["VERDICT"][0] != "PROVISIONAL" && fields["VERDICT"][0] != "FAIL" {
+	if fields["VERDICT"][0] != "PASS" && fields["VERDICT"][0] != "PROVISIONAL PASS" && fields["VERDICT"][0] != "FAIL" {
 		return newIncident("response-malformed", "audit", "", fmt.Errorf("unsupported VERDICT %q", fields["VERDICT"][0]))
 	}
 	return nil

@@ -28,7 +28,8 @@ criteria as exact `--input` files; send the bounded audit instruction on stdin.
 The runner resolves the harness, provider where meaningful, model, and timeout
 from project and global YAML configuration. Record the `SESSION_ID` it reports.
 The external context runs all three audits in one turn and returns one composite
-verdict. If remediation is required, address **all** findings, rerun affected
+verdict using exactly `PASS`, `PROVISIONAL PASS`, or `FAIL`; never return
+`PROVISIONAL` alone. If remediation is required, address **all** findings, rerun affected
 local reviews, and send the revised
 candidate to `~/.agents/sdlc/bin/sdlc-harness resume --phase audit` with
 `--session SESSION_ID` using that same retained context. Never replace it or

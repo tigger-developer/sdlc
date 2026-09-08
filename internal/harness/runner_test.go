@@ -385,13 +385,18 @@ func TestW004ImmutableBundleDetectsSourceMutation(t *testing.T) {
 }
 
 func TestW004CompositeVerdictValidation(t *testing.T) {
-	valid := "GATE: implementation\nREVISION: abc123\nVERDICT: PASS\n"
-	if err := ValidateCompositeVerdict(valid); err != nil {
-		t.Fatal(err)
+	for _, valid := range []string{
+		"GATE: implementation\nREVISION: abc123\nVERDICT: PASS\n",
+		"GATE: implementation\nREVISION: abc123\nVERDICT: PROVISIONAL PASS\n",
+	} {
+		if err := ValidateCompositeVerdict(valid); err != nil {
+			t.Fatal(err)
+		}
 	}
 	for _, invalid := range []string{
 		"VERDICT: PASS\n",
 		"GATE: implementation\nREVISION: abc123\nVERDICT: MAYBE\n",
+		"GATE: implementation\nREVISION: abc123\nVERDICT: PROVISIONAL\n",
 		"GATE: implementation\nREVISION: abc123\nVERDICT: PASS\nVERDICT: FAIL\n",
 	} {
 		if err := ValidateCompositeVerdict(invalid); err == nil {

@@ -108,22 +108,22 @@ Classify findings as:
   requires no judgement.
 - `[ADVISORY]`: a non-blocking improvement.
 
-Use `PASS` when no required correction remains, `PROVISIONAL` when every
-required correction is a mechanical condition, and `FAIL` when a blocking
+Use `PASS` when no required correction remains, `PROVISIONAL PASS` when every
+remaining correction is a mechanical condition, and `FAIL` when a blocking
 finding exists. A timeout, silence, malformed verdict, or wrong audit name is
-not PASS.
+not `PASS` or `PROVISIONAL PASS`.
 
 Each composite verdict records:
 
 ```text
 GATE: definition | implementation
 REVISION: <audited revision or SHA-256>
-VERDICT: PASS | PROVISIONAL | FAIL
+VERDICT: PASS | PROVISIONAL PASS | FAIL
 
 1. [audit-name] [classification] <finding with descriptive IDs>
 ```
 
-A PROVISIONAL verdict becomes effective PASS only when the author applies
+A `PROVISIONAL PASS` becomes effective `PASS` only when the author applies
 exactly the stated conditions, verifies each stated check, and changes nothing
 else. Any judgement or additional change requires the retained auditor to
 review the new revision.

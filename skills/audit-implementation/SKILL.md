@@ -27,7 +27,8 @@ specification, exact implementation delta, test evidence, project profile, and
 selected standards as exact `--input` files; send the bounded audit instruction
 on stdin. The runner resolves the harness, provider where meaningful, model,
 and timeout from project and global YAML configuration. Record the `SESSION_ID`
-it reports. The external context runs both audits in one turn. After addressing
+it reports. The external context runs both audits in one turn and returns exactly
+`PASS`, `PROVISIONAL PASS`, or `FAIL`; never return `PROVISIONAL` alone. After addressing
 **all** findings, rerun affected tests and local reviews, then send the revision to
 that same context with `~/.agents/sdlc/bin/sdlc-harness resume --phase audit`
 and `--session SESSION_ID`. Never replace it or exceed five failed gate rounds. If the

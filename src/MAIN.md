@@ -136,7 +136,7 @@ Hands-off delivery records material routine assumptions in the specification's
 subtree for each invocation. It stops only when no sensible
 reversible assumption can avoid a human-only decision, a genuine blocker, a
 failed mandatory check that cannot be safely remediated, or the configured
-audit limit is reached without `PASS` or `PROVISIONAL`. It never authorizes new
+audit limit is reached without `PASS` or `PROVISIONAL PASS`. It never authorizes new
 product behaviour, scope, architecture, security, access, data, external
 contract, or irreversible decisions.
 

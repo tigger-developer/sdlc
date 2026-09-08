@@ -59,12 +59,12 @@ Return the standard verdict contract:
 ```text
 GATE: foundation
 REVISION: <exact document revisions or hashes>
-VERDICT: PASS | PROVISIONAL | FAIL
+VERDICT: PASS | PROVISIONAL PASS | FAIL
 
 1. [vision|architecture|alignment|risk|handoff] [classification] <finding>
 ```
 
-`PASS` or an effective `PROVISIONAL` result permits the operator sign-off
+`PASS` or an effective `PROVISIONAL PASS` result permits the operator sign-off
 request; it does not itself approve the foundation. A material change to either
 document invalidates the current result and requires a fresh gate. Do not begin
 feature definition until the operator records explicit foundation sign-off.
