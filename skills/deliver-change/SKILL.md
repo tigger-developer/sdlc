@@ -24,6 +24,13 @@ mode is not a global default: it is activated only by invoking this delivery
 workflow, and it does not authorize changes to signed-off behaviour or other
 human-only decisions.
 
+HANDS-OFF is the autonomous coding state. A final response, approval request,
+decision request, blocker handback, or other transfer of control is prohibited
+while safe, authorized, executable work remains. Progress and status reports
+are non-terminal; after reporting one, continue with the next executable item.
+An in-scope correction or instruction leaves HANDS-OFF active: incorporate it
+and continue.
+
 Hands-off delivery is a continuation contract. The cost of stopping
 prematurely is high, especially when the operator may be unavailable for the
 delivery window. A question, uncertainty, or routine interpretation is not a
@@ -41,6 +48,10 @@ evidence recording.
 Assume that no human is available during the hands-off delivery window. Do not
 pause to wait for an answer; continue until a permitted stopping condition is
 actually reached.
+
+Before any final handback, re-read the signed-off specification, completion
+state, decision log, audit evidence, and validation record. An unchecked item
+with an executable next action means delivery remains active.
 
 Valid reasons to stop are limited to a human-only decision that no sensible
 reversible assumption can avoid, a genuine blocker, a failed mandatory test or

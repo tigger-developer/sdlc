@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## v3.1.14 - 2026-09-08
+
+- Restored the stronger MODE DELIVER continuation contract for HANDS-OFF:
+  control-transfer handbacks are prohibited while executable work remains, and
+  progress or status reports are explicitly non-terminal.
+
 ## v3.1.13 - 2026-09-08
 
 - Removed duplicated absolute-path instructions from individual audit skills;
