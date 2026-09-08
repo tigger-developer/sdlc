@@ -1,0 +1,14 @@
+# Canonical audit state. Do not duplicate these fields in spec sheets or tickets.
+version: 1
+audits:
+  - work_item: 001-descriptor
+    gate: definition                 # definition or implementation
+    session_id: ""                   # harness-issued external session
+    external_round: 0                 # current session iteration, starting at 1
+    status: active                    # active, passed, or exhausted
+    revision: ""                     # exact audited revision or digest
+    verdict: ""                      # PASS, PROVISIONAL PASS, or FAIL
+    findings: []                      # every finding for the current revision
+    remediation: []                   # remediation applied before the next round
+    response: ""                     # exact composite response, for provenance
+    history: []                       # prior revision-specific rounds, never deleted

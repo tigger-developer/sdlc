@@ -13,10 +13,11 @@ import (
 
 // Config is the resolved harness configuration for one SDLC phase.
 type Config struct {
-	Harness  string
-	Provider string
-	Model    string
-	Timeout  time.Duration
+	Harness   string
+	Provider  string
+	Model     string
+	Timeout   time.Duration
+	MaxRounds int
 }
 
 // ConfigOptions supplies higher-precedence overrides and configuration paths.
@@ -32,10 +33,11 @@ type ConfigOptions struct {
 }
 
 type phaseDocument struct {
-	Harness  string `yaml:"harness"`
-	Provider string `yaml:"provider"`
-	Model    string `yaml:"model"`
-	Timeout  string `yaml:"timeout"`
+	Harness   string `yaml:"harness"`
+	Provider  string `yaml:"provider"`
+	Model     string `yaml:"model"`
+	Timeout   string `yaml:"timeout"`
+	MaxRounds int    `yaml:"max_rounds"`
 }
 
 type configDocument struct {
@@ -93,6 +95,9 @@ func ResolveConfig(options ConfigOptions) (Config, error) {
 				return fmt.Errorf("invalid %s timeout %q in %s", phase, value.Timeout, path)
 			}
 			config.Timeout = parsed
+		}
+		if value.MaxRounds != 0 {
+			config.MaxRounds = value.MaxRounds
 		}
 		return nil
 	}
@@ -153,6 +158,12 @@ func ResolveConfig(options ConfigOptions) (Config, error) {
 	}
 	if config.Timeout == 0 {
 		config.Timeout = 5 * time.Minute
+	}
+	if config.MaxRounds == 0 {
+		config.MaxRounds = 5
+	}
+	if config.MaxRounds < 1 {
+		return Config{}, errors.New("audit maximum rounds must be at least one")
 	}
 	if config.Timeout < time.Second {
 		return Config{}, errors.New("harness timeout must be at least one second")

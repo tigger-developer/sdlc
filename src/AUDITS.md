@@ -1,177 +1,73 @@
 # Audit and Gate Standards
 
-Audits challenge work before a human gate. They provide evidence; they do not
-replace operator approval, test execution, or implementation evidence.
+Audits provide independent findings; they do not replace operator approval,
+tests, or implementation evidence. The **audit harness** owns the prompts,
+provider invocation, timeout, round limit, and retained session. No individual
+audit skill is required or deployed.
 
-## Audit roles
+## Composite gates
 
-- `audit-spec` challenges the change-specific title, ABC presentation, context,
-  scope, requirements, acceptance criteria, edge cases, authority, and
-  context-independent handoff.
-- `audit-design` challenges traceability, architecture fit, boundaries,
-  trade-offs, security, operability, and failure behaviour.
-- `audit-test-definitions` challenges proposed RT/UT/OT coverage,
-  classification, observable boundaries, TDD suitability, and gaming
-  opportunities without demanding implementation evidence.
-- `audit-test-code` challenges implemented tests, RED/GREEN evidence, current
-  results, traceability, assertions, and departures from the signed-off test
-  strategy.
-- `audit-code` challenges the implemented change against the signed-off
-  specification, tests, selected standards, and language best practice.
+The **definition gate** reviews the specification, solution design, and RT/UT/OT
+test definitions together. The **implementation gate** reviews implemented tests
+and the production delta against the signed-off definition. The implementation
+gate never reopens a signed-off definition.
 
-Auditors are findings-only. They do not modify the audited artefact or mark
-their own findings resolved.
+For either gate:
 
-## Two composite gates
+1. Invoke `~/.agents/sdlc/bin/sdlc-harness` with the gate and exact evidence.
+2. On `FAIL`, remediate **all** findings before resuming the recorded session.
+3. Never submit an unchanged revision or create a replacement session.
+4. Stop after the configured maximum rounds, or for a decision that cannot be
+   made safely from the authorities.
 
-### Definition gate
+The harness stores one session mapping per work item and gate in `audits.yaml`.
+The first invocation starts a session; later invocations resume its recorded
+`session_id`. The round limit is `delivery.audit.max_rounds` (default five) and
+applies to the current invoking session only.
 
-The authoring context applies `audit-spec`, `audit-design`, and
-`audit-test-definitions` together to `spec.org`.
+Audit findings, status, revisions, round numbers, and session IDs MUST be
+recorded only in `audits.yaml`. Specifications and tickets may link to that
+record but must not duplicate its audit state. Existing duplicated text is
+historical input for migration, not a second authority.
 
-1. Review locally, remediate, and repeat for at most five local rounds.
-2. Start no external auditor until all three local reviews pass.
-3. Start one context through the configured external audit harness and run all
-   three audits there in one turn.
-4. If it fails, remediate locally, rerun all affected local reviews, then resume
-   the same external context. Never create another auditor for the same gate.
-5. Stop at PASS, five failed gate rounds, or a human-controlled decision. A
-   hands-off workflow may not stop at a progress report, warning, partial
-   milestone, or ordinary remediation step.
+## Verdict contract
 
-The external auditor receives only the current specification, project profile,
-named authorities, applicable standards, and focused repository evidence. It
-must test whether a new agent can safely deliver without the drafting
-conversation.
-
-An effective PASS sets `DEFINITION_GATE` in `spec.org` to `PASS` and moves the
-work item in `docs/work.org` to `REVIEW`. Explicit operator sign-off records the
-authority and date and moves the work item to `ACTIVE`. Detailed rounds remain
-in `audits.org`. Lifecycle-only recording does not invalidate the
-audit; any material specification change resets the gate and sign-off to
-`PENDING`.
-
-### Implementation gate
-
-The delivery context applies `audit-test-code` and `audit-code` together to the
-implemented tests and production code.
-
-Delivery starts only when `docs/work.org` records `ACTIVE` and `spec.org`
-records a current definition gate `PASS`, explicit operator sign-off, and
-linked audit evidence. It does not rerun definition audits merely because a
-delivery context has started.
-
-1. Review locally, remediate, and repeat for at most five local rounds.
-2. Start no external auditor until both local reviews pass.
-3. Start one context through the configured external audit harness and run both
-   audits there in one turn.
-4. If it fails, remediate locally, rerun affected tests and local reviews, then
-   resume the same external context.
-5. Stop at PASS, five failed gate rounds, or a human-controlled decision. A
-   hands-off workflow may not stop at a progress report, warning, partial
-   milestone, or ordinary remediation step.
-
-Each gate therefore spans at most two contexts: its authoring context and one
-retained external auditor context. Do not invoke each focused audit in a new
-context and do not replace an unfavourable auditor.
-
-### Round accounting and remediation
-
-Audit limits are scoped to the invoking session. The authoring or delivery
-context counts only the local audit rounds it performs in the current session;
-audits from an earlier session do not consume that limit. The retained external
-auditor follows the same rule: count only external audit rounds performed in
-the current session of its invoking context. A new session starts a new count,
-while its evidence must still be recorded as a new revision-specific round.
-
-A failed round requires remediation before any rerun. The authoring or delivery
-context must address **all** findings from that round, not one finding at a
-time, and record the remediation. It must not submit an unchanged artefact for
-another audit. The next round audits the remediated revision and may identify
-new findings.
-
-Use the external-audit timeout resolved from `.sdlc/project.yaml`, then
-`~/.agents/sdlc.yaml`; the default is five minutes. A timeout is a runner
-incident, not an audit finding or PASS. Interrupt the retained auditor when the
-timeout expires and record the incident. Resume that same context only when the
-operator directs a retry; otherwise return the incident for a human decision.
-Never silently create another auditor.
-
-## Findings and verdicts
-
-Classify findings as:
-
-- `[BLOCKING]`: a contradiction, unsafe boundary, missing material decision,
-  unverifiable requirement, coverage gap, standards violation, or defect that
-  prevents sign-off.
-- `[CONDITION]`: an exact mechanical correction with a deterministic check that
-  requires no judgement.
-- `[ADVISORY]`: a non-blocking improvement.
-
-Use `PASS` when no required correction remains, `PROVISIONAL PASS` when every
-remaining correction is a mechanical condition, and `FAIL` when a blocking
-finding exists. A timeout, silence, malformed verdict, or wrong audit name is
-not `PASS` or `PROVISIONAL PASS`.
-
-Each composite verdict records:
+The harness response contains exactly one envelope:
 
 ```text
 GATE: definition | implementation
 REVISION: <audited revision or SHA-256>
 VERDICT: PASS | PROVISIONAL PASS | FAIL
-
-1. [audit-name] [classification] <finding with descriptive IDs>
 ```
 
-A `PROVISIONAL PASS` becomes effective `PASS` only when the author applies
-exactly the stated conditions, verifies each stated check, and changes nothing
-else. Any judgement or additional change requires the retained auditor to
-review the new revision.
-
-## Evidence record
-
-Write every local and external gate result to the active change's `audits.org`:
-
-- gate and round;
-- artefact and exact revision;
-- local or external context;
-- all component audits applied;
-- verdict and findings;
-- remediation or condition receipt; and
-- the retained external context identifier.
-
-Preserve superseded verdicts as revision-specific history. A later relevant
-change makes an earlier PASS non-current; it does not erase it. Review only the
-changed scope and enough adjacent context to judge it safely.
-
-## Brownfield evidence
-
-For brownfield work, confirm the author examined the relevant requirement and
-design authorities, traced historical records, maintained regression tests,
-and affected implementation. Report material omitted sources or conflicts.
-Do not demand that a delta specification copy its entire baseline.
+`PROVISIONAL PASS` is effective only after its exact mechanical conditions are
+applied. Timeout, silence, malformed output, or an unavailable provider is not
+a pass. Record findings and remediation in `audits.yaml` without deleting
+superseded evidence.
 
 ## Human boundaries
 
-Stop the autonomous loop when remediation would:
+Only the operator may approve the definition, change signed-off behaviour or
+architecture, and close delivered work. A hands-off workflow may continue with
+reversible assumptions, but must stop for an unsafe or irreversible decision,
+an unremediable mandatory test failure, or the configured round limit.
 
-- change a signed-off requirement or design;
-- decide product behaviour, scope, architecture, security, privacy, access,
-  persisted data, an external contract, or an irreversible outcome without
-  authority; or
-- exceed five failed rounds.
+`BYPASS-GATE-7` skips definition admission for an emergency change. It still
+requires TDD where practicable, the implementation gate, and a wrap-up that
+backfills the specification, design, validation, and documentation evidence.
 
-At a gate handback, report the verdict, rounds, decisions, assumptions,
-advisories, and unresolved findings. Give every ID a descriptor. Only the
-operator may sign off the definition or close delivered work.
+## Brownfield evidence
+
+A brownfield change must consult the relevant requirements, design, project
+authorities, historical records, regression tests, and affected implementation.
+The delta need not copy the baseline; material conflicts and omitted authorities
+must be reported.
 
 ## Variant workflows
 
-- Paired work uses only the change-scoped audits required by `PAIRING.md`; it
-  does not run a gate on every live iteration.
-- `BYPASS-GATE-7` skips the definition gate, but runs the implementation gate
-  after tests and implementation, then reconciles durable specification,
-  design, validation, and documentation evidence.
+Paired work records live user validation and uses the same harness only when a
+gate is appropriate. It does not audit every live iteration.
+
 # Canary
 
 Suffix the canary string with "AUDIT "

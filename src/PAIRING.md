@@ -76,9 +76,9 @@ duplicating CSS, templates, Markdown, YAML, or other reviewed artefacts in
 prose.
 
 Do not route the completed paired change through the normal pre-implementation
-definition checkpoint retrospectively. Run the focused audits required by
-`~/.agents/sdlc/AUDITS.md`: a change-scoped `audit-code` for material code or
-equivalent artefact changes, and the other specialist audits only when the work
+definition checkpoint retrospectively. Use the composite audit harness described
+by `~/.agents/sdlc/AUDITS.md` for any material code or equivalent artefact changes;
+do not invoke individual audit skills.
 creates their corresponding durable specification, design, or test material.
 
 At closure, present one consolidated handback containing:

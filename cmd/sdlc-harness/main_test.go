@@ -49,6 +49,10 @@ printf '{"type":"thread.started","thread_id":"native-session"}\n'
 		t.Fatal(err)
 	}
 	config := "version: 3\ndelivery:\n  audit:\n    harness: codex\n    model: test-model\n    timeout: 5s\n"
+	prompts := filepath.Join(project, "audits.yaml")
+	if err := os.WriteFile(prompts, []byte("version: 1\ngates:\n  implementation:\n    prompt: audit\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
 	if err := os.WriteFile(filepath.Join(project, ".sdlc", "project.yaml"), []byte(config), 0o600); err != nil {
 		t.Fatal(err)
 	}
@@ -57,8 +61,8 @@ printf '{"type":"thread.started","thread_id":"native-session"}\n'
 		t.Fatal(err)
 	}
 	for _, arguments := range [][]string{
-		{"start", "--project", project, "--global-config", filepath.Join(root, "absent.yaml"), "--input", evidence},
-		{"resume", "--project", project, "--global-config", filepath.Join(root, "absent.yaml"), "--input", evidence, "--session", "native-session"},
+		{"start", "--phase", "audit", "--gate", "implementation", "--audit-prompts", prompts, "--project", project, "--global-config", filepath.Join(root, "absent.yaml"), "--input", evidence},
+		{"resume", "--phase", "audit", "--gate", "implementation", "--audit-prompts", prompts, "--project", project, "--global-config", filepath.Join(root, "absent.yaml"), "--input", evidence, "--session", "native-session"},
 	} {
 		var output bytes.Buffer
 		var diagnostics bytes.Buffer
@@ -120,7 +124,11 @@ printf '{"type":"thread.started","thread_id":"native-session"}\n'
 	if err := os.WriteFile(evidence, []byte("evidence\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	arguments := []string{"start", "--phase", "AUDIT", "--project", project, "--global-config", filepath.Join(root, "absent.yaml"), "--input", evidence}
+	prompts := filepath.Join(project, "audits.yaml")
+	if err := os.WriteFile(prompts, []byte("version: 1\ngates:\n  definition:\n    prompt: audit\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	arguments := []string{"start", "--phase", "AUDIT", "--gate", "definition", "--audit-prompts", prompts, "--project", project, "--global-config", filepath.Join(root, "absent.yaml"), "--input", evidence}
 	if err := run(arguments, strings.NewReader("audit this"), &bytes.Buffer{}, &bytes.Buffer{}); err == nil || !strings.Contains(err.Error(), "composite verdict") {
 		t.Fatalf("uppercase audit phase verdict validation = %v", err)
 	}

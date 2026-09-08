@@ -19,7 +19,7 @@ and assume the operator is unavailable for the remainder of the definition
 window. In that mode, make sensible, reversible assumptions to keep the work
 moving and record each one in the specification's decision log; do not stop for
 routine status, incidental uncertainty, or approval requests. Stop only for a
-genuine blocker, an unsafe or unauthorised action, the configured audit limit,
+genuine blocker, an unsafe or unauthorized action, the configured audit limit,
 or a decision that cannot be made safely from the available evidence. An
 ordinary progress report is not a handback. Any interruption or operator
 response returns the skill to ATTENDED until HANDS-OFF is explicitly invoked
@@ -35,25 +35,22 @@ Allocate the next never-used project work number. Create
 `~/.agents/sdlc/templates/v3/spec.org`. Include context, falsifiable acceptance
 criteria, traced RT/UT/OT test definitions, edge cases, solution design,
 mandatory security impact, and a context-independent delivery handoff. Create
-`audits.org` from its canonical template. Create `validation.org` only when
+`audits.yaml` from its canonical template. Create `validation.org` only when
 needed. Add or update the descriptive work item in `docs/work.org`. Apply the
 change-specific title, Org hierarchy, description-list, and semantic-emphasis
 requirements in `ISSUES.md`; generic titles and visually unscannable drafts are
 not ready for audit.
 
 The opening summary must accurately and completely represent the detail below
-its section break. Apply the complete definition gate from `AUDITS.md` in this
-context: review and remediate locally for at most five rounds, then use one
-retained external context for the composite independent audit. The five-round
-limit is for this invoking session only; do not carry counts over from an
-earlier session. After any failed round, remediate **all** findings before
-auditing again; never rerun an unchanged candidate or remediate findings
-piecemeal. Do not invoke the focused auditors through separate agents or
-scripts.
+its section break. Invoke the composite definition audit through the installed
+audit harness with `--phase audit --gate definition`, using `audits.yaml` for
+the retained session mapping. Remediate **all** findings before resuming that
+same session; never rerun an unchanged candidate or remediate findings
+piecemeal. Do not invoke individual audit skills.
 
 On effective PASS, set the specification's definition-gate status to `PASS` and
 move its `docs/work.org` item to `REVIEW`, preserving the detailed evidence in
-`audits.org`. Open the specification with `sdlc-preview` and return it for
+`audits.yaml`. Open the specification with `sdlc-preview` and return it for
 operator sign-off. Preview is presentation, not a gate. After explicit sign-off,
 record the authority and date in `spec.org` and move its work item to `ACTIVE`.
 Do not implement code.

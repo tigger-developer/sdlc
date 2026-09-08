@@ -12,6 +12,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"gopkg.in/yaml.v3"
+
 	"github.com/tigger-developer/sdlc/internal/harness"
 )
 
@@ -60,6 +62,10 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 	project := flags.String("project", ".", "project root")
 	globalConfig := flags.String("global-config", "", "global SDLC YAML configuration")
 	phase := flags.String("phase", "audit", "SDLC phase: definition, build, or audit")
+	gate := flags.String("gate", "", "composite audit gate: definition or implementation")
+	auditPrompts := flags.String("audit-prompts", "", "audit prompt YAML (defaults to the installed prompts/audits.yaml)")
+	auditRecord := flags.String("audit-record", "", "YAML audit session record to update")
+	workItem := flags.String("work-item", "", "stable work-item identifier for the audit record")
 	harnessName := flags.String("harness", "", "harness override")
 	provider := flags.String("provider", "", "provider override where supported")
 	model := flags.String("model", "", "model override")
@@ -84,6 +90,10 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		return errors.New("start must not receive --session; start creates a fresh external session identity")
 	}
 	normalizedPhase := strings.ToLower(strings.TrimSpace(*phase))
+	normalizedGate := strings.ToLower(strings.TrimSpace(*gate))
+	if normalizedPhase == "audit" && normalizedGate != "definition" && normalizedGate != "implementation" {
+		return errors.New("audit phase requires --gate definition or --gate implementation")
+	}
 	projectRoot, err := filepath.Abs(*project)
 	if err != nil {
 		return err
@@ -100,7 +110,16 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		return fmt.Errorf("reading prompt: %w", err)
 	}
 	if len(prompt) == 0 || len(prompt) > 2*1024*1024 {
-		return errors.New("prompt must contain between 1 byte and 2 MiB")
+		if normalizedPhase != "audit" {
+			return errors.New("prompt must contain between 1 byte and 2 MiB")
+		}
+	}
+	if normalizedPhase == "audit" {
+		base, loadErr := loadAuditPrompt(*auditPrompts, normalizedGate)
+		if loadErr != nil {
+			return loadErr
+		}
+		prompt = append([]byte(base+"\n\nOperator-supplied audit context:\n"), prompt...)
 	}
 	bundleInputs := make([]harness.Input, 0, len(inputs))
 	for index, supplied := range inputs {
@@ -136,6 +155,28 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		}
 	}()
 	identity := *session
+	if normalizedPhase == "audit" && strings.TrimSpace(*auditRecord) != "" {
+		if strings.TrimSpace(*workItem) == "" {
+			return errors.New("--work-item is required with --audit-record")
+		}
+		entry, found, recordErr := harness.ReadAuditEntry(*auditRecord, *workItem, normalizedGate)
+		if recordErr != nil {
+			return recordErr
+		}
+		if action == "start" && found && entry.SessionID != "" {
+			return fmt.Errorf("audit session already exists for %s/%s; resume session %s", *workItem, normalizedGate, entry.SessionID)
+		}
+		if action == "resume" {
+			if !found || entry.SessionID == "" {
+				return fmt.Errorf("no recorded audit session for %s/%s; start a new audit first", *workItem, normalizedGate)
+			}
+			if identity == "" {
+				identity = entry.SessionID
+			} else if identity != entry.SessionID {
+				return fmt.Errorf("supplied session does not match recorded audit session %s", entry.SessionID)
+			}
+		}
+	}
 	if action == "start" && identity == "" {
 		identity, err = harness.NewSessionIdentity()
 		if err != nil {
@@ -156,10 +197,78 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		if err := harness.ValidateCompositeVerdict(result.Response); err != nil {
 			return err
 		}
+		if !strings.Contains(result.Response, "GATE: "+normalizedGate) {
+			return fmt.Errorf("audit response gate does not match requested %s gate", normalizedGate)
+		}
+	}
+	if normalizedPhase == "audit" && strings.TrimSpace(*auditRecord) != "" {
+		status := "active"
+		if strings.Contains(result.Response, "VERDICT: PASS") || strings.Contains(result.Response, "VERDICT: PROVISIONAL PASS") {
+			status = "passed"
+		}
+		entry, _, recordErr := harness.ReadAuditEntry(*auditRecord, *workItem, normalizedGate)
+		if recordErr != nil {
+			return recordErr
+		}
+		if entry.ExternalRound < config.MaxRounds {
+			entry.ExternalRound++
+		}
+		entry.WorkItem, entry.Gate, entry.SessionID, entry.Status = *workItem, normalizedGate, result.SessionID, status
+		entry.Revision = auditField(result.Response, "REVISION")
+		entry.Verdict = auditField(result.Response, "VERDICT")
+		entry.Response = result.Response
+		entry.History = append(entry.History, harness.AuditRound{Round: entry.ExternalRound, Revision: entry.Revision, Verdict: entry.Verdict, Response: result.Response})
+		if entry.ExternalRound >= config.MaxRounds && status == "active" {
+			entry.Status = "exhausted"
+		}
+		if err := harness.WriteAuditEntry(*auditRecord, entry); err != nil {
+			return err
+		}
 	}
 	fmt.Fprintf(errorOutput, "SESSION_ID: %s\n", result.SessionID)
 	_, err = fmt.Fprintln(output, result.Response)
 	return err
+}
+
+func auditField(response, name string) string {
+	for _, line := range strings.Split(response, "\n") {
+		if strings.HasPrefix(line, name+":") {
+			return strings.TrimSpace(strings.TrimPrefix(line, name+":"))
+		}
+	}
+	return ""
+}
+
+type auditPromptDocument struct {
+	Version int `yaml:"version"`
+	Gates   map[string]struct {
+		Prompt string `yaml:"prompt"`
+	} `yaml:"gates"`
+}
+
+func loadAuditPrompt(explicit, gate string) (string, error) {
+	path := explicit
+	if path == "" {
+		if executable, err := os.Executable(); err == nil {
+			path = filepath.Join(filepath.Dir(executable), "..", "prompts", "audits.yaml")
+		}
+	}
+	if path == "" {
+		return "", errors.New("audit prompt registry path is unavailable")
+	}
+	contents, err := os.ReadFile(path)
+	if err != nil {
+		return "", fmt.Errorf("reading audit prompt registry %s: %w", path, err)
+	}
+	var document auditPromptDocument
+	if err := yaml.Unmarshal(contents, &document); err != nil {
+		return "", fmt.Errorf("parsing audit prompt registry %s: %w", path, err)
+	}
+	value, found := document.Gates[gate]
+	if !found || strings.TrimSpace(value.Prompt) == "" {
+		return "", fmt.Errorf("audit prompt registry has no %s gate prompt", gate)
+	}
+	return strings.TrimSpace(value.Prompt), nil
 }
 
 func printTopLevelHelp(output io.Writer) {

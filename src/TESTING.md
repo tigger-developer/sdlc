@@ -66,13 +66,13 @@ automated regression test is justified, write or amend it before changing
 production code, observe it fail for the intended reason, implement the smallest
 coherent change, observe it pass, then refactor without losing evidence. When no
 automated regression test is justified, record the specific reason; urgency,
-difficulty, or inconvenience is insufficient. An `audit-test-definitions` PASS
+difficulty, or inconvenience is insufficient. The definition-gate audit harness
 confirms test design and traceability; it does not replace a required failing
 automated test execution.
 
 At the definition gate, audit only the proposed RT, UT, and OT definitions. Do
 not demand test code, execution results, or RED/GREEN evidence before
-implementation. At the implementation gate, `audit-test-code` reviews the
+implementation. At the implementation gate, the audit harness reviews the
 actual test changes and current evidence against those signed-off definitions.
 Planned tests are not implementation evidence, and implemented tests do not
 retroactively repair an inadequate definition.
@@ -80,7 +80,7 @@ retroactively repair an inadequate definition.
 Define the expected evidence for one-off and user tests before implementation
 where practical. They do not follow TDD and do not require a pre-change failure.
 For normal and `BYPASS-GATE-7` work, execute final verification
-after `audit-code` has an effective PASS. Earlier diagnostic executions may
+after the implementation gate has an effective PASS. Earlier diagnostic executions may
 inform implementation but are not final evidence unless they remain current for
 the audited candidate. Paired development uses the live user-validation contract
 below.
@@ -125,7 +125,7 @@ Do not infer PASS from a completed task, an agent report, or an implementation
 claim. Required one-off and user tests remain incomplete until their results are
 recorded in `validation.org`. Closure requires a current PASS
 for every required entry; missing, `PENDING`, `FAIL`, or materially stale results
-block closure, not `audit-code`.
+block closure, not the audit harness.
 
 The explicit legacy ticket-migration skill has one historical-record
 exception. It may infer delivery when either its near-complete rule has at least
@@ -137,9 +137,9 @@ footnote, and distinguish an assumed migration pass from contemporaneous test
 evidence. This creates no precedent for active delivery.
 
 An audit verdict remains historical evidence for the revision and scope it
-assessed. If later remediation changes relevant code, the earlier `audit-code`
-PASS is no longer current for completion. Rerun the affected automated tests and
-`audit-code`, then repeat only the one-off and user tests materially affected by
+assessed. If later remediation changes relevant code, the earlier implementation
+gate PASS is no longer current for completion. Rerun the affected automated tests
+and implementation gate, then repeat only the one-off and user tests materially affected by
 the change. Unaffected results remain current.
 
 ## Paired user validation

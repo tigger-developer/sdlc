@@ -1,5 +1,13 @@
 # SDLC Standards: Design Learnings
 
+## The harness is the audit boundary
+
+Individual audit skills encouraged accidental context proliferation and made
+session ownership ambiguous. Composite gate prompts belong in a versioned YAML
+registry, while the harness owns timeout, round limits, start/resume selection,
+and the durable `audits.yaml` session mapping. This keeps audit policy
+inspectable without deploying a separate skill for every criterion.
+
 This document records why the public SDLC is structured as a standards library
 and how its harder rules were derived. Normative requirements live under
 [`src/`](src/).

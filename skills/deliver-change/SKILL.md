@@ -79,13 +79,12 @@ observe GREEN, and keep the specification synchronized if implementation
 reveals an authorized routine detail. Do not change signed-off behaviour without
 operator authority.
 
-Apply the complete implementation gate from `AUDITS.md` in this context: review
-and remediate test code and production code locally for at most five rounds in
-this invoking session; do not carry counts over from an earlier session. After
-each failed round, remediate **all** findings before auditing again; never rerun
-an unchanged candidate or remediate findings piecemeal. Then use one retained
-external context for the composite independent audit. Do not invoke focused
-auditors through separate agents or scripts. After effective
+Apply the composite implementation gate through the installed audit harness
+with `--phase audit --gate implementation`, using `audits.yaml` for the
+retained session mapping. Remediate **all** findings before resuming that same
+session; never rerun an unchanged candidate or remediate findings piecemeal.
+Do not invoke individual audit skills or re-audit the signed-off definition.
+After effective
 PASS, execute final OT and UT checks, record all results in `validation.org`,
 update every affected project document, and return the change for operator
 closure. Do not claim closure yourself.

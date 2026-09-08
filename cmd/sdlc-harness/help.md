@@ -9,14 +9,15 @@ from the global command path.
 Usage
 =====
 
-    sdlc-harness start|resume [options] < audit-instruction.md
+    sdlc-harness start|resume [options] < audit-context.txt
 
 Start and resume
 ================
 
-`start` creates a fresh external context. Do not pass `--session`; the runner
-creates the identity and prints `SESSION_ID: <id>` on stderr. Save that exact
-ID.
+`start` creates a fresh external context. For an audit, pass `--gate definition`
+or `--gate implementation`; the installed YAML prompt registry supplies the
+criteria. Do not pass `--session`; the runner creates the identity and prints
+`SESSION_ID: <id>` on stderr. Save that exact ID.
 
 `resume` continues the same external context. Pass the saved ID as
 `--session <id>`. An agent task ID, path, or newly invented value is invalid.
@@ -25,10 +26,18 @@ Evidence and instruction
 ========================
 
 - Repeat `--input <file>` for every exact evidence file.
-- Provide the audit instruction on stdin.
+- For audits, stdin is additional bounded context; the gate prompt is loaded
+  from `prompts/audits.yaml`.
+- `--audit-record <file> --work-item <id> --gate <gate>` makes the harness own
+  start/resume selection and writes the session mapping to `audits.yaml`.
+- With a record, `start` refuses an existing mapping and `resume` loads its
+  recorded session ID. A supplied resume ID must match it.
+- Audit status, findings, revisions, round numbers, and session IDs belong only
+  in that `audits.yaml` record; do not copy them into a specification or ticket.
 - `--phase` is `definition`, `build`, or `audit`.
 - Project and global YAML configuration supply harness, provider where
-  supported, model, and timeout; explicit flags override them.
+  supported, model, timeout, and `delivery.audit.max_rounds`; explicit flags
+  override them.
 
 Output
 ======
@@ -40,24 +49,25 @@ Start example
 =============
 
     /Users/tigger/.agents/sdlc/bin/sdlc-harness start \
-      --phase audit \
+      --phase audit --gate definition \
       --project . \
+      --audit-record specs/001-change/audits.yaml \
+      --work-item 001-change \
       --input specs/001-change/spec.org \
-      --input specs/001-change/audits.org \
       --input .sdlc/project.yaml \
-      < audit-instruction.md
+      < audit-context.txt
 
 Resume example
 ==============
 
     /Users/tigger/.agents/sdlc/bin/sdlc-harness resume \
-      --phase audit \
+      --phase audit --gate definition \
       --project . \
-      --session "<SESSION_ID from start>" \
+      --audit-record specs/001-change/audits.yaml \
+      --work-item 001-change \
       --input specs/001-change/spec.org \
-      --input specs/001-change/audits.org \
       --input .sdlc/project.yaml \
-      < audit-instruction.md
+      < audit-context.txt
 
 A timeout is a runner incident, not an audit verdict. Record it and do not
 silently create a replacement context.

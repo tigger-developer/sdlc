@@ -210,6 +210,15 @@ fields:
     default: 5m
     allow_global: true
 
+  - key: SDLC_AUDIT_MAX_ROUNDS
+    path: delivery.audit.max_rounds
+    flag: audit-max-rounds
+    help: Maximum external audit rounds for the current session
+    type: integer
+    prompt: "Maximum external audit rounds:"
+    default: "5"
+    allow_global: true
+
   - key: SDLC_INFRA_ROLE
     path: infrastructure.role
     flag: infra-role

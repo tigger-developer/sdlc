@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## v3.2.0 - 2026-09-08
+
+- Replaced deployable individual audit skills with YAML-configured composite
+  prompts owned by `sdlc-harness`.
+- Added retained per-work-item audit sessions and bounded round accounting in
+  `audits.yaml`.
+- Made `audits.yaml` the sole audit-state authority, including findings and
+  remediation; added schema-driven `SDLC_AUDIT_MAX_ROUNDS` configuration.
+- Added explicit definition and implementation gate selection to the harness;
+  implementation audits no longer reopen signed-off definitions.
+
 ## v3.1.22 - 2026-09-08
 
 - Marked HANDS-OFF progress handbacks as explicit contract violations while executable work remains.

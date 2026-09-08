@@ -65,9 +65,11 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 	}
 	assertFixtureContent(t, unrelatedPath, "operator-owned bytes\n")
 	assertFixtureContent(t, filepath.Join(root, ".agents", "sdlc", "MAIN.md"), "# Lean SDLC\n")
-	assertFixtureContent(t, filepath.Join(root, ".agents", "skills", "audit-code", "SKILL.md"), "---\nname: audit-code\ndescription: Review code.\n---\n")
-	assertFixtureContent(t, filepath.Join(root, ".agents", "skills", "audit-test-code", "SKILL.md"), "---\nname: audit-test-code\ndescription: Review implemented tests.\n---\n")
-	assertFixtureContent(t, filepath.Join(root, ".agents", "skills", "audit-test-definitions", "SKILL.md"), "---\nname: audit-test-definitions\ndescription: Review test definitions.\n---\n")
+	for _, skill := range []string{"audit-code", "audit-test-code", "audit-test-definitions"} {
+		if _, err := os.Lstat(filepath.Join(root, ".agents", "skills", skill)); !os.IsNotExist(err) {
+			t.Fatalf("audit skill %s was deployed: %v", skill, err)
+		}
+	}
 	assertFixtureContent(t, filepath.Join(root, ".agents", "skills", "define-change", "SKILL.md"), "---\nname: define-change\ndescription: Define a change.\n---\n")
 	for _, name := range deployedCommandNames {
 		deployed := filepath.Join(root, ".agents", "sdlc", "bin", name)
@@ -109,7 +111,7 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 		t.Fatalf("duplicate canonical-root skills directory remains: %v", err)
 	}
 	for _, provider := range []string{"claude", "copilot", "hermes"} {
-		for _, skill := range []string{"audit-code", "define-change"} {
+		for _, skill := range []string{"define-change"} {
 			path := filepath.Join(root, "."+provider, "skills", skill)
 			target, err := os.Readlink(path)
 			if err != nil {
@@ -146,14 +148,14 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 		t.Fatalf("global configuration does not identify the schema and deployed release:\n%s", global)
 	}
 
-	writeFixtureFile(t, filepath.Join(source, "skills", "audit-code", "SKILL.md"), "updated canonical skill\n")
+	writeFixtureFile(t, filepath.Join(source, "skills", "define-change", "SKILL.md"), "updated canonical skill\n")
 	var refreshOutput bytes.Buffer
 	if err := RunInteractive(source, root, "v3.0.0", strings.NewReader("yes\n"), &refreshOutput); err != nil {
 		t.Fatalf("refresh install: %v\n%s", err, refreshOutput.String())
 	}
-	assertFixtureContent(t, filepath.Join(root, ".agents", "skills", "audit-code", "SKILL.md"), "updated canonical skill\n")
+	assertFixtureContent(t, filepath.Join(root, ".agents", "skills", "define-change", "SKILL.md"), "updated canonical skill\n")
 	for _, provider := range []string{"claude", "copilot", "hermes"} {
-		assertFixtureContent(t, filepath.Join(root, "."+provider, "skills", "audit-code", "SKILL.md"), "updated canonical skill\n")
+		assertFixtureContent(t, filepath.Join(root, "."+provider, "skills", "define-change", "SKILL.md"), "updated canonical skill\n")
 	}
 	var noOpOutput bytes.Buffer
 	if err := RunInteractive(source, root, "v3.0.0", strings.NewReader("unexpected\n"), &noOpOutput); err != nil {

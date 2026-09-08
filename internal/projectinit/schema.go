@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -139,7 +140,7 @@ func (schema ConfigSchema) Validate() error {
 			return fmt.Errorf("field %s defines discovery_category outside the post-migration phase", field.Key)
 		}
 		switch field.Type {
-		case "string", "string-list", "boolean", "duration":
+		case "string", "string-list", "boolean", "duration", "integer":
 			if len(field.Choices) != 0 || field.ChoicesFrom != "" {
 				return fmt.Errorf("field %s cannot define choices", field.Key)
 			}
@@ -254,6 +255,11 @@ func (field ConfigField) ValidateValue(value string, technologies []Technology) 
 		duration, err := time.ParseDuration(value)
 		if err != nil || duration <= 0 {
 			return errors.New("value must be a positive duration such as 4m or 300s")
+		}
+	case "integer":
+		integer, err := strconv.Atoi(value)
+		if err != nil || integer < 1 {
+			return errors.New("value must be a positive integer")
 		}
 	}
 	return nil

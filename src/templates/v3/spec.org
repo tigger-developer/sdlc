@@ -40,7 +40,7 @@ Only an effective definition-gate PASS may set =DEFINITION_GATE= to =PASS=.
 Only explicit operator sign-off may replace =OPERATOR_SIGNOFF= with the
 authority and date and move the work item to =ACTIVE=. Any later material
 specification change resets both specification fields and moves the work item
-to =REVIEW=. Detailed audit evidence remains in =audits.org=.
+to =REVIEW=. Detailed audit evidence remains in =audits.yaml=.
 #+end_comment
 
 * [Concise change-specific title]
@@ -320,7 +320,7 @@ task list or duplicate stable architecture documents.
   specification and =.sdlc/project.yaml=.]
 - First implementation step :: Write [[#rt-nnn-1][RTNNN.1 - Descriptive
   regression test]] and observe the expected RED result.
-- Definition evidence :: [[file:audits.org][=audits.org=]]
+- Definition evidence :: [[file:audits.yaml][=audits.yaml=]]
 - Validation evidence :: [[file:validation.org][=validation.org=]] when UT or OT
   execution occurs.
 - Documentation impact :: [Files to update, or none with reason.]

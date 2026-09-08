@@ -62,7 +62,11 @@ var retiredProviderArtifacts = []string{
 	"audit-code",
 	"audit-design",
 	"audit-spec",
-	"audit-tests",
+	"audit-definition",
+	"audit-implementation",
+	"audit-project-foundation",
+	"audit-test-code",
+	"audit-test-definitions",
 	"convert-migrated-acs-to-org",
 	"diagnose-issue",
 	"migrate-legacy-acs-to-sdlc-v1",
@@ -302,6 +306,10 @@ func RunInteractive(sourcePath, userHome, release string, input io.Reader, outpu
 	if verifyErr != nil {
 		return verifyErr
 	}
+	// Configuration recommendations are intentionally reviewed separately and
+	// are not evidence that the file deployment failed verification.
+	verified.configurations = nil
+	verified.managedConfigurations = nil
 	if installationHasChanges(verified) {
 		return errors.New("deployment verification still reports changes")
 	}
@@ -450,8 +458,13 @@ func verifyHarnessAdapters(commonHome string, agents []string) error {
 }
 
 func installationHasChanges(plan installationPlan) bool {
-	if len(plan.configurations) != 0 || len(plan.managedConfigurations) != 0 || len(plan.retirements) != 0 {
+	if len(plan.configurations) != 0 || len(plan.managedConfigurations) != 0 {
 		return true
+	}
+	for _, retirement := range plan.retirements {
+		if _, err := os.Lstat(retirement.path); err == nil {
+			return true
+		}
 	}
 	for _, sync := range plan.syncs {
 		if sync.needsSync {
@@ -626,7 +639,13 @@ func planSharedInstallation(source, commonHome, release string) (installationPla
 		{source: filepath.Join(source, "hooks"), destination: filepath.Join(liveSDLC, "hooks")},
 		{source: filepath.Join(source, "skills"), destination: filepath.Join(commonHome, "skills")},
 	} {
-		files, err := planDirectoryMapping(mapping.source, mapping.destination, mapping.optional)
+		var files []managedSync
+		var err error
+		if filepath.Base(mapping.source) == "skills" {
+			files, err = planSkillDirectoryMapping(mapping.source, mapping.destination, mapping.optional)
+		} else {
+			files, err = planDirectoryMapping(mapping.source, mapping.destination, mapping.optional)
+		}
 		if err != nil {
 			return installationPlan{}, err
 		}
@@ -689,6 +708,11 @@ func planSharedInstallation(source, commonHome, release string) (installationPla
 		return installationPlan{}, retirementErr
 	}
 	plan.retirements = append(plan.retirements, retirements...)
+	auditRetirements, auditErr := planAuditSkillRetirements(filepath.Join(commonHome, "skills"))
+	if auditErr != nil {
+		return installationPlan{}, auditErr
+	}
+	plan.retirements = append(plan.retirements, auditRetirements...)
 	commandRetirements, err := planExactRetirements(localBin, []string{
 		"sdlc-audit",
 		"sdlc-install",
@@ -747,6 +771,9 @@ func planProviderInstallation(agent, source, agentHome string) (installationPlan
 		canonicalSkills := filepath.Join(filepath.Dir(agentHome), ".agents", "skills")
 		providerSkills := filepath.Join(agentHome, "skills")
 		for _, skill := range currentSkills {
+			if isAuditSkill(skill) {
+				continue
+			}
 			link, linkErr := planManagedLink(filepath.Join(canonicalSkills, skill), filepath.Join(providerSkills, skill), providerSkills)
 			if linkErr != nil {
 				return installationPlan{}, linkErr
@@ -754,6 +781,11 @@ func planProviderInstallation(agent, source, agentHome string) (installationPlan
 			plan.links = append(plan.links, link)
 		}
 		paths := append([]string{}, retiredProviderArtifacts...)
+		for _, current := range currentSkills {
+			if isAuditSkill(current) {
+				paths = append(paths, current)
+			}
+		}
 		for _, relative := range retiredSkillFiles {
 			paths = append(paths, filepath.Dir(relative))
 		}
@@ -781,6 +813,55 @@ func planProviderInstallation(agent, source, agentHome string) (installationPlan
 		}
 	}
 	return plan, nil
+}
+
+func isAuditSkill(name string) bool {
+	return strings.HasPrefix(strings.ToLower(strings.TrimSpace(name)), "audit-")
+}
+
+func planSkillDirectoryMapping(sourceRoot, destinationRoot string, optional bool) ([]managedSync, error) {
+	if optional {
+		if _, err := os.Stat(sourceRoot); errors.Is(err, os.ErrNotExist) {
+			return nil, nil
+		} else if err != nil {
+			return nil, fmt.Errorf("inspecting optional install source %q: %w", sourceRoot, err)
+		}
+	}
+	names, err := sourceDirectoryNames(sourceRoot)
+	if err != nil {
+		return nil, err
+	}
+	var syncs []managedSync
+	for _, name := range names {
+		if isAuditSkill(name) {
+			continue
+		}
+		files, err := planDirectoryFiles(filepath.Join(sourceRoot, name), filepath.Join(destinationRoot, name))
+		if err != nil {
+			return nil, err
+		}
+		syncs = append(syncs, files...)
+	}
+	return syncs, nil
+}
+
+func planAuditSkillRetirements(root string) ([]managedRetirement, error) {
+	entries, err := os.ReadDir(root)
+	if errors.Is(err, os.ErrNotExist) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("reading managed skill directory %q: %w", root, err)
+	}
+	var retirements []managedRetirement
+	for _, entry := range entries {
+		// Backups are deliberately retained beside retired artefacts; they are
+		// not live skills and must not make verification non-idempotent.
+		if entry.IsDir() && !strings.Contains(entry.Name(), ".") && isAuditSkill(entry.Name()) && entry.Name() != "audit-tests" {
+			retirements = append(retirements, managedRetirement{path: filepath.Join(root, entry.Name())})
+		}
+	}
+	return retirements, nil
 }
 
 func sourceDirectoryNames(root string) ([]string, error) {

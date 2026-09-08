@@ -163,6 +163,7 @@ delivery:
     provider: openai
     model: gpt-5.6-luna
     timeout: 5m
+    max_rounds: 5
 infrastructure:
   owner: Example platform team
   contract: /absolute/path/to/PROJECT-INTEGRATION.md
@@ -218,11 +219,11 @@ affected documentation is reconciled, and the operator decides closure.
 `$audit-implementation` remains available for a separately requested combined
 review.
 
-Audit results live in `audits.org`. They are evidence for an exact revision, not
+Audit results live in `audits.yaml`. They are evidence for an exact revision, not
 human approval.
 
-The independently invocable focused audits are `$audit-spec`, `$audit-design`,
-`$audit-test-definitions`, `$audit-test-code`, and `$audit-code`.
+Audit criteria are selected by the composite audit harness; individual audit
+skills are not deployed.
 
 ## Variant workflows
 
@@ -241,7 +242,7 @@ The independently invocable focused audits are `$audit-spec`, `$audit-design`,
 .sdlc/project.yaml
 docs/work.org
 specs/NNN-descriptor/spec.org
-specs/NNN-descriptor/audits.org
+specs/NNN-descriptor/audits.yaml
 specs/NNN-descriptor/validation.org
 ```
 
