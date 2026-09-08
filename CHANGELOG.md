@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## v3.1.20 - 2026-09-08
+
+- Rewrote `sdlc-harness` help for concise, explicit start/resume and session-ID usage.
+- Clarified the composite audit skills' external-session invocation sequence.
+
 ## v3.1.19 - 2026-09-08
 
 - Reject supplied session IDs on fresh harness starts; resume requires the captured external session ID.

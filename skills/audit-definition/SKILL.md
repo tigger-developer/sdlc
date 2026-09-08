@@ -9,6 +9,9 @@ contract to the active `spec.org`.
 Before the first external invocation in this session, run
 `~/.agents/sdlc/bin/sdlc-harness --help` and follow its current start/resume,
 stdin, evidence-input, output-channel, and `SESSION_ID` instructions.
+Invoke `start` once, without `--session`, after the local reviews pass. Capture
+its exact stderr `SESSION_ID`; use that value with `resume --session` for every
+later external round in this gate.
 
 In this authoring context, apply the `audit-spec`, `audit-design`, and
 `audit-test-definitions` criteria together. Remediate **all** findings from a

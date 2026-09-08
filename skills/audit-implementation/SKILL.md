@@ -9,6 +9,9 @@ contract to the active change.
 Before the first external invocation in this session, run
 `~/.agents/sdlc/bin/sdlc-harness --help` and follow its current start/resume,
 stdin, evidence-input, output-channel, and `SESSION_ID` instructions.
+Invoke `start` once, without `--session`, after the local reviews pass. Capture
+its exact stderr `SESSION_ID`; use that value with `resume --session` for every
+later external round in this gate.
 
 In this delivery context, apply the `audit-test-code` and `audit-code` criteria
 together. Remediate **all** findings from a failed round before repeating;
