@@ -122,6 +122,10 @@ design, standards, and safety boundaries. Progress reports, commits, warnings,
 partial milestones, and ordinary audit remediation are not terminal handbacks
 while safe, authorized, executable work remains.
 
+During hands-off delivery, assume that no human is available during the
+delivery window. Do not pause merely to wait for a response; continue until a
+permitted stopping condition is actually reached.
+
 Hands-off delivery records material routine assumptions in the specification's
 `Decision Log (Hands-off delivery only)`. It stops only when no sensible
 reversible assumption can avoid a human-only decision, a genuine blocker, a

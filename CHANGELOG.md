@@ -14,6 +14,8 @@
 - Hands-off delivery now treats questions and routine uncertainty as
   non-terminal: the agent must make and record a sensible reversible assumption
   within the signed-off boundaries whenever possible.
+- Hands-off delivery explicitly assumes that no human is available during the
+  delivery window and must not pause merely to await a response.
 - Added a `Decision Log (Hands-off delivery only)` section to the canonical
   specification template for recording bounded, reversible runtime assumptions.
 

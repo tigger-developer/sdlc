@@ -35,6 +35,10 @@ milestone is likewise not terminal while safe, authorized, executable work
 remains. Continue through TDD, remediation, documentation, validation, and
 evidence recording.
 
+Assume that no human is available during the hands-off delivery window. Do not
+pause to wait for an answer; continue until a permitted stopping condition is
+actually reached.
+
 Valid reasons to stop are limited to a human-only decision that no sensible
 reversible assumption can avoid, a genuine blocker, a failed mandatory test or
 verification that cannot be safely remediated, or reaching the configured
