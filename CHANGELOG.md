@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## v3.1.5 - 2026-09-08
+
+- Renamed the specification decision-log section to `Hands-off mode decision
+  log` and defined timestamped, tagged Org subtrees for each hands-off
+  invocation.
+
 ## v3.1.1 - 2026-09-08
 
 - Added explicit attended and hands-off delivery modes. Definition remains

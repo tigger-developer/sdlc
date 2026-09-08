@@ -118,25 +118,33 @@ Do not leave a design preference or product decision in this section for the
 delivery agent to guess. A real unresolved blocker prevents definition sign-off.
 #+end_comment
 
-* Decision Log (Hands-off delivery only)
+* Hands-off mode decision log
 :PROPERTIES:
-:CUSTOM_ID: decision-log
+:CUSTOM_ID: hands-off-mode-decision-log
+:VISIBILITY: folded
 :END:
 
 #+begin_comment
-Use this section only when delivery was explicitly run in hands-off mode. It
-records routine, reversible implementation assumptions made so the agent could
+Use this section only when delivery was explicitly run in hands-off mode. Add
+one level-two Org subtree for each hands-off invocation. The invocation heading
+must contain the exact ISO 8601 timestamp and the tags :hands-off:review:. Put
+each material routine decision at level three beneath its invocation heading.
+This records reversible implementation assumptions made so the agent can
 continue without an immediate operator response. It does not authorize a new
 requirement, scope, architecture, security, privacy, access, data, external
 contract, or irreversible decision. Those remain human decisions and require a
-handback. Record one entry for each material assumption and preserve superseded
-entries rather than deleting them.
+handback. Preserve superseded entries rather than deleting them.
 #+end_comment
 
-** DNNN - Descriptive routine decision
+** Hands-off invocation 2026-01-01T00:00:00Z :hands-off:review:
+:PROPERTIES:
+:CUSTOM_ID: hands-off-invocation-example
+:INVOCATION_TIMESTAMP: 2026-01-01T00:00:00Z
+:END:
+
+*** DNNN - Descriptive routine decision
 :PROPERTIES:
 :CUSTOM_ID: d-nnn
-:DATE: YYYY-MM-DD
 :END:
 
 - Question :: [The bounded uncertainty encountered during delivery.]

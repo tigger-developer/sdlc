@@ -29,7 +29,10 @@ prematurely is high, especially when the operator may be unavailable for the
 delivery window. A question, uncertainty, or routine interpretation is not a
 terminal handback: make a sensible, reversible assumption within the signed-
 off specification, design, standards, and safety boundaries and record it in
-the specification's `Decision Log (Hands-off delivery only)` section. A
+the specification's `Hands-off mode decision log` section. Add one level-two
+Org subtree for this invocation, headed by its exact ISO 8601 timestamp and
+tagged `:hands-off:review:`; put each material decision at level three beneath
+that heading. A
 progress report, commit, warning, completed test, audit result, or partial
 milestone is likewise not terminal while safe, authorized, executable work
 remains. Continue through TDD, remediation, documentation, validation, and
