@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## v3.1.10 - 2026-09-08
+
+- Set preferred Web linters to `tidy-html5`/`tidy`, `oxlint`, and Biome, with
+  CI provisioning guidance for Homebrew, Nix, and Debian/Ubuntu environments.
+
 ## v3.1.9 - 2026-09-08
 
 - Foundation audits now use the configured specification harness, provider, and

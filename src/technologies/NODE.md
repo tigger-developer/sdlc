@@ -72,8 +72,9 @@ normal verification.
 - Follow `~/.agents/sdlc/TESTING.md` and the project's established test runner.
 - Keep tests independent of global packages, home-directory state, live
   registries, network access, locale, and execution order.
-- Use ESLint and a project formatter. Do not weaken security or correctness
-  rules merely to pass existing code.
+- Use `oxlint` for JavaScript/TypeScript and Biome where its supported
+  formatter/linter is appropriate. Do not weaken security or correctness rules
+  merely to pass existing code.
 - Test process startup, graceful shutdown, input limits, failed dependencies,
   and authorization boundaries proportionately for an internet-facing service.
 

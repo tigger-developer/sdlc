@@ -41,14 +41,16 @@ The source-introspection prohibition in `~/.agents/sdlc/TESTING.md` applies to t
 - **Responsive by default.** Mobile-first media queries. Breakpoints in `rem`, not `px`.
 - **No inline styles** in HTML attributes. CSS lives in `.css` files.
 - **Methodology:** BEM or whatever the project already uses. Pick one; don't mix.
-- **Lint with `stylelint`.** Minimum config:
+- **Lint with Biome when the project has an approved toolchain.** Enable its
+  CSS linter and formatter; do not add Node.js/npm solely to obtain this check.
 
-```yaml
-extends:
-  - stylelint-config-standard
-rules:
-  declaration-no-important: true
-  selector-max-id: 0
+```json
+{
+  "css": {
+    "formatter": { "enabled": true },
+    "linter": { "enabled": true }
+  }
+}
 ```
 
 - **Performance:** prefer CSS Grid / Flexbox over absolute positioning. Avoid selector nesting deeper than 3 levels. Use CSS custom properties (`--var`) for theme values.
@@ -75,8 +77,9 @@ Format-aware tools for web content:
 | Broad generated-site validation | `htmltest` | `brew install htmltest` | Broken links, missing assets, malformed markup. Default smoke check for static/generated sites. |
 | Targeted DOM assertions | `htmlq` | `brew install htmlq` | CSS-selector queries against rendered HTML. HTML analogue of `jq`. |
 | Targeted RSS/feed assertions | `xmlstarlet` | `brew install xmlstarlet` | XPath queries against generated feed XML. |
-| Lint CSS | `stylelint` | Existing approved project tool only | Do not add Node.js/npm solely for CSS linting. |
-| Lint JS/TS | `eslint` + `prettier` | Existing approved project tool only | See CODING.md Style Baselines. |
+| Validate HTML | `tidy-html5` (`tidy`) | Homebrew: `tidy-html5`; Debian/Ubuntu: `tidy`; Nix: verify the pinned channel | Use diagnostics without rewriting generated output. |
+| Lint JS/TS | `oxlint` | Homebrew: `oxlint`; Nix: `oxlint`; Debian/Ubuntu: no dependable distro package identified | Pin the CI-provisioned version. |
+| Lint CSS and format web code | `biome` | Homebrew: `biome`; Nix: `biome`; Debian/Ubuntu: no dependable distro package identified | Use only with an approved, reproducible toolchain. |
 
 Do not introduce a new web test architecture without explicit human approval. For static-site checks, do not add Node.js, npm, Playwright, Cypress, or another browser stack merely to verify generated HTML, feeds, links, assets, routes, headers, or file serving. Prefer `htmltest`, `htmlq`, and `xmlstarlet` unless the project already has a narrower appropriate harness.
 
@@ -89,6 +92,13 @@ safer alternatives that were exhausted, why they are inadequate, and the
 security and maintenance controls for the chosen packages. An agent MUST NOT
 introduce Node.js or npm merely to lint CSS, inspect generated HTML, or satisfy
 a tooling preference.
+
+For CI, a developer's globally installed executable is not evidence of a
+reproducible toolchain. CI MUST provision and pin each selected linter through
+its declared environment. Nix projects SHOULD use a pinned Nixpkgs input;
+Debian/Ubuntu projects SHOULD use the distro `tidy` package where available
+and MUST document and pin an approved source for tools the distro does not
+provide. CI MUST fail clearly when a selected tool is unavailable.
 
 For tests that genuinely require a browser (computed styles, hover behaviour, JS-executed content), reach for Playwright or Cypress -- but only when the body of UI tests justifies the tooling cost (heuristic: roughly 8-10 UTs across the project) and the human has approved the added test architecture.
 
