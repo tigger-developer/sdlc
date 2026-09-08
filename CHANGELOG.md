@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## v3.1.13 - 2026-09-08
+
+- Removed duplicated absolute-path instructions from individual audit skills;
+  canonical executable invocation remains governed centrally by `MAIN.md`.
+
 ## v3.1.12 - 2026-09-08
 
 - Required composite audit skills to resolve `sdlc-harness` to an absolute
