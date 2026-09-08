@@ -6,6 +6,10 @@ description: Run the combined SDLC v3 implemented-test and code gate with at mos
 Read `~/.agents/sdlc/MAIN.md` and `AUDITS.md`, then apply the implementation-gate
 contract to the active change.
 
+Before the first external invocation in this session, run
+`~/.agents/sdlc/bin/sdlc-harness --help` and follow its current start/resume,
+stdin, evidence-input, output-channel, and `SESSION_ID` instructions.
+
 In this delivery context, apply the `audit-test-code` and `audit-code` criteria
 together. Remediate **all** findings from a failed round before repeating;
 never audit an unchanged candidate or remediate findings piecemeal. Rerun

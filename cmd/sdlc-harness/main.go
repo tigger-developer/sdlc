@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	_ "embed"
 	"errors"
 	"flag"
 	"fmt"
@@ -15,6 +16,9 @@ import (
 )
 
 var buildRelease string
+
+//go:embed help.md
+var helpText string
 
 type inputList []string
 
@@ -156,7 +160,5 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 }
 
 func printTopLevelHelp(output io.Writer) {
-	fmt.Fprintln(output, "usage: sdlc-harness start|resume [options]")
-	fmt.Fprintln(output, "Internal SDLC helper: run or resume one bounded provider harness with fixed arguments and an immutable evidence bundle.")
-	fmt.Fprintln(output, "This command is installed under ~/.agents/sdlc/bin for workflow skills; it is not an operator-facing global command.")
+	fmt.Fprint(output, helpText)
 }

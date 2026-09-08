@@ -6,6 +6,10 @@ description: Run the combined SDLC v3 specification, design, and test-definition
 Read `~/.agents/sdlc/MAIN.md` and `AUDITS.md`, then apply the definition-gate
 contract to the active `spec.org`.
 
+Before the first external invocation in this session, run
+`~/.agents/sdlc/bin/sdlc-harness --help` and follow its current start/resume,
+stdin, evidence-input, output-channel, and `SESSION_ID` instructions.
+
 In this authoring context, apply the `audit-spec`, `audit-design`, and
 `audit-test-definitions` criteria together. Remediate **all** findings from a
 failed round before repeating; never audit an unchanged candidate or remediate

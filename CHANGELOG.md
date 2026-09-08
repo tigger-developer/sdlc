@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## v3.1.17 - 2026-09-08
+
+- Added embedded, detailed `sdlc-harness` help with explicit external-session resume examples.
+- Required composite audit skills to read the harness help before their first external invocation.
+
 ## v3.1.16 - 2026-09-08
 
 - Clarified per-session audit-round accounting and required complete remediation before reruns.
