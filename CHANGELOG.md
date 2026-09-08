@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## v3.2.2 - 2026-09-08
+
+- Migrated legacy sibling `audits.org` records into preserved `audits.yaml`
+  evidence and reject duplicated audit state in audited artefacts.
+
 ## v3.2.1 - 2026-09-08
 
 - Refuse audit-session resumption once `delivery.audit.max_rounds` has been

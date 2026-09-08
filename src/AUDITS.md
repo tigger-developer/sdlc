@@ -30,6 +30,9 @@ recorded only in `audits.yaml`. Specifications and tickets may link to that
 record but must not duplicate its audit state. Existing duplicated text is
 historical input for migration, not a second authority.
 
+If supplied artefacts duplicate audit findings or state, the auditor MUST return
+`FAIL` and require the duplicate to be removed before rerun.
+
 ## Verdict contract
 
 The harness response contains exactly one envelope:

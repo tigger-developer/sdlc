@@ -105,6 +105,14 @@ The definition gate combines specification, design, and test-definition audits.
 The implementation gate combines implemented-test and code audits. Read
 `AUDITS.md` before either gate.
 
+Audit findings, status, revisions, round numbers, remediation, and session IDs
+are recorded only by the harness-invoked audit workflow in the work item's
+`audits.yaml`. Agents may
+read that record and link to it, but must not edit it directly or copy its audit
+state into `spec.org`, `work.org`, tickets, or other project documents. If an
+audited artefact contains duplicated audit state, the audit returns `FAIL` until
+the duplicate is removed.
+
 A specification is a delivery handoff. A new agent must be able to deliver it
 using only `spec.org`, `.sdlc/project.yaml`, the named authorities, and the
 repository. Uncaptured conversation or hidden assumptions fail the gate.

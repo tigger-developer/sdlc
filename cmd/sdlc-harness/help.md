@@ -34,6 +34,8 @@ Evidence and instruction
   recorded session ID. A supplied resume ID must match it.
 - Audit status, findings, revisions, round numbers, and session IDs belong only
   in that `audits.yaml` record; do not copy them into a specification or ticket.
+- If supplied artefacts duplicate audit state, the audit must return `FAIL` and
+  require the duplicate to be removed before rerunning.
 - `--phase` is `definition`, `build`, or `audit`.
 - Project and global YAML configuration supply harness, provider where
   supported, model, timeout, and `delivery.audit.max_rounds`; explicit flags

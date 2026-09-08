@@ -12,8 +12,16 @@ import (
 )
 
 type AuditRecord struct {
-	Version int          `yaml:"version"`
-	Audits  []AuditEntry `yaml:"audits"`
+	Version int           `yaml:"version"`
+	Audits  []AuditEntry  `yaml:"audits"`
+	Legacy  []LegacyAudit `yaml:"legacy,omitempty"`
+}
+
+// LegacyAudit preserves an audits.org file during migration to YAML.
+type LegacyAudit struct {
+	Path     string `yaml:"path"`
+	Content  string `yaml:"content"`
+	Migrated string `yaml:"migrated"`
 }
 
 type AuditEntry struct {
@@ -60,6 +68,45 @@ func ReadAuditEntry(path, workItem, gate string) (AuditEntry, bool, error) {
 	return AuditEntry{}, false, nil
 }
 
+// MigrateLegacyAudit preserves a sibling audits.org verbatim in audits.yaml.
+// The legacy file is removed only after the YAML record has been written.
+func MigrateLegacyAudit(path string) error {
+	legacyPath := filepath.Join(filepath.Dir(path), "audits.org")
+	content, err := os.ReadFile(legacyPath)
+	if errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("reading legacy audit record %s: %w", legacyPath, err)
+	}
+	var record AuditRecord
+	if existing, readErr := os.ReadFile(path); readErr == nil {
+		if err := yaml.Unmarshal(existing, &record); err != nil {
+			return fmt.Errorf("parsing audit record %s: %w", path, err)
+		}
+	} else if !errors.Is(readErr, os.ErrNotExist) {
+		return fmt.Errorf("reading audit record %s: %w", path, readErr)
+	}
+	for _, legacy := range record.Legacy {
+		if legacy.Path == "audits.org" {
+			return nil
+		}
+	}
+	if record.Version == 0 {
+		record.Version = 1
+	}
+	record.Legacy = append(record.Legacy, LegacyAudit{
+		Path: "audits.org", Content: string(content), Migrated: time.Now().UTC().Format(time.RFC3339),
+	})
+	if err := writeAuditRecord(path, record); err != nil {
+		return err
+	}
+	if err := os.Remove(legacyPath); err != nil {
+		return fmt.Errorf("removing migrated legacy audit record %s: %w", legacyPath, err)
+	}
+	return nil
+}
+
 func WriteAuditEntry(path string, entry AuditEntry) error {
 	if strings.TrimSpace(entry.WorkItem) == "" || strings.TrimSpace(entry.Gate) == "" || strings.TrimSpace(entry.SessionID) == "" {
 		return errors.New("audit record requires work item, gate, and session ID")
@@ -90,6 +137,10 @@ func WriteAuditEntry(path string, entry AuditEntry) error {
 	if !updated {
 		record.Audits = append(record.Audits, entry)
 	}
+	return writeAuditRecord(path, record)
+}
+
+func writeAuditRecord(path string, record AuditRecord) error {
 	contents, err := yaml.Marshal(record)
 	if err != nil {
 		return fmt.Errorf("rendering audit record: %w", err)

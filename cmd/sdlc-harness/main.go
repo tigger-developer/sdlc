@@ -159,6 +159,9 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		if strings.TrimSpace(*workItem) == "" {
 			return errors.New("--work-item is required with --audit-record")
 		}
+		if err := harness.MigrateLegacyAudit(*auditRecord); err != nil {
+			return err
+		}
 		entry, found, recordErr := harness.ReadAuditEntry(*auditRecord, *workItem, normalizedGate)
 		if recordErr != nil {
 			return recordErr

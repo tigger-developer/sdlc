@@ -13,6 +13,8 @@ gates:
       VERDICT: PASS | PROVISIONAL PASS | FAIL
       For FAIL, list every finding and the required remediation. A provisional pass may name only bounded,
       reversible follow-up work that does not invalidate definition sign-off.
+      If the supplied specification duplicates audit findings, status, revisions, round numbers, or session IDs,
+      return FAIL and require their removal; the audit record belongs only in audits.yaml.
       Audit findings, status, revisions, and session identity are recorded only by the harness in audits.yaml.
       Do not write them into the specification, ticket, or any duplicate audit document.
   implementation:
@@ -27,5 +29,7 @@ gates:
       VERDICT: PASS | PROVISIONAL PASS | FAIL
       For FAIL, list every finding and the required remediation. A provisional pass may name only bounded,
       reversible follow-up work that does not invalidate implementation sign-off.
+      If the supplied specification or implementation notes duplicate audit findings, status, revisions, round
+      numbers, or session IDs, return FAIL and require their removal; the audit record belongs only in audits.yaml.
       Audit findings, status, revisions, and session identity are recorded only by the harness in audits.yaml.
       Do not write them into the specification, ticket, or any duplicate audit document.
