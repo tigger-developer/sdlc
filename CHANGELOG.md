@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## v3.1.15 - 2026-09-08
+
+- Allow explicitly invoked HANDS-OFF definition runs while retaining ATTENDED as the default.
+
 ## v3.1.14 - 2026-09-08
 
 - Restored the stronger MODE DELIVER continuation contract for HANDS-OFF:

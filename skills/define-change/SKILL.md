@@ -12,10 +12,18 @@ switch, merge, or delete a feature branch. The project branch strategy applies
 only when an approved specification enters delivery. Synchronize the current
 branch at the definition boundaries required by `GIT.md`.
 
-Definition is always **ATTENDED**. Ask the bounded clarification questions
-required to make the specification safe and context-independent; do not enter
-hands-off delivery mode or silently substitute assumptions for unresolved
-product, scope, architecture, security, or other human decisions.
+Definition defaults to **ATTENDED**. Ask the bounded clarification questions
+required to make the specification safe and context-independent. If the
+operator explicitly invokes **HANDS-OFF** definition mode, declare that mode
+and assume the operator is unavailable for the remainder of the definition
+window. In that mode, make sensible, reversible assumptions to keep the work
+moving and record each one in the specification's decision log; do not stop for
+routine status, incidental uncertainty, or approval requests. Stop only for a
+genuine blocker, an unsafe or unauthorised action, the configured audit limit,
+or a decision that cannot be made safely from the available evidence. An
+ordinary progress report is not a handback. Any interruption or operator
+response returns the skill to ATTENDED until HANDS-OFF is explicitly invoked
+again.
 
 Ask no more than three concise free-form questions needed to define product
 scope. If operator direction raises unresolved test or design choices, ask no
