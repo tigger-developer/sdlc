@@ -439,3 +439,42 @@
   2026-09-08.
 - *Status:* Local implementation gate PASS. One retained external implementation
   audit remains required.
+
+** Operator-directed remediation of external review round 1
+
+- *Revision:* Git commit =d23ed9c=.
+- *Scope:* The seven findings from [[*External review - round 1][external review round 1]]. This is a
+  remediation receipt, not a sixth local audit or a replacement external
+  verdict.
+- *Disposition:*
+  1. Installer verification now checks delivery through every detected native
+     guard and validates every detected start and resume adapter before reporting
+     readiness. The guard distinguishes =.env= used as ordinary output data from
+     a file read, preserves parser state across nested command strings, and
+     blocks an unknown native tool whose payload targets =.env=.
+  2. The operator rejected the skill-path ownership finding. Accepted
+     replacement remains recoverable through the installer's adjacent backup;
+     no additional ownership mechanism was added.
+  3. Phase names are normalized before configuration resolution and audit
+     verdict validation, so =--phase AUDIT= cannot bypass the audit contract.
+  4. Persistent fake-executable regressions now cover start, resume, timeout,
+     non-zero exit, empty response, identity, and response parsing across all
+     four harnesses. Hermes additionally rejects a missing or duplicated native
+     session envelope.
+  5. Installer regression now proves four native guard invocations, unrelated
+     byte preservation, accepted backup content, declined-conflict preservation,
+     canonical skill refresh, and an all-provider no-op rerun.
+  6. Migrated-work bundle cleanup errors and configuration-backup restoration
+     errors are returned instead of discarded. A regression proves that both
+     the original configuration-write error and restoration error remain
+     inspectable.
+  7. =docs/ARCHITECTURE.md= now describes the canonical multi-harness skill,
+     guard, and audit-adapter architecture.
+- *Evidence:* =make test= passed Go vet, golangci-lint, ShellCheck, shfmt, and all
+  Go regression packages on 2026-09-08. =sanitize= produced no changes for the
+  amended Markdown documentation, and =git diff --check= passed before the
+  implementation commit.
+- *Audit status:* No further external audit was run, following the operator's
+  direction to avoid another external audit loop. The preceding external FAIL
+  remains the last independent verdict; operator sign-off and the pending UT/OT
+  evidence remain separate decisions.
