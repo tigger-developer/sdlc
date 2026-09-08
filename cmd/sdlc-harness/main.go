@@ -76,12 +76,13 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 	if flags.NArg() != 0 {
 		return fmt.Errorf("unexpected positional arguments: %v", flags.Args())
 	}
+	normalizedPhase := strings.ToLower(strings.TrimSpace(*phase))
 	projectRoot, err := filepath.Abs(*project)
 	if err != nil {
 		return err
 	}
 	config, err := harness.ResolveConfig(harness.ConfigOptions{
-		ProjectRoot: projectRoot, GlobalPath: *globalConfig, Phase: *phase,
+		ProjectRoot: projectRoot, GlobalPath: *globalConfig, Phase: normalizedPhase,
 		Harness: *harnessName, Provider: *provider, Model: *model, Timeout: *timeout,
 	})
 	if err != nil {
@@ -144,7 +145,7 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 	if err != nil {
 		return err
 	}
-	if config.Harness != "" && *phase == "audit" {
+	if config.Harness != "" && normalizedPhase == "audit" {
 		if err := harness.ValidateCompositeVerdict(result.Response); err != nil {
 			return err
 		}

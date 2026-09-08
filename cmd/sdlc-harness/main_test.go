@@ -78,3 +78,43 @@ func TestW004InternalCLIRejectsIncompleteRequests(t *testing.T) {
 		}
 	}
 }
+
+func TestW004UppercaseAuditPhaseStillValidatesVerdict(t *testing.T) {
+	root := t.TempDir()
+	bin := filepath.Join(root, "bin")
+	if err := os.MkdirAll(bin, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	script := `#!/bin/sh
+output=
+previous=
+for argument in "$@"; do
+    if [ "$previous" = "-o" ]; then output="$argument"; fi
+    previous="$argument"
+done
+printf 'not an audit verdict\n' > "$output"
+printf '{"type":"thread.started","thread_id":"native-session"}\n'
+`
+	command := filepath.Join(bin, "codex")
+	// #nosec G306 -- the fake harness must be executable.
+	if err := os.WriteFile(command, []byte(script), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("PATH", bin+string(os.PathListSeparator)+os.Getenv("PATH"))
+	project := filepath.Join(root, "project")
+	if err := os.MkdirAll(filepath.Join(project, ".sdlc"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	config := "version: 3\ndelivery:\n  audit:\n    harness: codex\n    model: test-model\n    timeout: 5s\n"
+	if err := os.WriteFile(filepath.Join(project, ".sdlc", "project.yaml"), []byte(config), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	evidence := filepath.Join(project, "evidence.org")
+	if err := os.WriteFile(evidence, []byte("evidence\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	arguments := []string{"start", "--phase", "AUDIT", "--project", project, "--global-config", filepath.Join(root, "absent.yaml"), "--input", evidence}
+	if err := run(arguments, strings.NewReader("audit this"), &bytes.Buffer{}, &bytes.Buffer{}); err == nil || !strings.Contains(err.Error(), "composite verdict") {
+		t.Fatalf("uppercase audit phase verdict validation = %v", err)
+	}
+}

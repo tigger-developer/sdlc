@@ -2,6 +2,7 @@ package installer
 
 import (
 	"bytes"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -41,11 +42,15 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 	writeFixtureFile(t, filepath.Join(root, ".local", "bin", "sdlc-project-init"), "old initializer link target\n")
 	writeFixtureFile(t, filepath.Join(root, ".local", "bin", "sdlc-audit"), "old audit runner\n")
 	writeFixtureFile(t, filepath.Join(root, ".local", "bin", "sdlc-project-update"), "old updater\n")
+	unrelatedPath := filepath.Join(root, ".claude", "unrelated.txt")
+	writeFixtureFile(t, unrelatedPath, "operator-owned bytes\n")
 	checkoutLink := filepath.Join(root, ".local", "bin", "sdlc-init")
 	if err := os.Symlink(filepath.Join(source, "bin", "sdlc-init"), checkoutLink); err != nil {
 		t.Fatal(err)
 	}
 
+	guardCountPath := filepath.Join(root, "guard-count")
+	t.Setenv("SDLC_GUARD_COUNT_FILE", guardCountPath)
 	var output bytes.Buffer
 	if err := RunInteractive(source, root, "v3.0.0", strings.NewReader("yes\nyes\n"), &output); err != nil {
 		t.Fatalf("install: %v\n%s", err, output.String())
@@ -55,6 +60,10 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 			t.Fatalf("missing %s readiness result:\n%s", provider, output.String())
 		}
 	}
+	if count := strings.Count(readFixtureFile(t, guardCountPath), "invoked\n"); count != 4 {
+		t.Fatalf("guard invocation count = %d, want 4", count)
+	}
+	assertFixtureContent(t, unrelatedPath, "operator-owned bytes\n")
 	assertFixtureContent(t, filepath.Join(root, ".agents", "sdlc", "MAIN.md"), "# Lean SDLC\n")
 	assertFixtureContent(t, filepath.Join(root, ".agents", "skills", "audit-code", "SKILL.md"), "---\nname: audit-code\ndescription: Review code.\n---\n")
 	assertFixtureContent(t, filepath.Join(root, ".agents", "skills", "audit-test-code", "SKILL.md"), "---\nname: audit-test-code\ndescription: Review implemented tests.\n---\n")
@@ -146,6 +155,14 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 	for _, provider := range []string{"claude", "copilot", "hermes"} {
 		assertFixtureContent(t, filepath.Join(root, "."+provider, "skills", "audit-code", "SKILL.md"), "updated canonical skill\n")
 	}
+	var noOpOutput bytes.Buffer
+	if err := RunInteractive(source, root, "v3.0.0", strings.NewReader("unexpected\n"), &noOpOutput); err != nil {
+		t.Fatalf("all-provider no-op: %v\n%s", err, noOpOutput.String())
+	}
+	if !strings.Contains(noOpOutput.String(), "All detected SDLC copies are current.") || strings.Contains(noOpOutput.String(), "Deploy all") {
+		t.Fatalf("all-provider no-op output = %q", noOpOutput.String())
+	}
+	assertFixtureContent(t, unrelatedPath, "operator-owned bytes\n")
 }
 
 func TestW004UnknownCopilotHookDeclinePreservesBytes(t *testing.T) {
@@ -218,6 +235,24 @@ func TestW004DetectionUsesExecutableNotProviderHome(t *testing.T) {
 	}
 }
 
+func TestW004ConfigurationRestoreFailureReportsBothErrors(t *testing.T) {
+	root := t.TempDir()
+	path := filepath.Join(root, "settings.json")
+	writeFixtureFile(t, path, "original\n")
+	writeFailure := errors.New("write failed")
+	restoreFailure := errors.New("restore failed")
+	change := &configurationChange{path: path, contents: []byte("replacement\n"), mode: 0o600}
+	err := applyConfigurationChangeWith(
+		change,
+		&bytes.Buffer{},
+		func(string, []byte, os.FileMode) error { return writeFailure },
+		func(string, string) error { return restoreFailure },
+	)
+	if !errors.Is(err, writeFailure) || !errors.Is(err, restoreFailure) || !strings.Contains(err.Error(), "restoring configuration backup") {
+		t.Fatalf("configuration failure = %v", err)
+	}
+}
+
 func writeFixtureFile(t *testing.T, path, contents string) {
 	t.Helper()
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
@@ -267,6 +302,7 @@ func writeGuardFixture(t *testing.T, path string) {
 	t.Helper()
 	contents := `#!/bin/sh
 IFS= read -r payload
+if [ -n "$SDLC_GUARD_COUNT_FILE" ]; then printf 'invoked\n' >> "$SDLC_GUARD_COUNT_FILE"; fi
 case "$payload" in
 *pre_tool_call*) printf '{"decision":"block","reason":"test"}\n'; exit 0 ;;
 *) printf 'Blocked by agent-command-guard: test\n' >&2; exit 2 ;;

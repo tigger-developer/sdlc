@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
+	"github.com/tigger-developer/sdlc/internal/harness"
 )
 
 const (
@@ -263,6 +264,9 @@ func RunInteractive(sourcePath, userHome, release string, input io.Reader, outpu
 		if err := verifyHarnessGuards(commonHome, agents, output); err != nil {
 			return err
 		}
+		if err := verifyHarnessAdapters(commonHome, agents); err != nil {
+			return err
+		}
 		printHarnessReadiness(output, agents)
 		return nil
 	}
@@ -306,6 +310,9 @@ func RunInteractive(sourcePath, userHome, release string, input io.Reader, outpu
 		return err
 	}
 	if err := verifyHarnessGuards(commonHome, agents, output); err != nil {
+		return err
+	}
+	if err := verifyHarnessAdapters(commonHome, agents); err != nil {
 		return err
 	}
 	printHarnessReadiness(output, agents)
@@ -413,6 +420,31 @@ func verifyHarnessGuards(commonHome string, agents []string, output io.Writer) e
 		if !verified {
 			fmt.Fprintf(output, "Harness %s: interactive=NOT_READY; external-audit=NOT_READY; initializer=NOT_READY; guard verification failed at %s\n", agent, guard)
 			return fmt.Errorf("%s native command-guard projection could not be verified", agent)
+		}
+	}
+	return nil
+}
+
+func verifyHarnessAdapters(commonHome string, agents []string) error {
+	runner := filepath.Join(commonHome, "sdlc", "bin", "sdlc-harness")
+	info, err := os.Stat(runner)
+	if err != nil {
+		return fmt.Errorf("verifying installed harness runner %q: %w", runner, err)
+	}
+	if !info.Mode().IsRegular() || info.Mode().Perm()&0o111 == 0 {
+		return fmt.Errorf("verifying installed harness runner %q: expected an executable regular file", runner)
+	}
+	for _, harnessName := range agents {
+		request := harness.Request{
+			Harness: harnessName, Model: "readiness-model", Provider: "readiness-provider",
+			Prompt: "readiness", Bundle: "/read-only-bundle", ResultFile: "/result",
+			SessionID: "00000000-0000-4000-8000-000000000000",
+		}
+		if _, err := harness.BuildStart(request); err != nil {
+			return fmt.Errorf("verifying %s external-audit start adapter: %w", harnessName, err)
+		}
+		if _, err := harness.BuildResume(request); err != nil {
+			return fmt.Errorf("verifying %s external-audit resume adapter: %w", harnessName, err)
 		}
 	}
 	return nil
@@ -1727,6 +1759,10 @@ func printConfigurationChange(output io.Writer, change *configurationChange) {
 }
 
 func applyConfigurationChange(change *configurationChange, output io.Writer) error {
+	return applyConfigurationChangeWith(change, output, writeFileAtomic, os.Rename)
+}
+
+func applyConfigurationChangeWith(change *configurationChange, output io.Writer, write func(string, []byte, os.FileMode) error, restore func(string, string) error) error {
 	backupPath, err := backupConfiguration(change.path)
 	if err != nil {
 		return err
@@ -1734,9 +1770,11 @@ func applyConfigurationChange(change *configurationChange, output io.Writer) err
 	if backupPath != "" {
 		fmt.Fprintf(output, "Backup: %s\n", backupPath)
 	}
-	if err := writeFileAtomic(change.path, change.contents, change.mode); err != nil {
+	if err := write(change.path, change.contents, change.mode); err != nil {
 		if backupPath != "" {
-			_ = os.Rename(backupPath, change.path)
+			if restoreErr := restore(backupPath, change.path); restoreErr != nil {
+				return errors.Join(err, fmt.Errorf("restoring configuration backup %q to %q: %w", backupPath, change.path, restoreErr))
+			}
 		}
 		return err
 	}

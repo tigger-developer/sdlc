@@ -9,10 +9,16 @@
 - Added fixed, capability-aware Go harness adapters with YAML configuration
   precedence, model and provider filtering, immutable evidence bundles, stable
   session identities, exact-context resume, bounded timeouts, and fail-closed
-  result parsing.
+  result parsing. Installer verification now checks both native guard delivery
+  and each detected harness adapter before reporting readiness; regression
+  coverage exercises the full four-harness start, resume, timeout, exit, and
+  empty-response matrix.
 - Restored the canonical command guard across all four native hook mechanisms;
   corrected command-position parsing, option-bearing wrappers, false positives
-  in ordinary argument data, exact `.env` reads, and malformed payload handling.
+  in ordinary argument data, exact `.env` reads, nested command chains, and
+  malformed or unknown payload handling.
+- Preserved cleanup and configuration-recovery failures instead of discarding
+  them, and normalized phase names before enforcing composite audit verdicts.
 - Routed archived Spec Kit classification through the selected audit harness and
   added an explicit interactive handoff where initializer mutation cannot be
   confined by the selected adapter.

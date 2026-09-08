@@ -279,10 +279,16 @@ func ParseResult(harness string, stdout, resultFile []byte, preassignedIdentity 
 		result.Response = strings.TrimSpace(result.Response)
 	case "hermes":
 		lines := strings.Split(strings.TrimSpace(string(stdout)), "\n")
-		if len(lines) != 0 && strings.HasPrefix(lines[0], "SESSION_ID:") {
-			result.SessionID = strings.TrimSpace(strings.TrimPrefix(lines[0], "SESSION_ID:"))
-			result.Response = strings.TrimSpace(strings.Join(lines[1:], "\n"))
+		if len(lines) == 0 || !strings.HasPrefix(lines[0], "SESSION_ID:") {
+			return Result{}, newIncident("identity-missing", harness, "", errors.New("result omitted the native SESSION_ID envelope"))
 		}
+		for _, line := range lines[1:] {
+			if strings.HasPrefix(line, "SESSION_ID:") {
+				return Result{}, newIncident("response-malformed", harness, result.SessionID, errors.New("result duplicated the native SESSION_ID envelope"))
+			}
+		}
+		result.SessionID = strings.TrimSpace(strings.TrimPrefix(lines[0], "SESSION_ID:"))
+		result.Response = strings.TrimSpace(strings.Join(lines[1:], "\n"))
 	default:
 		return Result{}, newIncident("capability-unsupported", harness, result.SessionID, fmt.Errorf("unsupported harness %q", harness))
 	}

@@ -212,6 +212,125 @@ func TestW004ExecuteReturnsTypedStartAndResumeFailures(t *testing.T) {
 	}
 }
 
+func TestW004ExecuteStartAndResumeAcrossHarnesses(t *testing.T) {
+	for _, harnessName := range []string{"codex", "claude", "copilot", "hermes"} {
+		for _, resume := range []bool{false, true} {
+			t.Run(harnessName+map[bool]string{false: "-start", true: "-resume"}[resume], func(t *testing.T) {
+				root := t.TempDir()
+				request := matrixRequest(harnessName, root)
+				result, err := Execute(context.Background(), request, resume, nil, successfulMatrixExecutor(t, request, resume), io.Discard)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if result.SessionID == "" || result.Response != "final" {
+					t.Fatalf("result = %#v", result)
+				}
+			})
+		}
+	}
+}
+
+func TestW004ExecuteFailureMatrixAcrossHarnesses(t *testing.T) {
+	for _, harnessName := range []string{"codex", "claude", "copilot", "hermes"} {
+		for _, resume := range []bool{false, true} {
+			t.Run(harnessName+map[bool]string{false: "-start", true: "-resume"}[resume], func(t *testing.T) {
+				request := matrixRequest(harnessName, t.TempDir())
+				ctx, cancel := context.WithTimeout(context.Background(), time.Nanosecond)
+				<-ctx.Done()
+				defer cancel()
+				_, err := Execute(ctx, request, resume, nil, func(context.Context, string, []string, string, io.Reader, io.Writer, io.Writer) error {
+					return context.DeadlineExceeded
+				}, io.Discard)
+				assertIncidentKind(t, err, "timeout")
+
+				_, err = Execute(context.Background(), request, resume, nil, func(context.Context, string, []string, string, io.Reader, io.Writer, io.Writer) error {
+					return errors.New("provider exited unsuccessfully")
+				}, io.Discard)
+				want := "start-failed"
+				if resume {
+					want = "resume-failed"
+				}
+				assertIncidentKind(t, err, want)
+
+				_, err = Execute(context.Background(), request, resume, nil, emptyMatrixExecutor(t, request), io.Discard)
+				assertIncidentKind(t, err, "response-empty")
+			})
+		}
+	}
+}
+
+func TestW004HermesRequiresNativeSessionEnvelope(t *testing.T) {
+	if _, err := ParseResult("hermes", []byte("final\n"), nil, "preassigned-session"); err == nil {
+		t.Fatal("Hermes response without native session envelope succeeded")
+	} else {
+		assertIncidentKind(t, err, "identity-missing")
+	}
+}
+
+func matrixRequest(harnessName, root string) Request {
+	request := Request{
+		Harness: harnessName, Model: "model", Prompt: "prompt", Bundle: root,
+		SessionID: "preassigned-session",
+	}
+	if harnessName == "codex" {
+		request.ResultFile = filepath.Join(root, "result")
+	}
+	if harnessName == "hermes" {
+		request.Provider = "provider"
+	}
+	return request
+}
+
+func successfulMatrixExecutor(t *testing.T, request Request, resume bool) Executor {
+	t.Helper()
+	return func(_ context.Context, _ string, _ []string, _ string, _ io.Reader, stdout, _ io.Writer) error {
+		switch request.Harness {
+		case "codex":
+			if err := os.WriteFile(request.ResultFile, []byte("final"), 0o600); err != nil {
+				return err
+			}
+			if !resume {
+				_, _ = io.WriteString(stdout, "{\"type\":\"thread.started\",\"thread_id\":\"native-session\"}\n")
+			}
+		case "claude":
+			_, _ = io.WriteString(stdout, `{"result":"final"}`)
+		case "copilot":
+			_, _ = io.WriteString(stdout, "{\"type\":\"assistant.message\",\"content\":\"final\"}\n")
+		case "hermes":
+			_, _ = io.WriteString(stdout, "SESSION_ID: native-session\nfinal\n")
+		}
+		return nil
+	}
+}
+
+func emptyMatrixExecutor(t *testing.T, request Request) Executor {
+	t.Helper()
+	return func(_ context.Context, _ string, _ []string, _ string, _ io.Reader, stdout, _ io.Writer) error {
+		switch request.Harness {
+		case "codex":
+			if err := os.WriteFile(request.ResultFile, nil, 0o600); err != nil {
+				return err
+			}
+			_, _ = io.WriteString(stdout, "{\"type\":\"thread.started\",\"thread_id\":\"native-session\"}\n")
+		case "claude":
+			_, _ = io.WriteString(stdout, `{}`)
+		case "copilot":
+			_, _ = io.WriteString(stdout, `{}`)
+		case "hermes":
+			_, _ = io.WriteString(stdout, "SESSION_ID: native-session\n")
+		}
+		return nil
+	}
+}
+
+func assertIncidentKind(t *testing.T, err error, want string) {
+	t.Helper()
+	var incident *Incident
+	if !errors.As(err, &incident) || incident.Kind != want {
+		t.Fatalf("incident = %#v, %v; want %s", incident, err, want)
+	}
+}
+
 func TestW004ImmutableBundleDetectsMutation(t *testing.T) {
 	root := t.TempDir()
 	source := filepath.Join(root, "source.org")

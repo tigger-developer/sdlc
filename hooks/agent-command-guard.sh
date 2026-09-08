@@ -51,6 +51,32 @@ tool_reads_files() {
     return 1
 }
 
+tool_writes_files() {
+    local normalized
+
+    normalized="$(printf '%s' "$tool_name" | tr '[:upper:]' '[:lower:]')"
+    case "$normalized" in
+    write | write_file | writefile | create_file | createfile | edit | edit_file | editfile | apply_patch | *__write* | *__edit*)
+        return 0
+        ;;
+    esac
+    return 1
+}
+
+payload_references_env_file() {
+    local candidate
+
+    while IFS= read -r candidate; do
+        if names_exact_env_file "$candidate"; then
+            return 0
+        fi
+    done < <(printf '%s' "$command_json" | jq -r '
+        (.tool_input // .toolInput // .toolArgs // {}) |
+        .. | strings
+    ')
+    return 1
+}
+
 read_candidate_count=0
 if [[ -z "$command_text" ]] && tool_reads_files; then
     while IFS= read -r candidate; do
@@ -78,6 +104,10 @@ if [[ -z "$command_text" ]] && tool_reads_files; then
     if [[ "$read_candidate_count" -eq 0 ]]; then
         block 'recognized file-reading event is missing a file or path field.'
     fi
+fi
+
+if [[ -z "$command_text" ]] && ! tool_reads_files && ! tool_writes_files && payload_references_env_file; then
+    block 'unrecognized tool payload references a protected .env path.'
 fi
 
 if [[ -z "$command_text" ]]; then
@@ -326,6 +356,8 @@ command_invokes_prohibited() {
     local command="$1"
     local segment_start=0
     local index
+    local -a TOKENS=()
+    local -a TOKEN_TYPES=()
 
     tokenize_shell_command "$command"
     for ((index = 0; index <= ${#TOKENS[@]}; index++)); do
@@ -339,29 +371,46 @@ command_invokes_prohibited() {
     return 1
 }
 
-command_references_env_file() {
-    local command="$1"
-    local token executable basename
-    local index=0
+segment_references_env_file() {
+    local start="$1"
+    local end="$2"
+    local token executable basename wrapper_status
+    local index="$start"
     local pattern_seen=false
     local option_value=""
-    local -a command_tokens
 
-    tokenize_shell_command "$command"
-    command_tokens=("${TOKENS[@]}")
-    while [[ "$index" -lt ${#command_tokens[@]} ]] && is_assignment "${command_tokens[index]}"; do
+    while [[ "$index" -lt "$end" ]] && is_assignment "${TOKENS[index]}"; do
         ((index += 1))
     done
-    [[ "$index" -lt ${#command_tokens[@]} ]] || return 1
-    executable="${command_tokens[index]}"
-    basename="${executable##*/}"
-    ((index += 1))
+    while [[ "$index" -lt "$end" ]]; do
+        executable="${TOKENS[index]}"
+        basename="${executable##*/}"
+        ((index += 1))
+        case "$basename" in
+        env | command | sudo)
+            if skip_wrapper_options "$basename" "$end"; then
+                continue
+            fi
+            wrapper_status="$?"
+            [[ "$wrapper_status" -eq 2 ]] && return 1
+            return 1
+            ;;
+        if | then | elif | else | while | until | do | time | "!")
+            while [[ "$index" -lt "$end" && "${TOKENS[index]}" == -* ]]; do
+                ((index += 1))
+            done
+            continue
+            ;;
+        esac
+        break
+    done
+    [[ -n "$basename" ]] || return 1
 
     if [[ "$basename" == "bash" || "$basename" == "sh" || "$basename" == "zsh" ]]; then
-        while [[ "$index" -lt ${#command_tokens[@]} ]]; do
-            token="${command_tokens[index]}"
-            if [[ "$token" =~ ^-[a-zA-Z]*c[a-zA-Z]*$ && $((index + 1)) -lt ${#command_tokens[@]} ]]; then
-                command_references_env_file "${command_tokens[index + 1]}"
+        while [[ "$index" -lt "$end" ]]; do
+            token="${TOKENS[index]}"
+            if [[ "$token" =~ ^-[a-zA-Z]*c[a-zA-Z]*$ && $((index + 1)) -lt "$end" ]]; then
+                command_references_env_file "${TOKENS[index + 1]}"
                 return
             fi
             ((index += 1))
@@ -369,8 +418,8 @@ command_references_env_file() {
         return 1
     fi
     if [[ "$basename" == "rg" || "$basename" == "grep" ]]; then
-        while [[ "$index" -lt ${#command_tokens[@]} ]]; do
-            token="${command_tokens[index]}"
+        while [[ "$index" -lt "$end" ]]; do
+            token="${TOKENS[index]}"
             if [[ -n "$option_value" ]]; then
                 if [[ "$option_value" == "file" ]] && names_exact_env_file "$token"; then
                     return 0
@@ -407,14 +456,35 @@ command_references_env_file() {
         done
         return 1
     fi
-
-    for (( ; index < ${#command_tokens[@]}; index++)); do
-        token="${command_tokens[index]}"
+    if [[ "$basename" == "echo" || "$basename" == "printf" ]]; then
+        return 1
+    fi
+    for (( ; index < end; index++)); do
+        token="${TOKENS[index]}"
         if names_exact_env_file "$token"; then
             return 0
         fi
         if [[ "$token" == *[[:space:]]* ]] && command_references_env_file "$token"; then
             return 0
+        fi
+    done
+    return 1
+}
+
+command_references_env_file() {
+    local command="$1"
+    local segment_start=0
+    local index
+    local -a TOKENS=()
+    local -a TOKEN_TYPES=()
+
+    tokenize_shell_command "$command"
+    for ((index = 0; index <= ${#TOKENS[@]}; index++)); do
+        if [[ "$index" -eq ${#TOKENS[@]} || "${TOKEN_TYPES[index]}" == "separator" ]]; then
+            if segment_references_env_file "$segment_start" "$index"; then
+                return 0
+            fi
+            segment_start=$((index + 1))
         fi
     done
     return 1

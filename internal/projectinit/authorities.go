@@ -140,7 +140,7 @@ func unresolvedMigratedWork(legacyV2 []string) []migratedWorkCandidate {
 	return items
 }
 
-func runMigratedWorkClassification(options Options, sdlcRoot, projectRoot, workspace, harnessName, provider, model, timeoutValue string, legacyV2 []string) (string, error) {
+func runMigratedWorkClassification(options Options, sdlcRoot, projectRoot, workspace, harnessName, provider, model, timeoutValue string, legacyV2 []string) (proposal string, returnErr error) {
 	promptPath := filepath.Join(sdlcRoot, filepath.FromSlash(authorityDiscoveryPromptPath))
 	prompt, err := os.ReadFile(promptPath)
 	if err != nil {
@@ -174,7 +174,11 @@ func runMigratedWorkClassification(options Options, sdlcRoot, projectRoot, works
 	if err != nil {
 		return "", fmt.Errorf("creating migrated-work classification bundle: %w", err)
 	}
-	defer func() { _ = bundle.Cleanup() }()
+	defer func() {
+		if cleanupErr := bundle.Cleanup(); cleanupErr != nil {
+			returnErr = errors.Join(returnErr, fmt.Errorf("cleaning migrated-work classification bundle: %w", cleanupErr))
+		}
+	}()
 	identity, err := harness.NewSessionIdentity()
 	if err != nil {
 		return "", err

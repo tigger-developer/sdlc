@@ -72,7 +72,15 @@ func TestW004CommandGuardExactRestrictions(t *testing.T) {
 }
 
 func TestW004CommandGuardEnvPathVectors(t *testing.T) {
-	for _, command := range []string{"cat .env", "cat config/.env", "cat ./.env", `cat 'config\.env'`, "echo safe && cat .env"} {
+	for _, command := range []string{
+		"cat .env",
+		"cat config/.env",
+		"cat ./.env",
+		`cat 'config\.env'`,
+		"echo safe && cat .env",
+		`bash -c 'echo .env' && cat .env`,
+		`bash -c 'cat .env'`,
+	} {
 		blocked, _, _ := runGuard(t, map[string]any{
 			"hook_event_name": "PreToolUse", "tool_name": "Bash",
 			"tool_input": map[string]any{"command": command},
@@ -85,6 +93,9 @@ func TestW004CommandGuardEnvPathVectors(t *testing.T) {
 		"cat .env.example",
 		"cat .env.local",
 		`rg '\.env' README.md`,
+		"echo .env",
+		"printf %s .env",
+		`bash -c 'echo .env'`,
 	} {
 		blocked, _, _ := runGuard(t, map[string]any{
 			"hook_event_name": "PreToolUse", "tool_name": "Bash",
@@ -93,6 +104,17 @@ func TestW004CommandGuardEnvPathVectors(t *testing.T) {
 		if blocked {
 			t.Errorf("permitted shell command was blocked: %s", command)
 		}
+	}
+}
+
+func TestW004CommandGuardFailsClosedForUnknownToolTargetingEnv(t *testing.T) {
+	blocked, _, _ := runGuard(t, map[string]any{
+		"hook_event_name": "PreToolUse",
+		"tool_name":       "unknown_reader",
+		"tool_input":      map[string]any{"path": ".env"},
+	})
+	if !blocked {
+		t.Fatal("unknown tool targeting .env was allowed")
 	}
 }
 

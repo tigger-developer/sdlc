@@ -34,10 +34,12 @@ the minimum relevant universal, domain, technology, and workflow documents.
 Skills are global and refer to that canonical root, so a standards update does
 not require every initialized project to be refreshed.
 
-The first v3 release installs no SDLC workflow into Claude, Hermes, or Copilot.
-The installer removes only known public SDLC-owned v1/v2 artefacts from those
-provider homes. Private provider configuration remains outside this repository's
-ownership.
+The installer exposes the canonical global skills through the native skill
+locations used by Claude, Copilot, and Hermes; Codex consumes the canonical
+skill root directly. Each supported harness receives its native registration
+for the shared command guard and uses a thin capability-aware adapter for
+bounded external audits. Private provider configuration remains outside this
+repository's ownership.
 
 ## Project architecture
 
