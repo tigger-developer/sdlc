@@ -33,6 +33,9 @@ historical input for migration, not a second authority.
 If supplied artefacts duplicate audit findings or state, the auditor MUST return
 `FAIL` and require the duplicate to be removed before rerun.
 
+The external auditor returns its envelope and findings only; it does not edit
+files. The harness persists that response in `audits.yaml`.
+
 ## Verdict contract
 
 The harness response contains exactly one envelope:
