@@ -17,9 +17,12 @@ At the beginning of delivery, determine whether any information is required
 from the operator before implementation can safely start. Ask that one bounded
 set of questions once. If the operator deliberately selects `ATTENDED`, remain
 attended and hand back when a human decision is required. Otherwise delivery
-enters **HANDS-OFF** for this invocation. Hands-off mode is not a global
-default: it is activated only by invoking this delivery workflow, and it does
-not authorize changes to signed-off behaviour or other human-only decisions.
+enters **HANDS-OFF** for this invocation. Declare `DELIVERY MODE: HANDS-OFF` and
+advise the operator that any interruption or resumed interaction changes the
+mode to **ATTENDED** until the operator invokes `HANDS-OFF` again. Hands-off
+mode is not a global default: it is activated only by invoking this delivery
+workflow, and it does not authorize changes to signed-off behaviour or other
+human-only decisions.
 
 Hands-off delivery is a continuation contract. The cost of stopping
 prematurely is high, so a progress report, commit, warning, completed test,

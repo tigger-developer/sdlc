@@ -8,6 +8,9 @@
   attended; delivery asks one preflight question set and then continues in
   hands-off mode unless the operator selects attended. Progress, commits,
   warnings, and ordinary audit remediation are non-terminal in hands-off mode.
+- Hands-off delivery now declares its active mode and warns that an interruption
+  or resumed interaction returns it to attended mode until `HANDS-OFF` is
+  invoked again.
 - Added a `Decision Log (Hands-off delivery only)` section to the canonical
   specification template for recording bounded, reversible runtime assumptions.
 

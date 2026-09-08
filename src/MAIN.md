@@ -112,9 +112,12 @@ decisions needed to make the specification safe and context-independent.
 `deliver-change` performs one preflight question set before implementation. The
 operator may explicitly select **ATTENDED**; otherwise that invocation proceeds
 in **HANDS-OFF** mode. Hands-off is therefore an invoked delivery mode, not a
-global default. The cost of stopping prematurely is high: progress reports,
-commits, warnings, partial milestones, and ordinary audit remediation are not
-terminal handbacks while safe, authorized, executable work remains.
+global default. The agent must declare `DELIVERY MODE: HANDS-OFF` when entering
+it and advise the operator that any interruption or resumed interaction changes
+the mode to **ATTENDED** until the operator invokes `HANDS-OFF` again. The cost
+of stopping prematurely is high: progress reports, commits, warnings, partial
+milestones, and ordinary audit remediation are not terminal handbacks while
+safe, authorized, executable work remains.
 
 Hands-off delivery records material routine assumptions in the specification's
 `Decision Log (Hands-off delivery only)`. It stops only for a human decision or
