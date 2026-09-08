@@ -13,6 +13,28 @@ evidence that remains current. Do not begin by rerunning definition audits. A
 material specification change resets the definition gate and sign-off to
 `PENDING` and moves the work item to `REVIEW`.
 
+At the beginning of delivery, determine whether any information is required
+from the operator before implementation can safely start. Ask that one bounded
+set of questions once. If the operator deliberately selects `ATTENDED`, remain
+attended and hand back when a human decision is required. Otherwise delivery
+enters **HANDS-OFF** for this invocation. Hands-off mode is not a global
+default: it is activated only by invoking this delivery workflow, and it does
+not authorize changes to signed-off behaviour or other human-only decisions.
+
+Hands-off delivery is a continuation contract. The cost of stopping
+prematurely is high, so a progress report, commit, warning, completed test,
+audit result, or partial milestone is not a terminal handback while safe,
+authorized, executable work remains. Continue through TDD, remediation,
+documentation, validation, and evidence recording. Record every material
+routine assumption in the specification's `Decision Log (Hands-off delivery
+only)` section.
+
+Valid reasons to stop include a required human decision or genuine blocker, a
+failed mandatory test or verification that cannot be safely remediated, or
+reaching the configured maximum number of audit rounds without `PASS` or
+`PROVISIONAL`. In those cases return the exact state, evidence, assumptions,
+and next human action; do not imply completion.
+
 After admission, apply the implementation branch strategy from the project and
 global configuration. Under `current`, remain on the operator-selected branch.
 Under `feature`, pull the project's recorded primary branch, create and publish

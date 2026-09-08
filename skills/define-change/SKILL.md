@@ -12,6 +12,11 @@ switch, merge, or delete a feature branch. The project branch strategy applies
 only when an approved specification enters delivery. Synchronize the current
 branch at the definition boundaries required by `GIT.md`.
 
+Definition is always **ATTENDED**. Ask the bounded clarification questions
+required to make the specification safe and context-independent; do not enter
+hands-off delivery mode or silently substitute assumptions for unresolved
+product, scope, architecture, security, or other human decisions.
+
 Ask no more than three concise free-form questions needed to define product
 scope. If operator direction raises unresolved test or design choices, ask no
 more than three additional questions for each affected area. Do not use

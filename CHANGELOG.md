@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## v3.1.1 - 2026-09-08
+
+- Added explicit attended and hands-off delivery modes. Definition remains
+  attended; delivery asks one preflight question set and then continues in
+  hands-off mode unless the operator selects attended. Progress, commits,
+  warnings, and ordinary audit remediation are non-terminal in hands-off mode.
+- Added a `Decision Log (Hands-off delivery only)` section to the canonical
+  specification template for recording bounded, reversible runtime assumptions.
+
 ## v3.1.0 - 2026-09-07
 
 - Added native SDLC v3 support for Codex, Claude Code, GitHub Copilot CLI, and

@@ -118,6 +118,36 @@ Do not leave a design preference or product decision in this section for the
 delivery agent to guess. A real unresolved blocker prevents definition sign-off.
 #+end_comment
 
+* Decision Log (Hands-off delivery only)
+:PROPERTIES:
+:CUSTOM_ID: decision-log
+:END:
+
+#+begin_comment
+Use this section only when delivery was explicitly run in hands-off mode. It
+records routine, reversible implementation assumptions made so the agent could
+continue without an immediate operator response. It does not authorize a new
+requirement, scope, architecture, security, privacy, access, data, external
+contract, or irreversible decision. Those remain human decisions and require a
+handback. Record one entry for each material assumption and preserve superseded
+entries rather than deleting them.
+#+end_comment
+
+** DNNN - Descriptive routine decision
+:PROPERTIES:
+:CUSTOM_ID: d-nnn
+:DATE: YYYY-MM-DD
+:END:
+
+- Question :: [The bounded uncertainty encountered during delivery.]
+- Decision :: [The reversible choice made to continue within the signed-off
+  specification and design.]
+- Reason :: [Why this interpretation best fits the authorities and standards.]
+- Evidence :: [The specification, design, code, test, or project convention
+  consulted.]
+- Reversibility :: [How the decision can be changed without loss or migration.]
+- Effect :: [The exact artefacts or behaviour affected.]
+
 * Acceptance Criteria
 :PROPERTIES:
 :CUSTOM_ID: acceptance-criteria

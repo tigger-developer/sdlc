@@ -40,6 +40,18 @@ definition makes every downstream review expensive, while separate artefacts
 make contradictions easier to introduce. A concise context-independent handoff
 and bounded audit topology improve both safety and throughput.
 
+## Delivery mode must be explicit
+
+The former MODE DELIVER experience exposed a useful distinction that should not
+be lost in a lean workflow. Definition requires an attended operator because
+unresolved product and scope decisions cannot be guessed safely. Delivery has
+the opposite cost profile: once a specification is signed off, a premature
+agent handback wastes the operator's unattended delivery window. V3 therefore
+uses one preflight question set, then continues hands-off unless the operator
+selects attended. Routine reversible assumptions belong in the specification's
+decision log; human decisions, genuine blockers, and exhausted audit limits
+remain valid stopping conditions.
+
 ## Project-local workflow copies do not scale
 
 Spec Kit installed workflow skills into each project. Any framework correction

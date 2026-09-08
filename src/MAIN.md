@@ -104,6 +104,25 @@ A specification is a delivery handoff. A new agent must be able to deliver it
 using only `spec.org`, `.sdlc/project.yaml`, the named authorities, and the
 repository. Uncaptured conversation or hidden assumptions fail the gate.
 
+## Delivery modes
+
+`define-change` is always **ATTENDED**: it may ask the operator for the bounded
+decisions needed to make the specification safe and context-independent.
+
+`deliver-change` performs one preflight question set before implementation. The
+operator may explicitly select **ATTENDED**; otherwise that invocation proceeds
+in **HANDS-OFF** mode. Hands-off is therefore an invoked delivery mode, not a
+global default. The cost of stopping prematurely is high: progress reports,
+commits, warnings, partial milestones, and ordinary audit remediation are not
+terminal handbacks while safe, authorized, executable work remains.
+
+Hands-off delivery records material routine assumptions in the specification's
+`Decision Log (Hands-off delivery only)`. It stops only for a human decision or
+genuine blocker, a failed mandatory check that cannot be safely remediated, or
+the configured audit limit without `PASS` or `PROVISIONAL`. It never authorizes
+new product behaviour, scope, architecture, security, access, data, external
+contract, or irreversible decisions.
+
 ## Variant workflows
 
 - **Paired development:** only an explicit operator selection enables the live

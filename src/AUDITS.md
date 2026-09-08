@@ -35,7 +35,9 @@ The authoring context applies `audit-spec`, `audit-design`, and
    three audits there in one turn.
 4. If it fails, remediate locally, rerun all affected local reviews, then resume
    the same external context. Never create another auditor for the same gate.
-5. Stop at PASS, five failed gate rounds, or a human-controlled decision.
+5. Stop at PASS, five failed gate rounds, or a human-controlled decision. A
+   hands-off workflow may not stop at a progress report, warning, partial
+   milestone, or ordinary remediation step.
 
 The external auditor receives only the current specification, project profile,
 named authorities, applicable standards, and focused repository evidence. It
@@ -65,7 +67,9 @@ delivery context has started.
    audits there in one turn.
 4. If it fails, remediate locally, rerun affected tests and local reviews, then
    resume the same external context.
-5. Stop at PASS, five failed gate rounds, or a human-controlled decision.
+5. Stop at PASS, five failed gate rounds, or a human-controlled decision. A
+   hands-off workflow may not stop at a progress report, warning, partial
+   milestone, or ordinary remediation step.
 
 Each gate therefore spans at most two contexts: its authoring context and one
 retained external auditor context. Do not invoke each focused audit in a new
