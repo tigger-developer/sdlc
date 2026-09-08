@@ -82,6 +82,11 @@ defaults and the installed SDLC release live in `~/.agents/sdlc.yaml`. The
 schema `version` and deployed `release` are separate values. Project profiles do
 not pin the globally installed SDLC. Agents never read `.env`.
 
+Commands and executables under the canonical SDLC root MUST be invoked by their
+resolved absolute filesystem path, not by relying on `PATH`. In particular,
+resolve `~/.agents/sdlc/bin/sdlc-harness` before starting or resuming an
+external context.
+
 ## Normal workflow
 
 Normal delivery has two phases and two human gates:

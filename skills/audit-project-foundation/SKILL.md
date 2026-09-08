@@ -37,8 +37,9 @@ Review and remediate in the current context for no more than five rounds.
 Record each round, exact document revisions, findings, and remediation in the
 foundation audit record. Do not claim PASS while a required correction remains.
 
-Only after all local checks pass, start exactly one external context through
-`~/.agents/sdlc/bin/sdlc-harness start --phase definition`. This is a foundation
+Only after all local checks pass, resolve the canonical executable
+`~/.agents/sdlc/bin/sdlc-harness` to its absolute filesystem path and start
+exactly one external context through that path (never rely on `PATH`). This is a foundation
 definition gate, not an ordinary change audit: `--phase definition` deliberately
 selects the configured `SDLC_SPEC_HARNESS`, `SDLC_SPEC_PROVIDER`, and
 `SDLC_SPEC_MODEL` (with project and global YAML precedence), rather than the
@@ -48,8 +49,8 @@ record the `SESSION_ID`. The external reviewer reviews both documents in one
 context.
 
 If remediation is required, apply it in the current context, rerun the affected
-local checks, and resume that same external context with
-`~/.agents/sdlc/bin/sdlc-harness resume --phase definition --session SESSION_ID`.
+local checks, and resume that same external context with the same absolute
+`sdlc-harness` path using `resume --phase definition --session SESSION_ID`.
 Never create a second external auditor for this gate or exceed five failed
 rounds. A timeout is a runner incident, not PASS or FAIL; interrupt the retained
 context and return the incident for operator direction.

@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## v3.1.12 - 2026-09-08
+
+- Required composite audit skills to resolve `sdlc-harness` to an absolute
+  canonical path instead of relying on `PATH`.
+
 ## v3.1.11 - 2026-09-08
 
 - Recorded the CI reproducibility lesson for the preferred Web linters in

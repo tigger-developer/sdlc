@@ -11,16 +11,18 @@ together. Remediate, rerun affected automated tests, and repeat for no more
 than five local rounds. Record each round in `audits.org`. Do not invoke the
 focused skills through separate agents or scripts.
 
-Only after both pass locally, start exactly one external context through
-`~/.agents/sdlc/bin/sdlc-harness start --phase audit`. Supply the signed-off
+Only after both pass locally, resolve the canonical executable
+`~/.agents/sdlc/bin/sdlc-harness` to its absolute filesystem path and start
+exactly one external context through that path (never rely on `PATH`). Supply
+the signed-off
 specification, exact implementation delta, test evidence, project profile, and
 selected standards as exact `--input` files; send the bounded audit instruction
 on stdin. The runner resolves the harness, provider where meaningful, model,
 and timeout from project and global YAML configuration. Record the `SESSION_ID`
 it reports. The external context runs both audits in one turn. After
 remediation, rerun affected tests and local reviews, then send the revision to
-that same context with `~/.agents/sdlc/bin/sdlc-harness resume --phase audit`
-and `--session SESSION_ID`. Never replace it or exceed five failed gate rounds. If the
+that same absolute `sdlc-harness` path with `resume --phase audit` and
+`--session SESSION_ID`. Never replace it or exceed five failed gate rounds. If the
 configured timeout expires, interrupt that retained agent, record a runner
 incident, and return it for operator direction without treating it as a failed
 audit or creating a replacement.
