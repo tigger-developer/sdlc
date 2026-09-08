@@ -75,10 +75,20 @@ Format-aware tools for web content:
 | Broad generated-site validation | `htmltest` | `brew install htmltest` | Broken links, missing assets, malformed markup. Default smoke check for static/generated sites. |
 | Targeted DOM assertions | `htmlq` | `brew install htmlq` | CSS-selector queries against rendered HTML. HTML analogue of `jq`. |
 | Targeted RSS/feed assertions | `xmlstarlet` | `brew install xmlstarlet` | XPath queries against generated feed XML. |
-| Lint CSS | `stylelint` | `npm i -D stylelint` | Industry standard. |
-| Lint JS/TS | `eslint` + `prettier` | `npm i -D eslint prettier` | See CODING.md Style Baselines. |
+| Lint CSS | `stylelint` | Existing approved project tool only | Do not add Node.js/npm solely for CSS linting. |
+| Lint JS/TS | `eslint` + `prettier` | Existing approved project tool only | See CODING.md Style Baselines. |
 
 Do not introduce a new web test architecture without explicit human approval. For static-site checks, do not add Node.js, npm, Playwright, Cypress, or another browser stack merely to verify generated HTML, feeds, links, assets, routes, headers, or file serving. Prefer `htmltest`, `htmlq`, and `xmlstarlet` unless the project already has a narrower appropriate harness.
+
+Node.js and npm are a **last-choice architecture**, because their attack
+surface, package supply-chain exposure, ecosystem weaknesses, and dependency
+quality risks are disproportionate for many web projects. Adding either to a
+project architecture, including as development-only tooling such as a CSS
+linter, requires **explicit human permission**. A proposal must document the
+safer alternatives that were exhausted, why they are inadequate, and the
+security and maintenance controls for the chosen packages. An agent MUST NOT
+introduce Node.js or npm merely to lint CSS, inspect generated HTML, or satisfy
+a tooling preference.
 
 For tests that genuinely require a browser (computed styles, hover behaviour, JS-executed content), reach for Playwright or Cypress -- but only when the body of UI tests justifies the tooling cost (heuristic: roughly 8-10 UTs across the project) and the human has approved the added test architecture.
 

@@ -1,10 +1,14 @@
 # Node.js and npm Standards
 
-Node.js as an application runtime is discouraged. Selecting it for a new
-application requires a recorded justification, including the alternatives
-considered and why a simpler compiled or static architecture is inadequate.
-Incidental use of npm-managed development tooling does not by itself select
-Node.js as the application runtime.
+Node.js and npm are a **last-choice architecture**, because their attack
+surface, package supply-chain exposure, ecosystem weaknesses, and dependency
+quality risks are disproportionate for many projects. Adding either to a
+project architecture, including as development-only tooling, requires
+**explicit human permission**. The proposal must record the safer alternatives
+that were exhausted, why they are inadequate, and the security and maintenance
+controls for the chosen packages. Selecting Node.js as an application runtime
+also requires a recorded justification for why a simpler compiled or static
+architecture is inadequate.
 
 These standards supplement `~/.agents/sdlc/CODING.md` and
 `~/.agents/sdlc/technologies/JAVASCRIPT.md`. Browser interfaces also follow

@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## v3.1.6 - 2026-09-08
+
+- Strengthened Web and Node standards: Node.js/npm are last-choice architectural
+  dependencies, require explicit human permission, and must be justified after
+  safer alternatives are exhausted. Web guidance no longer recommends adding
+  npm tooling solely for CSS linting.
+
 ## v3.1.5 - 2026-09-08
 
 - Renamed the specification decision-log section to `Hands-off mode decision
