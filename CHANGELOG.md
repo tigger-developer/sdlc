@@ -25,6 +25,8 @@
 - Deployed `sdlc-harness` as an internal framework helper without exposing it on
   the global command path, and made both composite audit skills use it for their
   single retained external context.
+- Retired the bundled `sdlc-preview` utility and preview template; document
+  rendering is now supplied by the project's chosen viewer or submodule.
 
 ## v3.0.10 - 2026-09-07
 
