@@ -68,8 +68,8 @@ silently rewrite the authority it assesses.
 
 Org provides addressable hierarchy, stable internal links, properties, folding,
 and readable plain text. The supported subset is deliberately portable and does
-not execute code. `sdlc-preview` uses Pandoc to provide browser rendering without
-requiring Emacs.
+not execute code. Rendering is outside the SDLC command surface; projects may
+choose their own Org or Markdown viewer.
 
 ### Storage and parser boundary
 

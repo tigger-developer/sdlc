@@ -2,9 +2,10 @@
 
 ## 1. Install the framework
 
-Prerequisites are Go, Git, Pandoc, and at least one supported harness: Codex,
-Claude Code, GitHub Copilot CLI, or Hermes. GitHub CLI is required only for
-legacy GitHub-ticket migration.
+Prerequisites are Go, Git, and at least one supported harness: Codex, Claude
+Code, GitHub Copilot CLI, or Hermes. GitHub CLI is required only for legacy
+GitHub-ticket migration. Choose any Org or Markdown viewer separately when
+human inspection of documents requires rendered output.
 
 ```sh
 make install
@@ -180,12 +181,3 @@ BYPASS-GATE-7 <bounded emergency change>
 
 The exact token invokes `$emergency-change`. The agent cannot infer, suggest, or
 self-authorize the route.
-
-## 7. Preview an artefact
-
-```sh
-sdlc-preview specs/001-example/spec.org
-```
-
-The generated HTML uses the source directory so relative links resolve, and is
-removed one second after the browser opens it.

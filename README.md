@@ -15,7 +15,6 @@ output, and resumable-session contracts.
 - Git for recoverability, migration branches, and delivery checkpoints.
 - At least one supported coding-agent harness: Codex, Claude Code, GitHub
   Copilot CLI, or Hermes.
-- Pandoc for browser previews of Markdown and Org documents.
 - GitHub CLI only when migrating an SDLC v1 project's GitHub tickets.
 
 ## Install
@@ -27,7 +26,7 @@ make install
 The repository-internal `sdlc-install` command is invoked by `make install`; it
 is not installed on the global path. The installation:
 
-- builds `sdlc-install` locally, deploys `sdlc-init`, `sdlc-preview`, and
+- builds `sdlc-install` locally, deploys `sdlc-init` and
   `sdlc-merge-legacy-acs` under `~/.agents/sdlc/bin`, and links those operator
   commands onto the global path;
 - deploys the internal `sdlc-harness` runner under `~/.agents/sdlc/bin` without
@@ -50,10 +49,10 @@ confirmation accepts `y` or `yes`.
 | `src/MAIN.md` | Universal rules and progressive routing |
 | `src/*.md` | Requirements, testing, auditing, coding, Git, documentation, security, paired, emergency, and Org standards |
 | `src/technologies/` | Automatically discoverable technology standards |
-| `src/templates/v3/` | Unified specification, work, audit, validation, and preview templates |
+| `src/templates/v3/` | Unified specification, work, audit, and validation templates |
 | `src/prompts/` | Saved prompts used by bounded headless initializer analysis |
 | `skills/` | Globally installed workflow and focused audit skills |
-| `cmd/` and `internal/` | Installer, initializer, harness adapters, ledger merger, and preview implementation |
+| `cmd/` and `internal/` | Installer, initializer, harness adapters, and ledger merger |
 
 ## Initialize a project once
 
@@ -247,9 +246,7 @@ specs/NNN-descriptor/validation.org
 ```
 
 Org provides foldable hierarchy and stable internal links without making Emacs
-a dependency. `sdlc-preview FILE` renders Markdown or Org with Pandoc beside the
-source, opens it in the browser, then removes the temporary HTML after one
-second. Read `~/.agents/sdlc/ORGMODE.md` before editing Org artefacts.
+a dependency. Read `~/.agents/sdlc/ORGMODE.md` before editing Org artefacts.
 
 ## Migration evidence
 

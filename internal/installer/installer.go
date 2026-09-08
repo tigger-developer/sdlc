@@ -100,7 +100,6 @@ var retiredGlobalSkillPaths = []string{
 var deployedCommandNames = []string{
 	"sdlc-init",
 	"sdlc-merge-legacy-acs",
-	"sdlc-preview",
 }
 
 var deployedInternalCommandNames = []string{
