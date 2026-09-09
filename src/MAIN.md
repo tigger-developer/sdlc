@@ -32,6 +32,8 @@ report that exact path.
   test, ticket, finding, or commit ID an adjacent descriptor.
 - Never reuse an identifier. Deletion, archival, abandonment, retirement, and
   supersession permanently reserve it.
+- New v3 work uses the `WNNN` project-work prefix. A migrated project retains
+  its established work-number scheme; agents must not invent another prefix.
 
 ## Common command prohibitions
 

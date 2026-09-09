@@ -13,6 +13,10 @@ the audit record. The harness persists the response, and one-way migration
 preserves any legacy `audits.org` content in YAML before removing the duplicate.
 This keeps audit state canonical without discarding historical evidence.
 
+Work-item numbering is similarly a project convention: new v3 work uses
+`WNNN`, while migration preserves an existing project's established prefix and
+never reuses a number.
+
 This document records why the public SDLC is structured as a standards library
 and how its harder rules were derived. Normative requirements live under
 [`src/`](src/).

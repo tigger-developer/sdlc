@@ -241,9 +241,9 @@ gate failure.
 ```text
 .sdlc/project.yaml
 docs/work.org
-specs/NNN-descriptor/spec.org
-specs/NNN-descriptor/audits.yaml
-specs/NNN-descriptor/validation.org
+specs/WNNN-descriptor/spec.org
+specs/WNNN-descriptor/audits.yaml
+specs/WNNN-descriptor/validation.org
 ```
 
 Org provides foldable hierarchy and stable internal links without making Emacs

@@ -69,7 +69,7 @@ provides a durable cross-cutting category that the standard tags cannot express.
 :CREATED: YYYY-MM-DD
 :END:
 
-- *Specification:* [[file:../specs/NNN-concise-descriptor/spec.org][WNNN - Concise descriptor]]
+- *Specification:* [[file:../specs/WNNN-concise-descriptor/spec.org][WNNN - Concise descriptor]]
 #+end_example
 
 Use =OWNER= and =BRANCH= properties only when concurrent work needs explicit

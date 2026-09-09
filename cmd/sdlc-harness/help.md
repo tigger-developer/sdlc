@@ -55,9 +55,9 @@ Start example
     /Users/tigger/.agents/sdlc/bin/sdlc-harness start \
       --phase audit --gate definition \
       --project . \
-      --audit-record specs/001-change/audits.yaml \
-      --work-item 001-change \
-      --input specs/001-change/spec.org \
+      --audit-record specs/W001-change/audits.yaml \
+      --work-item W001-change \
+      --input specs/W001-change/spec.org \
       --input .sdlc/project.yaml \
       < audit-context.txt
 
@@ -67,9 +67,9 @@ Resume example
     /Users/tigger/.agents/sdlc/bin/sdlc-harness resume \
       --phase audit --gate definition \
       --project . \
-      --audit-record specs/001-change/audits.yaml \
-      --work-item 001-change \
-      --input specs/001-change/spec.org \
+      --audit-record specs/W001-change/audits.yaml \
+      --work-item W001-change \
+      --input specs/W001-change/spec.org \
       --input .sdlc/project.yaml \
       < audit-context.txt
 

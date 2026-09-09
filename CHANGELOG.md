@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## v3.2.6 - 2026-09-09
+
+- Aligned v3 templates and harness examples on `WNNN-descriptor` work-item
+  paths, and documented preservation of established numbering in migrated
+  projects.
+
 ## v3.2.5 - 2026-09-08
 
 - Added explicit harness liveness output at start and every 30 seconds while an

@@ -115,8 +115,9 @@ relationship.
 
 ## Unified specification
 
-Normal delivery uses one Org document at `specs/NNN-descriptor/spec.org`. It
-contains, in order:
+Normal delivery uses one Org document at `specs/WNNN-descriptor/spec.org`. New
+v3 work uses the `WNNN` prefix; migrated projects retain their established
+scheme and must not acquire a new prefix. The document contains, in order:
 
 - a scan-friendly summary covering outcome, before, after, changes, unchanged
   boundaries, edge cases, decisions, and next step;

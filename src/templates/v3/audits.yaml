@@ -1,7 +1,7 @@
 # Canonical audit state. Do not duplicate these fields in spec sheets or tickets.
 version: 1
 audits:
-  - work_item: 001-descriptor
+  - work_item: W001-descriptor
     gate: definition                 # definition or implementation
     session_id: ""                   # harness-issued external session
     external_round: 0                 # current session iteration, starting at 1

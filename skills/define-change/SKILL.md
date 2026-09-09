@@ -31,7 +31,7 @@ more than three additional questions for each affected area. Do not use
 multiple-choice UI.
 
 Allocate the next never-used project work number. Create
-`specs/NNN-descriptor/spec.org` from
+`specs/WNNN-descriptor/spec.org` from
 `~/.agents/sdlc/templates/v3/spec.org`. Include context, falsifiable acceptance
 criteria, traced RT/UT/OT test definitions, edge cases, solution design,
 mandatory security impact, and a context-independent delivery handoff. Create
