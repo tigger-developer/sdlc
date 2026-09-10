@@ -88,6 +88,7 @@ var retiredSharedFiles = []string{
 var retiredV2SharedPaths = []string{
 	"commands",
 	"skills",
+	filepath.Join("bin", "sdlc-preview"),
 	filepath.Join("presets", "sdlc-standards"),
 	filepath.Join("templates", "project-init"),
 }
@@ -716,6 +717,7 @@ func planSharedInstallation(source, commonHome, release string) (installationPla
 	commandRetirements, err := planExactRetirements(localBin, []string{
 		"sdlc-audit",
 		"sdlc-install",
+		"sdlc-preview",
 		"sdlc-project-init",
 		"sdlc-project-update",
 	})

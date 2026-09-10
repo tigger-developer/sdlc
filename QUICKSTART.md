@@ -4,8 +4,11 @@
 
 Prerequisites are Go, Git, and at least one supported harness: Codex, Claude
 Code, GitHub Copilot CLI, or Hermes. GitHub CLI is required only for legacy
-GitHub-ticket migration. Choose any Org or Markdown viewer separately when
-human inspection of documents requires rendered output.
+GitHub-ticket migration. Document review uses
+[tigger-developer/HTML-Preview](https://github.com/tigger-developer/HTML-Preview),
+which renders **Org and Markdown** as **high-fidelity HTML**. Its
+[prerequisites](https://github.com/tigger-developer/HTML-Preview#prerequisites-and-installation)
+include compatible Go and Pandoc versions.
 
 ```sh
 make install
@@ -14,6 +17,12 @@ make install
 This builds the repository-internal installer, deploys the public commands under
 `~/.agents/sdlc/bin`, and links those deployed copies onto the global path. The
 links do not point back into the source checkout.
+
+The same command initializes the pinned HTML-Preview submodule and, when
+`htmlpreview` is not already installed, invokes that project's own
+`make install`. No manual installation or preview-tool variable is needed.
+HTML-Preview's default installation links to its submodule checkout; keep that
+checkout in place.
 
 Use non-interactive application only when the listed variances have already been
 reviewed:

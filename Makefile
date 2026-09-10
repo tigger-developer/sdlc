@@ -1,4 +1,4 @@
-.PHONY: build test lint install install-cli uninstall
+.PHONY: build test lint install install-preview install-cli uninstall
 
 INSTALLER ?= bin/sdlc-install
 PROJECT_INITIALIZER ?= bin/sdlc-init
@@ -34,6 +34,15 @@ lint:
 
 install: build
 	@$(INSTALLER) $(INSTALL_FLAGS)
+	@$(MAKE) install-preview
+
+install-preview:
+	git submodule update --init -- tools/HTML-Preview
+	@if command -v htmlpreview >/dev/null 2>&1; then \
+		printf '%s\n' 'HTML-Preview: htmlpreview is already installed.'; \
+	else \
+		$(MAKE) -C tools/HTML-Preview install; \
+	fi
 
 install-cli: install
 

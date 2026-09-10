@@ -50,7 +50,8 @@ piecemeal. Do not invoke individual audit skills.
 
 On effective PASS, set the specification's definition-gate status to `PASS` and
 move its `docs/work.org` item to `REVIEW`, preserving the detailed evidence in
-`audits.yaml`. Open the specification with `sdlc-preview` and return it for
+`audits.yaml`. Open the specification with `htmlpreview`, as directed by
+`MAIN.md`, and return it for
 operator sign-off. Preview is presentation, not a gate. After explicit sign-off,
 record the authority and date in `spec.org` and move its work item to `ACTIVE`.
 Do not implement code.

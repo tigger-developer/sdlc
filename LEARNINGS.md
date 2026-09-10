@@ -1,5 +1,14 @@
 # SDLC Standards: Design Learnings
 
+## Delegate document rendering to its maintained tool
+
+`tigger-developer/HTML-Preview` owns Markdown and Org rendering, presentation
+assets, and cleanup. The SDLC pins it as a submodule and delegates installation
+to its own Makefile only when `htmlpreview` is missing from PATH. This avoids
+maintaining a second renderer or requiring manual preview configuration.
+The checkout lives under `tools/`, because Go reserves `vendor/` for dependency
+vendoring.
+
 ## The harness is the audit boundary
 
 Individual audit skills encouraged accidental context proliferation and made

@@ -1,0 +1,3 @@
+[submodule "vendor/HTML-Preview"]
+	path = tools/HTML-Preview
+	url = https://github.com/tigger-developer/HTML-Preview.git

@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## v3.2.7 - 2026-09-10
+
+- Adopted `tigger-developer/HTML-Preview` as a pinned submodule and the shared
+  document previewer. `make install` initializes it and invokes its own installer
+  only when `htmlpreview` is absent from PATH.
+- Replaced the remaining active `sdlc-preview` instruction, retired old installed
+  commands with recoverable backups, and documented automatic Markdown and Org
+  preview setup without a preview-tool environment variable.
+
 ## v3.2.6 - 2026-09-09
 
 - Aligned v3 templates and harness examples on `WNNN-descriptor` work-item

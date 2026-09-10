@@ -42,6 +42,8 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 	writeFixtureFile(t, filepath.Join(root, ".local", "bin", "sdlc-project-init"), "old initializer link target\n")
 	writeFixtureFile(t, filepath.Join(root, ".local", "bin", "sdlc-audit"), "old audit runner\n")
 	writeFixtureFile(t, filepath.Join(root, ".local", "bin", "sdlc-project-update"), "old updater\n")
+	writeFixtureFile(t, filepath.Join(root, ".local", "bin", "sdlc-preview"), "old previewer\n")
+	writeFixtureFile(t, filepath.Join(root, ".agents", "sdlc", "bin", "sdlc-preview"), "old previewer\n")
 	unrelatedPath := filepath.Join(root, ".claude", "unrelated.txt")
 	writeFixtureFile(t, unrelatedPath, "operator-owned bytes\n")
 	checkoutLink := filepath.Join(root, ".local", "bin", "sdlc-init")
@@ -94,7 +96,7 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 	if oldTarget != filepath.Join(source, "bin", "sdlc-init") {
 		t.Fatalf("source-checkout link backup target = %s", oldTarget)
 	}
-	for _, retired := range []string{"sdlc-audit", "sdlc-install", "sdlc-project-init", "sdlc-project-update"} {
+	for _, retired := range []string{"sdlc-audit", "sdlc-install", "sdlc-project-init", "sdlc-project-update", "sdlc-preview"} {
 		path := filepath.Join(root, ".local", "bin", retired)
 		if _, err := os.Lstat(path); !os.IsNotExist(err) {
 			t.Fatalf("retired command remains active at %s: %v", path, err)
@@ -103,6 +105,13 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 		if err != nil || len(backups) != 1 {
 			t.Fatalf("retired command backups for %s = %v, %v", path, backups, err)
 		}
+	}
+	previewPath := filepath.Join(root, ".agents", "sdlc", "bin", "sdlc-preview")
+	if _, err := os.Lstat(previewPath); !os.IsNotExist(err) {
+		t.Fatalf("retired deployed previewer remains: %v", err)
+	}
+	if backups, err := filepath.Glob(previewPath + ".*.bak"); err != nil || len(backups) != 1 {
+		t.Fatalf("retired previewer backups = %v, %v", backups, err)
 	}
 	if _, err := os.Lstat(filepath.Join(root, ".agents", "skills", "audit-tests")); !os.IsNotExist(err) {
 		t.Fatalf("retired global audit-tests skill remains: %v", err)

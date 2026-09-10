@@ -328,8 +328,8 @@ Report only:
 - unresolved classifications or closure failures, with descriptors.
 
 If the migration index or completion report does not fit in one terminal
-screen, present `docs/ticket-migration.org` with `HTML_PREVIEW_TOOL` when that
-variable names an available command; otherwise use an available text editor.
+screen, present `docs/ticket-migration.org` with `htmlpreview`, as directed by
+`~/.agents/sdlc/MAIN.md`.
 Presentation is not an approval gate.
 
 The operator decides whether the project is ready for `sdlc-init`, which

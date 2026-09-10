@@ -68,8 +68,12 @@ silently rewrite the authority it assesses.
 
 Org provides addressable hierarchy, stable internal links, properties, folding,
 and readable plain text. The supported subset is deliberately portable and does
-not execute code. Rendering is outside the SDLC command surface; projects may
-choose their own Org or Markdown viewer.
+not execute code. Rendering uses the separate
+[tigger-developer/HTML-Preview](https://github.com/tigger-developer/HTML-Preview)
+project, pinned as a Git submodule. The SDLC installation initializes that
+submodule and invokes its own installer only when `htmlpreview` is missing.
+HTML-Preview owns rendering, assets, cleanup, and its installation; the SDLC
+does not implement a second preview command.
 
 ### Storage and parser boundary
 

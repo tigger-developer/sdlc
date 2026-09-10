@@ -19,6 +19,13 @@ output, and resumable-session contracts.
 
 ## Install
 
+`make install` also initializes the pinned
+[tigger-developer/HTML-Preview](https://github.com/tigger-developer/HTML-Preview)
+submodule and runs its own `make install` if `htmlpreview` is absent from PATH.
+Existing installations are retained. This previewer was
+developed primarily for SDLC document review and renders **Org and Markdown**
+as **high-fidelity HTML**, including navigable document structure.
+
 ```sh
 make install
 ```
@@ -173,6 +180,11 @@ infrastructure:
 semantic-version Git tag deployed by `make install`; the installer maintains it
 without replacing unrelated settings. Projects follow those global skills and
 standards, so `.sdlc/project.yaml` does not duplicate an SDLC release pin.
+
+Document inspection uses `htmlpreview` directly. No `HTML_PREVIEW_TOOL` variable
+or manual viewer installation is required. See the
+[HTML-Preview prerequisites](https://github.com/tigger-developer/HTML-Preview#prerequisites-and-installation)
+for its supported Go and Pandoc versions. Preview is presentation, not a gate.
 
 The initializer can import only schema-allowlisted historical `SDLC_*` values
 from a project `.env` through its shell wrapper. After the YAML profile is
