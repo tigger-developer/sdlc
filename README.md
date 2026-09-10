@@ -192,8 +192,10 @@ semantic-version Git tag deployed by `make install`; the installer maintains it
 without replacing unrelated settings. Projects follow those global skills and
 standards, so `.sdlc/project.yaml` does not duplicate an SDLC release pin.
 
-Document inspection uses `htmlpreview` directly. No `HTML_PREVIEW_TOOL` variable
-or manual viewer installation is required. See the
+Document inspection defaults to `htmlpreview`. Set `HTML_PREVIEW_TOOL` to an
+executable name or path to use another viewer; an unset or empty value uses the
+default. The override selects the viewer without changing HTML-Preview's
+installation or synchronization. See the
 [HTML-Preview prerequisites](https://github.com/tigger-developer/HTML-Preview#prerequisites-and-installation)
 for its supported Go and Pandoc versions. Preview is presentation, not a gate.
 

@@ -6,6 +6,8 @@
 assets, and cleanup. The SDLC pins it as a submodule and delegates installation
 to its own Makefile only when `htmlpreview` is missing from PATH. This avoids
 maintaining a second renderer or requiring manual preview configuration.
+`HTML_PREVIEW_TOOL` remains an optional executable override so that the supplied
+default does not prevent operators from choosing another viewer.
 The checkout lives under `tools/`, because Go reserves `vendor/` for dependency
 vendoring.
 

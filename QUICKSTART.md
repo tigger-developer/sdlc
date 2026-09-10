@@ -20,7 +20,9 @@ links do not point back into the source checkout.
 
 The same command initializes the pinned HTML-Preview submodule and, when
 `htmlpreview` is not already installed, invokes that project's own
-`make install`. No manual installation or preview-tool variable is needed.
+`make install`. No manual viewer installation is needed. Optionally set
+`HTML_PREVIEW_TOOL` to another executable name or path; if unset or empty,
+document review uses `htmlpreview`.
 HTML-Preview's default installation links to its submodule checkout; keep that
 checkout in place.
 

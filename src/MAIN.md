@@ -84,10 +84,11 @@ defaults and the installed SDLC release live in `~/.agents/sdlc.yaml`. The
 schema `version` and deployed `release` are separate values. Project profiles do
 not pin the globally installed SDLC. Agents never read `.env`.
 
-When a document must be presented outside the terminal, use `htmlpreview` from
+When a document must be presented outside the terminal, use the executable named
+by `HTML_PREVIEW_TOOL`. If unset or empty, use `htmlpreview` from
 [tigger-developer/HTML-Preview](https://github.com/tigger-developer/HTML-Preview).
-Resolve the installed command from PATH.
-`make install` installs it when missing; no preview-tool variable is required.
+The override is an executable name or path, not a shell command string.
+`make install` installs the default previewer when missing.
 Preview is presentation, not a workflow gate.
 
 Commands and executables under the canonical SDLC root MUST be invoked by their

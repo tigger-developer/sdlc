@@ -328,7 +328,7 @@ Report only:
 - unresolved classifications or closure failures, with descriptors.
 
 If the migration index or completion report does not fit in one terminal
-screen, present `docs/ticket-migration.org` with `htmlpreview`, as directed by
+screen, present `docs/ticket-migration.org` with the previewer selected by
 `~/.agents/sdlc/MAIN.md`.
 Presentation is not an approval gate.
 

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## v3.2.9 - 2026-09-10
+
+- Restored `HTML_PREVIEW_TOOL` as an optional executable override for document
+  review. Unset or empty values use the bundled `htmlpreview` default; workflow
+  skills follow the shared selection rule.
+
 ## v3.2.8 - 2026-09-10
 
 - Added `make sync`: refresh the HTML-Preview submodule from upstream and run
