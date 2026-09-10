@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-## v3.2.11 - 2026-09-10
+## v3.2.11 - 2026-09-11
 
 - Checkpoint native auditor session IDs and original-file evidence manifests
   before a verdict, retaining them through timeouts without inventing PASS or FAIL.

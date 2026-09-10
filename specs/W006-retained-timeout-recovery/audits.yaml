@@ -1,0 +1,91 @@
+version: 1
+audits:
+    - work_item: W006-retained-timeout-recovery
+      gate: implementation
+      session_id: 01a08d87-e0cb-7d13-b943-1ee08d06a91c
+      harness: codex
+      external_round: 1
+      status: active
+      updated: "2026-09-10T23:02:33Z"
+      revision: bf45abc56071a5551050eb904e560be4e9b98aaf
+      verdict: FAIL
+      response: |-
+        GATE: implementation
+        REVISION: bf45abc56071a5551050eb904e560be4e9b98aaf
+        VERDICT: FAIL
+        FINDINGS:
+        - `max_rounds` is not persisted per audit session. Resume compares against the current configuration (`main.go:191`), so increasing the limit permits a timed-out session to exceed its original bound, contrary to AC006.2. Persist and enforce the original limit; add a regression test changing the limit after timeout.
+        - RT006.1 does not assert the recorded timeout incident or zero provider calls after exhaustion. Add those behavioural assertions.
+      history:
+        - evidence:
+            - path: /Users/tigger/code/agents/sdlc/.sdlc/project.yaml
+              sha256: 7435fbc30502a8a150bf976a612f9355ec4fafad508f66042eaeddd0a70de02d
+              bytes: 307
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/audit_attempt.go
+              sha256: f2fd1de6a823d1053ad1aa30f7118eeb13df56fa8be3a267f071ddfb100f2d0b
+              bytes: 3424
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/help.md
+              sha256: 37c78a0dc70f08936f5eb67bdc7c27e287d163d952a0e0966e0e6c620ebfd7f5
+              bytes: 5417
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/main.go
+              sha256: 032bcbdb26ba119853c2820789ee90daf3b4b35f30f2528ef4efd7f90c535d69
+              bytes: 12241
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/main_test.go
+              sha256: d0c29b38f186bf7a12bd396e9d1e2429f760eb0c6b13e24a0a07c6be69ae9d42
+              bytes: 10609
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/timeout_test.go
+              sha256: 36113450871efa7f9f863bc4d3626790c6b2988f6714ec70f4b5f5b33d75b190
+              bytes: 4421
+            - path: /Users/tigger/code/agents/sdlc/docs/ARCHITECTURE.md
+              sha256: e142c9466299b244b73c8c22a8dfbd3b905e013853180900fa28806cc0af4f26
+              bytes: 11407
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/audit_record.go
+              sha256: ce7d34783bc212a4fa4d9077af9f273e3f3c79b8110b2f99c72034351dc5bffd
+              bytes: 6009
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/evidence.go
+              sha256: 95894415797313625532ebb5ee9bfeb33d1dff436991a5fc87a28fa6fee95027
+              bytes: 4862
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/runner.go
+              sha256: 58b0e9d6642887177bf5f44f8090ed7b3af21f4d943a01df4996306f78681575
+              bytes: 13916
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/runner_test.go
+              sha256: 6d3a9b8ea85dd5ede58867984e60bb53ca2ff51e2969e2e49f5249b636c9e88b
+              bytes: 12878
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/session_output.go
+              sha256: 1b99b0e4209af93564937cd8837264b14641208562566de446a7c095a86a03ab
+              bytes: 2264
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/timeout_test.go
+              sha256: e4a5c8704efd229a9d9aa027a8c9dbd496a3b750a6d6c42df01d2480237ce714
+              bytes: 2196
+            - path: /Users/tigger/code/agents/sdlc/skills/define-change/SKILL.md
+              sha256: c17c9bde2c7551f999373ca998a8edd6753b5b60a0557af3dc1484ecfb3b4e8b
+              bytes: 3444
+            - path: /Users/tigger/code/agents/sdlc/skills/deliver-change/SKILL.md
+              sha256: 568c4a86d9d4cf51f77bab8cfe7be0598f098f9af6863d534b073cbd0f8361a3
+              bytes: 5410
+            - path: /Users/tigger/code/agents/sdlc/specs/W006-retained-timeout-recovery/spec.org
+              sha256: 81050d064ebf5f458b19fd982ea4efd0e145b7fcc392db0a6e385f8bc7bcd187
+              bytes: 5129
+            - path: /Users/tigger/code/agents/sdlc/specs/W006-retained-timeout-recovery/validation.org
+              sha256: 205667d39f53e9da5a4de018280ea86588fa3c969b5b8dcd32279dda8541ada0
+              bytes: 1022
+            - path: /Users/tigger/code/agents/sdlc/src/AUDITS.md
+              sha256: 65a886f928f6ed8de329b140474104c37c99ad82bfa781138f26e6cc21609b0a
+              bytes: 4976
+            - path: /Users/tigger/code/agents/sdlc/src/prompts/audits.yaml
+              sha256: f43f85527b1e3908c4fac6064e623c50b5dd07b3cfe2ad6669775066f1d5118c
+              bytes: 5272
+            - path: /Users/tigger/code/agents/sdlc/src/templates/v3/audits.yaml
+              sha256: 2185adedf4be055837d5dc424837d28d5dc678d3f59d3a63b24e58fb01b3a6a7
+              bytes: 1636
+          round: 1
+          revision: bf45abc56071a5551050eb904e560be4e9b98aaf
+          verdict: FAIL
+          response: |-
+            GATE: implementation
+            REVISION: bf45abc56071a5551050eb904e560be4e9b98aaf
+            VERDICT: FAIL
+            FINDINGS:
+            - `max_rounds` is not persisted per audit session. Resume compares against the current configuration (`main.go:191`), so increasing the limit permits a timed-out session to exceed its original bound, contrary to AC006.2. Persist and enforce the original limit; add a regression test changing the limit after timeout.
+            - RT006.1 does not assert the recorded timeout incident or zero provider calls after exhaustion. Add those behavioural assertions.
+          updated: "2026-09-10T22:54:47Z"

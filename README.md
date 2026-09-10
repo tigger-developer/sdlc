@@ -252,7 +252,10 @@ gate failure.
 
 The harness refers to original evidence paths without copying documents. Each
 recorded round retains only file paths, sizes, and SHA-256 hashes alongside its
-result. Resuming the same work-item/gate session highlights changed inputs;
+result or incident. Attempts and native session IDs are checkpointed before a
+verdict; timeouts retain that evidence and consume the configured round budget.
+In hands-off mode, callers follow the timeout diagnostic to resume within bounds,
+not start another auditor. Resuming the same work-item/gate session highlights changed inputs;
 unchanged material can be reused when still understood in context. Changes
 during the run reject the response. See the harness `--help` for evidence and
 cleanup details.

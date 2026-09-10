@@ -25,6 +25,7 @@ func checkTimeoutRecovery(t *testing.T, recovery string) {
 		t.Fatal(err)
 	}
 	script := `#!/bin/sh
+printf x >> "$PROBE_CALLS"
 output=
 previous=
 for argument in "$@"; do
@@ -45,6 +46,7 @@ sleep 10
 	}
 	t.Setenv("PATH", bin+string(os.PathListSeparator)+os.Getenv("PATH"))
 	t.Setenv("PROBE_PROMPT", filepath.Join(root, "prompt"))
+	t.Setenv("PROBE_CALLS", filepath.Join(root, "calls"))
 	t.Setenv("PROBE_IDENTITY", "yes")
 	t.Setenv("PROBE_SUCCESS", "no")
 	if recovery == "identity-missing" {
@@ -79,6 +81,9 @@ sleep 10
 			t.Fatalf("timeout = %v", err)
 		}
 		entry, found, err := harness.ReadAuditEntry(record, "W006-recovery", "implementation")
+		if err != nil || !found || len(entry.History) != index+1 || entry.History[0].Incident != "timeout" || entry.History[0].Verdict != "" {
+			t.Fatalf("timeout incident/history = %#v (%v)", entry, err)
+		}
 		if recovery == "identity-missing" {
 			if err != nil || !found || entry.SessionID != "" || entry.Status != "identity-missing" || !strings.Contains(diagnostics.String(), "STOP_FIXTURE") {
 				t.Fatalf("missing identity record: %#v (%v)", entry, err)
@@ -108,10 +113,18 @@ sleep 10
 			}
 		}
 	}
+	before, err := os.ReadFile(filepath.Join(root, "calls"))
+	if err != nil {
+		t.Fatal(err)
+	}
 	for _, action := range []string{"start", "resume"} {
 		err := run(append([]string{action}, args...), strings.NewReader("review"), &bytes.Buffer{}, &bytes.Buffer{})
 		if err == nil {
 			t.Fatalf("%s evaded exhausted attempt limit", action)
 		}
+	}
+	after, err := os.ReadFile(filepath.Join(root, "calls"))
+	if err != nil || !bytes.Equal(before, after) {
+		t.Fatalf("blocked invocation called provider: %q -> %q (%v)", before, after, err)
 	}
 }

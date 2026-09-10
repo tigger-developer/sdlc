@@ -44,6 +44,9 @@ Timeouts consume the recorded =delivery.audit.max_rounds= budget. Recoverable
 timeouts direct a *hands-off caller to resume*. Missing identity or exhausted
 bounds requires operator recovery; neither a new session nor a changed limit
 may evade the stop. The harness executes one invocation, not its own retry loop.
+This prohibits the *calling agent* from raising bounds on its own. Operator
+configuration remains authoritative through the existing precedence rules;
+this change does not freeze a separate initial maximum inside each audit record.
 
 - Proven by :: [[#rt-006-1][RT006.1 - Interrupted provider recovery]]
 
