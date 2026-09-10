@@ -29,6 +29,8 @@ type Request struct {
 	Directory  string
 	ResultFile string
 	SessionID  string
+	// OnSession checkpoints a native identity as soon as the adapter observes it.
+	OnSession func(string) error
 }
 
 // Invocation is a fixed executable invocation. Args are never shell-evaluated.
@@ -102,7 +104,10 @@ func Execute(ctx context.Context, request Request, resume bool, evidence *Eviden
 	if err != nil {
 		return Result{}, err
 	}
-	var stdout bytes.Buffer
+	stdout := newSessionOutput(request, resume)
+	if err := stdout.checkpoint(); err != nil {
+		return Result{}, err
+	}
 	stopHeartbeat := make(chan struct{})
 	heartbeatDone := make(chan struct{})
 	go func() {
@@ -110,10 +115,13 @@ func Execute(ctx context.Context, request Request, resume bool, evidence *Eviden
 		reportHeartbeat(errorOutput, request.Harness, request.SessionID, stopHeartbeat)
 	}()
 	defer func() { <-heartbeatDone }()
-	if err := executor(ctx, invocation.Command, invocation.Args, invocation.Dir, strings.NewReader(invocation.Stdin), &stdout, errorOutput); err != nil {
+	if err := executor(ctx, invocation.Command, invocation.Args, invocation.Dir, strings.NewReader(invocation.Stdin), stdout, errorOutput); err != nil {
 		close(stopHeartbeat)
+		if stdout.err != nil {
+			return Result{}, stdout.err
+		}
 		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
-			return Result{}, newIncident("timeout", request.Harness, request.SessionID, ctx.Err())
+			return Result{}, newIncident("timeout", request.Harness, stdout.identity, ctx.Err())
 		}
 		kind := "start-failed"
 		if resume {
@@ -122,9 +130,12 @@ func Execute(ctx context.Context, request Request, resume bool, evidence *Eviden
 		if errors.Is(err, exec.ErrNotFound) {
 			kind = "executable-unavailable"
 		}
-		return Result{}, newIncident(kind, request.Harness, request.SessionID, err)
+		return Result{}, newIncident(kind, request.Harness, stdout.identity, err)
 	}
 	close(stopHeartbeat)
+	if stdout.err != nil {
+		return Result{}, stdout.err
+	}
 	if evidence != nil {
 		if err := evidence.Verify(); err != nil {
 			return Result{}, err
@@ -137,9 +148,12 @@ func Execute(ctx context.Context, request Request, resume bool, evidence *Eviden
 			return Result{}, fmt.Errorf("reading %s final response: %w", request.Harness, err)
 		}
 	}
-	result, err := ParseResult(request.Harness, stdout.Bytes(), resultFile, request.SessionID)
+	result, err := ParseResult(request.Harness, stdout.Bytes(), resultFile, stdout.identity)
 	if err != nil {
 		return Result{}, err
+	}
+	if resume && result.SessionID != request.SessionID {
+		return Result{}, newIncident("identity-mismatch", request.Harness, request.SessionID, errors.New("provider returned a different session"))
 	}
 	return result, nil
 }

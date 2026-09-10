@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -103,7 +104,7 @@ printf '{"type":"thread.started","thread_id":"native-session"}\n'
 		}
 		assertResultRemoved(t, root)
 	}
-	before, err := os.ReadFile(record)
+	before, _, err := harness.ReadAuditEntry(record, "W005-evidence", "implementation")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -112,9 +113,9 @@ printf '{"type":"thread.started","thread_id":"native-session"}\n'
 	if err == nil || !strings.Contains(err.Error(), "changed") {
 		t.Fatalf("mutation error = %v", err)
 	}
-	after, err := os.ReadFile(record)
-	if err != nil || !bytes.Equal(before, after) {
-		t.Fatalf("invalid response changed audit history: %v", err)
+	after, _, err := harness.ReadAuditEntry(record, "W005-evidence", "implementation")
+	if err != nil || len(after.History) != len(before.History)+1 || !reflect.DeepEqual(before.History, after.History[:len(before.History)]) || after.Verdict != "" || after.History[len(after.History)-1].Incident == "" {
+		t.Fatalf("invalid response lost prior history or gained a verdict: %#v (%v)", after, err)
 	}
 	assertResultRemoved(t, root)
 }

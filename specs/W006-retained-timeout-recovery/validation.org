@@ -1,0 +1,21 @@
+#+TITLE: W006 - Recovery verification
+#+STARTUP: content
+
+* RT006.1 - Interrupted provider recovery
+
+- RED :: The initial focused regression demonstrated lost native identity and
+  a missing audit record after first timeout.
+- GREEN :: Focused harness/CLI tests pass for timeout then PASS, repeated timeout
+  exhaustion, missing native identity, retained hashes, and rejected mutation.
+- Boundary :: Local fake providers only; these tests do not establish live
+  provider context retention or explain the operator's reported audit slowness.
+- Verification :: Focused harness/CLI race tests, shared initializer/installer
+  package tests, =go build ./...=, =go vet= and focused =golangci-lint= pass.
+
+* OT006.1 - Instruction review
+
+- Category :: One-off test.
+- Requirement :: AC006.3 - Selective continuation instructions.
+- Expected :: Consistent caller and auditor recovery instructions without weaker FAIL handling.
+- Status :: PENDING.
+- Procedure :: Inspect the final YAML registry, help, skills, and audit standard.

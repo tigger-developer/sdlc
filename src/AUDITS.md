@@ -16,14 +16,24 @@ For either gate:
 
 1. Invoke `~/.agents/sdlc/bin/sdlc-harness` with the gate and exact evidence.
 2. On `FAIL`, remediate **all** findings before resuming the recorded session.
-3. Never submit an unchanged revision or create a replacement session.
+3. Never resubmit a known FAIL unchanged or create a replacement session.
 4. Stop after the configured maximum rounds, or for a decision that cannot be
    made safely from the authorities.
 
 The harness stores one session mapping per work item and gate in `audits.yaml`.
 The first invocation starts a session; later invocations resume its recorded
 `session_id`. The round limit is `delivery.audit.max_rounds` (default five) and
-applies to the current invoking session only.
+applies to the current invoking session only. Every provider invocation,
+including a timeout, consumes one recorded round. Recovery never resets that
+counter. Earlier unrecorded timeouts cannot be reconstructed automatically.
+
+On timeout, follow the harness recovery diagnostic. In HANDS-OFF mode, resume
+automatically while a native session is recorded and the limit permits it.
+Resubmitting unchanged evidence after timeout is allowed, but does not waive
+earlier FAIL findings. The resumed prompt continues unfinished review and reuses
+unchanged evidence still understood. Do not change harness, model, timeout, or
+limits to evade a stop. Missing native identity or an exhausted limit requires
+operator recovery, not a replacement context.
 
 Audit findings, status, revisions, round numbers, and session IDs MUST be
 recorded only in `audits.yaml`. Specifications and tickets may link to that
@@ -41,11 +51,12 @@ heartbeats to stderr. A heartbeat is not provider progress, a verdict, or
 evidence that the audit has completed.
 
 The harness passes original absolute evidence paths, not document copies. Supply
-the complete input list on each invocation; the per-round manifest in
+the complete input list on each invocation; the per-attempt manifest in
 `audits.yaml` identifies added, changed, unchanged, and omitted inputs on resume.
 Reuse unchanged evidence only while its meaning remains understood; reread it
 after context loss or when an affected dependency requires it. Omission never
-resolves a finding. The harness verifies supplied files before and after the
+resolves a finding. Attempts and native IDs are checkpointed before a verdict,
+so a timeout retains its evidence baseline. The harness verifies supplied files before and after the
 provider runs and rejects changed evidence. Hashes detect mutation; read-only
 provider controls remain necessary. Additional files read outside the supplied
 list are not covered by the manifest checks.

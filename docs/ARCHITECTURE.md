@@ -106,11 +106,17 @@ agents remediate all findings before resuming the same gate session.
 
 The provider receives original absolute paths and a metadata-only evidence
 manifest. The harness hashes regular files before and after execution, rejects
-mutation, and stores each accepted response's manifest in
+mutation, and checkpoints each invocation's manifest before execution in
 `audits.yaml` under `history[].evidence`. Resume compares against that gate's
 last recorded manifest. There is no document-copy cache; hashes do not imply
 that an auditor remembers unchanged content. Provider read-only controls remain
 necessary, and additional reads outside the input list are not hash-verified.
+
+Native session identity is checkpointed as soon as the adapter observes it.
+Timeouts retain the attempt manifest and consume the same recorded round budget
+without producing a verdict. YAML supplies the caller recovery diagnostic and
+the resumed auditor's continuation instruction. Missing identity or exhausted
+bounds stop automatic recovery; they never authorize a replacement session.
 
 The work ledger owns lifecycle state, the specification owns requirements and
 operator sign-off, and `audits.yaml` alone owns audit state. Legacy `audits.org`

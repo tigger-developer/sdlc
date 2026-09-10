@@ -45,8 +45,10 @@ The opening summary must accurately and completely represent the detail below
 its section break. Invoke the composite definition audit through the installed
 audit harness with `--phase audit --gate definition`, using `audits.yaml` for
 the retained session mapping. Remediate **all** findings before resuming that
-same session; never rerun an unchanged candidate or remediate findings
-piecemeal. Do not invoke individual audit skills.
+same session; never resubmit a known FAIL unchanged or remediate findings
+piecemeal. On timeout, follow the harness recovery diagnostic: in HANDS-OFF,
+resume automatically within its limit, using the retained session. Timeout
+without a verdict does not require an artificial edit. Do not invoke individual audit skills.
 
 On effective PASS, set the specification's definition-gate status to `PASS` and
 move its `docs/work.org` item to `REVIEW`, preserving the detailed evidence in

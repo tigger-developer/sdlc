@@ -82,7 +82,10 @@ operator authority.
 Apply the composite implementation gate through the installed audit harness
 with `--phase audit --gate implementation`, using `audits.yaml` for the
 retained session mapping. Remediate **all** findings before resuming that same
-session; never rerun an unchanged candidate or remediate findings piecemeal.
+session; never resubmit a known FAIL unchanged or remediate findings piecemeal.
+On timeout, follow the harness recovery diagnostic: in HANDS-OFF, resume
+automatically within its limit, using the retained session. Timeout without a
+verdict does not require an artificial edit or justify a handback by itself.
 Do not invoke individual audit skills or re-audit the signed-off definition.
 After effective
 PASS, execute final OT and UT checks, record all results in `validation.org`,

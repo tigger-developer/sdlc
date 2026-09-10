@@ -78,6 +78,16 @@ classification; it is provenance, not current state.
 
 * Work items
 
+** ACTIVE W006 - Resume interrupted audits without restarting review :maintenance:
+:PROPERTIES:
+:CUSTOM_ID: w-006
+:PRIORITY: P1
+:SOURCE: operator BYPASS-GATE-7
+:CREATED: 2026-09-10
+:END:
+
+- *Specification:* [[file:../specs/W006-retained-timeout-recovery/spec.org][W006 - Retained timeout recovery]]
+
 ** REVIEW W005 - Audit original files without document copies :maintenance:
 :PROPERTIES:
 :CUSTOM_ID: w-005

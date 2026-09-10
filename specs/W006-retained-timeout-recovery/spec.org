@@ -1,0 +1,110 @@
+#+TITLE: W006 - Resume interrupted audits without restarting review
+#+STARTUP: overview
+#+OPTIONS: toc:2 num:nil
+
+* Resume interrupted audits without restarting review
+
+- Outcome :: *Hands-off callers* resume a *retained auditor* after timeout within configured bounds.
+- Before :: Initial timeouts could lose native identity and evidence; callers treated them as terminal blockers.
+- After :: Each attempt checkpoints *evidence*, observes *native identity*, and receives a *recovery diagnostic*.
+- Changes :: Timeouts consume =max_rounds=; the resumed prompt continues unfinished review rather than restarting it.
+- Unchanged :: Timeout duration, provider permission flags, gate criteria, and remediation of genuine FAIL findings.
+- Edge cases :: Missing identity, exhausted limits, output failure, mismatched harness/session, old records, changed evidence.
+- Decision :: Operator-authorized =BYPASS-GATE-7=; this document reconciles the bounded emergency request.
+- Next step :: Observe recovery on the next real interrupted audit after installation.
+
+-----
+
+* Context
+
+The operator requires hands-off agents to continue after a recoverable audit
+timeout. Existing path-only evidence is retained in the provider context; the
+harness must preserve its manifest even without a verdict. This change does not
+diagnose provider slowness or alter tool-access permissions.
+
+* Acceptance Criteria
+
+** AC006.1 - Retained identity and evidence
+:PROPERTIES:
+:CUSTOM_ID: ac-006-1
+:END:
+
+Each recorded invocation preserves its *evidence manifest* before execution and
+its *native session ID* as soon as observed. Timeout leaves an incident, not a
+verdict. Resumption targets the same work item, gate, and recorded harness.
+
+- Proven by :: [[#rt-006-1][RT006.1 - Interrupted provider recovery]]
+
+** AC006.2 - Bounded continuation
+:PROPERTIES:
+:CUSTOM_ID: ac-006-2
+:END:
+
+Timeouts consume the recorded =delivery.audit.max_rounds= budget. Recoverable
+timeouts direct a *hands-off caller to resume*. Missing identity or exhausted
+bounds requires operator recovery; neither a new session nor a changed limit
+may evade the stop. The harness executes one invocation, not its own retry loop.
+
+- Proven by :: [[#rt-006-1][RT006.1 - Interrupted provider recovery]]
+
+** AC006.3 - Selective continuation instructions
+:PROPERTIES:
+:CUSTOM_ID: ac-006-3
+:END:
+
+The YAML registry supplies the caller diagnostic and the post-timeout auditor
+instruction. The latter resumes unfinished review, permits *unchanged evidence*
+already understood to be reused, and requires reassessment of changed evidence
+and affected dependencies. Genuine FAIL findings still require full remediation.
+
+- Proven by :: [[#rt-006-1][RT006.1 - Interrupted provider recovery]], [[#ot-006-1][OT006.1 - Instruction review]]
+
+* Test Definitions
+
+** RT006.1 - Interrupted provider recovery
+:PROPERTIES:
+:CUSTOM_ID: rt-006-1
+:END:
+
+- Covers :: [[#ac-006-1][AC006.1 - Retained identity and evidence]], [[#ac-006-2][AC006.2 - Bounded continuation]], [[#ac-006-3][AC006.3 - Selective continuation instructions]].
+- Procedure :: Local fake providers exercise streamed native IDs, a timeout,
+  successful unchanged resume, exhausted attempts, missing identity, and input mutation.
+- Expected :: Correct saved identity/hashes, one attempt per invocation, no timeout
+  verdict, selected YAML continuation text, and no provider call beyond the limit.
+- Boundary :: No metered services in these persistent tests; fakes prove local handling only.
+
+** OT006.1 - Instruction review
+:PROPERTIES:
+:CUSTOM_ID: ot-006-1
+:END:
+
+- Covers :: [[#ac-006-3][AC006.3 - Selective continuation instructions]].
+- Procedure :: Review registry, executable help, calling skills, and audit standard once.
+- Expected :: Distinct caller/auditor instructions, no automatic fresh context,
+  no false permission to rerun an unchanged known FAIL, and no claimed proof of remembered files.
+
+* Solution Design
+
+** Architecture and data
+
+The existing CLI retains one mapping per work item/gate. =history[]= now records
+attempts including incidents; =external_round= advances before invocation.
+Streamed provider identity checkpoints update the record before final response.
+The final valid response completes that attempt; error finalization records an
+incident. =LatestEvidence= compares the next inputs with the last attempt.
+Older records retain their counts and histories; unknown past timeouts cannot
+be reconstructed. Running records require inspection before another invocation.
+
+** Security impact
+
+No permissions or provider tool flags change. Unknown Codex/Hermes identity
+remains empty rather than using a generated placeholder. Existing history is
+preserved; native identity conflicts and changed evidence reject acceptance.
+The mutable audit record is output and cannot also be an evidence input.
+
+* Delivery Handoff
+
+- Source :: =cmd/sdlc-harness/=, =internal/harness/=, =src/prompts/audits.yaml=.
+- Architecture :: [[file:../../docs/ARCHITECTURE.md][SDLC architecture]].
+- Validation :: [[file:validation.org][W006 - Recovery verification]].
+- Audit record :: [[file:audits.yaml][W006 - Implementation audit]].

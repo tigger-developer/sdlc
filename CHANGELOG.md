@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## v3.2.11 - 2026-09-10
+
+- Checkpoint native auditor session IDs and original-file evidence manifests
+  before a verdict, retaining them through timeouts without inventing PASS or FAIL.
+- Count interrupted invocations against `delivery.audit.max_rounds`; report
+  whether the same session can be resumed or operator recovery is required.
+- Add YAML-driven timeout diagnostics and continuation prompts: hands-off callers
+  resume within bounds, and auditors reuse unchanged evidence still understood.
+- Clarify the exception for unchanged evidence after timeout without relaxing
+  remediation of genuine FAIL findings. Keep prior audit history intact.
+
 ## v3.2.10 - 2026-09-10
 
 - Replaced temporary audit document bundles with original paths and bounded

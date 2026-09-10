@@ -37,7 +37,7 @@ Evidence and instruction
 - Inputs must be regular non-symlink files, at most 16 MiB each and 64 MiB total.
   `.env` inputs are prohibited. Changed, missing, or replaced evidence during
   execution rejects the response; hashes detect changes, not prevent writes.
-- Per-round paths and hashes live only in `audits.yaml` under `history[].evidence`.
+- Per-attempt paths and hashes live only in `audits.yaml` under `history[].evidence`.
   Older records without hashes retain their session and receive a full evidence
   pass. Without `--audit-record`, no cross-invocation hash comparison is possible.
 - No document cache is created. The small final-response temporary file is
@@ -46,7 +46,8 @@ Evidence and instruction
 - For audits, stdin is additional bounded context; the gate prompt is loaded
   from `prompts/audits.yaml`.
 - `--audit-record <file> --work-item <id> --gate <gate>` makes the harness own
-  start/resume selection and writes the session mapping to `audits.yaml`.
+  the retained session mapping and attempt budget in `audits.yaml`. Use this
+  combination for recoverable audits. The record is output, not an `--input`.
 - With a record, `start` refuses an existing mapping and `resume` loads its
   recorded session ID. A supplied resume ID must match it.
 - Audit status, findings, revisions, round numbers, and session IDs belong only
@@ -90,5 +91,24 @@ Resume example
       --input .sdlc/project.yaml \
       < audit-context.txt
 
-A timeout is a runner incident, not an audit verdict. Record it and do not
-silently create a replacement context.
+Timeout recovery
+================
+
+A timeout is an incident, not PASS or FAIL. The harness checkpoints each
+attempt's evidence and records the native session ID as soon as it is observed.
+Timeouts count towards `delivery.audit.max_rounds`. Prior verdicts remain in
+history; a timed-out attempt has an `incident`, not a fabricated verdict.
+
+In HANDS-OFF mode, follow the timeout diagnostic and repeat the invocation with
+`resume`, the same configuration, inputs and context. With `--audit-record`, no
+manual session argument is needed: the Resume example above loads it. The
+harness adds continuation instructions from YAML and compares evidence against
+the interrupted attempt so unchanged files can be reused from retained context.
+Known FAIL findings must still be remediated; timeout alone needs no artificial edit.
+
+Stop if the native ID is unavailable or the attempt limit is exhausted. Never
+invent an ID, switch harness/model, increase bounds, or start a replacement to
+evade that stop. The harness reports whether native identity is recorded and
+how many attempts remain. It does not spawn a retry itself; the calling agent
+executes the next bounded invocation. Without a record, automatic recovery and
+attempt accounting are unavailable.

@@ -114,8 +114,14 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 			return errors.New("prompt must contain between 1 byte and 2 MiB")
 		}
 	}
+	var registry auditPromptDocument
 	if normalizedPhase == "audit" {
-		base, loadErr := loadAuditPrompt(*auditPrompts, normalizedGate)
+		var loadErr error
+		registry, loadErr = readAuditPrompts(*auditPrompts)
+		if loadErr != nil {
+			return loadErr
+		}
+		base, loadErr := registry.prompt(normalizedGate)
 		if loadErr != nil {
 			return loadErr
 		}
@@ -124,6 +130,17 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 	evidence, err := harness.CaptureEvidence(projectRoot, inputs)
 	if err != nil {
 		return err
+	}
+	if normalizedPhase == "audit" && *auditRecord != "" {
+		recordPath, pathErr := filepath.Abs(*auditRecord)
+		if pathErr != nil {
+			return pathErr
+		}
+		for _, file := range evidence.Files {
+			if file.Path == recordPath {
+				return errors.New("--audit-record is harness-owned output; do not also supply it as --input")
+			}
+		}
 	}
 	resultFile, err := os.CreateTemp(os.TempDir(), "sdlc-harness-result-")
 	if err != nil {
@@ -140,6 +157,7 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 	}()
 	identity := *session
 	var previousEvidence []harness.EvidenceFile
+	var entry harness.AuditEntry
 	if normalizedPhase == "audit" && strings.TrimSpace(*auditRecord) != "" {
 		if strings.TrimSpace(*workItem) == "" {
 			return errors.New("--work-item is required with --audit-record")
@@ -147,17 +165,28 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		if err := harness.MigrateLegacyAudit(*auditRecord); err != nil {
 			return err
 		}
-		entry, found, recordErr := harness.ReadAuditEntry(*auditRecord, *workItem, normalizedGate)
+		var found bool
+		var recordErr error
+		entry, found, recordErr = harness.ReadAuditEntry(*auditRecord, *workItem, normalizedGate)
 		if recordErr != nil {
 			return recordErr
 		}
 		previousEvidence = entry.LatestEvidence()
-		if action == "start" && found && entry.SessionID != "" {
+		if action == "start" && found && (entry.SessionID != "" || entry.ExternalRound > 0) {
+			if entry.SessionID == "" {
+				return errors.New("prior audit attempt has no native session identity; operator recovery required, not a replacement session")
+			}
 			return fmt.Errorf("audit session already exists for %s/%s; resume session %s", *workItem, normalizedGate, entry.SessionID)
 		}
 		if action == "resume" {
+			if entry.Harness != "" && entry.Harness != config.Harness {
+				return fmt.Errorf("recorded session belongs to %s, not %s", entry.Harness, config.Harness)
+			}
+			if entry.Status == "running" {
+				return errors.New("recorded audit is running or was interrupted before recording its outcome; inspect it before resuming")
+			}
 			if !found || entry.SessionID == "" {
-				return fmt.Errorf("no recorded audit session for %s/%s; start a new audit first", *workItem, normalizedGate)
+				return fmt.Errorf("no resumable native audit session for %s/%s; inspect the record before starting or recovering an audit", *workItem, normalizedGate)
 			}
 			if entry.ExternalRound >= config.MaxRounds {
 				return fmt.Errorf("audit session for %s/%s has reached max_rounds=%d; operator decision required", *workItem, normalizedGate, config.MaxRounds)
@@ -167,6 +196,12 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 			} else if identity != entry.SessionID {
 				return fmt.Errorf("supplied session does not match recorded audit session %s", entry.SessionID)
 			}
+		}
+		if action == "resume" && lastIncident(entry) == "timeout" {
+			if registry.TimeoutResumeInstructions == "" {
+				return errors.New("audit prompt registry lacks timeout_resume_instructions; update the SDLC deployment")
+			}
+			prompt = append(prompt, []byte("\n\n"+registry.TimeoutResumeInstructions)...)
 		}
 	}
 	if action == "start" && identity == "" {
@@ -182,6 +217,35 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 	request := harness.Request{
 		Harness: config.Harness, Provider: config.Provider, Model: config.Model,
 		Prompt: string(prompt) + "\n\n" + evidencePrompt, Directory: projectRoot, ResultFile: resultPath, SessionID: identity,
+	}
+	if action == "start" {
+		_, err = harness.BuildStart(request)
+	} else {
+		_, err = harness.BuildResume(request)
+	}
+	if err != nil {
+		return err
+	}
+	var attempt *auditAttempt
+	// Reserve and checkpoint the attempt before invoking the metered provider.
+	// An unfinished or timed-out invocation is not a verdict, but uses the budget.
+	if normalizedPhase == "audit" && strings.TrimSpace(*auditRecord) != "" {
+		var beginErr error
+		attempt, beginErr = beginAuditAttempt(*auditRecord, entry, *workItem, normalizedGate, config, evidence)
+		if beginErr != nil {
+			return beginErr
+		}
+		request.OnSession = attempt.recordIdentity
+		defer func() {
+			if err := attempt.finish(returnErr); err != nil {
+				returnErr = errors.Join(returnErr, err)
+				return
+			}
+			var incident *harness.Incident
+			if errors.As(returnErr, &incident) && incident.Kind == "timeout" {
+				attempt.reportTimeout(registry, errorOutput)
+			}
+		}()
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), config.Timeout)
 	defer cancel()
@@ -206,20 +270,19 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		if recordErr != nil {
 			return recordErr
 		}
-		if entry.ExternalRound < config.MaxRounds {
-			entry.ExternalRound++
-		}
 		entry.WorkItem, entry.Gate, entry.SessionID, entry.Status = *workItem, normalizedGate, result.SessionID, status
 		entry.Revision = auditField(result.Response, "REVISION")
 		entry.Verdict = auditField(result.Response, "VERDICT")
 		entry.Response = result.Response
-		entry.History = append(entry.History, harness.AuditRound{Round: entry.ExternalRound, Revision: entry.Revision, Verdict: entry.Verdict, Response: result.Response, Evidence: evidence.Files})
+		round := &entry.History[len(entry.History)-1]
+		round.Revision, round.Verdict, round.Response, round.Incident = entry.Revision, entry.Verdict, entry.Response, ""
 		if entry.ExternalRound >= config.MaxRounds && status == "active" {
 			entry.Status = "exhausted"
 		}
 		if err := harness.WriteAuditEntry(*auditRecord, entry); err != nil {
 			return err
 		}
+		attempt.finalized = true
 	}
 	fmt.Fprintf(errorOutput, "SESSION_ID: %s\n", result.SessionID)
 	_, err = fmt.Fprintln(output, result.Response)
@@ -236,14 +299,18 @@ func auditField(response, name string) string {
 }
 
 type auditPromptDocument struct {
-	Version              int    `yaml:"version"`
-	EvidenceInstructions string `yaml:"evidence_instructions"`
-	Gates                map[string]struct {
+	Version                   int    `yaml:"version"`
+	EvidenceInstructions      string `yaml:"evidence_instructions"`
+	TimeoutResumeInstructions string `yaml:"timeout_resume_instructions"`
+	TimeoutMessage            string `yaml:"timeout_message"`
+	TimeoutBlockedMessage     string `yaml:"timeout_blocked_message"`
+	Gates                     map[string]struct {
 		Prompt string `yaml:"prompt"`
 	} `yaml:"gates"`
 }
 
-func loadAuditPrompt(explicit, gate string) (string, error) {
+func readAuditPrompts(explicit string) (auditPromptDocument, error) {
+	var document auditPromptDocument
 	path := explicit
 	if path == "" {
 		if executable, err := os.Executable(); err == nil {
@@ -251,16 +318,19 @@ func loadAuditPrompt(explicit, gate string) (string, error) {
 		}
 	}
 	if path == "" {
-		return "", errors.New("audit prompt registry path is unavailable")
+		return document, errors.New("audit prompt registry path is unavailable")
 	}
 	contents, err := os.ReadFile(path)
 	if err != nil {
-		return "", fmt.Errorf("reading audit prompt registry %s: %w", path, err)
+		return document, fmt.Errorf("reading audit prompt registry %s: %w", path, err)
 	}
-	var document auditPromptDocument
 	if err := yaml.Unmarshal(contents, &document); err != nil {
-		return "", fmt.Errorf("parsing audit prompt registry %s: %w", path, err)
+		return document, fmt.Errorf("parsing audit prompt registry %s: %w", path, err)
 	}
+	return document, nil
+}
+
+func (document auditPromptDocument) prompt(gate string) (string, error) {
 	value, found := document.Gates[gate]
 	if !found || strings.TrimSpace(value.Prompt) == "" {
 		return "", fmt.Errorf("audit prompt registry has no %s gate prompt", gate)

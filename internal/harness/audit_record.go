@@ -28,6 +28,7 @@ type AuditEntry struct {
 	WorkItem      string       `yaml:"work_item"`
 	Gate          string       `yaml:"gate"`
 	SessionID     string       `yaml:"session_id"`
+	Harness       string       `yaml:"harness,omitempty"`
 	ExternalRound int          `yaml:"external_round"`
 	Status        string       `yaml:"status"`
 	Updated       string       `yaml:"updated"`
@@ -40,6 +41,7 @@ type AuditEntry struct {
 }
 
 type AuditRound struct {
+	Incident string         `yaml:"incident,omitempty"`
 	Evidence []EvidenceFile `yaml:"evidence,omitempty"`
 	Round    int            `yaml:"round"`
 	Revision string         `yaml:"revision,omitempty"`
@@ -49,7 +51,7 @@ type AuditRound struct {
 	Updated  string         `yaml:"updated"`
 }
 
-// LatestEvidence belongs to the latest accepted response, including FAIL.
+// LatestEvidence belongs to the latest invocation, including an interrupted audit.
 // Old records without manifests deliberately trigger a full evidence read.
 func (entry AuditEntry) LatestEvidence() []EvidenceFile {
 	if len(entry.History) == 0 {
@@ -118,7 +120,7 @@ func MigrateLegacyAudit(path string) error {
 }
 
 func WriteAuditEntry(path string, entry AuditEntry) error {
-	if strings.TrimSpace(entry.WorkItem) == "" || strings.TrimSpace(entry.Gate) == "" || strings.TrimSpace(entry.SessionID) == "" {
+	if strings.TrimSpace(entry.WorkItem) == "" || strings.TrimSpace(entry.Gate) == "" || (strings.TrimSpace(entry.SessionID) == "" && entry.Status != "running" && entry.Status != "identity-missing" && entry.Status != "exhausted") {
 		return errors.New("audit record requires work item, gate, and session ID")
 	}
 	var record AuditRecord

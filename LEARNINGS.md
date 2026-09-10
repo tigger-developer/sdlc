@@ -1,5 +1,20 @@
 # SDLC Standards: Design Learnings
 
+## Recovery instructions need recoverable state
+
+Telling an agent to resume after timeout is insufficient when native identity
+and evidence are saved only after a final response. The harness now checkpoints
+attempts before invocation and native IDs when observed. Codex and Hermes IDs
+must come from their output, not the runner's generated placeholder.
+
+Timeout is an incident, not an audit finding. It consumes a bounded attempt but
+permits unchanged evidence to be resubmitted. The caller receives an actionable
+recovery diagnostic; the retained auditor receives a distinct continuation
+instruction. Both texts live in the YAML prompt registry. Missing identity or
+exhausted bounds still stop automatic continuation. These changes address lost
+continuation, not why a provider took longer than its timeout. Path manifests
+neither prove remembered context nor guarantee lower audit duration.
+
 ## Retained audit context needs stable evidence identities
 
 Copying every input into a new temporary directory on every audit added file

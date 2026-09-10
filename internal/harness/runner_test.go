@@ -270,7 +270,7 @@ func TestW004HermesRequiresNativeSessionEnvelope(t *testing.T) {
 func matrixRequest(harnessName, root string) Request {
 	request := Request{
 		Harness: harnessName, Model: "model", Prompt: "prompt", Directory: root,
-		SessionID: "preassigned-session",
+		SessionID: "native-session",
 	}
 	if harnessName == "codex" {
 		request.ResultFile = filepath.Join(root, "result")
