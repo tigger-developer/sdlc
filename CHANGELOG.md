@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## v3.2.8 - 2026-09-10
+
+- Added `make sync`: refresh the HTML-Preview submodule from upstream and run
+  its own installer to update the installed previewer, then commit local
+  changes and the updated pin, and pull and push the SDLC branch.
+  Unchanged runs skip the commit; errors stop synchronization.
+
 ## v3.2.7 - 2026-09-10
 
 - Adopted `tigger-developer/HTML-Preview` as a pinned submodule and the shared

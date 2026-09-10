@@ -49,6 +49,17 @@ It lists only missing or differing artefacts. An unchanged rerun writes nothing
 and asks no question. Set `VERBOSE=1` to include matching artefacts. Interactive
 confirmation accepts `y` or `yes`.
 
+`make sync` refreshes HTML-Preview from its upstream default branch and runs its
+own `make install` to update the installed command. It then stages and commits
+local changes including the updated submodule pin, and pulls and pushes the
+SDLC branch. `COMMIT_MESSAGE` defaults to `chore: sync`. Each step stops on
+failure. Ordinary installation uses the recorded pin; synchronization updates
+both the pin and the installed previewer.
+
+HTML-Preview's installer preserves conflicting files and links. If a previous
+checkout owns `~/.local/bin/htmlpreview`, move that link aside once before
+`make sync` installs the submodule-managed command.
+
 ## Repository layout
 
 | Path | Purpose |

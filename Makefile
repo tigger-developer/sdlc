@@ -1,10 +1,12 @@
-.PHONY: build test lint install install-preview install-cli uninstall
+.PHONY: build test lint install install-preview install-cli uninstall sync
 
 INSTALLER ?= bin/sdlc-install
 PROJECT_INITIALIZER ?= bin/sdlc-init
 LEGACY_AC_MERGER ?= bin/sdlc-merge-legacy-acs
 HARNESS_RUNNER ?= bin/sdlc-harness
 INSTALL_FLAGS ?=
+COMMIT_MESSAGE ?= chore: sync
+export COMMIT_MESSAGE
 SDLC_RELEASE ?= $(shell git for-each-ref --merged=HEAD --count=1 --sort=-version:refname --format='%(refname:short)' 'refs/tags/v*')
 INSTALLER_BUILD_FLAGS :=
 PROJECT_INITIALIZER_BUILD_FLAGS :=
@@ -45,6 +47,19 @@ install-preview:
 	fi
 
 install-cli: install
+
+sync:
+	git submodule update --init --remote -- tools/HTML-Preview
+	$(MAKE) -C tools/HTML-Preview install
+	git add -A
+	@git diff --cached --quiet; result=$$?; \
+	case $$result in \
+		0) ;; \
+		1) git commit -m "$$COMMIT_MESSAGE" ;; \
+		*) exit $$result ;; \
+	esac
+	git pull
+	git push
 
 uninstall:
 	unlink "$(HOME)/.local/bin/sdlc-init"
