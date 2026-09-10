@@ -445,7 +445,7 @@ func verifyHarnessAdapters(commonHome string, agents []string) error {
 	for _, harnessName := range agents {
 		request := harness.Request{
 			Harness: harnessName, Model: "readiness-model", Provider: "readiness-provider",
-			Prompt: "readiness", Bundle: "/read-only-bundle", ResultFile: "/result",
+			Prompt: "readiness", Directory: "/project", ResultFile: "/result",
 			SessionID: "00000000-0000-4000-8000-000000000000",
 		}
 		if _, err := harness.BuildStart(request); err != nil {

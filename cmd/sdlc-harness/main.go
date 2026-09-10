@@ -121,26 +121,10 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		}
 		prompt = append([]byte(base+"\n\nOperator-supplied audit context:\n"), prompt...)
 	}
-	bundleInputs := make([]harness.Input, 0, len(inputs))
-	for index, supplied := range inputs {
-		path := supplied
-		if !filepath.IsAbs(path) {
-			path = filepath.Join(projectRoot, path)
-		}
-		bundleInputs = append(bundleInputs, harness.Input{Name: fmt.Sprintf("%03d-%s", index+1, filepath.Base(path)), Source: path})
-	}
-	if len(bundleInputs) == 0 {
-		return errors.New("at least one --input evidence file is required")
-	}
-	bundle, err := harness.CreateBundle(os.TempDir(), bundleInputs)
+	evidence, err := harness.CaptureEvidence(projectRoot, inputs)
 	if err != nil {
 		return err
 	}
-	defer func() {
-		if err := bundle.Cleanup(); err != nil && returnErr == nil {
-			returnErr = err
-		}
-	}()
 	resultFile, err := os.CreateTemp(os.TempDir(), "sdlc-harness-result-")
 	if err != nil {
 		return err
@@ -155,6 +139,7 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		}
 	}()
 	identity := *session
+	var previousEvidence []harness.EvidenceFile
 	if normalizedPhase == "audit" && strings.TrimSpace(*auditRecord) != "" {
 		if strings.TrimSpace(*workItem) == "" {
 			return errors.New("--work-item is required with --audit-record")
@@ -166,6 +151,7 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		if recordErr != nil {
 			return recordErr
 		}
+		previousEvidence = entry.LatestEvidence()
 		if action == "start" && found && entry.SessionID != "" {
 			return fmt.Errorf("audit session already exists for %s/%s; resume session %s", *workItem, normalizedGate, entry.SessionID)
 		}
@@ -189,13 +175,17 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 			return err
 		}
 	}
+	evidencePrompt, err := evidence.Prompt(previousEvidence)
+	if err != nil {
+		return err
+	}
 	request := harness.Request{
 		Harness: config.Harness, Provider: config.Provider, Model: config.Model,
-		Prompt: string(prompt), Bundle: bundle.Path, ResultFile: resultPath, SessionID: identity,
+		Prompt: string(prompt) + "\n\n" + evidencePrompt, Directory: projectRoot, ResultFile: resultPath, SessionID: identity,
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), config.Timeout)
 	defer cancel()
-	result, err := harness.Execute(ctx, request, action == "resume", &bundle, nil, errorOutput)
+	result, err := harness.Execute(ctx, request, action == "resume", &evidence, nil, errorOutput)
 	if err != nil {
 		return err
 	}
@@ -223,7 +213,7 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		entry.Revision = auditField(result.Response, "REVISION")
 		entry.Verdict = auditField(result.Response, "VERDICT")
 		entry.Response = result.Response
-		entry.History = append(entry.History, harness.AuditRound{Round: entry.ExternalRound, Revision: entry.Revision, Verdict: entry.Verdict, Response: result.Response})
+		entry.History = append(entry.History, harness.AuditRound{Round: entry.ExternalRound, Revision: entry.Revision, Verdict: entry.Verdict, Response: result.Response, Evidence: evidence.Files})
 		if entry.ExternalRound >= config.MaxRounds && status == "active" {
 			entry.Status = "exhausted"
 		}
@@ -246,8 +236,9 @@ func auditField(response, name string) string {
 }
 
 type auditPromptDocument struct {
-	Version int `yaml:"version"`
-	Gates   map[string]struct {
+	Version              int    `yaml:"version"`
+	EvidenceInstructions string `yaml:"evidence_instructions"`
+	Gates                map[string]struct {
 		Prompt string `yaml:"prompt"`
 	} `yaml:"gates"`
 }
@@ -274,7 +265,7 @@ func loadAuditPrompt(explicit, gate string) (string, error) {
 	if !found || strings.TrimSpace(value.Prompt) == "" {
 		return "", fmt.Errorf("audit prompt registry has no %s gate prompt", gate)
 	}
-	return strings.TrimSpace(value.Prompt), nil
+	return strings.TrimSpace(value.Prompt + "\n\n" + document.EvidenceInstructions), nil
 }
 
 func printTopLevelHelp(output io.Writer) {

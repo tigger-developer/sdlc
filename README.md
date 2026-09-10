@@ -250,6 +250,13 @@ skills are not deployed. The harness-invoked prompt returns findings; only the
 harness writes audit state. Duplicated audit state in a supplied artefact is a
 gate failure.
 
+The harness refers to original evidence paths without copying documents. Each
+recorded round retains only file paths, sizes, and SHA-256 hashes alongside its
+result. Resuming the same work-item/gate session highlights changed inputs;
+unchanged material can be reused when still understood in context. Changes
+during the run reject the response. See the harness `--help` for evidence and
+cleanup details.
+
 ## Variant workflows
 
 - `$pair-change` supports explicitly selected live human-agent implementation.

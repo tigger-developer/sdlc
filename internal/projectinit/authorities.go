@@ -147,11 +147,9 @@ func runMigratedWorkClassification(options Options, sdlcRoot, projectRoot, works
 		return "", fmt.Errorf("reading migrated-work classification prompt %s: %w", promptPath, err)
 	}
 	paths := make([]string, 0, len(legacyV2))
-	inputs := make([]harness.Input, 0, len(legacyV2))
 	for _, item := range legacyV2 {
 		relative := filepath.ToSlash(filepath.Join("docs", "archive", "sdlc-v2", "specs", item, "spec.md"))
 		paths = append(paths, relative)
-		inputs = append(inputs, harness.Input{Name: item + "-spec.md", Source: filepath.Join(projectRoot, filepath.FromSlash(relative))})
 	}
 	pathDocument, err := yaml.Marshal(map[string][]string{"specifications": paths})
 	if err != nil {
@@ -160,32 +158,27 @@ func runMigratedWorkClassification(options Options, sdlcRoot, projectRoot, works
 	prompt = append(prompt, []byte("\n\n## Exact specification scope\n\nInspect only these specification directories and their directly related files:\n\n```yaml\n")...)
 	prompt = append(prompt, pathDocument...)
 	prompt = append(prompt, []byte("```\n")...)
-	for index, input := range inputs {
-		contents, readErr := os.ReadFile(input.Source)
+	evidence, err := harness.CaptureEvidence(projectRoot, paths)
+	if err != nil {
+		return "", fmt.Errorf("hashing migrated-work classification evidence: %w", err)
+	}
+	for _, path := range paths {
+		contents, readErr := os.ReadFile(filepath.Join(projectRoot, filepath.FromSlash(path)))
 		if readErr != nil {
-			return "", fmt.Errorf("reading migrated specification %s: %w", paths[index], readErr)
+			return "", fmt.Errorf("reading migrated specification %s: %w", path, readErr)
 		}
-		prompt = append(prompt, []byte("\n<specification path=\""+paths[index]+"\">\n")...)
+		prompt = append(prompt, []byte("\n<specification path=\""+path+"\">\n")...)
 		prompt = append(prompt, contents...)
 		prompt = append(prompt, []byte("\n</specification>\n")...)
 	}
 	proposalPath := filepath.Join(workspace, migratedWorkProposalFilename)
-	bundle, err := harness.CreateBundle(filepath.Join(workspace, "audit-bundles"), inputs)
-	if err != nil {
-		return "", fmt.Errorf("creating migrated-work classification bundle: %w", err)
-	}
-	defer func() {
-		if cleanupErr := bundle.Cleanup(); cleanupErr != nil {
-			returnErr = errors.Join(returnErr, fmt.Errorf("cleaning migrated-work classification bundle: %w", cleanupErr))
-		}
-	}()
 	identity, err := harness.NewSessionIdentity()
 	if err != nil {
 		return "", err
 	}
 	request := harness.Request{
 		Harness: harnessName, Provider: provider, Model: model, Prompt: string(prompt),
-		Bundle: bundle.Path, SessionID: identity,
+		Directory: projectRoot, SessionID: identity,
 	}
 	if harnessName == "codex" {
 		request.ResultFile = proposalPath
@@ -196,7 +189,7 @@ func runMigratedWorkClassification(options Options, sdlcRoot, projectRoot, works
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	result, err := harness.Execute(ctx, request, false, &bundle, options.RunHarness, options.ErrorOutput)
+	result, err := harness.Execute(ctx, request, false, &evidence, options.RunHarness, options.ErrorOutput)
 	if err != nil {
 		return "", fmt.Errorf("classifying archived Spec Kit work with %s: %w", harnessName, err)
 	}

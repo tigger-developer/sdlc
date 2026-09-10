@@ -6,7 +6,129 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/tigger-developer/sdlc/internal/harness"
 )
+
+// This fake records the actual process boundary; no metered provider is invoked.
+func TestAuditEvidenceUsesOriginalPathsAndRetainsHashesOnResume(t *testing.T) {
+	root := t.TempDir()
+	bin := filepath.Join(root, "bin")
+	if err := os.Mkdir(bin, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	script := `#!/bin/sh
+output=
+previous=
+for argument in "$@"; do
+    if [ "$previous" = "-o" ]; then output="$argument"; fi
+    previous="$argument"
+done
+pwd > "$PROBE_DIRECTORY"
+cat > "$PROBE_PROMPT"
+printf '%s' "$output" > "$PROBE_RESULT_PATH"
+if [ "${PROBE_MUTATE:-}" = 1 ]; then printf 'mutated' > "$PROBE_SOURCE"; fi
+printf 'GATE: implementation\nREVISION: candidate\nVERDICT: FAIL\nFix the described defect.\n' > "$output"
+printf '{"type":"thread.started","thread_id":"native-session"}\n'
+`
+	// #nosec G306 -- this local fake is an executable, not a metered provider.
+	if err := os.WriteFile(filepath.Join(bin, "codex"), []byte(script), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("PATH", bin+string(os.PathListSeparator)+os.Getenv("PATH"))
+	t.Setenv("PROBE_DIRECTORY", filepath.Join(root, "directory"))
+	t.Setenv("PROBE_PROMPT", filepath.Join(root, "prompt"))
+	t.Setenv("PROBE_RESULT_PATH", filepath.Join(root, "result-path"))
+	t.Setenv("PROBE_MUTATE", "")
+	source := filepath.Join(root, "spec.org")
+	t.Setenv("PROBE_SOURCE", source)
+	if err := os.WriteFile(source, []byte("original requirement"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	registry := filepath.Join(root, "prompts.yaml")
+	if err := os.WriteFile(registry, []byte("version: 1\ngates:\n  implementation:\n    prompt: audit\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	record := filepath.Join(root, "audits.yaml")
+	args := []string{"--phase", "audit", "--gate", "implementation", "--harness", "codex", "--model", "fixture", "--project", root, "--global-config", filepath.Join(root, "absent.yaml"), "--audit-prompts", registry, "--audit-record", record, "--work-item", "W005-evidence", "--input", source}
+	for _, action := range []string{"start", "resume"} {
+		if action == "resume" {
+			if err := os.WriteFile(source, []byte("corrected requirement"), 0o600); err != nil {
+				t.Fatal(err)
+			}
+		}
+		if err := run(append([]string{action}, args...), strings.NewReader("review"), &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+			t.Fatal(err)
+		}
+		directory, err := os.ReadFile(filepath.Join(root, "directory"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		// Resolve platform aliases such as /var -> /private/var before comparing.
+		wantDirectory, err := filepath.EvalSymlinks(root)
+		if err != nil {
+			t.Fatal(err)
+		}
+		gotDirectory, err := filepath.EvalSymlinks(strings.TrimSpace(string(directory)))
+		if err != nil || gotDirectory != wantDirectory {
+			t.Fatalf("provider cwd = %s, want project %s (%v)", directory, root, err)
+		}
+		entry, found, err := harness.ReadAuditEntry(record, "W005-evidence", "implementation")
+		if err != nil || !found {
+			t.Fatalf("record = %#v, %v", entry, err)
+		}
+		manifest := entry.LatestEvidence()
+		if len(manifest) != 1 || manifest[0].Path != source || len(manifest[0].SHA256) != 64 {
+			t.Fatalf("audit evidence manifest = %#v", manifest)
+		}
+		if action == "resume" && (len(entry.History) != 2 || entry.History[0].Evidence[0].SHA256 == manifest[0].SHA256) {
+			t.Fatal("resume did not retain distinct per-round evidence hashes")
+		}
+		prompt, err := os.ReadFile(filepath.Join(root, "prompt"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !bytes.Contains(prompt, []byte(source)) || bytes.Contains(prompt, []byte("corrected requirement")) {
+			t.Fatalf("expected paths, not copied contents: %s", prompt)
+		}
+		change := "added"
+		if action == "resume" {
+			change = "changed"
+		}
+		if !bytes.Contains(prompt, []byte(`"change": "`+change+`"`)) {
+			t.Fatalf("missing %s evidence delta: %s", change, prompt)
+		}
+		if entry.SessionID != "native-session" {
+			t.Fatalf("session = %q", entry.SessionID)
+		}
+		assertResultRemoved(t, root)
+	}
+	before, err := os.ReadFile(record)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("PROBE_MUTATE", "1")
+	err = run(append([]string{"resume"}, args...), strings.NewReader("review"), &bytes.Buffer{}, &bytes.Buffer{})
+	if err == nil || !strings.Contains(err.Error(), "changed") {
+		t.Fatalf("mutation error = %v", err)
+	}
+	after, err := os.ReadFile(record)
+	if err != nil || !bytes.Equal(before, after) {
+		t.Fatalf("invalid response changed audit history: %v", err)
+	}
+	assertResultRemoved(t, root)
+}
+
+func assertResultRemoved(t *testing.T, root string) {
+	t.Helper()
+	path, err := os.ReadFile(filepath.Join(root, "result-path"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.Stat(string(path)); !os.IsNotExist(err) {
+		t.Fatalf("result file retained: %s (%v)", path, err)
+	}
+}
 
 func TestW004HelpAndVersionExitSuccessfully(t *testing.T) {
 	for _, arguments := range [][]string{{"-h"}, {"--help"}, {"start", "-h"}, {"--version"}} {

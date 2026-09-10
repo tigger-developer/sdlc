@@ -40,6 +40,16 @@ While waiting, the harness emits a start message and 30-second liveness
 heartbeats to stderr. A heartbeat is not provider progress, a verdict, or
 evidence that the audit has completed.
 
+The harness passes original absolute evidence paths, not document copies. Supply
+the complete input list on each invocation; the per-round manifest in
+`audits.yaml` identifies added, changed, unchanged, and omitted inputs on resume.
+Reuse unchanged evidence only while its meaning remains understood; reread it
+after context loss or when an affected dependency requires it. Omission never
+resolves a finding. The harness verifies supplied files before and after the
+provider runs and rejects changed evidence. Hashes detect mutation; read-only
+provider controls remain necessary. Additional files read outside the supplied
+list are not covered by the manifest checks.
+
 ## Verdict contract
 
 The harness response contains exactly one envelope:

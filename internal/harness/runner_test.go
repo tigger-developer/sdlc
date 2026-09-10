@@ -14,9 +14,9 @@ import (
 
 func TestW004ExecuteUsesFixedVectorAndReturnsOnlyParsedResult(t *testing.T) {
 	resultPath := filepath.Join(t.TempDir(), "result.txt")
-	request := Request{Harness: "codex", Model: "model", Prompt: "prompt", Bundle: t.TempDir(), ResultFile: resultPath}
+	request := Request{Harness: "codex", Model: "model", Prompt: "prompt", Directory: t.TempDir(), ResultFile: resultPath}
 	result, err := Execute(context.Background(), request, false, nil, func(_ context.Context, command string, args []string, directory string, stdin io.Reader, stdout, _ io.Writer) error {
-		if command != "codex" || directory != request.Bundle {
+		if command != "codex" || directory != request.Directory {
 			t.Fatalf("invocation = %s in %s", command, directory)
 		}
 		contents, readErr := io.ReadAll(stdin)
@@ -47,7 +47,7 @@ func TestW004FixedStartAndResumeInvocations(t *testing.T) {
 	}{
 		{
 			name:   "codex",
-			start:  []string{"exec", "-m", "model", "-s", "read-only", "-C", "/bundle", "--skip-git-repo-check", "--json", "-o", "/result", "-"},
+			start:  []string{"exec", "-m", "model", "-s", "read-only", "-C", "/project", "--skip-git-repo-check", "--json", "-o", "/result", "-"},
 			resume: []string{"exec", "resume", "-m", "model", "--skip-git-repo-check", "--json", "-o", "/result", "session", "-"},
 		},
 		{
@@ -62,13 +62,13 @@ func TestW004FixedStartAndResumeInvocations(t *testing.T) {
 		},
 		{
 			name: "hermes", provider: "provider", passesProvider: true,
-			start:  []string{"-z", hermesPrompt("prompt"), "-m", "model", "--provider", "provider", "-t", "", "--pass-session-id", "--safe-mode", "--in", "/bundle"},
-			resume: []string{"-z", hermesPrompt("prompt"), "-m", "model", "--provider", "provider", "-t", "", "--resume", "session", "--safe-mode", "--in", "/bundle"},
+			start:  []string{"-z", hermesPrompt("prompt"), "-m", "model", "--provider", "provider", "-t", "", "--pass-session-id", "--safe-mode", "--in", "/project"},
+			resume: []string{"-z", hermesPrompt("prompt"), "-m", "model", "--provider", "provider", "-t", "", "--resume", "session", "--safe-mode", "--in", "/project"},
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			request := Request{Harness: test.name, Model: "model", Provider: test.provider, Prompt: "prompt", Bundle: "/bundle", ResultFile: "/result", SessionID: "session"}
+			request := Request{Harness: test.name, Model: "model", Provider: test.provider, Prompt: "prompt", Directory: "/project", ResultFile: "/result", SessionID: "session"}
 			start, err := BuildStart(request)
 			if err != nil {
 				t.Fatal(err)
@@ -164,7 +164,7 @@ func TestW004ExecuteReturnsTypedTimeoutAndExecutableIncidents(t *testing.T) {
 	t.Setenv("PATH", bin+string(os.PathListSeparator)+"/bin:/usr/bin")
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Millisecond)
 	defer cancel()
-	request := Request{Harness: "codex", Model: "model", Prompt: "prompt", Bundle: root, ResultFile: filepath.Join(root, "result")}
+	request := Request{Harness: "codex", Model: "model", Prompt: "prompt", Directory: root, ResultFile: filepath.Join(root, "result")}
 	if _, err := Execute(ctx, request, false, nil, nil, io.Discard); err == nil {
 		t.Fatal("timed-out harness succeeded")
 	} else {
@@ -189,7 +189,7 @@ func TestW004ExecuteReturnsTypedTimeoutAndExecutableIncidents(t *testing.T) {
 func TestW004ExecuteReturnsTypedStartAndResumeFailures(t *testing.T) {
 	for _, resume := range []bool{false, true} {
 		request := Request{
-			Harness: "claude", Model: "model", Prompt: "prompt", Bundle: t.TempDir(),
+			Harness: "claude", Model: "model", Prompt: "prompt", Directory: t.TempDir(),
 			SessionID: "00000000-0000-4000-8000-000000000000",
 		}
 		_, err := Execute(context.Background(), request, resume, nil, func(context.Context, string, []string, string, io.Reader, io.Writer, io.Writer) error {
@@ -269,7 +269,7 @@ func TestW004HermesRequiresNativeSessionEnvelope(t *testing.T) {
 
 func matrixRequest(harnessName, root string) Request {
 	request := Request{
-		Harness: harnessName, Model: "model", Prompt: "prompt", Bundle: root,
+		Harness: harnessName, Model: "model", Prompt: "prompt", Directory: root,
 		SessionID: "preassigned-session",
 	}
 	if harnessName == "codex" {
@@ -331,59 +331,6 @@ func assertIncidentKind(t *testing.T, err error, want string) {
 	}
 }
 
-func TestW004ImmutableBundleDetectsMutation(t *testing.T) {
-	root := t.TempDir()
-	source := filepath.Join(root, "source.org")
-	if err := os.WriteFile(source, []byte("source"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	bundle, err := CreateBundle(filepath.Join(root, "bundles"), []Input{{Name: "spec.org", Source: source}})
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() {
-		if err := bundle.Cleanup(); err != nil {
-			t.Error(err)
-		}
-	}()
-	if err := bundle.Verify(); err != nil {
-		t.Fatal(err)
-	}
-	path := filepath.Join(bundle.Path, "spec.org")
-	if err := os.Chmod(path, 0o600); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(path, []byte("changed"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	if err := bundle.Verify(); err == nil || !strings.Contains(err.Error(), "changed") {
-		t.Fatalf("mutation verification = %v", err)
-	}
-}
-
-func TestW004ImmutableBundleDetectsSourceMutation(t *testing.T) {
-	root := t.TempDir()
-	source := filepath.Join(root, "source.org")
-	if err := os.WriteFile(source, []byte("source"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	bundle, err := CreateBundle(filepath.Join(root, "bundles"), []Input{{Name: "spec.org", Source: source}})
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() {
-		if err := bundle.Cleanup(); err != nil {
-			t.Error(err)
-		}
-	}()
-	if err := os.WriteFile(source, []byte("changed"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	if err := bundle.Verify(); err == nil || !strings.Contains(err.Error(), "audit source") {
-		t.Fatalf("source mutation verification = %v", err)
-	}
-}
-
 func TestW004CompositeVerdictValidation(t *testing.T) {
 	for _, valid := range []string{
 		"GATE: implementation\nREVISION: abc123\nVERDICT: PASS\n",
@@ -402,49 +349,5 @@ func TestW004CompositeVerdictValidation(t *testing.T) {
 		if err := ValidateCompositeVerdict(invalid); err == nil {
 			t.Fatalf("malformed verdict succeeded: %q", invalid)
 		}
-	}
-}
-
-func TestW004IncompleteBundleIsRemoved(t *testing.T) {
-	parent := filepath.Join(t.TempDir(), "bundles")
-	_, err := CreateBundle(parent, []Input{{Name: "../invalid", Source: "unused"}})
-	if err == nil {
-		t.Fatal("invalid bundle input succeeded")
-	}
-	entries, readErr := os.ReadDir(parent)
-	if readErr != nil {
-		t.Fatal(readErr)
-	}
-	if len(entries) != 0 {
-		t.Fatalf("incomplete bundle was retained: %v", entries)
-	}
-}
-
-func TestW004BundleManifestAndDuplicateRejection(t *testing.T) {
-	root := t.TempDir()
-	source := filepath.Join(root, "source.org")
-	if err := os.WriteFile(source, []byte("evidence\n"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	bundle, err := CreateBundle(filepath.Join(root, "bundles"), []Input{{Name: "spec.org", Source: source}})
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() {
-		if err := bundle.Cleanup(); err != nil {
-			t.Error(err)
-		}
-	}()
-	manifest, err := os.ReadFile(filepath.Join(bundle.Path, "manifest.json"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, expected := range []string{source, `"destination": "spec.org"`, `"bytes": 9`, `"sha256"`} {
-		if !strings.Contains(string(manifest), expected) {
-			t.Fatalf("manifest lacks %q:\n%s", expected, manifest)
-		}
-	}
-	if _, err := CreateBundle(filepath.Join(root, "duplicates"), []Input{{Name: "spec.org", Source: source}, {Name: "spec.org", Source: source}}); err == nil {
-		t.Fatal("duplicate bundle destination succeeded")
 	}
 }

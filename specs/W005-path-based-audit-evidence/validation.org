@@ -1,0 +1,26 @@
+#+TITLE: W005 - Path-based audit evidence verification
+#+STARTUP: content
+
+* Automated evidence
+
+- RED :: The CLI regression failed against the original implementation because
+  the provider ran from a copied temporary bundle rather than the project.
+- GREEN :: Focused harness/CLI tests pass, including path-only input, persisted
+  hashes and session reuse, stable deltas, legacy records, and mutation rejection.
+- Race verification :: The initial race run exposed concurrent heartbeat/stderr
+  writes. Serialization and waiting for heartbeat shutdown removed that race;
+  the focused =go test -race= rerun passes.
+- Scope :: Local fake-provider boundary only. No metered audit or live-provider
+  qualification was invoked. No installed files were changed.
+- Build :: =go build ./...= passes, including initializer and installer callers
+  adapted to the path-based evidence API.
+- Integration :: Initializer and installer package tests pass. The initializer
+  retains its existing in-prompt migration content; only its redundant document
+  copies were removed as part of replacing the shared bundle API.
+- Static checks :: =go vet= and =golangci-lint= pass for the affected packages.
+
+* Operator follow-up
+
+Observe the next real audit after installation for correct original-file reads
+and selective rereading on resume. These local checks do not establish token
+savings or provider context retention.

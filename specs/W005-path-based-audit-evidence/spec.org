@@ -1,0 +1,114 @@
+#+TITLE: W005 - Audit original files without document copies
+#+STARTUP: overview
+#+OPTIONS: toc:2 num:nil
+
+* Audit original files without document copies
+
+- Outcome :: *Retained auditors* receive *original paths* and *evidence changes*.
+- Before :: Every invocation copied documents into a new temporary directory.
+- After :: *Per-round hashes* in =audits.yaml= support *selective rereading*.
+- Unchanged :: Gate/session identity, timeout, round limits, verdicts, and provider controls.
+- Boundaries :: Hashes detect mutation; they neither prevent writes nor prove remembered context.
+- Edge cases :: Old records, reordered inputs, omitted files, mutation, invalid paths, size limits.
+- Decision :: Operator-authorized =BYPASS-GATE-7=; reconcile the agreed optimization after implementation.
+- Next step :: Install the release and observe it on the next operator audit.
+
+-----
+
+* Context
+
+The operator requested original-file references instead of retained or transient
+document copies. This emergency record reconciles that bounded request, not a
+retrospective definition workflow. The authority is the operator's optimization
+review and subsequent explicit implementation instruction.
+
+* Acceptance Criteria
+
+** AC005.1 - Metadata-only evidence
+:PROPERTIES:
+:CUSTOM_ID: ac-005-1
+:END:
+
+The harness supplies *original absolute paths*, sizes, and *SHA-256 hashes*,
+without copying documents or injecting their contents. Only the final-response
+temporary file remains, with cleanup on normal return and handled failures.
+
+- Proven by :: [[#rt-005-1][RT005.1 - Evidence transport and retained rounds]]
+
+** AC005.2 - Retained comparisons
+:PROPERTIES:
+:CUSTOM_ID: ac-005-2
+:END:
+
+Resumption preserves the *work-item/gate session* and distinguishes *added*,
+*changed*, *unchanged*, and *omitted* evidence independently of input ordering.
+Hashes live once per recorded round in =history[].evidence=. Old records without
+hashes retain their session and treat all supplied evidence as added.
+
+- Proven by :: [[#rt-005-1][RT005.1 - Evidence transport and retained rounds]]
+
+** AC005.3 - Integrity and bounded access
+:PROPERTIES:
+:CUSTOM_ID: ac-005-3
+:END:
+
+An input that changes before or during review *prevents acceptance*. Missing,
+non-regular, symlink, duplicate, and =.env= inputs are rejected. Existing 16 MiB
+per-file and 64 MiB total evidence limits remain. Provider permissions are not
+broadened; unchanged hashes never authorize skipping material authorities.
+
+- Proven by :: [[#rt-005-2][RT005.2 - Evidence integrity and invalid inputs]]
+
+* Test Definitions
+
+** RT005.1 - Evidence transport and retained rounds
+:PROPERTIES:
+:CUSTOM_ID: rt-005-1
+:END:
+
+- Covers :: [[#ac-005-1][AC005.1 - Metadata-only evidence]], [[#ac-005-2][AC005.2 - Retained comparisons]].
+- Procedure :: Invoke the CLI against a local fake provider; inspect its cwd and
+  prompt and the persisted record across start and resume. Reorder, change, add,
+  and omit files through the evidence API; load a pre-manifest record.
+- Expected :: Original paths, no contents, stable hashes and ordering, correct
+  deltas, and unchanged session identity. No metered provider runs.
+
+** RT005.2 - Evidence integrity and invalid inputs
+:PROPERTIES:
+:CUSTOM_ID: rt-005-2
+:END:
+
+- Covers :: [[#ac-005-3][AC005.3 - Integrity and bounded access]].
+- Procedure :: Mutate before/during execution, delete or replace a source with a
+  symlink, and provide invalid or excessive evidence.
+- Expected :: Reject the invocation or response; do not return an accepted verdict.
+
+* Edge Cases
+
+- Omitted means *not supplied*, not necessarily deleted; it does not resolve findings.
+- Compaction or changed interpretation requires rereading even unchanged files.
+- Abrupt process termination may leave the small response file; no document cache exists.
+
+* Solution Design
+
+** Architecture and data
+
+=CaptureEvidence= streams hashes without retaining content. =Execute= verifies
+the manifest before and after the provider. The CLI adds metadata and shared
+instructions, launches from the project, then records the manifest with a valid
+response. =LatestEvidence= retrieves the prior gate round for comparison.
+
+** Security impact
+
+Preserve provider permission flags and validate supplied files. Hashing is not
+a sandbox or an atomic snapshot, and does not cover extra unlisted reads.
+Provider-owned session storage remains separate. Claude/Copilot currently disable
+tools; live original-file access for those adapters is not established by the
+local transport tests. Changing their capabilities is outside this change.
+
+* Delivery Handoff
+
+- Source :: =internal/harness/= and =cmd/sdlc-harness/=.
+- Architecture :: [[file:../../docs/ARCHITECTURE.md][SDLC architecture]].
+- Local validation :: [[file:validation.org][W005 - Verification evidence]].
+- Documentation :: Harness help, audit standard/template, README, architecture, learnings, changelog.

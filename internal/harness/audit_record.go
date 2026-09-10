@@ -40,12 +40,22 @@ type AuditEntry struct {
 }
 
 type AuditRound struct {
-	Round    int      `yaml:"round"`
-	Revision string   `yaml:"revision,omitempty"`
-	Verdict  string   `yaml:"verdict,omitempty"`
-	Response string   `yaml:"response,omitempty"`
-	Findings []string `yaml:"findings,omitempty"`
-	Updated  string   `yaml:"updated"`
+	Evidence []EvidenceFile `yaml:"evidence,omitempty"`
+	Round    int            `yaml:"round"`
+	Revision string         `yaml:"revision,omitempty"`
+	Verdict  string         `yaml:"verdict,omitempty"`
+	Response string         `yaml:"response,omitempty"`
+	Findings []string       `yaml:"findings,omitempty"`
+	Updated  string         `yaml:"updated"`
+}
+
+// LatestEvidence belongs to the latest accepted response, including FAIL.
+// Old records without manifests deliberately trigger a full evidence read.
+func (entry AuditEntry) LatestEvidence() []EvidenceFile {
+	if len(entry.History) == 0 {
+		return nil
+	}
+	return entry.History[len(entry.History)-1].Evidence
 }
 
 func ReadAuditEntry(path, workItem, gate string) (AuditEntry, bool, error) {

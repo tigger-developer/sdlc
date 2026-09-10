@@ -1,5 +1,21 @@
 # SDLC Standards: Design Learnings
 
+## Retained audit context needs stable evidence identities
+
+Copying every input into a new temporary directory on every audit added file
+handling and unstable paths without establishing what the auditor remembered.
+The harness now supplies original paths and compares SHA-256 manifests retained
+once per recorded round in `audits.yaml`. This replaces the copied-bundle design;
+it does not introduce a document cache or a purge policy.
+
+Unchanged bytes are not proof of a previous read or retained understanding.
+Resume instructions prioritize changed evidence while permitting rereads after
+compaction or where a change affects an unchanged authority. Pre/post hashing
+detects mutation, not prevents it, and is not an immutable snapshot. Existing
+provider read-only controls remain in place. Token savings and live provider
+file-access behaviour require separate bounded observation, not assertions from
+the manifest alone.
+
 ## Delegate document rendering to its maintained tool
 
 `tigger-developer/HTML-Preview` owns Markdown and Org rendering, presentation

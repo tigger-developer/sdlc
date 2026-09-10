@@ -78,6 +78,16 @@ classification; it is provenance, not current state.
 
 * Work items
 
+** REVIEW W005 - Audit original files without document copies :maintenance:
+:PROPERTIES:
+:CUSTOM_ID: w-005
+:PRIORITY: P1
+:SOURCE: operator BYPASS-GATE-7
+:CREATED: 2026-09-10
+:END:
+
+- *Specification:* [[file:../specs/W005-path-based-audit-evidence/spec.org][W005 - Path-based audit evidence]]
+
 ** ACTIVE W004 - Support Claude, Copilot, and Hermes harnesses :feature:
 :PROPERTIES:
 :CUSTOM_ID: w-004

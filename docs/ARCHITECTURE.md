@@ -49,7 +49,7 @@ An initialized project contains:
 .sdlc/project.yaml
 docs/work.org
 specs/NNN-descriptor/spec.org
-specs/NNN-descriptor/audits.org
+specs/NNN-descriptor/audits.yaml
 specs/NNN-descriptor/validation.org
 ```
 
@@ -99,23 +99,23 @@ until round-trip preservation of the supported subset is demonstrated.
 The definition gate applies specification, design, and test-definition criteria.
 The implementation gate applies implemented-test and code criteria.
 
-Each gate uses at most two contexts:
+Each gate retains one external session per work item. Composite prompts live in
+`src/prompts/audits.yaml`; separate audit skills are no longer deployed. The
+harness owns session identity, timeout, round limits, and persistence. Authoring
+agents remediate all findings before resuming the same gate session.
 
-1. the authoring context performs and remediates up to five local rounds; and
-2. one context on the configured external audit harness applies all component
-   audits and is resumed after any remediation.
+The provider receives original absolute paths and a metadata-only evidence
+manifest. The harness hashes regular files before and after execution, rejects
+mutation, and stores each accepted response's manifest in
+`audits.yaml` under `history[].evidence`. Resume compares against that gate's
+last recorded manifest. There is no document-copy cache; hashes do not imply
+that an auditor remembers unchanged content. Provider read-only controls remain
+necessary, and additional reads outside the input list are not hash-verified.
 
-Focused audit skills define reusable review criteria. They never spawn their own
-contexts. `define-change` and `deliver-change` own their normal composite gates;
-`audit-definition` and `audit-implementation` expose those gates for separate
-operator-requested review. The composite workflow owns context creation,
-retention, retry limits, evidence recording, and the human handback.
-
-The work ledger records the work item's sole lifecycle state. The specification
-records its current definition-gate status and operator sign-off. Detailed
-revision-specific findings remain in `audits.org`. Delivery reads these
-separate authorities and does not repeat the definition gate when entering a
-new context.
+The work ledger owns lifecycle state, the specification owns requirements and
+operator sign-off, and `audits.yaml` alone owns audit state. Legacy `audits.org`
+records are preserved in YAML through the existing migration. Delivery does not
+repeat the definition gate when entering a new context.
 
 ## Initialization and migration
 

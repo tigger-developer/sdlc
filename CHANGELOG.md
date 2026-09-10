@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## v3.2.10 - 2026-09-10
+
+- Replaced temporary audit document bundles with original paths and bounded
+  SHA-256 hashing. Recorded rounds retain evidence manifests in `audits.yaml`;
+  resumed sessions receive added, changed, unchanged, and omitted input metadata.
+- Retained before/after integrity checks and session mappings; older records
+  without hashes receive a full evidence pass without replacing their session.
+- Documented evidence reuse, read-only boundaries, and temporary result cleanup.
+- Synchronized heartbeat and provider diagnostic writes after local race checks
+  exposed concurrent access to the shared output stream.
+
 ## v3.2.9 - 2026-09-10
 
 - Restored `HTML_PREVIEW_TOOL` as an optional executable override for document

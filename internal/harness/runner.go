@@ -6,16 +6,14 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -28,7 +26,7 @@ type Request struct {
 	Model      string
 	Provider   string
 	Prompt     string
-	Bundle     string
+	Directory  string
 	ResultFile string
 	SessionID  string
 }
@@ -80,29 +78,17 @@ func NewSessionIdentity() (string, error) {
 	return fmt.Sprintf("%x-%x-%x-%x-%x", value[0:4], value[4:6], value[6:8], value[8:10], value[10:16]), nil
 }
 
-// Input identifies one regular file copied into an isolated audit bundle.
-type Input struct {
-	Name   string
-	Source string
-}
-
-// Bundle records the isolated path and its original content digests.
-type Bundle struct {
-	Path    string
-	digests map[string]string
-	sources map[string]string
-}
-
 // Execute runs one start or resume invocation and validates its bounded result.
-func Execute(ctx context.Context, request Request, resume bool, bundle *Bundle, executor Executor, errorOutput io.Writer) (Result, error) {
+func Execute(ctx context.Context, request Request, resume bool, evidence *Evidence, executor Executor, errorOutput io.Writer) (Result, error) {
 	if executor == nil {
 		executor = executeCommand
 	}
 	if errorOutput == nil {
 		errorOutput = io.Discard
 	}
-	if bundle != nil {
-		if err := bundle.Verify(); err != nil {
+	errorOutput = &lockedWriter{writer: errorOutput}
+	if evidence != nil {
+		if err := evidence.Verify(); err != nil {
 			return Result{}, err
 		}
 	}
@@ -118,7 +104,12 @@ func Execute(ctx context.Context, request Request, resume bool, bundle *Bundle, 
 	}
 	var stdout bytes.Buffer
 	stopHeartbeat := make(chan struct{})
-	go reportHeartbeat(errorOutput, request.Harness, request.SessionID, stopHeartbeat)
+	heartbeatDone := make(chan struct{})
+	go func() {
+		defer close(heartbeatDone)
+		reportHeartbeat(errorOutput, request.Harness, request.SessionID, stopHeartbeat)
+	}()
+	defer func() { <-heartbeatDone }()
 	if err := executor(ctx, invocation.Command, invocation.Args, invocation.Dir, strings.NewReader(invocation.Stdin), &stdout, errorOutput); err != nil {
 		close(stopHeartbeat)
 		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
@@ -134,8 +125,8 @@ func Execute(ctx context.Context, request Request, resume bool, bundle *Bundle, 
 		return Result{}, newIncident(kind, request.Harness, request.SessionID, err)
 	}
 	close(stopHeartbeat)
-	if bundle != nil {
-		if err := bundle.Verify(); err != nil {
+	if evidence != nil {
+		if err := evidence.Verify(); err != nil {
 			return Result{}, err
 		}
 	}
@@ -151,6 +142,18 @@ func Execute(ctx context.Context, request Request, resume bool, bundle *Bundle, 
 		return Result{}, err
 	}
 	return result, nil
+}
+
+// Provider stderr and the heartbeat share one stream, including test buffers.
+type lockedWriter struct {
+	mu     sync.Mutex
+	writer io.Writer
+}
+
+func (output *lockedWriter) Write(data []byte) (int, error) {
+	output.mu.Lock()
+	defer output.mu.Unlock()
+	return output.writer.Write(data)
 }
 
 // reportHeartbeat gives the invoking agent visible liveness without implying
@@ -205,17 +208,17 @@ func BuildStart(request Request) (Invocation, error) {
 	if err := validateRequest(request, false); err != nil {
 		return Invocation{}, err
 	}
-	invocation := Invocation{Command: request.Harness, Dir: request.Bundle}
+	invocation := Invocation{Command: request.Harness, Dir: request.Directory}
 	switch request.Harness {
 	case "codex":
-		invocation.Args = []string{"exec", "-m", request.Model, "-s", "read-only", "-C", request.Bundle, "--skip-git-repo-check", "--json", "-o", request.ResultFile, "-"}
+		invocation.Args = []string{"exec", "-m", request.Model, "-s", "read-only", "-C", request.Directory, "--skip-git-repo-check", "--json", "-o", request.ResultFile, "-"}
 		invocation.Stdin = request.Prompt
 	case "claude":
 		invocation.Args = []string{"-p", "--output-format", "json", "--model", request.Model, "--session-id", request.SessionID, "--tools", "", "--permission-mode", "plan", request.Prompt}
 	case "copilot":
 		invocation.Args = []string{"-p", request.Prompt, "-s", "--output-format", "json", "--model", request.Model, "--name", request.SessionID, "--available-tools="}
 	case "hermes":
-		invocation.Args = []string{"-z", hermesPrompt(request.Prompt), "-m", request.Model, "--provider", request.Provider, "-t", "", "--pass-session-id", "--safe-mode", "--in", request.Bundle}
+		invocation.Args = []string{"-z", hermesPrompt(request.Prompt), "-m", request.Model, "--provider", request.Provider, "-t", "", "--pass-session-id", "--safe-mode", "--in", request.Directory}
 	}
 	return invocation, nil
 }
@@ -226,7 +229,7 @@ func BuildResume(request Request) (Invocation, error) {
 	if err := validateRequest(request, true); err != nil {
 		return Invocation{}, err
 	}
-	invocation := Invocation{Command: request.Harness, Dir: request.Bundle}
+	invocation := Invocation{Command: request.Harness, Dir: request.Directory}
 	switch request.Harness {
 	case "codex":
 		invocation.Args = []string{"exec", "resume", "-m", request.Model, "--skip-git-repo-check", "--json", "-o", request.ResultFile, request.SessionID, "-"}
@@ -236,7 +239,7 @@ func BuildResume(request Request) (Invocation, error) {
 	case "copilot":
 		invocation.Args = []string{"-p", request.Prompt, "-s", "--output-format", "json", "--model", request.Model, "--resume=" + request.SessionID, "--available-tools="}
 	case "hermes":
-		invocation.Args = []string{"-z", hermesPrompt(request.Prompt), "-m", request.Model, "--provider", request.Provider, "-t", "", "--resume", request.SessionID, "--safe-mode", "--in", request.Bundle}
+		invocation.Args = []string{"-z", hermesPrompt(request.Prompt), "-m", request.Model, "--provider", request.Provider, "-t", "", "--resume", request.SessionID, "--safe-mode", "--in", request.Directory}
 	}
 	return invocation, nil
 }
@@ -351,125 +354,4 @@ func ValidateCompositeVerdict(response string) error {
 // ParseTimeout returns the typed diagnostic used when a harness exceeds its bound.
 func ParseTimeout(harness string, timeout time.Duration) (Result, error) {
 	return Result{}, fmt.Errorf("%s harness exceeded the %s timeout", harness, timeout)
-}
-
-// CreateBundle copies exact regular-file inputs into a read-only temporary directory.
-func CreateBundle(parent string, inputs []Input) (Bundle, error) {
-	if len(inputs) == 0 {
-		return Bundle{}, errors.New("audit bundle requires at least one input")
-	}
-	if err := os.MkdirAll(parent, 0o700); err != nil {
-		return Bundle{}, fmt.Errorf("creating bundle parent: %w", err)
-	}
-	path, err := os.MkdirTemp(parent, "sdlc-audit-")
-	if err != nil {
-		return Bundle{}, fmt.Errorf("creating audit bundle: %w", err)
-	}
-	bundle := Bundle{Path: path, digests: map[string]string{}, sources: map[string]string{}}
-	fail := func(cause error) (Bundle, error) {
-		if cleanupErr := bundle.Cleanup(); cleanupErr != nil {
-			return Bundle{}, fmt.Errorf("%w; cleaning incomplete audit bundle: %v", cause, cleanupErr)
-		}
-		return Bundle{}, cause
-	}
-	type manifestEntry struct {
-		Source      string `json:"source"`
-		Destination string `json:"destination"`
-		Bytes       int    `json:"bytes"`
-		SHA256      string `json:"sha256"`
-	}
-	const maximumInputBytes = 16 * 1024 * 1024
-	const maximumBundleBytes = 64 * 1024 * 1024
-	seen := map[string]bool{}
-	totalBytes := 0
-	manifest := make([]manifestEntry, 0, len(inputs))
-	for _, input := range inputs {
-		if filepath.Base(input.Name) != input.Name || input.Name == "." || input.Name == "" {
-			return fail(fmt.Errorf("invalid bundle input name %q", input.Name))
-		}
-		if input.Name == "manifest.json" || seen[input.Name] {
-			return fail(fmt.Errorf("duplicate or reserved bundle input name %q", input.Name))
-		}
-		seen[input.Name] = true
-		info, statErr := os.Lstat(input.Source)
-		if statErr != nil {
-			return fail(fmt.Errorf("inspecting bundle input %q: %w", input.Source, statErr))
-		}
-		if !info.Mode().IsRegular() || info.Mode()&os.ModeSymlink != 0 {
-			return fail(fmt.Errorf("bundle input %q must be a regular non-symlink file", input.Source))
-		}
-		contents, readErr := os.ReadFile(input.Source)
-		if readErr != nil {
-			return fail(fmt.Errorf("reading bundle input %q: %w", input.Source, readErr))
-		}
-		if len(contents) > maximumInputBytes || totalBytes+len(contents) > maximumBundleBytes {
-			return fail(fmt.Errorf("bundle input %q exceeds the bounded evidence size", input.Source))
-		}
-		totalBytes += len(contents)
-		destination := filepath.Join(path, input.Name)
-		if writeErr := os.WriteFile(destination, contents, 0o400); writeErr != nil {
-			return fail(fmt.Errorf("writing bundle input %q: %w", destination, writeErr))
-		}
-		checksum := digest(contents)
-		bundle.digests[input.Name] = checksum
-		bundle.sources[input.Name] = input.Source
-		manifest = append(manifest, manifestEntry{Source: input.Source, Destination: input.Name, Bytes: len(contents), SHA256: checksum})
-	}
-	manifestBytes, err := json.MarshalIndent(map[string]any{"version": 1, "files": manifest}, "", "  ")
-	if err != nil {
-		return fail(fmt.Errorf("rendering audit bundle manifest: %w", err))
-	}
-	manifestBytes = append(manifestBytes, '\n')
-	if err := os.WriteFile(filepath.Join(path, "manifest.json"), manifestBytes, 0o400); err != nil {
-		return fail(fmt.Errorf("writing audit bundle manifest: %w", err))
-	}
-	bundle.digests["manifest.json"] = digest(manifestBytes)
-	if err := os.Chmod(path, 0o500); err != nil {
-		return fail(fmt.Errorf("making audit bundle read-only: %w", err))
-	}
-	return bundle, nil
-}
-
-// Verify confirms that every bundled byte remains unchanged.
-func (bundle Bundle) Verify() error {
-	for name, want := range bundle.digests {
-		contents, err := os.ReadFile(filepath.Join(bundle.Path, name))
-		if err != nil {
-			return fmt.Errorf("verifying bundle input %q: %w", name, err)
-		}
-		if got := digest(contents); got != want {
-			return fmt.Errorf("audit bundle input %q changed", name)
-		}
-		if source, exists := bundle.sources[name]; exists {
-			sourceContents, err := os.ReadFile(source)
-			if err != nil {
-				return fmt.Errorf("verifying audit source %q: %w", source, err)
-			}
-			if got := digest(sourceContents); got != want {
-				return fmt.Errorf("audit source %q changed", source)
-			}
-		}
-	}
-	return nil
-}
-
-// Cleanup removes only the exact temporary bundle created by CreateBundle.
-func (bundle Bundle) Cleanup() error {
-	if bundle.Path == "" {
-		return nil
-	}
-	if err := os.Chmod(bundle.Path, 0o700); err != nil {
-		return fmt.Errorf("unlocking audit bundle for cleanup: %w", err)
-	}
-	for name := range bundle.digests {
-		if err := os.Chmod(filepath.Join(bundle.Path, name), 0o600); err != nil && !errors.Is(err, os.ErrNotExist) {
-			return fmt.Errorf("unlocking bundle input for cleanup: %w", err)
-		}
-	}
-	return os.RemoveAll(bundle.Path)
-}
-
-func digest(contents []byte) string {
-	sum := sha256.Sum256(contents)
-	return hex.EncodeToString(sum[:])
 }

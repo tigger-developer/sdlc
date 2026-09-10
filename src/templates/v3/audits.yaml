@@ -11,4 +11,11 @@ audits:
     findings: []                      # every finding for the current revision
     remediation: []                   # remediation applied before the next round
     response: ""                     # exact composite response, for provenance
-    history: []                       # prior revision-specific rounds, never deleted
+    history: []                       # revision-specific rounds, never deleted
+    # Each harness-written history entry also contains evidence, for example:
+    # evidence:
+    #   - path: /absolute/project/specs/W001-descriptor/spec.org
+    #     sha256: <SHA-256 of the original file>
+    #     bytes: 1234
+    # Evidence is stored once per round, not copied to a top-level field.
+    # Old history entries without evidence remain valid historical records.

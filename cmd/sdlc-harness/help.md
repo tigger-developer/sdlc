@@ -1,8 +1,8 @@
 SDLC harness
 ============
 
-Internal SDLC helper for running one bounded provider context with an
-immutable evidence bundle. It is installed at
+Internal SDLC helper for running one bounded provider context against
+original evidence files with SHA-256 integrity checks. It is installed at
 `~/.agents/sdlc/bin/sdlc-harness` and is invoked by SDLC skills, not directly
 from the global command path.
 
@@ -26,6 +26,23 @@ Evidence and instruction
 ========================
 
 - Repeat `--input <file>` for every exact evidence file.
+- Paths are resolved against `--project`. Files are referenced by absolute path,
+  not copied or pasted into the prompt. The provider is launched from the project.
+- Supply the complete evidence list on every invocation. The harness hashes it
+  and, on resume, identifies added, changed, unchanged, and removed inputs against
+  the last recorded round. Removed means omitted from the list, not deleted.
+- Unchanged files may be reused from retained context, but must be reread when
+  context is lost or changes affect their interpretation. Hashes are not proof
+  that the auditor read a file.
+- Inputs must be regular non-symlink files, at most 16 MiB each and 64 MiB total.
+  `.env` inputs are prohibited. Changed, missing, or replaced evidence during
+  execution rejects the response; hashes detect changes, not prevent writes.
+- Per-round paths and hashes live only in `audits.yaml` under `history[].evidence`.
+  Older records without hashes retain their session and receive a full evidence
+  pass. Without `--audit-record`, no cross-invocation hash comparison is possible.
+- No document cache is created. The small final-response temporary file is
+  removed on normal return, including handled errors and timeouts. Abrupt process
+  termination can leave that file behind. Provider-owned session storage is separate.
 - For audits, stdin is additional bounded context; the gate prompt is loaded
   from `prompts/audits.yaml`.
 - `--audit-record <file> --work-item <id> --gate <gate>` makes the harness own

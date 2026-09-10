@@ -1031,11 +1031,14 @@ warnings: []`
 		t.Run(test.harness, func(t *testing.T) {
 			project := t.TempDir()
 			workspace := filepath.Join(project, ".sdlc", ".init")
+			if err := os.MkdirAll(workspace, 0o700); err != nil {
+				t.Fatal(err)
+			}
 			writeProjectTestFile(t, filepath.Join(project, "docs", "archive", "sdlc-v2", "specs", "001-example", "spec.md"), "# Example\n")
 			var calls int
 			options := Options{ErrorOutput: &bytes.Buffer{}, RunHarness: func(_ context.Context, name string, arguments []string, directory string, input io.Reader, output, errorOutput io.Writer) error {
 				calls++
-				if name != test.harness || directory == project {
+				if name != test.harness || directory != project {
 					return fmt.Errorf("unexpected %s invocation in %s: %v", name, directory, arguments)
 				}
 				joined := strings.Join(arguments, " ")
