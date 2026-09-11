@@ -61,7 +61,21 @@
 - Verification :: Native transcript contains exactly three =Read= calls and one =StructuredOutput= call. The two denied reads have error tool results and matching native =permission_denials= entries. The unlisted fixture marker appears in neither tool results nor the transcript. This tests enforcement rather than voluntary prompt compliance.
 - Turn accounting :: The CLI was passed =--max-turns 4= but reported =num_turns: 5=. No additional read attempts occurred. The two-minute external process timeout remains the elapsed-runtime bound; the meanings of native turn counters are not qualified by this observation.
 - Retention :: Synthetic fixtures, settings, prompt, schema and raw result remain in the operating-system scratch directory whose generated basename is =sdlc-claude-read-probe.OOQ3vrx0ZZ=. Native session state remains in the existing isolated authentication profile. No credentials were inspected or copied.
-- Limitation :: This is not an OS sandbox or proof against every implicit readable path, managed-policy variation, path race, or future CLI change. Permission enforcement after session resume and integration with changed-file evidence remain untested. No production =audits.yaml= was written.
+- Limitation :: This is not an OS sandbox or proof against every implicit readable path, managed-policy variation, path race, or future CLI change. Session resume was not tested in this first invocation; the subsequent OT007.4 entry records that separate check. Production changed-file evidence integration remains untested. No production =audits.yaml= was written.
+
+* OT007.4 - Resumed original-file reads
+
+- Category :: One-off test.
+- Status :: PASS for this synthetic retained-session sequence.
+- Procedure and expected result :: [[file:spec.org::#ot-007-4][Resumed original-file reads]].
+- Tested baseline :: =b115f54= - native file-permission probe checkpoint; compiled prototype and production harness unchanged.
+- Environment :: 2026-09-11, macOS, Claude Code 2.1.236, requested model =sonnet=, same isolated configuration, working directory and permissions as OT007.3.
+- Execution :: One native =--resume= invocation using the identity returned by the earlier file-permission probe. The input referred to the same paths from retained context and reported that the permitted file had changed; it did not supply paths again or reveal the new content. External timeout remained two minutes with two-second kill escalation.
+- Observation :: Successful structured response in 6,087 ms, with the same native session identity. The permitted file returned the replacement fixture text rather than its original contents. Both the unlisted sibling and symlink returned native permission denials.
+- Verification :: Inspected the transcript records appended after the 17 pre-existing records. Exactly three new =Read= calls and one =StructuredOutput= call appeared. Actual tool results contain the replacement text and two denial errors; the native response has matching denial entries. The unlisted marker is absent from the appended transcript.
+- Turn accounting :: As in OT007.3, =--max-turns 4= produced native =num_turns: 5= with no extra read attempts; exact native counter semantics remain unqualified.
+- Retention :: The same synthetic scratch directory retains =resume-input.txt= and =resume-result.json=. The permitted fixture now contains the replacement text; the original tool result remains in the initial response and transcript. No credentials, production audit records or installed configuration were edited.
+- Limitation :: Reusing a session with explicitly supplied unchanged permissions works for these fixtures. This does not prove permission revocation, arbitrary path isolation, realistic audit quality or automatic changed-file detection in the production harness.
 
 * Operator validations
 

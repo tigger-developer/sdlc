@@ -94,6 +94,16 @@ The operator authorized a skeleton work item and a Claude safe-mode prototype.
 - Bounds :: One subscription-backed Sonnet invocation, two-minute external process timeout with a two-second kill escalation, and =--max-turns 4=; no retry, real project files or metered regression test. Runtime configuration remains isolated. Retain synthetic results in operating-system scratch space for paired inspection.
 - Scope :: A one-off capability experiment, not a production change or an implementation claim for a new acceptance criterion.
 
+** OT007.4 - Resumed original-file reads
+:PROPERTIES:
+:CUSTOM_ID: ot-007-4
+:END:
+
+- Purpose :: Extend [[#ot-007-3][OT007.3 - Native file-permission qualification]] to the same retained session after an original file changes.
+- Procedure :: Replace the permitted synthetic fixture text without changing its path or permission configuration. Resume the returned native session identity. Request the same three reads, without supplying the new fixture text in the prompt. Inspect only the newly appended tool calls and results.
+- Expected :: The resumed session returns the new permitted content, not the remembered original text. Both unlisted and symlink reads are attempted and receive native permission denials. The returned native session identity is unchanged.
+- Bounds :: One subscription-backed Sonnet call, two-minute external timeout with two-second kill escalation, =--max-turns 4=, no retry. Only synthetic scratch data; no production integration, credentials inspection or persistent metered test.
+
 * Edge Cases
 
 - *No authentication* :: Report it without extracting credentials or switching billing providers.

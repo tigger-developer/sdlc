@@ -29,7 +29,14 @@ contained actual error tool results, not merely a model assertion of restraint.
 This used safe mode, only Read, dontAsk, an empty read-denied working directory,
 and explicit runtime-state denies. It required no custom reader. The result is
 specific to the tested paths and Claude Code 2.1.236, not a universal filesystem
-sandbox claim. Qualify resumed reads before integrating the mechanism.
+sandbox claim.
+
+The subsequent resume kept the same native session identity, read changed
+fixture content from disk and again denied the unlisted file and symlink in
+6.087 seconds. The prompt supplied neither the replacement contents nor the
+paths again. New tool results establish fresh reads and permission checks;
+remembered model statements alone would not. Permission revocation and realistic
+audit scope still require separate qualification before production integration.
 
 ## Recovery instructions need recoverable state
 

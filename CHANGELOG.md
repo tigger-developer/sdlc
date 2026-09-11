@@ -8,7 +8,8 @@
   operational tools, structured YAML output and bounded start/resume invocations.
   Local response checks and the tiny live start/resume probe pass. A separate
   native Read-permission probe permits one original synthetic file and refuses
-  an unlisted sibling and a symlink to it; production file isolation remains
+  an unlisted sibling and a symlink to it. Same-session resume reads changed
+  fixture content and retains both denials; production file isolation remains
   unqualified. Claude's internal structured-output tool remains available.
 
 - Checkpoint native auditor session IDs and original-file evidence manifests
