@@ -11,6 +11,14 @@
 - Observation :: Provider exited 1 with =is_error: true= and =Not logged in; Please run /login=. No structured audit result was returned. Wrapper rejected the result.
 - Interpretation :: Authentication blocked the test before safe-mode isolation could be qualified. No credential extraction or fallback was attempted. Login in the scratch configuration is operator-owned; another live attempt requires the next paired instruction.
 
+** 2026-09-11 - Retry after operator login
+
+- Authorization :: Operator reported the scratch-profile login had been performed.
+- Tested revision :: =20bb510= - initial paired prototype.
+- Observation :: The retry again returned =is_error: true= and no structured result; the native diagnostic reported not logged in. Input and output token counts were both zero.
+- Isolation check :: =claude auth status= using the same scratch configuration returned =loggedIn: false= and =authMethod: none= both with and without =--safe-mode=. No model calls were made by these status checks.
+- Next diagnostic :: Compare authentication status from the operator terminal using that exact configuration directory. The cause of the unavailable login is not yet established; repeating a model call would add no useful evidence.
+
 * OT007.2 - Live retained-context probe
 
 - Category :: One-off test.
