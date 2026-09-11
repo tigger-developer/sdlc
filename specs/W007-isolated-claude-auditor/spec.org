@@ -1,0 +1,106 @@
+#+TITLE: W007 - Prototype an isolated Claude auditor
+#+STARTUP: overview
+#+OPTIONS: toc:2 num:nil
+
+* Prototype an isolated Claude auditor
+
+- Outcome :: Qualify an *independent auditor* with *bounded context* in paired iterations.
+- Before :: Existing audits can spend substantial effort loading unrelated instructions.
+- After :: An *opt-in prototype* invokes *Claude safe mode*, with no delivery tools.
+- Changes :: First slice tests startup, structured results, timeout and retained-session resume.
+- Unchanged :: Normal harnesses, personal configuration, installed SDLC and canonical audit records.
+- Edge cases :: Authentication failure, timeout, malformed output and session mismatch fail explicitly.
+- Decisions :: Start with *Sonnet* and *all model tools disabled*. Synthetic evidence is inline for this first probe only.
+- Next step :: Observe this slice together before selecting a restricted file-reading mechanism.
+
+-----
+
+* Context
+
+This is a *paired working specification*, not a signed-off production replacement.
+The operator authorized a skeleton work item and a Claude safe-mode prototype.
+
+- Architecture :: [[file:../../docs/ARCHITECTURE.md][SDLC gate architecture]].
+- Existing runner :: [[file:../../internal/harness/runner.go][Provider adapters]] remain unchanged.
+- Out of scope :: Removing personal instructions, changing installed skills, selecting a global audit provider, or auditing external projects.
+- Later slices :: Original-path evidence allowlist; changed-code and test scope; definition scope; canonical =audits.yaml= integration. These are tracked objectives, not claimed capabilities of the first slice.
+
+* Acceptance Criteria
+
+** AC007.1 - Explicitly isolated invocation
+:PROPERTIES:
+:CUSTOM_ID: ac-007-1
+:END:
+
+- Criterion :: The prototype starts *Claude safe mode* with an explicit audit prompt and *no model tools*, without changing ordinary user configuration.
+- Proven by :: [[#ot-007-1][OT007.1 - Live isolation probe]].
+
+** AC007.2 - Bounded, structured response
+:PROPERTIES:
+:CUSTOM_ID: ac-007-2
+:END:
+
+- Criterion :: A successful invocation returns a native session identity and a *validated structured response*. Timeout, provider error, empty or malformed output produces *no accepted verdict*.
+- Proven by :: [[#rt-007-1][RT007.1 - Local response validation]], [[#ot-007-1][OT007.1 - Live isolation probe]].
+
+** AC007.3 - Same-session continuation
+:PROPERTIES:
+:CUSTOM_ID: ac-007-3
+:END:
+
+- Criterion :: Explicit resume uses the *returned native identity* and rejects a different returned session. Runtime state remains in the caller-selected scratch configuration directory until the paired probe is reviewed.
+- Proven by :: [[#rt-007-1][RT007.1 - Local response validation]], [[#ot-007-2][OT007.2 - Live retained-context probe]].
+
+* Test Definitions
+
+** RT007.1 - Local response validation
+:PROPERTIES:
+:CUSTOM_ID: rt-007-1
+:END:
+
+- Covers :: [[#ac-007-2][AC007.2 - Structured response]], [[#ac-007-3][AC007.3 - Same-session continuation]].
+- Procedure :: Feed documented synthetic Claude result envelopes to the parser; reject provider errors, missing fields, invalid verdicts and mismatched sessions.
+- Boundary :: Local parser only; *no model invocation* in regression tests.
+
+** OT007.1 - Live isolation probe
+:PROPERTIES:
+:CUSTOM_ID: ot-007-1
+:END:
+
+- Covers :: [[#ac-007-1][AC007.1 - Isolated invocation]], [[#ac-007-2][AC007.2 - Structured response]].
+- Procedure :: One Sonnet invocation with a tiny synthetic requirement and deliberately defective implementation. Supply synthetic CLAUDE.md instruction markers in the scratch configuration and working directory. Inspect native output and transcript for tool availability and marker contamination.
+- Expected :: The defect is identified, structured output is valid, and the synthetic instruction markers are absent from the response. Absence alone is not proof of every instruction-loading path.
+- Bounds :: One call, at most two minutes; no retries, real project data, external writes requested of the model or metered regression target. Subscription usage is not assumed free or sufficient.
+- Record :: [[file:validation.org][Paired validation record]].
+
+** OT007.2 - Live retained-context probe
+:PROPERTIES:
+:CUSTOM_ID: ot-007-2
+:END:
+
+- Covers :: [[#ac-007-3][AC007.3 - Same-session continuation]].
+- Procedure :: One resume of the returned identity with corrected synthetic implementation, without repeating the original requirement.
+- Expected :: Same session, correction evaluated against retained requirement.
+- Bounds :: One call, at most two minutes; no automatic retry. Follow only after the startup probe yields a native identity.
+
+* Edge Cases
+
+- *No authentication* :: Report it without extracting credentials or switching billing providers.
+- *No session after timeout* :: Report the incident; do not invent a resumable identity.
+- *Invalid output* :: Reject it, preserving diagnostic evidence for paired review.
+
+* Solution Design
+
+- Location :: Standalone =prototype/claude-audit/=; not installed or used by the production runner.
+- Contract :: Prompt and response schema are reviewable files, not embedded prose. The wrapper accepts a scratch configuration directory and optional native resume ID. One invocation per command; stdout is YAML and stderr is diagnostic output.
+- Security :: The model receives *no shell, file, network or delegation tools*. Safe mode intentionally suppresses ordinary hooks, so this slice does not rely on them for enforcement. Managed policies remain authoritative. No permission bypass flags.
+- Runtime :: Claude owns authentication; logs and retained sessions are redirected to scratch. No credentials are printed or copied. Structured JSON transport is parsed and serialized to YAML by the wrapper.
+- Limits :: This is *not yet a file-access sandbox* or a canonical gate. Its stdout is experimental evidence, not an update to =audits.yaml=.
+
+* Paired Decision Log
+
+** 2026-09-11 - Start with invocation isolation
+
+Qualify safe mode before removing any ordinary harness configuration. Keep the
+prototype separate from production so an unsuccessful experiment cannot change
+delivery gates. Add requirements here as subsequent iterations are authorized.

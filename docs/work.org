@@ -78,6 +78,16 @@ classification; it is provenance, not current state.
 
 * Work items
 
+** ACTIVE W007 - Prototype an isolated Claude auditor :maintenance:
+:PROPERTIES:
+:CUSTOM_ID: w-007
+:PRIORITY: P1
+:SOURCE: operator paired development
+:CREATED: 2026-09-11
+:END:
+
+- *Specification:* [[file:../specs/W007-isolated-claude-auditor/spec.org][W007 - Isolated Claude auditor]]
+
 ** ACTIVE W006 - Resume interrupted audits without restarting review :maintenance:
 :PROPERTIES:
 :CUSTOM_ID: w-006

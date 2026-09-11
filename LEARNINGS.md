@@ -1,5 +1,18 @@
 # SDLC Standards: Design Learnings
 
+## Qualify audit isolation independently of normal harness configuration
+
+W007 begins with an opt-in, tool-free Claude safe-mode experiment. Instruction
+suppression, file-access enforcement and retained-session behaviour are separate
+claims; none follows merely from changing the provider or removing skills.
+Keep normal personal configuration intact while qualifying an isolated invocation.
+
+The first live probe with Claude Code 2.1.236 stopped at authentication after
+redirecting runtime state to a scratch configuration directory. It returned no
+audit result. Safe mode retaining authentication in an existing configuration
+does not establish that a separate configuration can reuse that authentication.
+Do not extract credentials or silently change billing routes to make a probe run.
+
 ## Recovery instructions need recoverable state
 
 Telling an agent to resume after timeout is insufficient when native identity

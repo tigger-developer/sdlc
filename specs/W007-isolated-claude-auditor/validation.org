@@ -1,0 +1,32 @@
+#+TITLE: W007 - Isolated auditor validation
+#+STARTUP: content
+
+* OT007.1 - Live isolation probe
+
+- Category :: One-off test.
+- Covers :: AC007.1 - Isolated invocation; AC007.2 - Structured response.
+- Status :: PENDING.
+- Bounds and expected result :: [[file:spec.org::#ot-007-1][Live isolation probe definition]].
+- Attempt :: 2026-09-11, Claude Code 2.1.236, macOS; first prototype working tree.
+- Observation :: Provider exited 1 with =is_error: true= and =Not logged in; Please run /login=. No structured audit result was returned. Wrapper rejected the result.
+- Interpretation :: Authentication blocked the test before safe-mode isolation could be qualified. No credential extraction or fallback was attempted. Login in the scratch configuration is operator-owned; another live attempt requires the next paired instruction.
+
+* OT007.2 - Live retained-context probe
+
+- Category :: One-off test.
+- Covers :: AC007.3 - Same-session continuation.
+- Status :: PENDING.
+- Bounds and expected result :: [[file:spec.org::#ot-007-2][Live retained-context probe definition]].
+- Observation :: Not invoked because the startup probe did not produce a successful audit session.
+
+* RT007.1 - Local response validation
+
+- Category :: Automated regression test; no external service.
+- Result :: PASS with =go test -race ./prototype/claude-audit=.
+- RED :: Before implementation, compilation failed because =parseResult= did not exist.
+- GREEN :: Start/resume identities, provider errors, missing structured results, invalid verdicts and empty findings are checked locally.
+- Additional checks :: =go vet= and =golangci-lint= passed for the prototype package. These checks do not qualify Claude's live isolation.
+
+* Operator validations
+
+No operational validation or closure has yet been given.

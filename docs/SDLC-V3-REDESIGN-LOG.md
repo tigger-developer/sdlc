@@ -624,3 +624,16 @@ without reconstructing the work from conversation history.
 - The repair may change only `docs/ACs.org`. Initialization resumes only after
   the same importer accepts the result; failure preserves the source and stops
   before consolidation. Canonical ledgers do not incur an agent call.
+
+## 2026-09-11 - Paired Claude audit-isolation prototype
+
+- W007 tracks the operator-authorized safe-mode experiment. Normal personal
+  configuration and deployed audit routes remain unchanged.
+- First slice: Sonnet, tool-free invocation, explicit YAML prompt, structured
+  response, bounded runtime and explicit native-session resume. Original-file
+  allowlisting and canonical audit-record integration remain later paired work.
+- Local parser tests, race checks, vet and lint passed. The first live attempt
+  stopped at missing authentication in the isolated scratch configuration;
+  neither instruction isolation nor retained-context behaviour is yet qualified.
+- A dedicated audit platform remains optional. No global provider selection or
+  removal of private instructions was authorized by this experiment.
