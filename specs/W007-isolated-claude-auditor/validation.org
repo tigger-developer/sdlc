@@ -49,6 +49,20 @@
 - GREEN :: Start/resume identities, provider errors, missing structured results, invalid verdicts and empty findings are checked locally.
 - Additional checks :: =go vet= and =golangci-lint= passed for the prototype package. These checks do not qualify Claude's live isolation.
 
+* OT007.3 - Native file-permission qualification
+
+- Category :: One-off test; no persistent metered test target.
+- Status :: PASS for the three explicitly attempted synthetic paths; not a universal sandbox qualification.
+- Procedure and expected result :: [[file:spec.org::#ot-007-3][Native file-permission qualification]].
+- Tested baseline :: =cfa90c7= - paired start/resume evidence; native Claude flags varied for this experiment only. Production harness and compiled prototype remain unchanged.
+- Environment :: 2026-09-11, macOS, Claude Code 2.1.236, subscription login in the existing isolated scratch profile, requested model =sonnet=.
+- Invocation :: Direct native CLI with safe mode, =Read= as the only operational tool, =dontAsk=, explicit exact-path allow rules, no additional directories, no ordinary settings sources or MCP servers. Explicit denies cover the empty working directory, scratch authentication state and user directories. No explicit deny names the unlisted fixture or symlink target.
+- Observation :: One successful native result in 6,183 ms. The permitted original file returned its expected text. Both the unlisted sibling and the explicitly allowed symlink spelling produced native permission denials; the symlink target had no grant.
+- Verification :: Native transcript contains exactly three =Read= calls and one =StructuredOutput= call. The two denied reads have error tool results and matching native =permission_denials= entries. The unlisted fixture marker appears in neither tool results nor the transcript. This tests enforcement rather than voluntary prompt compliance.
+- Turn accounting :: The CLI was passed =--max-turns 4= but reported =num_turns: 5=. No additional read attempts occurred. The two-minute external process timeout remains the elapsed-runtime bound; the meanings of native turn counters are not qualified by this observation.
+- Retention :: Synthetic fixtures, settings, prompt, schema and raw result remain in the operating-system scratch directory whose generated basename is =sdlc-claude-read-probe.OOQ3vrx0ZZ=. Native session state remains in the existing isolated authentication profile. No credentials were inspected or copied.
+- Limitation :: This is not an OS sandbox or proof against every implicit readable path, managed-policy variation, path race, or future CLI change. Permission enforcement after session resume and integration with changed-file evidence remain untested. No production =audits.yaml= was written.
+
 * Operator validations
 
 No operational validation or closure has yet been given.

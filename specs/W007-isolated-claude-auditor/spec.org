@@ -11,7 +11,7 @@
 - Unchanged :: Normal harnesses, personal configuration, installed SDLC and canonical audit records.
 - Edge cases :: Authentication failure, timeout, malformed output and session mismatch fail explicitly.
 - Decisions :: Start with *Sonnet* and *all operational tools disabled*. Claude's structured-response tool remains permitted. Synthetic evidence is inline for this first probe only.
-- Next step :: Observe this slice together before selecting a restricted file-reading mechanism.
+- Next step :: Review the bounded native Read-permission result before integrating original-file evidence into the prototype.
 
 -----
 
@@ -83,6 +83,17 @@ The operator authorized a skeleton work item and a Claude safe-mode prototype.
 - Expected :: Same session, correction evaluated against retained requirement.
 - Bounds :: One call, at most two minutes; no automatic retry. Follow only after the startup probe yields a native identity.
 
+** OT007.3 - Native file-permission qualification
+:PROPERTIES:
+:CUSTOM_ID: ot-007-3
+:END:
+
+- Purpose :: Qualify the proposed original-path evidence boundary before adding file access to the prototype.
+- Procedure :: In a separate synthetic scratch workspace, expose only Claude's =Read= and structured-response tools. Permit one exact original file and one symlink spelling; the symlink points to an unlisted sibling. Request all three reads explicitly. Deny the scratch working directory and authentication directory. Inspect native tool results, not merely the final model report.
+- Expected :: The permitted file is readable; the unlisted sibling and symlink target are refused by deterministic permissions. A successful unlisted read rejects this configuration as an evidence allowlist.
+- Bounds :: One subscription-backed Sonnet invocation, two-minute external process timeout with a two-second kill escalation, and =--max-turns 4=; no retry, real project files or metered regression test. Runtime configuration remains isolated. Retain synthetic results in operating-system scratch space for paired inspection.
+- Scope :: A one-off capability experiment, not a production change or an implementation claim for a new acceptance criterion.
+
 * Edge Cases
 
 - *No authentication* :: Report it without extracting credentials or switching billing providers.
@@ -104,3 +115,12 @@ The operator authorized a skeleton work item and a Claude safe-mode prototype.
 Qualify safe mode before removing any ordinary harness configuration. Keep the
 prototype separate from production so an unsuccessful experiment cannot change
 delivery gates. Add requirements here as subsequent iterations are authorized.
+
+** 2026-09-11 - Qualify native reads before adding a custom reader
+
+The next paired slice tests Claude's native =Read= permissions using original
+synthetic paths, =dontAsk=, explicit file grants and an empty, read-denied working
+directory. It does not add file reading to the compiled prototype or production
+harness. Safe mode remains enabled and no other operational tools are exposed.
+The newer =blockReadsOutsideWorkingDirectories= option is not used: its documented
+minimum is later than the tested Claude Code 2.1.236.

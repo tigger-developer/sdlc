@@ -6,8 +6,10 @@
 
 - Begin W007, a paired, undeployed Claude safe-mode auditor prototype with no
   operational tools, structured YAML output and bounded start/resume invocations.
-  Local response checks and the tiny live start/resume probe pass; original-file
-  isolation remains unqualified. Claude's internal structured-output tool remains available.
+  Local response checks and the tiny live start/resume probe pass. A separate
+  native Read-permission probe permits one original synthetic file and refuses
+  an unlisted sibling and a symlink to it; production file isolation remains
+  unqualified. Claude's internal structured-output tool remains available.
 
 - Checkpoint native auditor session IDs and original-file evidence manifests
   before a verdict, retaining them through timeouts without inventing PASS or FAIL.

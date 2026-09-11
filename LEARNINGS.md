@@ -22,6 +22,15 @@ Only the internal structured-output tool was observed. These results qualify
 the small invocation/resume experiment, not original-file isolation or the
 duration and scope discipline of a realistic audit.
 
+A subsequent native permission probe returned in 6.183 seconds: an exact-path
+grant allowed the original synthetic file, while an unlisted sibling and a
+symlink with an allowed name but an unlisted target were denied. The transcript
+contained actual error tool results, not merely a model assertion of restraint.
+This used safe mode, only Read, dontAsk, an empty read-denied working directory,
+and explicit runtime-state denies. It required no custom reader. The result is
+specific to the tested paths and Claude Code 2.1.236, not a universal filesystem
+sandbox claim. Qualify resumed reads before integrating the mechanism.
+
 ## Recovery instructions need recoverable state
 
 Telling an agent to resume after timeout is insufficient when native identity
