@@ -11,6 +11,8 @@
   an unlisted sibling and a symlink to it. Same-session resume reads changed
   fixture content and retains both denials; production file isolation remains
   unqualified. Claude's internal structured-output tool remains available.
+  A first real change-scoped qualification timed out at five minutes without
+  findings; all observed reads stayed in scope and original inputs were unchanged.
 
 - Checkpoint native auditor session IDs and original-file evidence manifests
   before a verdict, retaining them through timeouts without inventing PASS or FAIL.

@@ -77,6 +77,18 @@
 - Retention :: The same synthetic scratch directory retains =resume-input.txt= and =resume-result.json=. The permitted fixture now contains the replacement text; the original tool result remains in the initial response and transcript. No credentials, production audit records or installed configuration were edited.
 - Limitation :: Reusing a session with explicitly supplied unchanged permissions works for these fixtures. This does not prove permission revocation, arbitrary path isolation, realistic audit quality or automatic changed-file detection in the production harness.
 
+* OT007.5 - Change-scoped real harness review
+
+- Category :: One-off qualification test, not the W006 implementation gate.
+- Status :: PENDING.
+- Procedure and expected result :: [[file:spec.org::#ot-007-5][Change-scoped real harness review]].
+- Tested revision :: =38e5e95= - retained-read checkpoint. Git comparison confirms the W006 implementation inputs are unchanged from =e9a1bd7=.
+- Environment :: 2026-09-11, macOS, Claude Code 2.1.236, requested model =sonnet=, isolated subscription profile, safe mode, Read only, exact-path permissions and =dontAsk=.
+- Observation :: The five-minute external timeout ended the single invocation with exit 124. The raw final-response file is empty and the native transcript contains no structured-response tool call. This is an interrupted qualification, not a PASS or FAIL verdict on the harness code.
+- Boundary evidence :: The transcript records 13 reads, all within the explicit allowlist, with no permission errors or other tool calls. Reads continued during the invocation, including the selected standards and changed prompt/session-output code. Every one of the 22 original evidence-file hashes remained unchanged after termination. The timeout and Claude process IDs were absent on the post-run process check.
+- Unqualified :: No findings were returned, so finding quality and useful review completion remain unassessed. Restricted access alone did not produce a result within five minutes; this observation does not isolate the cause of the runtime.
+- Retention :: The native session and synthetic runtime profile remain available. The scratch directory with generated basename =sdlc-claude-harness-review.yC8YmqHC7c= retains the prompt, schema, allowlist, change diff, input hashes and timeout observation. No automatic second call, remediation or canonical audit-record write occurred.
+
 * Operator validations
 
 No operational validation or closure has yet been given.

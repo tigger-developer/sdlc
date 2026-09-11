@@ -38,6 +38,15 @@ paths again. New tool results establish fresh reads and permission checks;
 remembered model statements alone would not. Permission revocation and realistic
 audit scope still require separate qualification before production integration.
 
+The first real-code qualification reviewed the retained-timeout recovery delta
+with original-path grants and no operational tool except Read. Its five-minute
+external timeout terminated it without a structured result. All 13 observed
+reads stayed in the allowlist, with no permission failures; all 22 supplied
+original files retained their hashes. Isolation and a small synthetic response
+do not establish practical audit latency. Retain the native session and report
+the missing result rather than declaring failure of the reviewed code or
+assuming the response was buffered. Finding quality remains unassessed.
+
 ## Recovery instructions need recoverable state
 
 Telling an agent to resume after timeout is insufficient when native identity
