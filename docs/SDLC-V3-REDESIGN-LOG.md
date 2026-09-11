@@ -637,3 +637,9 @@ without reconstructing the work from conversation history.
   neither instruction isolation nor retained-context behaviour is yet qualified.
 - A dedicated audit platform remains optional. No global provider selection or
   removal of private instructions was authorized by this experiment.
+- Follow-up: the login discrepancy came from a newline embedded in the pasted
+  scratch path. With login on the intended path, the synthetic start/resume
+  sequence behaved as expected in approximately three seconds per invocation.
+  Both instruction markers were absent from the native transcript; only Claude's
+  internal structured-output tool was observed. Original-file allowlisting is
+  still the next unqualified boundary, not a completed capability.

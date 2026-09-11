@@ -5,7 +5,7 @@
 
 - Category :: One-off test.
 - Covers :: AC007.1 - Isolated invocation; AC007.2 - Structured response.
-- Status :: PENDING.
+- Status :: PASS for the bounded synthetic probe; not a general file-isolation claim.
 - Bounds and expected result :: [[file:spec.org::#ot-007-1][Live isolation probe definition]].
 - Attempt :: 2026-09-11, Claude Code 2.1.236, macOS; first prototype working tree.
 - Observation :: Provider exited 1 with =is_error: true= and =Not logged in; Please run /login=. No structured audit result was returned. Wrapper rejected the result.
@@ -19,13 +19,27 @@
 - Isolation check :: =claude auth status= using the same scratch configuration returned =loggedIn: false= and =authMethod: none= both with and without =--safe-mode=. No model calls were made by these status checks.
 - Next diagnostic :: Compare authentication status from the operator terminal using that exact configuration directory. The cause of the unavailable login is not yet established; repeating a model call would add no useful evidence.
 
+** 2026-09-11 - Authentication discrepancy resolved and probe executed
+
+- Cause established :: The operator's pasted configuration path contained a literal newline and spaces. Auth status reported logged in for that different path, but not for the prototype path. After login to the intended path, auth status reported =loggedIn: true= and =authMethod: claude.ai=.
+- Tested revision :: =9934c9a= - authentication retry checkpoint; prototype code unchanged from =20bb510=.
+- Environment :: Claude Code 2.1.236 on macOS, =--safe-mode=, =--tools ""=, isolated scratch configuration, requested model =sonnet=.
+- Observation :: In 2,970 ms of native reported duration, the synthetic defective implementation received the expected rejection. The wrapper accepted the structured response and native identity. This is fixture evidence, not an audit verdict on W007.
+- Instruction probe :: Neither synthetic user nor project instruction marker appeared in the native transcript or final response. This is bounded contamination evidence, not proof that every implicit context source is suppressed.
+- Tools observed :: Only the internal =StructuredOutput= tool appeared in the transcript. No shell, file, network or delegation tool calls appeared. The phrase tool-free means no operational tools; structured response delivery remains enabled.
+- Model observation :: Native usage reports =claude-sonnet-5= for review and an additional small =claude-haiku-4-5-20251001= usage entry on the initial invocation. This was not exclusively Sonnet execution. Cost estimates in the native envelope are not evidence of an additional subscription charge.
+- Evidence retention :: Raw JSON responses and the native transcript remain in the probe's scratch directory for paired inspection. No production audit record was written.
+
 * OT007.2 - Live retained-context probe
 
 - Category :: One-off test.
 - Covers :: AC007.3 - Same-session continuation.
-- Status :: PENDING.
+- Status :: PASS for the bounded synthetic start/resume sequence.
 - Bounds and expected result :: [[file:spec.org::#ot-007-2][Live retained-context probe definition]].
-- Observation :: Not invoked because the startup probe did not produce a successful audit session.
+- Earlier observation :: Initially not invoked because the startup probe did not produce a successful audit session.
+- Execution :: 2026-09-11, same environment and tested revision as the successful startup probe. One resume invocation supplied only the corrected implementation and the original test reference, not the requirement.
+- Observation :: Native response in 2,524 ms accepted the corrected fixture with no findings. The wrapper verified that the returned session identity exactly matched the initial native identity. Native Sonnet usage reported 1,239 cache-read input tokens.
+- Limitation :: This proves retained context for this tiny example, not performance or recall on a large project. Timeout/process termination and original-file access were not exercised live.
 
 * RT007.1 - Local response validation
 

@@ -10,7 +10,7 @@
 - Changes :: First slice tests startup, structured results, timeout and retained-session resume.
 - Unchanged :: Normal harnesses, personal configuration, installed SDLC and canonical audit records.
 - Edge cases :: Authentication failure, timeout, malformed output and session mismatch fail explicitly.
-- Decisions :: Start with *Sonnet* and *all model tools disabled*. Synthetic evidence is inline for this first probe only.
+- Decisions :: Start with *Sonnet* and *all operational tools disabled*. Claude's structured-response tool remains permitted. Synthetic evidence is inline for this first probe only.
 - Next step :: Observe this slice together before selecting a restricted file-reading mechanism.
 
 -----
@@ -32,7 +32,7 @@ The operator authorized a skeleton work item and a Claude safe-mode prototype.
 :CUSTOM_ID: ac-007-1
 :END:
 
-- Criterion :: The prototype starts *Claude safe mode* with an explicit audit prompt and *no model tools*, without changing ordinary user configuration.
+- Criterion :: The prototype starts *Claude safe mode* with an explicit audit prompt and *no operational tools*, without changing ordinary user configuration. Claude's internal structured-response tool is permitted solely to return the result.
 - Proven by :: [[#ot-007-1][OT007.1 - Live isolation probe]].
 
 ** AC007.2 - Bounded, structured response

@@ -13,6 +13,15 @@ audit result. Safe mode retaining authentication in an existing configuration
 does not establish that a separate configuration can reuse that authentication.
 Do not extract credentials or silently change billing routes to make a probe run.
 
+A later login discrepancy was traced to a literal newline inside the quoted
+configuration path, creating a different profile identity. After login to the
+intended path, the synthetic audit caught its deliberate defect in 2.970 seconds;
+the same-session correction passed in 2.524 seconds without repeating the
+requirement. Neither synthetic instruction marker appeared in the transcript.
+Only the internal structured-output tool was observed. These results qualify
+the small invocation/resume experiment, not original-file isolation or the
+duration and scope discipline of a realistic audit.
+
 ## Recovery instructions need recoverable state
 
 Telling an agent to resume after timeout is insufficient when native identity
