@@ -78,6 +78,38 @@ classification; it is provenance, not current state.
 
 * Work items
 
+** REVIEW W014 - Recover replaced installer artefacts through Trash :maintenance:
+:PROPERTIES:
+:CUSTOM_ID: w-014
+:SOURCE: operator BYPASS-GATE-7
+:CREATED: 2026-09-13
+:END:
+
+- Authority :: Operator requests Trash for replaced managed artefacts, adjacent
+  backups only for configuration, and no separate spec sheet for this emergency.
+- Scope :: SDLC installer and companion personal-agent deployer. No deployment,
+  existing-backup cleanup or change to initializer migration archives.
+- AC014.1 :: Replaced owned files, directories and links remain *recoverable in
+  Trash*, without new adjacent backups. Symlink targets and unrelated entries
+  remain untouched. Proven by RT014.1, managed-replacement and full installer tests.
+- AC014.2 :: A missing or failed *trash* command, or a successful command that
+  leaves its input present, *stops replacement*. Proven by RT014.2 in both installers.
+- AC014.3 :: Merged *configuration retains an exact adjacent backup* before its
+  update; existing recovery paths remain available. Proven by RT014.3 and the
+  companion deployer's configuration-backup assertions.
+- Design :: Reuse existing ownership/planning boundaries. One bounded, literal
+  =trash ABSOLUTE_PATH= invocation handles each displaced managed path; inspect
+  absence before replacement. Keep the configuration backup/restore path separate.
+  Read source bytes before trashing the installed file. No new configuration knob.
+- Security :: No elevated permissions or shell evaluation. Trash is a required
+  trusted local executable; regression tests substitute a disposable recovery tree.
+  Failure stops the batch but does not roll back prior successfully applied items.
+- Test boundary :: RTs invoke actual installer logic/CLI against temporary trees;
+  check new bytes, recoverable old bytes, failures, links and idempotence. No metered
+  service or real host Trash is used. Native installation remains operator validation.
+- Evidence :: [[file:../specs/W014-installer-trash/validation.org][W014 - Validation]];
+  [[file:../specs/W014-installer-trash/audits.yaml][W014 - Harness-owned audit record]].
+
 ** REVIEW W013 - Route initializer writing agents by task :defect:
 :PROPERTIES:
 :CUSTOM_ID: w-013

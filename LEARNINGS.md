@@ -1,5 +1,14 @@
 # SDLC Standards: Design Learnings
 
+## Separate deployment recovery from configuration history
+
+Adjacent backups of every deployed instruction accumulate stale context that
+agents may rediscover. Repository-managed copies can instead be recovered from
+Trash. Merged configuration still needs an adjacent pre-change copy because it
+contains user-owned values. Initialization archives serve a different purpose:
+they preserve project history and remain intact. Test the replacement boundary
+with disposable recovery trees rather than filling the operator's real Trash.
+
 ## Resolve structure before delegating implementation
 
 Review shared standards as a framework, not isolated documents. Existing coding,

@@ -1,0 +1,19 @@
+#+TITLE: W014 - Installer Trash validation
+#+STARTUP: overview
+
+* 2026-09-13 - Local regression evidence
+
+- RED :: SDLC replacement test observed an adjacent backup; missing, failing
+  and no-move trash tests observed replacement proceeding. Companion deployer
+  drift test likewise found an adjacent backup instead of recovered Trash bytes.
+- GREEN :: Installer package and companion deployer regression suite passed
+  after switching managed replacement to Trash and preserving config backups.
+- Boundaries :: All trash invocations use a local command double moving exact
+  fixture paths into a disposable recovery tree. No host Trash or deployment used.
+- Existing evidence :: Installer integration covers retired commands, symlink
+  recovery, provider configuration preservation and unchanged reruns.
+
+* Operator validation
+
+- Pending :: Run installation on the operator's host and confirm Trash recovery
+  and adjacent configuration backups. No live installation was run by this agent.

@@ -13,6 +13,7 @@ output, and resumable-session contracts.
 
 - Go 1.23 or later to build the installer and helper commands.
 - Git for recoverability, migration branches, and delivery checkpoints.
+- The `trash` CLI on PATH for recoverable replacement of installed artefacts.
 - At least one supported coding-agent harness: Codex, Claude Code, GitHub
   Copilot CLI, or Hermes.
 - GitHub CLI only when migrating an SDLC v1 project's GitHub tickets.
@@ -51,6 +52,14 @@ is not installed on the global path. The installation:
 It lists only missing or differing artefacts. An unchanged rerun writes nothing
 and asks no question. Set `VERBOSE=1` to include matching artefacts. Interactive
 confirmation accepts `y` or `yes`.
+
+Replaced managed files, links and retired SDLC artefacts go to **Trash**, not
+adjacent `.bak` files. Merged **configuration files**, including provider settings
+and global SDLC defaults, retain `<path>.<epoch>.bak` before modification.
+Applying changes requires `trash`; a failed operation stops replacement.
+Already trashed items remain recoverable through Trash. Existing backups are
+not cleaned up. `sdlc-init` preserves its Git and document migration archives;
+those are historical evidence, not disposable deployment copies.
 
 `make sync` refreshes HTML-Preview from its upstream default branch and runs its
 own `make install` to update the installed command. It then stages and commits

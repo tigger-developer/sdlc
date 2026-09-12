@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## v3.2.26 - 2026-09-13
+
+- Require `trash` for installation and move replaced or retired managed
+  artefacts there instead of creating adjacent `.bak` files. Preserve adjacent
+  backups for merged configuration, existing backup files, and initializer
+  migration archives. Fail replacement when trashing fails or leaves the path.
+- Verify replacement, recovery, symlinks, configuration backups and repeat-run
+  behaviour using disposable local fixtures, without invoking the host's Trash.
+
 ## v3.2.25 - 2026-09-12
 
 - Scale architecture scrutiny to risk and reversibility; preserve rationale for

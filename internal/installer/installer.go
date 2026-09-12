@@ -927,24 +927,24 @@ func printInstallationPlan(output io.Writer, plan installationPlan, apply bool) 
 		}
 		verb := "would install missing file"
 		if sync.backupExisting {
-			verb = "would back up and replace differing file"
+			verb = "would trash and replace differing file"
 		} else if sync.destinationExists {
-			verb = "would back up and replace differing file"
+			verb = "would trash and replace differing file"
 		}
 		if apply {
 			verb = "will install missing file"
 			if sync.backupExisting {
-				verb = "will back up and replace differing file"
+				verb = "will trash and replace differing file"
 			} else if sync.destinationExists {
-				verb = "will back up and replace differing file"
+				verb = "will trash and replace differing file"
 			}
 		}
 		fmt.Fprintf(output, "Installation: %s %s <- %s\n", verb, sync.destination, sync.source)
 	}
 	for _, retirement := range plan.retirements {
-		verb := "would back up and retire legacy SDLC artefact"
+		verb := "would trash legacy SDLC artefact"
 		if apply {
-			verb = "will back up and retire legacy SDLC artefact"
+			verb = "will trash legacy SDLC artefact"
 		}
 		fmt.Fprintf(output, "Installation: %s %s\n", verb, retirement.path)
 	}
@@ -957,12 +957,12 @@ func printInstallationPlan(output io.Writer, plan installationPlan, apply bool) 
 		}
 		verb := "would install command link"
 		if link.destinationExists {
-			verb = "would back up and replace command link"
+			verb = "would trash and replace command link"
 		}
 		if apply {
 			verb = "will install command link"
 			if link.destinationExists {
-				verb = "will back up and replace command link"
+				verb = "will trash and replace command link"
 			}
 		}
 		fmt.Fprintf(output, "Installation: %s %s -> %s\n", verb, link.destination, link.target)
@@ -977,6 +977,11 @@ func printInstallationPlan(output io.Writer, plan installationPlan, apply bool) 
 }
 
 func applyInstallation(plan installationPlan, output io.Writer) error {
+	if installationHasChanges(plan) {
+		if _, err := exec.LookPath("trash"); err != nil {
+			return fmt.Errorf("installation requires the trash CLI on PATH: %w", err)
+		}
+	}
 	epoch := time.Now().Unix()
 	for _, sync := range plan.syncs {
 		if !sync.needsSync {
@@ -987,7 +992,7 @@ func applyInstallation(plan installationPlan, output io.Writer) error {
 		}
 	}
 	for _, retirement := range plan.retirements {
-		if _, err := backupArtifact(output, retirement.path, epoch); err != nil {
+		if err := trashArtifact(output, retirement.path); err != nil {
 			return err
 		}
 		fmt.Fprintf(output, "Installation retired: %s\n", retirement.path)
@@ -1188,16 +1193,6 @@ func destinationParentObstructed(destination, destinationRoot string) (bool, err
 }
 
 func synchronizeFile(sync managedSync, epoch int64, output io.Writer) error {
-	if err := ensureRegularDirectory(filepath.Dir(sync.destination), epoch, output); err != nil {
-		return err
-	}
-	if _, err := os.Lstat(sync.destination); err == nil {
-		if _, err := backupArtifact(output, sync.destination, epoch); err != nil {
-			return err
-		}
-	} else if !errors.Is(err, os.ErrNotExist) {
-		return fmt.Errorf("inspecting live file %q: %w", sync.destination, err)
-	}
 	contents, err := os.ReadFile(sync.source)
 	if err != nil {
 		return fmt.Errorf("reading install source %q: %w", sync.source, err)
@@ -1205,6 +1200,16 @@ func synchronizeFile(sync managedSync, epoch int64, output io.Writer) error {
 	info, err := os.Stat(sync.source)
 	if err != nil {
 		return fmt.Errorf("inspecting install source %q: %w", sync.source, err)
+	}
+	if err := ensureRegularDirectory(filepath.Dir(sync.destination), epoch, output); err != nil {
+		return err
+	}
+	if _, err := os.Lstat(sync.destination); err == nil {
+		if err := trashArtifact(output, sync.destination); err != nil {
+			return err
+		}
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return fmt.Errorf("inspecting live file %q: %w", sync.destination, err)
 	}
 	if err := writeFileAtomic(sync.destination, contents, info.Mode().Perm()); err != nil {
 		return err
@@ -1218,7 +1223,7 @@ func synchronizeLink(link managedLink, epoch int64, output io.Writer) error {
 		return err
 	}
 	if _, err := os.Lstat(link.destination); err == nil {
-		if _, err := backupArtifact(output, link.destination, epoch); err != nil {
+		if err := trashArtifact(output, link.destination); err != nil {
 			return err
 		}
 	} else if !errors.Is(err, os.ErrNotExist) {
@@ -1248,7 +1253,7 @@ func ensureRegularDirectory(directory string, epoch int64, output io.Writer) err
 	if err != nil {
 		return fmt.Errorf("inspecting installation directory %q: %w", directory, err)
 	}
-	if _, err := backupArtifact(output, directory, epoch); err != nil {
+	if err := trashArtifact(output, directory); err != nil {
 		return err
 	}
 	return os.Mkdir(directory, 0o700)

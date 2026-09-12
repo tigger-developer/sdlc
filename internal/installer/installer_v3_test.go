@@ -85,11 +85,7 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 			t.Fatalf("%s -> %s, want %s", link, target, deployed)
 		}
 	}
-	checkoutLinkBackups, err := filepath.Glob(checkoutLink + ".*.bak")
-	if err != nil || len(checkoutLinkBackups) != 1 {
-		t.Fatalf("source-checkout link backups = %v, %v", checkoutLinkBackups, err)
-	}
-	oldTarget, err := os.Readlink(checkoutLinkBackups[0])
+	oldTarget, err := os.Readlink(assertTrashed(t, checkoutLink))
 	if err != nil {
 		t.Fatalf("reading source-checkout link backup: %v", err)
 	}
@@ -101,18 +97,13 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 		if _, err := os.Lstat(path); !os.IsNotExist(err) {
 			t.Fatalf("retired command remains active at %s: %v", path, err)
 		}
-		backups, err := filepath.Glob(path + ".*.bak")
-		if err != nil || len(backups) != 1 {
-			t.Fatalf("retired command backups for %s = %v, %v", path, backups, err)
-		}
+		assertTrashed(t, path)
 	}
 	previewPath := filepath.Join(root, ".agents", "sdlc", "bin", "sdlc-preview")
 	if _, err := os.Lstat(previewPath); !os.IsNotExist(err) {
 		t.Fatalf("retired deployed previewer remains: %v", err)
 	}
-	if backups, err := filepath.Glob(previewPath + ".*.bak"); err != nil || len(backups) != 1 {
-		t.Fatalf("retired previewer backups = %v, %v", backups, err)
-	}
+	assertTrashed(t, previewPath)
 	if _, err := os.Lstat(filepath.Join(root, ".agents", "skills", "audit-tests")); !os.IsNotExist(err) {
 		t.Fatalf("retired global audit-tests skill remains: %v", err)
 	}
@@ -307,6 +298,7 @@ func installHarnessExecutables(t *testing.T, root string, names ...string) {
 		}
 	}
 	t.Setenv("PATH", bin)
+	installTrashDouble(t, bin, root)
 }
 
 func writeGuardFixture(t *testing.T, path string) {
