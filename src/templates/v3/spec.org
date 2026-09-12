@@ -1,5 +1,5 @@
 #+TITLE: WNNN - [Concise change-specific title]
-#+SCHEMA: 1
+#+SCHEMA: 2
 #+SUBTITLE: Unified change specification
 #+STARTUP: overview
 #+OPTIONS: toc:2 num:nil
@@ -59,6 +59,11 @@ material detail without imposing a word limit or creating a second summary file.
 The work item's TODO keyword in =docs/work.org= is its sole lifecycle state.
 Only the harness creates or updates =audits.yaml=; read the current gate there.
 Do not copy audit findings, verdicts or session state into this specification.
+Follow annotation review in =ISSUES.md=: preserve resolved feedback and its
+disposition in =feedback.yaml= before removing its annotation. Unresolved feedback
+stays visible; no annotation records or blocks, even resolved or empty ones, may
+remain at definition audit or sign-off. Use the annotation tool's documented
+semantics, not guessed syntax. Ordinary authoring comments are not annotations.
 Only explicit operator sign-off may replace =OPERATOR_SIGNOFF= with the authority,
 date and approval scope. Design approval does not override an implementation hold.
 A material specification change requires renewed operator approval and current

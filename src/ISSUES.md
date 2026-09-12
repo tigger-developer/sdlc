@@ -165,10 +165,47 @@ actually conform to the chosen template revision and preserve history.
   scope. It is not an audit verdict and does not override an implementation hold.
 - **Lifecycle:** the work item's TODO keyword in `work.org`.
 - **Validation:** actual test results in `validation.org`.
+- **Review feedback:** pending annotations in `spec.org`; processed annotations
+  and their dispositions in the work item's `feedback.yaml`, not audit state.
 
 Resolve older metadata through authorized edits, not an automatic rewrite of
 signed-off specifications. Do not treat an old copied gate value as current
 audit evidence.
+
+### Annotation review
+
+Annotations are explicitly identified review feedback, not specification text,
+approval or automatically executable instructions. Their exact encoding belongs
+to the annotation tool's documented format; do not invent markers or classify
+ordinary Org comments, quoted examples or mentions of annotations as feedback.
+If the encoding cannot be interpreted safely, preserve it and ask for clarification.
+
+During definition, process annotations as one coherent batch. Check the referenced
+revision and passage, answer questions as questions, and apply authorized changes
+to the detailed requirements, tests, design and derived Synopsis. Explain rejected
+suggestions; never silently reject an explicit operator instruction or infer new
+authority from an annotation. Conflicting or ambiguous feedback remains unresolved.
+
+For each resolved annotation, preserve its stable identity, author, original text,
+referenced passage and reviewed revision in `feedback.yaml`. Record the disposition
+(applied, answered or rejected), reason, processing date, affected sections and
+resulting specification hash. Retain earlier entries; create this file only when
+feedback is processed. This defines required information, not a finalized YAML
+schema. Do not fabricate missing provenance or design a competing annotation format.
+
+Record the disposition before removing the resolved annotation from `spec.org`.
+Verify the files have not changed underneath the agent and commit the document
+and log together. On interruption, reconcile recorded identities and actual edits
+before continuing; never apply the same annotation twice or drop new feedback.
+Unresolved annotations stay visible. The previewer writes annotations only;
+the drafting agent reconciles them into the specification body.
+
+Before audit or sign-off, `spec.org` must contain no annotation records or blocks,
+including resolved or empty ones. Removing feedback without preserving its
+disposition is not resolution. Supply `feedback.yaml` as audit evidence when
+present; it must not duplicate findings, verdicts or session state from `audits.yaml`.
+Audit the revised definition as one package, not once per annotation. Material
+changes to an approved specification require renewed operator approval.
 
 ### One detailed home
 

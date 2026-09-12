@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## v3.2.20 - 2026-09-12
+
+- Define batch annotation review: preserve dispositions and revision trace in
+  `feedback.yaml`, reconcile the specification and remove only resolved feedback.
+- Reject any remaining semantic annotation records at the definition gate,
+  including resolved or empty blocks; keep human feedback separate from audits.
+- Advance the specification template to schema 2 for this authoring contract.
+  Annotation encoding and the feedback YAML schema remain unfinalized; no parser
+  or previewer code changes are included.
+
 ## v3.2.19 - 2026-09-12
 
 - Refresh the HTML-Preview submodule to upstream revision `8231df3`, including

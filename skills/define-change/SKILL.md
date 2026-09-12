@@ -41,6 +41,13 @@ change-specific title, Org hierarchy, description-list, and semantic-emphasis
 requirements in `ISSUES.md`; generic titles and visually unscannable drafts are
 not ready for audit.
 
+When annotations are present, apply the annotation-review contract in `ISSUES.md`
+before audit or sign-off. Reconcile feedback as a batch, retain unresolved items,
+and move resolved annotations with their dispositions to `feedback.yaml` before
+removing them from the specification. Only the agent edits the specification body;
+a question is not an instruction. Include the feedback log as audit evidence when
+present. No annotation records, even resolved or empty ones, may remain at the gate.
+
 Copy the template's `#+SCHEMA:` version. Keep `Synopsis` distinct from the
 change-specific `#+TITLE:`, with its eight level-two categories and short bullets.
 Its summary must accurately and completely represent the detail below

@@ -61,6 +61,13 @@ gates:
       VERDICT: PASS | PROVISIONAL PASS | FAIL
       For FAIL, list every finding and the required remediation. A provisional pass may name only bounded,
       reversible follow-up work that does not invalidate definition sign-off.
+      Return FAIL if spec.org contains any semantically identified annotation record or block, including
+      resolved or empty ones. Use the annotation tool's documented format; ordinary Org comments, prose
+      and examples discussing annotations are not feedback records. Never guess an unfamiliar encoding.
+      Check feedback.yaml when supplied: processed annotations need their original text, provenance,
+      disposition, rationale and revision trace, consistent with the revised specification. Missing
+      dispositions for feedback known to have been processed, or removal without recorded resolution,
+      require FAIL. Human feedback history is not audit-state duplication. This applies retrospectively too.
       If the supplied specification duplicates audit findings, status, revisions, round numbers, or session IDs,
       return FAIL and require their removal; the audit record belongs only in audits.yaml.
       Do not edit any file, including audits.yaml; return the envelope and findings to the harness, which records them.

@@ -84,6 +84,15 @@ historical input for migration, not a second authority.
 If supplied artefacts duplicate audit findings or state, the auditor MUST return
 `FAIL` and require the duplicate to be removed before rerun.
 
+The definition audit MUST return `FAIL` if `spec.org` contains any semantically
+identified annotation record or block, even resolved or empty. Apply the annotation
+tool's documented format, not keyword matching against ordinary prose, examples
+or Org comments. Check processed-feedback evidence in `feedback.yaml` when present;
+missing dispositions or conflicts between recorded outcomes and the revised spec
+also fail. Annotation removal without recorded resolution is not remediation.
+The feedback log records human review, not a duplicate audit verdict. This rule
+also applies to retrospective definition reviews.
+
 The external auditor returns its envelope and findings only; it does not edit
 files. The harness persists that response in `audits.yaml`.
 

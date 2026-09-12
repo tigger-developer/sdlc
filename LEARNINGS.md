@@ -1,5 +1,14 @@
 # SDLC Standards: Design Learnings
 
+## Annotations are a review inbox, not a second specification
+
+Keep pending feedback beside the passage it concerns, but separate its semantics
+from authoritative requirements and approval. Process it in batches: record the
+original feedback and disposition, reconcile the specification, then remove the
+resolved annotation. A clean document alone is not evidence of resolution; retain
+revision-linked history separately from harness-owned audit state. Define this
+workflow before fixing the tool's encoding, without inventing a parallel format.
+
 ## Verify each boundary without repeating the whole workflow
 
 Local provider doubles prove orchestration and cache behaviour, not native
