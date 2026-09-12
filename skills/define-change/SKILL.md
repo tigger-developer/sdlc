@@ -35,14 +35,15 @@ Allocate the next never-used project work number. Create
 `~/.agents/sdlc/templates/v3/spec.org`. Include context, falsifiable acceptance
 criteria, traced RT/UT/OT test definitions, edge cases, solution design,
 mandatory security impact, and a context-independent delivery handoff. Create
-`audits.yaml` from its canonical template. Create `validation.org` only when
-needed. Add or update the descriptive work item in `docs/work.org`. Apply the
+`validation.org` only when needed; the harness alone creates and updates
+`audits.yaml`. Add or update the descriptive work item in `docs/work.org`. Apply the
 change-specific title, Org hierarchy, description-list, and semantic-emphasis
 requirements in `ISSUES.md`; generic titles and visually unscannable drafts are
 not ready for audit.
 
-Keep the opening section named `Synopsis`, distinct from the change-specific
-`#+TITLE:`. Its summary must accurately and completely represent the detail below
+Copy the template's `#+SCHEMA:` version. Keep `Synopsis` distinct from the
+change-specific `#+TITLE:`, with its eight level-two categories and short bullets.
+Its summary must accurately and completely represent the detail below
 its section break. Invoke the composite definition audit through the installed
 audit harness with `--phase audit --gate definition`, using `audits.yaml` for
 the retained session mapping. Remediate **all** findings before resuming that
@@ -51,10 +52,11 @@ piecemeal. On timeout, follow the harness recovery diagnostic: in HANDS-OFF,
 resume automatically within its limit, using the retained session. Timeout
 without a verdict does not require an artificial edit. Do not invoke individual audit skills.
 
-On effective PASS, set the specification's definition-gate status to `PASS` and
-move its `docs/work.org` item to `REVIEW`, preserving the detailed evidence in
-`audits.yaml`. Open the specification with the previewer selected by `MAIN.md`
+After current audit evidence in `audits.yaml` establishes `PASS` or an effective
+`PROVISIONAL PASS`, move the work item to `REVIEW`. Never copy the verdict into
+spec metadata. Open the specification with the previewer selected by `MAIN.md`
 and return it for operator sign-off. Preview is presentation, not a gate. After
-explicit sign-off, record the authority and date in `spec.org` and move its work
-item to `ACTIVE`.
+explicit sign-off, record the authority, date and approval scope in `spec.org`.
+Move its work item to `ACTIVE` unless the operator explicitly defers delivery;
+retain `REVIEW` and the hold in that case. Design approval never lifts a hold.
 Do not implement code.

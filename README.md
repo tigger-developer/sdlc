@@ -242,25 +242,24 @@ Invoke `$define-change`. It asks only the clarification needed and creates one
   and
 - a context-independent delivery handoff.
 
-The same skill applies the specification, design, and test-definition audits,
-remediating for at most five local rounds. Only after local PASS does one
-retained context on the configured external audit harness run all three audits.
-On effective PASS,
-`spec.org` records the gate PASS and `docs/work.org` moves the item to `REVIEW`;
-explicit operator sign-off records its authority in the specification and moves
-the work item to `ACTIVE`. `$audit-definition` remains available for a
-separately requested combined review.
+The skill invokes the composite definition gate through the configured audit
+harness and remediates all findings before resuming its retained context, within
+the configured round limit. Audit state lives only in `audits.yaml`.
+After `PASS` or effective `PROVISIONAL PASS`, the work item moves to `REVIEW`.
+Explicit operator sign-off records authority, date and approval scope in the
+specification and moves the item to `ACTIVE` unless delivery is explicitly held.
 
 The operator reviews and signs off the definition before implementation.
 
 ### Deliver
 
-Invoke `$deliver-change`. It admits only an `ACTIVE` work item whose
-specification records a definition-gate PASS and operator sign-off; it does not
+Invoke `$deliver-change`. It checks operator sign-off in the specification,
+`ACTIVE` lifecycle state in `work.org`, current definition-gate evidence in
+`audits.yaml`, and documented delivery prerequisites or holds; it does not
 rerun the definition audits. Automated regression tests are written first and
 must show the intended RED result. The agent implements the smallest coherent
 change, returns the suite to GREEN, and applies the implemented-test and
-production-code audits locally before one retained external audit context.
+production-code review together through the retained implementation audit context.
 After PASS, required OT and UT evidence is recorded in `validation.org`,
 affected documentation is reconciled, and the operator decides closure.
 

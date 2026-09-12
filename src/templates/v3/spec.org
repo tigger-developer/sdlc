@@ -1,12 +1,14 @@
 #+TITLE: WNNN - [Concise change-specific title]
+#+SCHEMA: 1
 #+SUBTITLE: Unified change specification
 #+STARTUP: overview
 #+OPTIONS: toc:2 num:nil
-#+DEFINITION_GATE: PENDING
 #+OPERATOR_SIGNOFF: PENDING
 
 #+begin_comment
 This is the canonical SDLC v3 specification template.
+The SCHEMA value is this template's version, not the SDLC release or an audit
+result. Copy it unchanged into new specifications; follow ISSUES.md for versioning.
 
 Use a new project-wide work number and never reuse an identifier. Replace every
 instructional placeholder before definition sign-off. The document title must
@@ -15,11 +17,12 @@ as =Spec sheet=, =Specification=, =Change=, or =Untitled= are invalid.
 Keep the opening section named =Synopsis=; do not repeat the document title
 as its headline. Preserve its =CUSTOM_ID: summary= for stable links.
 
-Apply the ABC presentation contract in =ISSUES.md=. Use the fixed level-one
-headlines below for the major sections, level-two headlines for addressable
-subsections or records, and level-three headlines only for genuine children of
-those records. Use native description lists for labelled facts; never simulate
-a headline or label with bold text.
+Apply the ABC presentation contract in =ISSUES.md=. Retain the core level-one
+sections. Use level-two Synopsis categories with short bullets, level-two
+records elsewhere, and deeper headings only for genuine children. Subordinate
+design/quality sections are optional when irrelevant; security impact is always
+required. Use description lists for labelled facts, not paragraphs disguised
+as list items. Do not simulate headings with bold labels.
 
 Keep the document concise, but sufficient for a new agent to deliver without
 the drafting conversation. Within substantive text, use native Org emphasis to
@@ -30,19 +33,37 @@ enough of the subject or context to make that bold-only reading understandable;
 a headline or preceding line does not replace it. Do not bold headlines,
 labels, identifiers, structural words, whole sentences, or every occurrence of
 a term. Use the smallest sufficient set of fragments; if most of a sentence is
-bold, reduce it until the emphasis is selective again. For example:
+bold, reduce it until the emphasis is selective again.
 
-- A *report schedule* *declares* an *output format* and may declare a
-  *recipient list*.
-- An *empty recipient list* *disables delivery* without disabling report
-  generation.
+Illustrative report example only; do not copy these requirements into a project:
+
+Synopsis / After:
+- The *archive* keeps *one report* for each *execution*.
+- *Retries* do not create *duplicates*.
+
+Acceptance criterion:
+- Criterion :: Given a repeated execution identifier, the *archive* contains
+  *one report* for that *execution*.
+
+Test definition:
+- Setup :: An execution already has an archived report.
+- Action :: *Retry* that execution.
+- Expected :: The *archive* still contains *one report* for the execution.
+
+Give each detailed fact one home: ACs own outcomes, design owns exact after-state
+contracts, tests own actions and observable expectations, and handoff owns entry
+conditions and required reading. Link between them; do not copy entire contracts.
+The Synopsis and explicit test expectations are intentional repetitions. Preserve
+material detail without imposing a word limit or creating a second summary file.
 
 The work item's TODO keyword in =docs/work.org= is its sole lifecycle state.
-Only an effective definition-gate PASS may set =DEFINITION_GATE= to =PASS=.
-Only explicit operator sign-off may replace =OPERATOR_SIGNOFF= with the
-authority and date and move the work item to =ACTIVE=. Any later material
-specification change resets both specification fields and moves the work item
-to =REVIEW=. Detailed audit evidence remains in =audits.yaml=.
+Only the harness creates or updates =audits.yaml=; read the current gate there.
+Do not copy audit findings, verdicts or session state into this specification.
+Only explicit operator sign-off may replace =OPERATOR_SIGNOFF= with the authority,
+date and approval scope. Design approval does not override an implementation hold.
+A material specification change requires renewed operator approval and current
+audit evidence: reset operator sign-off to PENDING and move the work item to
+REVIEW, preserving history. Never edit the audit record directly.
 #+end_comment
 
 * Synopsis
@@ -50,17 +71,47 @@ to =REVIEW=. Detailed audit evidence remains in =audits.yaml=.
 :CUSTOM_ID: summary
 :END:
 
-- Outcome :: [One sentence describing the user-visible or operator-visible result.]
-- Before :: [The relevant current behaviour.]
-- After :: [The required behaviour after delivery.]
-- Changes :: [Short bullets naming the changed behaviour or interfaces.]
-- Unchanged :: [Important boundaries and behaviours that remain unchanged.]
-- Edge cases :: [The material edge cases covered below.]
-- Decisions :: [Resolved operator decisions that constrain delivery.]
-- Next step :: Definition gate, then operator sign-off.
+** Outcome
 
-The summary above must accurately and completely represent the detailed
-specification below.
+- [One sentence describing the user-visible or operator-visible result.]
+
+** Before
+
+- [The relevant current behaviour; one principal fact per bullet.]
+
+** After
+
+- [The required behaviour after delivery; separate distinct outcomes.]
+
+** Changes
+
+- [Changed behaviour or interface; link to its detail when useful.]
+
+** Unchanged
+
+- [Important boundary or behaviour that remains unchanged.]
+
+** Edge cases
+:PROPERTIES:
+:CUSTOM_ID: synopsis-edge-cases
+:END:
+
+- [Material boundary condition and its outcome, not just a list of case names.]
+
+** Decisions
+
+- [Resolved operator decision that constrains delivery.]
+
+** Next step
+
+- Definition review, then operator sign-off as described in [[#delivery-handoff][Delivery Handoff]].
+
+#+begin_comment
+Derive this Synopsis from the detail below. It introduces nothing absent there,
+contradicts nothing and omits no material change, boundary, decision or edge case.
+It need not repeat every protocol constant or test fixture. Links supplement
+the summary, never replace it.
+#+end_comment
 
 -----
 
@@ -104,8 +155,13 @@ implementation as the requirement.]
   boundary.]
 
 ** Constraints and dependencies
+:PROPERTIES:
+:CUSTOM_ID: constraints-and-dependencies
+:END:
 
 - [Compatibility, privacy, security, operational, or dependency constraint.]
+- [Delivery prerequisite and the evidence needed to establish it, when applicable.
+  Administrative sequencing is not a product AC or an invented product test.]
 
 ** Decisions
 
@@ -120,44 +176,6 @@ Do not leave a design preference or product decision in this section for the
 delivery agent to guess. A real unresolved blocker prevents definition sign-off.
 #+end_comment
 
-* Hands-off mode decision log
-:PROPERTIES:
-:CUSTOM_ID: hands-off-mode-decision-log
-:VISIBILITY: folded
-:END:
-
-#+begin_comment
-Use this section only when delivery was explicitly run in hands-off mode. Add
-one level-two Org subtree for each hands-off invocation. The invocation heading
-must contain the exact ISO 8601 timestamp and the tags :hands-off:review:. Put
-each material routine decision at level three beneath its invocation heading.
-This records reversible implementation assumptions made so the agent can
-continue without an immediate operator response. It does not authorize a new
-requirement, scope, architecture, security, privacy, access, data, external
-contract, or irreversible decision. Those remain human decisions and require a
-handback. Preserve superseded entries rather than deleting them.
-#+end_comment
-
-** Hands-off invocation 2026-01-01T00:00:00Z :hands-off:review:
-:PROPERTIES:
-:CUSTOM_ID: hands-off-invocation-example
-:INVOCATION_TIMESTAMP: 2026-01-01T00:00:00Z
-:END:
-
-*** DNNN - Descriptive routine decision
-:PROPERTIES:
-:CUSTOM_ID: d-nnn
-:END:
-
-- Question :: [The bounded uncertainty encountered during delivery.]
-- Decision :: [The reversible choice made to continue within the signed-off
-  specification and design.]
-- Reason :: [Why this interpretation best fits the authorities and standards.]
-- Evidence :: [The specification, design, code, test, or project convention
-  consulted.]
-- Reversibility :: [How the decision can be changed without loss or migration.]
-- Effect :: [The exact artefacts or behaviour affected.]
-
 * Acceptance Criteria
 :PROPERTIES:
 :CUSTOM_ID: acceptance-criteria
@@ -168,6 +186,8 @@ Each AC describes one falsifiable state of the system. It does not describe a
 test action or implementation mechanism. Prefer the form: "Given [context], the
 system [does, returns, stores, or rejects] X." Split independently falsifiable
 conditions. Every AC links to at least one test definition.
+Keep delivery prerequisites under Context and link from Handoff. Do not turn
+workflow checkpoints into product ACs. Link exact design contracts where needed.
 #+end_comment
 
 ** ACNNN.1 - Descriptive outcome
@@ -205,6 +225,16 @@ Automated RTs follow TDD and must fail for the expected reason before
 implementation. A test must earn its place, exercise the relevant boundary, and
 be defined well enough to reproduce. Do not simulate an undocumented third-party
 system or use source-text greps as behavioural evidence.
+
+For a dense case group, keep one test ID and shared setup/boundary. Use named
+level-three cases or a compact case/outcome table rather than long Action and
+Expected paragraphs. Preserve explicit observable outcomes and AC mappings;
+"see design" alone is not a test. Do not create more IDs or a new harness just
+to reformat cases. Optional table layout:
+
+| Case | Action or input | Observable expected result | AC |
+|------+-----------------+----------------------------+----|
+| [Descriptive case] | [Bounded action] | [Concrete outcome] | [AC link] |
 #+end_comment
 
 ** RTNNN.1 - Descriptive regression test
@@ -248,6 +278,11 @@ system or use source-text greps as behavioural evidence.
 :CUSTOM_ID: edge-cases
 :END:
 
+#+begin_comment
+Add non-obvious boundary outcomes and link their ACs/tests. Do not repeat whole
+contracts already defined elsewhere. If none are additional, say so concisely.
+#+end_comment
+
 ** [Descriptive edge case]
 
 - Condition :: [Boundary or failure condition.]
@@ -265,6 +300,10 @@ Describe enough of the after-state for a new delivery agent to begin with the
 defined tests. Follow the operator's direction, the project architecture, the
 selected standards, and external contracts. Do not expand the design into a
 task list or duplicate stable architecture documents.
+Keep each precise interface/configuration contract in one addressable subsection;
+prefer an after-state example or contract table to repeated prose. Use only the
+subordinate sections needed for this change. Keep security impact even when the
+conclusion is a supported no-change rationale.
 #+end_comment
 
 ** Architecture context
@@ -306,12 +345,13 @@ task list or duplicate stable architecture documents.
 
 *** Other relevant qualities
 
-- Reliability :: [Impact or not applicable with reason.]
-- Performance :: [Impact or not applicable with reason.]
-- Operability :: [Deployment, rollback, monitoring, or support impact.]
-- Accessibility :: [Impact or not applicable with reason.]
-- Portability :: [Impact or not applicable with reason.]
-- Maintainability :: [Complexity and future-change impact.]
+#+begin_comment
+Include only affected qualities: reliability, performance, operability,
+accessibility, portability or maintainability. Remove this subsection if none
+requires additional treatment; do not fill a checklist with repetitive N/A text.
+#+end_comment
+
+- [Relevant quality] :: [Material impact and its mitigation or design consequence.]
 
 * Delivery Handoff
 :PROPERTIES:
@@ -320,6 +360,9 @@ task list or duplicate stable architecture documents.
 
 - Required reading :: [Only the exact additional sources needed beyond this
   specification and =.sdlc/project.yaml=.]
+- Entry conditions :: [Explicit delivery authority and applicable
+  [[#constraints-and-dependencies][prerequisites]], with their preflight evidence.
+  Read the current definition gate from =audits.yaml=, not copied spec metadata.]
 - First implementation step :: Write [[#rt-nnn-1][RTNNN.1 - Descriptive
   regression test]] and observe the expected RED result.
 - Definition evidence :: [[file:audits.yaml][=audits.yaml=]]
@@ -332,4 +375,39 @@ Before definition sign-off, test the handoff: could a new agent deliver this
 change using only this file, .sdlc/project.yaml, the exact authorities named
 above, and the repository? Phrases such as "as discussed", unnamed documents,
 or hidden decisions fail the gate.
+#+end_comment
+
+* Hands-off mode decision log
+:PROPERTIES:
+:CUSTOM_ID: hands-off-mode-decision-log
+:VISIBILITY: folded
+:END:
+
+#+begin_comment
+Keep this optional log at the end, folded. Add entries only for actual hands-off
+invocations; no fictional date or empty decision record belongs in a live spec.
+Use a level-two invocation heading with its exact ISO 8601 timestamp and
+:hands-off:review: tags, and level-three material decisions beneath it. Preserve
+superseded entries. This records reversible assumptions within authorized scope,
+not new requirements, architecture, security, access or irreversible decisions.
+
+Example layout only; unindent it when recording a real invocation:
+
+  ** Hands-off invocation [ISO 8601 timestamp] :hands-off:review:
+  :PROPERTIES:
+  :CUSTOM_ID: [unique invocation anchor]
+  :INVOCATION_TIMESTAMP: [same timestamp]
+  :END:
+
+  *** DNNN - Descriptive routine decision
+  :PROPERTIES:
+  :CUSTOM_ID: [unique decision anchor]
+  :END:
+
+  - Question :: [Bounded uncertainty.]
+  - Decision :: [Reversible choice within the authorized specification/design.]
+  - Reason :: [Why this interpretation fits the authorities and standards.]
+  - Evidence :: [Exact authority, implementation fact or project convention.]
+  - Reversibility :: [How to change the choice without loss or migration.]
+  - Effect :: [Affected behaviour or artefacts.]
 #+end_comment

@@ -81,6 +81,9 @@ hierarchy and native description lists for labelled facts. Do not simulate
 either with bold text. Keep the fixed major sections at level one, use level two
 for addressable subsections or records, and use deeper levels only for genuine
 children.
+Within Synopsis, use the eight level-two categories from the template with short
+bullets beneath each. One category may need several bullets, but each bullet
+has one principal fact. Do not pack paragraphs into description-list labels.
 
 Within substantive prose and bullets, bold the semantic spine: the smallest
 words or phrases that carry the distinctive state, action, qualifier, quantity,
@@ -145,6 +148,55 @@ title. Generic titles such as `Spec sheet`, `Specification`, `Change`, or
 `Untitled` fail the definition gate.
 Name the opening level-one section `Synopsis`, not a repetition of the document
 title. Retain its `CUSTOM_ID: summary` so existing summary links remain stable.
+
+### Template version and ownership
+
+The canonical template's `#+SCHEMA:` value is its **positive-integer version**.
+New specifications copy that value. Maintainers increment it once per published
+revision that changes the template or its authoring contract, independently of
+the SDLC release. Multiple edits in one pending release share that increment.
+It identifies a documented format, not an executable validator or standards pin.
+Do not silently stamp or upgrade existing specs; an authorized conversion must
+actually conform to the chosen template revision and preserve history.
+
+- **Audit state:** only the harness creates or updates `audits.yaml`; no
+  `DEFINITION_GATE` or other copied audit status belongs in `spec.org`.
+- **Human approval:** `OPERATOR_SIGNOFF` records authority, date and approval
+  scope. It is not an audit verdict and does not override an implementation hold.
+- **Lifecycle:** the work item's TODO keyword in `work.org`.
+- **Validation:** actual test results in `validation.org`.
+
+Resolve older metadata through authorized edits, not an automatic rewrite of
+signed-off specifications. Do not treat an old copied gate value as current
+audit evidence.
+
+### One detailed home
+
+Keep the core sections; adapt subordinate structure to the change:
+
+- **ACs** own required system outcomes and durable product constraints.
+- **Design** owns exact after-state interfaces and mechanisms, preferably as
+  addressable examples or contract tables. Link stable architecture, do not copy it.
+- **Tests** own actions and explicit observable expectations, traced to ACs.
+  For dense case groups, retain shared setup and one test ID; use named child
+  cases or a compact case/outcome table with AC mappings. Formatting does not
+  require more test IDs or another harness. "See design" alone is insufficient.
+- **Edge cases** add non-obvious boundary outcomes and link existing ACs/tests,
+  rather than repeating whole contracts.
+- **Handoff** owns entry conditions and required reading, linking prerequisites
+  under Context / Constraints and dependencies. Administrative sequencing is
+  not itself a product AC or a reason to invent another product test.
+
+The Synopsis and reproducible test expectations are intentional repetitions.
+The summary need not repeat every protocol constant or fixture, but must retain
+every material outcome and boundary. Links supplement, not replace it.
+Do not impose a word limit, create a second summary artefact, or split work only
+to shorten a document.
+
+Keep security impact mandatory. Include other subordinate design/quality
+sections only when relevant, without repetitive N/A entries. Keep the optional
+hands-off log at the end, initially folded; its example belongs in an authoring
+comment, not a live-looking dated record. Preserve actual decision history.
 
 ## Acceptance criteria
 

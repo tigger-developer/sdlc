@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## v3.2.17 - 2026-09-12
+
+- Start spec-template versioning at `#+SCHEMA: 1`, independently of the SDLC
+  release. New specifications copy it; existing specs are not silently upgraded.
+- Make the Synopsis scannable with eight outlined categories and short bullets;
+  demonstrate selective functional emphasis and compact, traceable test cases.
+  Give detailed contracts one home, keep security impact mandatory, and place
+  the folded hands-off log last without a live-looking dummy invocation.
+- Remove copied definition-gate metadata and agent-created audit records. Align
+  definition, delivery and README instructions around harness-owned `audits.yaml`,
+  explicit operator approval, lifecycle state and delivery holds.
+
 ## v3.2.16 - 2026-09-12
 
 - Name the specification's opening section Synopsis while retaining the

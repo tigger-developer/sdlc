@@ -7,11 +7,16 @@ Read `~/.agents/sdlc/MAIN.md`, `TESTING.md`, `CODING.md`, `DOCUMENTATION.md`,
 `GIT.md`, the project profile, selected standards, the signed-off `spec.org`, and
 its current audit evidence.
 
-Admit delivery only when its item is `ACTIVE` in `docs/work.org` and `spec.org`
-records definition-gate `PASS`, explicit operator sign-off, and linked audit
-evidence that remains current. Do not begin by rerunning definition audits. A
-material specification change resets the definition gate and sign-off to
-`PENDING` and moves the work item to `REVIEW`.
+Admit delivery only with explicit operator sign-off in `spec.org`, an `ACTIVE`
+work item in `docs/work.org`, and current `PASS` or effective `PROVISIONAL PASS`
+evidence for the definition gate in `audits.yaml`. Check documented dependencies
+and implementation holds; only explicit operator authority lifts a hold. If the
+operator now lifts a hold, move the item to `ACTIVE` before admission once the
+remaining conditions are satisfied.
+Do not trust copied gate metadata or begin by rerunning definition audits. A
+material specification change requires current audit evidence and renewed
+operator approval: reset sign-off to `PENDING` and move the item to `REVIEW`,
+preserving history. Never edit `audits.yaml` or copy its state into the spec.
 
 In **HANDS-OFF** mode, a user-facing progress report is not a permitted
 response boundary. Do not end the turn after reporting progress, checkpoints,

@@ -1,5 +1,33 @@
 # SDLC Standards: Design Learnings
 
+## Version the template, not a second copy of the release
+
+A specification needs to identify the format it follows, independently of the
+installed SDLC. Use `#+SCHEMA:` as the canonical template's version and copy it
+into new specs. Increment once per published template or authoring-contract
+revision; do not relabel older specifications without an authorized conversion.
+This identifies a documented contract, not an executable schema validator.
+
+## Readability depends on structure, not a word limit
+
+The reviewed HTML-Preview specifications retained useful detail but exposed
+dense summary bullets, long test-case paragraphs and repeated contracts.
+Use outlined Synopsis categories, short bullets and selective functional
+emphasis. Keep detailed outcomes in ACs, contracts in design and reproducible
+expectations in tests, linking between them. Group test cases without inventing
+more IDs or harnesses. Administrative prerequisites belong in Context and
+Handoff, not artificial product ACs. Keep optional sections proportionate while
+retaining security analysis and enough detail for a fresh delivery context.
+
+## Templates must respect state ownership
+
+A copied definition-gate field contradicted the harness-only audit record and
+could make template-conforming specs fail audit. Keep verdicts, findings and
+sessions solely in `audits.yaml`; human approval belongs in the specification,
+lifecycle in `work.org` and test results in `validation.org`. Design approval
+does not lift a delivery hold. Place optional decision logs last and keep dummy
+records inside authoring comments so they cannot resemble real history.
+
 ## Document titles and section headings have different purposes
 
 Repeating a specification's change title as its first section heading duplicates
