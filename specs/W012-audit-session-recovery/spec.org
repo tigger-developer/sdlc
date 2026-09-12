@@ -32,7 +32,7 @@
 - *OT only*: the operator explicitly excluded new regression tests and accepted bounded API cost.
 - *Project fallback* replaces the entire global tuple; an empty mapping disables it.
 ** Next step
-- Verify recovery, install once as authorized, and present evidence for operator closure.
+- Release the verified source for *operator-run installation*, then confirm deployed behaviour before closure.
 
 -----
 
@@ -66,7 +66,7 @@
 :PROPERTIES:
 :CUSTOM_ID: ac012-4
 :END:
-- Criterion :: The authorized installation deploys the revised helper, prompts and instructions; the installed helper can resolve the configured fallback.
+- Criterion :: The operator-run installation deploys the revised helper, prompts and instructions; the installed helper can resolve the configured fallback.
 - Proven by :: [[#ot012-3][OT012.3 - Installation verification]].
 ** AC012.5 - Reuse identical completed audits
 :PROPERTIES:
@@ -99,7 +99,7 @@
 - Covers :: AC012.4.
 - Procedure :: Run =make install= exactly once from the SDLC repository after validation; check installed release/help and binary identity.
 - Expected :: Successful deployment and executable deployed helper; no client-project mutation.
-- Bounds :: One operator-authorized installation.
+- Bounds :: The operator runs installation. Agent installation authority was withdrawn on 2026-09-12; deployment verification remains pending that operation.
 ** OT012.4 - Cache identity
 :PROPERTIES:
 :CUSTOM_ID: ot012-4

@@ -20,6 +20,8 @@ timeout_blocked_message: |
   max_rounds is exhausted. Report the incident for operator recovery; do not invent a session,
   start a replacement audit, or change the configured bounds. Timeout is not PASS or FAIL.
 evidence_instructions: |
+  The harness owns native session IDs, recovery and cache lookup. Return only the requested audit
+  envelope and findings; do not invent session IDs, invoke another auditor or troubleshoot the harness.
   If an Evidence contents section is supplied, it contains the complete current text of every
   supplied file, verified against the manifest. Review that text directly; this adapter has no
   file tools. Otherwise read the original files at the absolute paths in the evidence manifest.

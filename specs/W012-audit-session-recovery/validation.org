@@ -3,8 +3,13 @@
 - Status :: PASS, including extended configuration and sticky-fallback checks.
 - Evidence :: The pre-change run rejected missing/config-changed sessions and authentication fallback. Post-change local matrix passed with race detection. These checks are explicitly one-off and excluded from the regression suite.
 - Tester :: Codex, 2026-09-12.
+- Tested revision :: 9979601 - Retire obsolete Hermes stdout identity parsing.
+- Environment :: Darwin 25.6.0 arm64; Go 1.26.3; temporary Go overlay and caches; local provider doubles only.
 - Latest check :: Explicit Go-overlay OT matrix passed with race detection after the Hermes native-session adapter changes. Harness build and Git whitespace checks also passed.
 * OT012.2 - Native provider qualification
+- Tester :: Codex, 2026-09-12.
+- Tested revision :: 27879b7 - Cache identical validated audit requests without consuming rounds.
+- Environment :: Darwin 25.6.0 arm64; Hermes 2026.8.31_1, Nous z-ai/glm-5.3; configured Claude adapter for the missing-session probe; temporary synthetic evidence.
 - Status :: PASS for the bounded native recovery, evidence and cache probes; not a full project-audit qualification.
 - Evidence :: Native Claude missing-session rejection triggered a fresh session. That session reached the account usage limit, which correctly did not trigger authentication fallback.
 - Evidence :: An induced local authentication diagnostic selected the real Hermes fallback. Native stderr returned its session identity; a subsequent invocation resumed that same conversation and returned the requested synthetic response. Exact identities and responses are retained in the temporary harness-owned probe records.
@@ -15,7 +20,11 @@
 * OT012.3 - Installation verification
 - Status :: PENDING.
 - Bounds :: One authorized make install from this repository.
+- Authority update :: On 2026-09-12 the operator withdrew agent installation authority and elected to run make install personally. Release preparation does not establish deployed behaviour.
 * OT012.4 - Cache identity
+- Tester :: Codex, 2026-09-12.
+- Tested revision :: 9979601 - Retire obsolete Hermes stdout identity parsing.
+- Environment :: Darwin 25.6.0 arm64; Go 1.26.3 race detector; temporary Go overlay, local provider doubles and synthetic evidence.
 - Status :: PASS.
 - Evidence :: Explicit one-off overlay checks exercised all three valid verdicts on start/resume, exact unchanged output and record bytes, no extra provider call at the round limit, secondary-evidence invalidation, work/gate/prompt/registry/model/fallback changes and incident/legacy/malformed exclusions.
 - Evidence :: The tests first failed before cache implementation. The updated matrix passed with race detection. They are outside the regression pack.

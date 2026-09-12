@@ -16,6 +16,8 @@
   UTF-8 evidence through stdin with tools disabled, without retained file copies.
 - Keep client agents outside harness internals and model troubleshooting; use
   documented recovery and report unresolved diagnostics without speculative causes.
+- Tell auditors explicitly that session identity, recovery and cache lookup
+  belong to the harness; return findings without starting nested audits.
 - Verify recovery and caching through explicitly invoked one-off checks and
   bounded native probes, not new regression-pack or metered CI entries.
 
