@@ -714,8 +714,12 @@ func planSharedInstallation(source, commonHome, release string) (installationPla
 		return installationPlan{}, auditErr
 	}
 	plan.retirements = append(plan.retirements, auditRetirements...)
+	auditLink, err := planManagedLink(filepath.Join(liveSDLC, "bin", "sdlc-harness"), filepath.Join(localBin, "sdlc-audit"), localBin)
+	if err != nil {
+		return installationPlan{}, err
+	}
+	plan.links = append(plan.links, auditLink)
 	commandRetirements, err := planExactRetirements(localBin, []string{
-		"sdlc-audit",
 		"sdlc-install",
 		"sdlc-preview",
 		"sdlc-project-init",
@@ -725,6 +729,13 @@ func planSharedInstallation(source, commonHome, release string) (installationPla
 		return installationPlan{}, err
 	}
 	plan.retirements = append(plan.retirements, commandRetirements...)
+	for _, root := range []string{localBin, filepath.Join(liveSDLC, "bin")} {
+		retired, err := planRetiredCommandBackups(root)
+		if err != nil {
+			return installationPlan{}, err
+		}
+		plan.retirements = append(plan.retirements, retired...)
+	}
 	releaseChange, err := planGlobalReleaseConfiguration(commonHome, release)
 	if err != nil {
 		return installationPlan{}, err

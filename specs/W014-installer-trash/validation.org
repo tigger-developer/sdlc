@@ -21,6 +21,17 @@
 - Pending :: Run installation on the operator's host and confirm Trash recovery
   and adjacent configuration backups. No live installation was run by this agent.
 
+* 2026-09-13 - Public audit alias and retirement-marker follow-up
+
+- RED :: The installer integration failed because =sdlc-audit= was absent after
+  installation, before adding the alias.
+- GREEN :: =make test= passed, including all Go packages, go vet, golangci-lint,
+  ShellCheck and shfmt. RT014.6 covers the deployed alias target, old-byte recovery,
+  recognized numbered/dangling retirements, idempotence and preserved unrelated paths.
+- Boundary :: Disposable installer roots and fake Trash only. No global
+  installation or real Trash mutation. Existing =.bak= files are not swept.
+- Documentation :: =sanitize= reported no differences for the changed docs.
+
 * 2026-09-13 - Emergency audit-fallback follow-up
 
 - RED :: New process-boundary tests reproduced no fallback for subscription

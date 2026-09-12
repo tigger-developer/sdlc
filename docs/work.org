@@ -147,6 +147,26 @@ classification; it is provenance, not current state.
 - Security :: Exact evidence checks and configured permissions remain mandatory.
   Fallback is operator-configured; no unconfigured provider is chosen.
 
+*** Installer follow-up - Publish current audit command and clear retired remnants
+
+- Authority :: Operator requests retired scripts go to Trash and the current
+  audit command be symlinked on PATH. This supersedes the earlier exclusion of
+  retirement-marker cleanup only; existing =.bak= cleanup remains operator-owned.
+- AC014.6 :: =sdlc-audit= *resolves to the deployed harness*, not the checkout.
+  Old command bytes remain recoverable in Trash. Reinstallation is idempotent.
+- AC014.7 :: *Recognized retired command remnants* in the installed command
+  directories go to Trash, including numbered variants and dangling symlinks.
+  Their targets, unrelated files, directories and existing =.bak= files remain intact.
+- Design :: Use the existing managed-link planner for the audit alias and exact
+  retirement planner entries for known SDLC command names with historical markers.
+  Existing bounded Trash execution and operator confirmation govern application.
+  No new executable, provider, permissions or audit semantics. Uninstall removes
+  the public alias; workflow skills retain their absolute harness path.
+- RT014.6 :: Full installer fixture validates replacement, alias target and bytes,
+  dangling/numbered retirements and unchanged reruns. A targeted cleanup fixture
+  checks recovered files/links, preserved targets and unrelated entries, missing
+  directories and an empty second plan. Covers AC014.6 and AC014.7; no host Trash.
+
 ** REVIEW W013 - Route initializer writing agents by task :defect:
 :PROPERTIES:
 :CUSTOM_ID: w-013

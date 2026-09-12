@@ -28,6 +28,11 @@ contains user-owned values. Initialization archives serve a different purpose:
 they preserve project history and remain intact. Test the replacement boundary
 with disposable recovery trees rather than filling the operator's real Trash.
 
+Renaming an obsolete command in its PATH directory does not retire it: the
+renamed file may still execute or appear in command discovery. Move recognized
+retired remnants out through Trash. Public convenience aliases should point to
+the deployed binary, while workflow instructions may retain an absolute path.
+
 ## Resolve structure before delegating implementation
 
 Review shared standards as a framework, not isolated documents. Existing coding,

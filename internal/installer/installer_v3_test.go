@@ -43,6 +43,12 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 	writeFixtureFile(t, filepath.Join(root, ".local", "bin", "sdlc-audit"), "old audit runner\n")
 	writeFixtureFile(t, filepath.Join(root, ".local", "bin", "sdlc-project-update"), "old updater\n")
 	writeFixtureFile(t, filepath.Join(root, ".local", "bin", "sdlc-preview"), "old previewer\n")
+	oldAuditLink := filepath.Join(root, ".local", "bin", "sdlc-audit.sdlc-v2-retired")
+	if err := os.Symlink(filepath.Join(root, "absent-old-binary"), oldAuditLink); err != nil {
+		t.Fatal(err)
+	}
+	oldInit := filepath.Join(root, ".local", "bin", "sdlc-project-init.sdlc-v3-retired-2")
+	writeFixtureFile(t, oldInit, "retired initializer\n")
 	writeFixtureFile(t, filepath.Join(root, ".agents", "sdlc", "bin", "sdlc-preview"), "old previewer\n")
 	unrelatedPath := filepath.Join(root, ".claude", "unrelated.txt")
 	writeFixtureFile(t, unrelatedPath, "operator-owned bytes\n")
@@ -92,7 +98,14 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 	if oldTarget != filepath.Join(source, "bin", "sdlc-init") {
 		t.Fatalf("source-checkout link backup target = %s", oldTarget)
 	}
-	for _, retired := range []string{"sdlc-audit", "sdlc-install", "sdlc-project-init", "sdlc-project-update", "sdlc-preview"} {
+	auditLink := filepath.Join(root, ".local", "bin", "sdlc-audit")
+	target, err := os.Readlink(auditLink)
+	if err != nil || target != filepath.Join(root, ".agents", "sdlc", "bin", "sdlc-harness") {
+		t.Fatalf("audit alias = %q (%v)", target, err)
+	}
+	assertFixtureContent(t, auditLink, "sdlc-harness executable\n")
+	assertFixtureContent(t, assertTrashed(t, auditLink), "old audit runner\n")
+	for _, retired := range []string{"sdlc-install", "sdlc-project-init", "sdlc-project-update", "sdlc-preview", filepath.Base(oldAuditLink), filepath.Base(oldInit)} {
 		path := filepath.Join(root, ".local", "bin", retired)
 		if _, err := os.Lstat(path); !os.IsNotExist(err) {
 			t.Fatalf("retired command remains active at %s: %v", path, err)

@@ -3,8 +3,9 @@ SDLC harness
 
 Internal SDLC helper for running one bounded provider context against
 original evidence files with SHA-256 integrity checks. It is installed at
-`~/.agents/sdlc/bin/sdlc-harness` and is invoked by SDLC skills, not directly
-from the global command path.
+`~/.agents/sdlc/bin/sdlc-harness`. The operator-facing `sdlc-audit` command is a
+symlink to this same executable; it accepts the same options and subcommands.
+SDLC skills continue to use the resolved absolute harness path.
 
 Usage
 =====

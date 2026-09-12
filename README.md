@@ -40,8 +40,10 @@ is not installed on the global path. The installation:
 - builds `sdlc-install` locally, deploys `sdlc-init` and
   `sdlc-merge-legacy-acs` under `~/.agents/sdlc/bin`, and links those operator
   commands onto the global path;
-- deploys the internal `sdlc-harness` runner under `~/.agents/sdlc/bin` without
-  adding it to the global path;
+- deploys `sdlc-harness` under `~/.agents/sdlc/bin` and exposes it as
+  `~/.local/bin/sdlc-audit`; `sdlc-audit --help` describes the audit interface;
+- moves recognized retired command remnants to Trash rather than leaving
+  executable `.sdlc-*-retired` names in command directories;
 - synchronizes the canonical standards to `~/.agents/sdlc`;
 - installs SDLC skills globally under `~/.agents/skills`;
 - links canonical skills into the native Claude, Copilot, and Hermes skill

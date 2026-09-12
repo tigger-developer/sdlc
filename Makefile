@@ -62,5 +62,6 @@ sync:
 	git push
 
 uninstall:
+	unlink "$(HOME)/.local/bin/sdlc-audit"
 	unlink "$(HOME)/.local/bin/sdlc-init"
 	unlink "$(HOME)/.local/bin/sdlc-merge-legacy-acs"

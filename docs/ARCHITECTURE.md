@@ -28,6 +28,9 @@ staging repository
 `make install`; it is not deployed to the global path. The installed CLI tools
 operate on individual projects or documents. Their global links target the
 deployed release under `~/.agents/sdlc/bin`, never the mutable source checkout.
+The public `sdlc-audit` link targets the deployed `sdlc-harness`; no duplicate
+audit implementation is built. Recognized historical command retirement markers
+are removed through Trash, not retained in executable directories.
 
 `~/.agents/sdlc/MAIN.md` is the only standards bootstrap. It routes an agent to
 the minimum relevant universal, domain, technology, and workflow documents.

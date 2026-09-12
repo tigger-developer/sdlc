@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## v3.2.28 - 2026-09-13
+
+- Expose `sdlc-audit` on PATH as a symlink to the deployed `sdlc-harness`;
+  replace an old audit command recoverably and preserve absolute-path skill routing.
+- Trash recognized historical SDLC command retirement markers, including numbered
+  variants and dangling links. Leave unrelated files and existing `.bak` files alone.
+
 ## v3.2.27 - 2026-09-13
 
 - Add operator-authorized `sdlc-harness resume --reset-session` to reset a
