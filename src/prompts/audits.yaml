@@ -51,6 +51,11 @@ gates:
       Each important decision needs appropriate verification: traced behavioural tests for observable
       consequences, or an explicit implementation-review check for structural conformance. Do not require
       artificial source-text tests, unnecessary abstractions or exhaustive low-level design.
+      Explicitly assess: does the design exceed the operator-authorized change; is it over-engineered;
+      and were components or mechanisms added merely to fill template sections? Where a materially simpler
+      solution meets the same requirements and mandatory standards, assess the justification for added
+      complexity. Identify the concrete unnecessary mechanism, not a stylistic preference. Omitted irrelevant
+      design subsections are not defects; mandatory security impact remains required.
       A blocking finding must identify a violated requirement, approved decision or applicable standard,
       or a concrete correctness or security defect. Optional improvements and hypothetical future needs
       are not grounds for FAIL or authority to expand scope.
@@ -100,6 +105,9 @@ gates:
       Allow routine details only where the design leaves them open. Identify the specific approved decision
       or applicable standard violated; do not substitute the auditor's preferred architecture. A blocking
       finding needs that violation or a concrete correctness or security defect, not an optional improvement.
+      Check for unauthorized scope and unnecessary complexity introduced by the implementation delta.
+      Identify concrete additions and their lack of justification; do not use proportionality to reopen
+      approved design choices or demand the auditor's preferred refactoring.
       For paired or emergency work, apply these checks to the recorded operator-authorized design and scope,
       without imposing an advance definition gate. Return exactly one compact envelope:
       GATE: implementation

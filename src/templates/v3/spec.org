@@ -1,5 +1,5 @@
 #+TITLE: WNNN - [Concise change-specific title]
-#+SCHEMA: 3
+#+SCHEMA: 4
 #+SUBTITLE: Unified change specification
 #+STARTUP: overview
 #+OPTIONS: toc:2 num:nil
@@ -311,6 +311,10 @@ Keep each precise interface/configuration contract in one addressable subsection
 prefer an after-state example or contract table to repeated prose. Use only the
 subordinate sections needed for this change. Keep security impact even when the
 conclusion is a supported no-change rationale.
+Require enough detail to explain the chosen solution, not enough machinery to
+populate every heading. Omit irrelevant solution-design subsections; do not invent
+decisions, abstractions or tests to satisfy the template. A small change may need
+only a few sentences. Retain mandatory security impact.
 #+end_comment
 
 ** Architecture context

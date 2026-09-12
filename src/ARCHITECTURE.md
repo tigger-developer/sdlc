@@ -71,6 +71,11 @@ clarifies a decision. Do not prescribe every function, filename or statement.
 Identify routine details deliberately left open; do not leave significant
 design choices disguised as "implementation details".
 
+Require enough detail to explain the chosen solution, not enough machinery to
+populate every heading. Omit irrelevant solution-design subsections; retain
+mandatory security impact. Do not invent decisions, abstractions or tests to
+satisfy the template. A small change may need only a few sentences.
+
 For each important design decision, identify appropriate verification:
 
 - Link traced behavioural tests where the decision has observable consequences.
@@ -95,6 +100,20 @@ the approved decisions as well as behaviour and standards. A blocking finding
 must identify a violated requirement, approved decision or applicable standard,
 or a concrete correctness or security defect. Optional improvements and
 hypothetical future needs do not justify FAIL or scope expansion.
+
+Definition review must explicitly assess:
+
+- **Scope:** Does the design introduce behaviour, infrastructure or obligations
+  beyond the operator-authorized change?
+- **Over-engineering:** Could a materially simpler solution satisfy the same
+  requirements and mandatory standards? If so, what justifies the added complexity?
+- **Template inflation:** Were components or mechanisms introduced to fill
+  sections rather than meet an actual need?
+
+Identify the concrete unresolved decision or unnecessary mechanism. Length,
+heading count and an auditor's aesthetic preference are not evidence of a
+defect. Implementation review applies proportionality to the implementation
+delta without reopening approved design choices.
 
 # Canary
 

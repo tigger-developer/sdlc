@@ -2,6 +2,11 @@
 
 ## Resolve structure before delegating implementation
 
+Design detail should expose unnecessary complexity, not require it. Template
+headings are prompts for relevant decisions, not a quota of components or prose.
+Review for both unresolved significant decisions and mechanisms without a present
+need; retain mandatory security assessment without padding unrelated sections.
+
 High-level outcomes and detailed tests do not alone explain how responsibilities,
 reuse and boundaries should fit together. Definition must resolve significant
 design decisions and identify their verification before handing work to a delivery

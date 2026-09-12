@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## v3.2.24 - 2026-09-12
+
+- Make definition audits explicitly assess scope expansion, over-engineering and
+  template-driven complexity. Keep implementation review within the approved design.
+- Advance the specification template to schema 4: omit irrelevant design
+  subsections rather than inventing machinery to fill them; retain security impact.
+
 ## v3.2.23 - 2026-09-12
 
 - Add a routed architecture standard for proportionate design, component reuse,
