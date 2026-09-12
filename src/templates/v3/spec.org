@@ -1,5 +1,5 @@
 #+TITLE: WNNN - [Concise change-specific title]
-#+SCHEMA: 4
+#+SCHEMA: 5
 #+SUBTITLE: Unified change specification
 #+STARTUP: overview
 #+OPTIONS: toc:2 num:nil
@@ -358,10 +358,14 @@ only a few sentences. Retain mandatory security impact.
 - Interface :: [After-state contract, function, command, endpoint, schema, or
   configuration key.]
 - Compatibility :: [How existing callers, data, or deployments behave.]
+  [For changed contracts, describe transition and temporary-path retirement here.]
 
 *** Data and state
 
 - [State read, written, migrated, retained, or deliberately unchanged.]
+- [For changed stores, describe the transition, intended end state, recovery
+  constraints and temporary-path retirement. Link an existing transition above
+  rather than describing it twice.]
 
 *** Failure behaviour
 
@@ -370,16 +374,23 @@ only a few sentences. Retain mandatory security impact.
 *** Simplicity and proportionality
 
 - [Why this structure is sufficient for the actual change. Justify material
-  complexity; exclude speculative abstractions and per-case duplication.]
+  complexity; exclude speculative abstractions and per-case duplication. Scale
+  scrutiny to failure consequences and reversibility, not change size. Among
+  otherwise suitable designs, prefer fewer new concepts and managed moving parts.]
 
 ** Design decisions and verification
 
 *** [Descriptive decision title; repeat for each important decision]
 
 - Decision :: [Important design decision the implementation must follow.]
+- Rationale :: [Why a non-obvious choice or deliberate complexity is necessary.
+  For an explicitly accepted compromise, include its consequence and revisit
+  trigger. Omit this field for self-evident choices.]
 - Verification :: [Link to traced behavioural tests, or state an explicit
   implementation-review check where the decision is structural. Do not invent
-  source-text tests or duplicate the detailed test definitions.]
+  source-text tests or duplicate the detailed test definitions. Establish how
+  the design makes the required behaviour observable and volatile dependencies
+  controllable where needed; retain bounded OT/UT where that is the credible evidence.]
 
 ** Routine details left to implementation
 

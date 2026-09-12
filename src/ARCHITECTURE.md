@@ -23,6 +23,11 @@ responsibilities and behaviour, not the fewest lines or the least design thought
   shared responsibility.
 - Apply proportionality to production code, tests, configuration and supporting
   documentation. Simplicity never excuses omitted requirements or safeguards.
+- Scale design scrutiny to the consequences of failure and difficulty of
+  reversal, not file or line count. Small changes to persisted formats, public
+  contracts or authorization may require substantial care.
+- Among designs meeting the requirements and standards, prefer fewer new
+  concepts, then fewer independently managed moving parts, not fewer lines.
 
 ## Responsibilities, reuse and boundaries
 
@@ -48,6 +53,11 @@ separate operation; the design should explain that distinction.
 
 - Identify who owns state, its lifetime and source of truth, and the boundaries
   at which it is validated, persisted or transferred.
+- When changing existing contracts or stores, describe the transition and
+  intended end state, compatibility and recovery constraints, and the retirement
+  condition for temporary paths. Planned coexistence is legitimate; unexplained
+  parallel old/new paths are not. Apply the compatibility rules in
+  `~/.agents/sdlc/CODING.md` and relevant technology standards.
 - Define material failure outcomes and recovery. Address atomicity, repetition,
   concurrency and resource bounds where the operation requires them, rather
   than adding every reliability mechanism by default.
@@ -71,6 +81,12 @@ clarifies a decision. Do not prescribe every function, filename or statement.
 Identify routine details deliberately left open; do not leave significant
 design choices disguised as "implementation details".
 
+Record a short rationale beside each non-obvious decision, especially deliberate
+complexity. If a compromise is explicitly accepted, record its consequence and
+revisit trigger there; this does not waive mandatory standards or grant approval.
+Keep these records in the existing specification or project architecture, not a
+parallel decision system. Maintain affected authorities under DOCUMENTATION.md.
+
 Require enough detail to explain the chosen solution, not enough machinery to
 populate every heading. Omit irrelevant solution-design subsections; retain
 mandatory security impact. Do not invent decisions, abstractions or tests to
@@ -84,6 +100,11 @@ For each important design decision, identify appropriate verification:
 - Do not manufacture product requirements or source-text tests merely to verify
   an internal structure. Passing behavioural tests alone does not prove design
   conformance.
+- Establish during definition that the proposed tests can observe the required
+  behaviour. Identify necessary control of volatile dependencies under CODING.md
+  and TESTING.md; do not invent a mock framework or undocumented third-party
+  simulation. Where only live or human evidence is credible, define a bounded
+  OT or UT rather than requiring every check to run offline.
 
 ## Delivery and review
 

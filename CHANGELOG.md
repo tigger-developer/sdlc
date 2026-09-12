@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## v3.2.25 - 2026-09-12
+
+- Scale architecture scrutiny to risk and reversibility; preserve rationale for
+  non-obvious decisions and accepted compromises within existing records.
+- Check testability during definition and require applicable transition/end-state
+  plans without banning justified coexistence or credible one-off/user tests.
+- Prefer fewer new concepts and managed moving parts among suitable designs.
+  Update definition-audit prompts and advance the spec template to schema 5.
+
 ## v3.2.24 - 2026-09-12
 
 - Make definition audits explicitly assess scope expansion, over-engineering and

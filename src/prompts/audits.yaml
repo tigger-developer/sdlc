@@ -56,6 +56,14 @@ gates:
       solution meets the same requirements and mandatory standards, assess the justification for added
       complexity. Identify the concrete unnecessary mechanism, not a stylistic preference. Omitted irrelevant
       design subsections are not defects; mandatory security impact remains required.
+      Scale scrutiny to failure consequences and reversibility, not change size. Check rationale for
+      non-obvious decisions and the consequences and revisit triggers of explicitly accepted compromises.
+      For changed contracts or stores, check the transition, intended end state, compatibility/recovery
+      constraints and retirement conditions for temporary paths; do not prohibit justified coexistence.
+      Verify that the design makes the planned tests feasible and required behaviour observable. Do not
+      demand invented third-party simulations or offline automation where bounded OT/UT is appropriate.
+      Among otherwise suitable designs, prefer fewer new concepts and independently managed moving parts;
+      this tie-breaker does not authorize replacing a justified approved design.
       A blocking finding must identify a violated requirement, approved decision or applicable standard,
       or a concrete correctness or security defect. Optional improvements and hypothetical future needs
       are not grounds for FAIL or authority to expand scope.

@@ -2,6 +2,13 @@
 
 ## Resolve structure before delegating implementation
 
+Review shared standards as a framework, not isolated documents. Existing coding,
+testing and documentation rules need design-stage application rather than copies
+in every standard. Useful refinements are risk-based scrutiny, persistent rationale,
+feasible verification and explicit transitions. A small change can be hard to
+reverse; justified compatibility paths and bounded live tests are not failures
+of simplicity.
+
 Design detail should expose unnecessary complexity, not require it. Template
 headings are prompts for relevant decisions, not a quota of components or prose.
 Review for both unresolved significant decisions and mechanisms without a present
