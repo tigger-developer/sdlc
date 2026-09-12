@@ -880,6 +880,21 @@ using a pinned Nixpkgs input or a documented Debian/Ubuntu package or source
 where available. This preserves the no-casual-Node/npm rule while making the
 chosen checks reproducible.
 
+## Model selection is not an execution role
+
+An inexpensive audit-configured model can also be appropriate for bulk ticket
+migration. Reusing its configuration must not import the auditor's read-only
+permissions, session lifecycle or verdict protocol. The initializer invokes a
+writing migration directly, while AC conversion and repair use the definition
+profile for requirements-preserving work. Deterministic parsing remains the
+admission boundary: valid ledgers need no model, and a repair must pass the same
+validator before consolidation.
+
+Regression tests belong at that invocation boundary, using local command
+doubles for task selection, arguments, failure propagation and resume. They do
+not establish native authentication or the model's migration quality, and must
+not turn repeated test runs into metered migration attempts.
+
 ## Licence
 
 Apache License 2.0. See [`LICENSE`](LICENSE).

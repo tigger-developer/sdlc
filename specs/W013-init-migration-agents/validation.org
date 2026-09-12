@@ -1,0 +1,21 @@
+#+TITLE: W013 - Migration-agent validation
+#+STARTUP: overview
+
+* 2026-09-12 - Local regression evidence
+- RED :: Both new coordinator tests failed with the existing Hermes refusal;
+  the native command was never reached.
+- GREEN :: =go test ./internal/projectinit -count=1= passed after implementation.
+- Static checks :: =go vet ./internal/projectinit= passed. =cmd/sdlc-init= built
+  into the disposable verification directory without installing it.
+- Scope :: Local temporary projects and command doubles only; no metered API,
+  real ticket migration, client-project mutation or installation.
+- Repair :: Existing canonical skip and invalid-output rejection tests passed;
+  updated repair test uses a definition model distinct from the audit model.
+- Resume :: Full v1 initialization test now fails its first migration launch,
+  resumes the same migration, and verifies consolidated requirements and archive.
+- Fixture maintenance :: Updated the v2 classification double to emit Hermes'
+  native =session_id:= on stderr, matching the existing adapter contract.
+
+* Native integration
+- Operator migration retry after installation is not yet observed. These local
+  results do not establish model compliance, authentication or migration quality.

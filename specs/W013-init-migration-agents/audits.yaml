@@ -1,0 +1,187 @@
+version: 1
+audits:
+    - work_item: W013-init-migration-agents
+      gate: implementation
+      session_id: 20260912_215032_acbcc7
+      harness: hermes
+      provider: nous
+      model: z-ai/glm-5.3
+      configured:
+        harness: hermes
+        provider: nous
+        model: z-ai/glm-5.3
+      external_round: 1
+      status: passed
+      updated: "2026-09-12T20:51:07Z"
+      revision: working tree per evidence manifest, 2026-09-12 (projectinit.go 41ff75bd)
+      verdict: PASS
+      response: |-
+        GATE: implementation
+        REVISION: working tree per evidence manifest, 2026-09-12 (projectinit.go 41ff75bd)
+
+        VERDICT: PASS
+
+        Reviewed implemented tests first, then production code, against the W013 spec, operator-authorized emergency scope, and CODING/TESTING/GO standards.
+
+        Tests (migration_agent_test.go, plus named tests in projectinit_v3_test.go):
+        - RT013.1 implemented and behavioural: exercises the real prepareLegacyProject coordinator with command doubles, asserts Hermes ticket migration (audit profile, model+provider) precedes Codex AC conversion (definition profile), with exact CLI arguments, cwd, stdin prompt, and provider applicability. Distinct models prove the profiles are selected independently.
+        - RT013.2: failed ticket migration propagates the original error (errors.Is) and makes exactly one call; no conversion launched.
+        - RT013.3: Claude receives --print/--permission-mode acceptEdits/--model with no provider and no read-only flags; missing Hermes provider fails before any process launch (calls == 0 asserted); unsupported harness handoff covered by TestW004UnsupportedMutationAdapterReturnsExactHandoff, including recovery-record pointers and no process launch.
+        - RT013.4: repair tests cover canonical skip (no agent), single bounded repair invocation with the definition model, prompt carrying template path and the actual validation error, deterministic revalidation, and fail-closed rejection of invalid repair. TestRunMigratesV1ThroughTicketSkillBeforeCreatingProfile covers launch failure, resume offering ticket migration again (ticket-migration.org absent), single consolidation, and archive-branch preservation. Canonical ledger merges without an agent (deterministic MergeLegacyAcceptanceCriteria path retained).
+        - No metered service enters the suite (localOnlyTestRunner guards Codex); the stale Hermes classification double now emits session_id on stderr, matching the native adapter contract.
+        - validation.org records RED (Hermes refusal before any native command) and GREEN with scope limits; no audit findings, verdicts, or session identity duplicated into spec or validation records.
+
+        Production code:
+        - runConfiguredMutationSkill implements exactly the specified invocation contracts for codex/hermes/claude, prompt delivered literally via stdin (no shell interpolation; exec.Command with argument slice), project-local cwd, Hermes-only provider consumption with pre-launch validation, and the existing actionable handoff for unsupported harnesses. Routing prefixes (SDLC_AUDIT for ticket migration, SDLC_SPEC for conversion/repair) match the operator agreement; the comment correctly documents these as writing migrations, never audit invocations.
+        - prepareLegacyProject stops on first failure with wrapped errors preserving causes; repairLegacyLedgerIfRequired revalidates after the agent and fails closed.
+        - The resume path re-offers optional v1 ticket migration when the migration index is absent (chooseTicketMigration runs for resumed v1 sources), matching AC013.3.
+        - Security: no widened access, no permission bypasses, no secrets in output, no new dependencies; changes are confined to the authorized areas.
+
+        No findings requiring remediation. Bounded follow-up (does not affect sign-off): the operator's post-installation retry on the blocked project remains the live native integration check, as validation.org already records.
+      history:
+        - cache_key: sha256:2825aa04be48f56054ddc3a7c4577454b874c53fb0066ca7aff224fbe57d8825
+          session_id: 20260912_215032_acbcc7
+          harness: hermes
+          provider: nous
+          model: z-ai/glm-5.3
+          evidence:
+            - path: /Users/tigger/code/agents/sdlc/.sdlc/project.yaml
+              sha256: 7435fbc30502a8a150bf976a612f9355ec4fafad508f66042eaeddd0a70de02d
+              bytes: 307
+            - path: /Users/tigger/code/agents/sdlc/internal/projectinit/migration_agent_test.go
+              sha256: 6ab461e6acb70e86b47d7135d6b8ba65a401ac8ad1d3e6ff46ab35d0ecac060a
+              bytes: 4315
+            - path: /Users/tigger/code/agents/sdlc/internal/projectinit/projectinit.go
+              sha256: 41ff75bd55f44dc3b5245cf6099619b3c690250026ce4915a4c17426a1495d1f
+              bytes: 52832
+            - path: /Users/tigger/code/agents/sdlc/internal/projectinit/projectinit_v3_test.go
+              sha256: f7c05871515c266f5c44b3f970cb10de7ef38574cbd9f67aae415f7b41207ea4
+              bytes: 57001
+            - path: /Users/tigger/code/agents/sdlc/specs/W013-init-migration-agents/spec.org
+              sha256: 91cb43f7b4ec693ee275cb0a292e9c73db01cc99792d62a973028fef0780aea9
+              bytes: 7745
+            - path: /Users/tigger/code/agents/sdlc/specs/W013-init-migration-agents/validation.org
+              sha256: abe192f2e1ec95f9adbd113e6e68cf924240273b888eb07ab23d189d33b906e7
+              bytes: 1099
+            - path: /Users/tigger/code/agents/sdlc/src/CODING.md
+              sha256: f2a2511d89cbf407f0d96dc3845ee66264eb40eb18d638716475936f1fa9b723
+              bytes: 13368
+            - path: /Users/tigger/code/agents/sdlc/src/TESTING.md
+              sha256: 5ed902d49dbb8321ea093fd60db68d5195e59c95c763c02e4ca0c09f6fa1e932
+              bytes: 13561
+            - path: /Users/tigger/code/agents/sdlc/src/technologies/GO.md
+              sha256: 63a41c24322b2c4144367b69777528b023a30222593c462b0696df98b1967917
+              bytes: 7301
+          round: 1
+          revision: working tree per evidence manifest, 2026-09-12 (projectinit.go 41ff75bd)
+          verdict: PASS
+          response: |-
+            GATE: implementation
+            REVISION: working tree per evidence manifest, 2026-09-12 (projectinit.go 41ff75bd)
+
+            VERDICT: PASS
+
+            Reviewed implemented tests first, then production code, against the W013 spec, operator-authorized emergency scope, and CODING/TESTING/GO standards.
+
+            Tests (migration_agent_test.go, plus named tests in projectinit_v3_test.go):
+            - RT013.1 implemented and behavioural: exercises the real prepareLegacyProject coordinator with command doubles, asserts Hermes ticket migration (audit profile, model+provider) precedes Codex AC conversion (definition profile), with exact CLI arguments, cwd, stdin prompt, and provider applicability. Distinct models prove the profiles are selected independently.
+            - RT013.2: failed ticket migration propagates the original error (errors.Is) and makes exactly one call; no conversion launched.
+            - RT013.3: Claude receives --print/--permission-mode acceptEdits/--model with no provider and no read-only flags; missing Hermes provider fails before any process launch (calls == 0 asserted); unsupported harness handoff covered by TestW004UnsupportedMutationAdapterReturnsExactHandoff, including recovery-record pointers and no process launch.
+            - RT013.4: repair tests cover canonical skip (no agent), single bounded repair invocation with the definition model, prompt carrying template path and the actual validation error, deterministic revalidation, and fail-closed rejection of invalid repair. TestRunMigratesV1ThroughTicketSkillBeforeCreatingProfile covers launch failure, resume offering ticket migration again (ticket-migration.org absent), single consolidation, and archive-branch preservation. Canonical ledger merges without an agent (deterministic MergeLegacyAcceptanceCriteria path retained).
+            - No metered service enters the suite (localOnlyTestRunner guards Codex); the stale Hermes classification double now emits session_id on stderr, matching the native adapter contract.
+            - validation.org records RED (Hermes refusal before any native command) and GREEN with scope limits; no audit findings, verdicts, or session identity duplicated into spec or validation records.
+
+            Production code:
+            - runConfiguredMutationSkill implements exactly the specified invocation contracts for codex/hermes/claude, prompt delivered literally via stdin (no shell interpolation; exec.Command with argument slice), project-local cwd, Hermes-only provider consumption with pre-launch validation, and the existing actionable handoff for unsupported harnesses. Routing prefixes (SDLC_AUDIT for ticket migration, SDLC_SPEC for conversion/repair) match the operator agreement; the comment correctly documents these as writing migrations, never audit invocations.
+            - prepareLegacyProject stops on first failure with wrapped errors preserving causes; repairLegacyLedgerIfRequired revalidates after the agent and fails closed.
+            - The resume path re-offers optional v1 ticket migration when the migration index is absent (chooseTicketMigration runs for resumed v1 sources), matching AC013.3.
+            - Security: no widened access, no permission bypasses, no secrets in output, no new dependencies; changes are confined to the authorized areas.
+
+            No findings requiring remediation. Bounded follow-up (does not affect sign-off): the operator's post-installation retry on the blocked project remains the live native integration check, as validation.org already records.
+          updated: "2026-09-12T20:50:32Z"
+    - work_item: W013-init-migration-agents
+      gate: definition
+      session_id: "20260912_215150_117060"
+      harness: hermes
+      provider: nous
+      model: z-ai/glm-5.3
+      configured:
+        harness: hermes
+        provider: nous
+        model: z-ai/glm-5.3
+      external_round: 1
+      status: passed
+      updated: "2026-09-12T20:52:33Z"
+      revision: specs/W013-init-migration-agents/spec.org @ 91cb43f7b4ec693ee275cb0a292e9c73db01cc99792d62a973028fef0780aea9
+      verdict: PASS
+      response: |-
+        GATE: definition
+        REVISION: specs/W013-init-migration-agents/spec.org @ 91cb43f7b4ec693ee275cb0a292e9c73db01cc99792d62a973028fef0780aea9
+
+        VERDICT: PASS
+
+        Findings: none requiring remediation.
+
+        Verified against the recorded operator intent and evidence:
+
+        - Intent fidelity. The spec matches the authorized emergency scope exactly: ticket migration selects delivery.audit (SDLC_AUDIT) as a model profile but invokes the native CLI directly through runConfiguredMutationSkill, never sdlc-harness; AC conversion and repair select SDLC_SPEC (delivery.definition); canonical ledger merge stays deterministic via renderLegacyLedgerBlock with no agent; repair is one-shot and revalidated. Copilot/unsupported adapters retain the manual handoff. No audit session, round budget, or timeout is attached. No client-project migration or native result is claimed anywhere in spec.org or validation.org.
+        - Traceability. AC013.1/2/3 each link to defined RTs; RT013.1-4 each map back to ACs with boundary, action, and observable expectations. RT013.1-3 are implemented in migration_agent_test.go with exact CLI-argument assertions (reflect.DeepEqual on argv, stdin prompt, cwd) — behavioural boundary evidence, not source grep. RT013.4 correctly delegates to the existing repair/resume regression boundary by reference, which is traceable without duplicating contracts.
+        - Design accuracy. The Invocation contract (Codex exec --ephemeral --sandbox workspace-write; Hermes chat with mandatory provider; Claude --print --permission-mode acceptEdits; omitted model preserving native default; native errors stopping before downstream work) matches the implementation exactly. Security impact correctly states no tools are disabled, no shell interpolates the prompt, and no new sandbox is claimed for Hermes/Claude.
+        - Test classification and TDD. All tests are RTs with local command doubles and explicit retention ("no metered service enters the test suite"), consistent with TESTING.md's prohibition on metered checks in regression suites. RED-before-code is recorded in validation.org. The absence of UT/OT definitions is consistent with the declared scope; model task quality and the operator's post-install retry are explicitly excluded from this change's claims.
+        - Compliance checks. No annotation records or blocks in spec.org (the empty folded hands-off log contains no fictional record). No audit findings, verdicts, revisions, or session identity duplicated in spec.org, validation.org, or other supplied artefacts; OPERATOR_SIGNOFF records authority, date, and scope as permitted. README and ARCHITECTURE.md describe the same routing with no contradictions found.
+      history:
+        - cache_key: sha256:a281979909bc1cf2d12d1e223b0b93890765bd55e6f2bb588268adb42e471ae4
+          session_id: "20260912_215150_117060"
+          harness: hermes
+          provider: nous
+          model: z-ai/glm-5.3
+          evidence:
+            - path: /Users/tigger/code/agents/sdlc/.sdlc/project.yaml
+              sha256: 7435fbc30502a8a150bf976a612f9355ec4fafad508f66042eaeddd0a70de02d
+              bytes: 307
+            - path: /Users/tigger/code/agents/sdlc/README.md
+              sha256: d7e259bdffa3ac065c7612ea06b38102df3369790ffaaa3419526daeded81972
+              bytes: 17857
+            - path: /Users/tigger/code/agents/sdlc/docs/ARCHITECTURE.md
+              sha256: 16b6749860b60bb05b8d099f0634a9a405f2f5529a9dec106b6dd7185cd96b2a
+              bytes: 14038
+            - path: /Users/tigger/code/agents/sdlc/internal/projectinit/migration_agent_test.go
+              sha256: 6ab461e6acb70e86b47d7135d6b8ba65a401ac8ad1d3e6ff46ab35d0ecac060a
+              bytes: 4315
+            - path: /Users/tigger/code/agents/sdlc/internal/projectinit/projectinit.go
+              sha256: 41ff75bd55f44dc3b5245cf6099619b3c690250026ce4915a4c17426a1495d1f
+              bytes: 52832
+            - path: /Users/tigger/code/agents/sdlc/specs/W013-init-migration-agents/spec.org
+              sha256: 91cb43f7b4ec693ee275cb0a292e9c73db01cc99792d62a973028fef0780aea9
+              bytes: 7745
+            - path: /Users/tigger/code/agents/sdlc/specs/W013-init-migration-agents/validation.org
+              sha256: eda0da53ed12ffc1b7cc364eb8491128855a501e5ee0ae2551196059f9f6a0cd
+              bytes: 1248
+            - path: /Users/tigger/code/agents/sdlc/src/ISSUES.md
+              sha256: 8545a6297e21423a9ed1797bc3b6f90ac4425600606ae20152252d2da3c0cc42
+              bytes: 16332
+            - path: /Users/tigger/code/agents/sdlc/src/TESTING.md
+              sha256: 5ed902d49dbb8321ea093fd60db68d5195e59c95c763c02e4ca0c09f6fa1e932
+              bytes: 13561
+            - path: /Users/tigger/code/agents/sdlc/src/templates/v3/spec.org
+              sha256: e892d9da13150307ae4f3ad2f6df2692a521670a4ea06fbf36fc74be5f89e563
+              bytes: 15554
+          round: 1
+          revision: specs/W013-init-migration-agents/spec.org @ 91cb43f7b4ec693ee275cb0a292e9c73db01cc99792d62a973028fef0780aea9
+          verdict: PASS
+          response: |-
+            GATE: definition
+            REVISION: specs/W013-init-migration-agents/spec.org @ 91cb43f7b4ec693ee275cb0a292e9c73db01cc99792d62a973028fef0780aea9
+
+            VERDICT: PASS
+
+            Findings: none requiring remediation.
+
+            Verified against the recorded operator intent and evidence:
+
+            - Intent fidelity. The spec matches the authorized emergency scope exactly: ticket migration selects delivery.audit (SDLC_AUDIT) as a model profile but invokes the native CLI directly through runConfiguredMutationSkill, never sdlc-harness; AC conversion and repair select SDLC_SPEC (delivery.definition); canonical ledger merge stays deterministic via renderLegacyLedgerBlock with no agent; repair is one-shot and revalidated. Copilot/unsupported adapters retain the manual handoff. No audit session, round budget, or timeout is attached. No client-project migration or native result is claimed anywhere in spec.org or validation.org.
+            - Traceability. AC013.1/2/3 each link to defined RTs; RT013.1-4 each map back to ACs with boundary, action, and observable expectations. RT013.1-3 are implemented in migration_agent_test.go with exact CLI-argument assertions (reflect.DeepEqual on argv, stdin prompt, cwd) — behavioural boundary evidence, not source grep. RT013.4 correctly delegates to the existing repair/resume regression boundary by reference, which is traceable without duplicating contracts.
+            - Design accuracy. The Invocation contract (Codex exec --ephemeral --sandbox workspace-write; Hermes chat with mandatory provider; Claude --print --permission-mode acceptEdits; omitted model preserving native default; native errors stopping before downstream work) matches the implementation exactly. Security impact correctly states no tools are disabled, no shell interpolates the prompt, and no new sandbox is claimed for Hermes/Claude.
+            - Test classification and TDD. All tests are RTs with local command doubles and explicit retention ("no metered service enters the test suite"), consistent with TESTING.md's prohibition on metered checks in regression suites. RED-before-code is recorded in validation.org. The absence of UT/OT definitions is consistent with the declared scope; model task quality and the operator's post-install retry are explicitly excluded from this change's claims.
+            - Compliance checks. No annotation records or blocks in spec.org (the empty folded hands-off log contains no fictional record). No audit findings, verdicts, revisions, or session identity duplicated in spec.org, validation.org, or other supplied artefacts; OPERATOR_SIGNOFF records authority, date, and scope as permitted. README and ARCHITECTURE.md describe the same routing with no contradictions found.
+          updated: "2026-09-12T20:51:50Z"

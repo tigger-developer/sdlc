@@ -333,11 +333,20 @@ archives the old
 implementation plan, and closes tickets only after durable evidence is
 committed.
 
+The initializer selects `delivery.audit` for **bulk ticket migration**, but
+invokes the configured CLI directly as a **writing migration agent**, not through
+`sdlc-harness`. **AC conversion and repair** use `delivery.definition` instead.
+Codex, Hermes and Claude have direct migration adapters; other selections retain
+an explicit manual handoff. Only Hermes consumes the configured provider.
+Native command policies and installed hooks remain enabled. A failed launch
+stops initialization; rerun `sdlc-init` to resume and, if the ticket migration
+index is still absent, choose the migration again.
+
 `sdlc-init` then validates that intermediate ledger against the
 canonical Org structure and folds it into `docs/work.org` before importing
 unresolved legacy work or archived Spec Kit specifications. If deterministic
 validation cannot safely interpret the ledger, the initializer invokes one
-headless Codex repair using the configured audit model and validates the result
+repair using the configured definition agent and validates the result
 before continuing. An unsuccessful repair stops initialization without merging
 or deleting the source. The AC disposition becomes its headline state and the
 redundant Status field is removed. After the embedded copy is verified, the

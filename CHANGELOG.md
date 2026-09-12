@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## v3.2.21 - 2026-09-12
+
+- Invoke ticket migration directly with the audit-configured agent as a writer,
+  not an auditor. Support Codex, Hermes and Claude without disabling native
+  command policies; other adapters retain manual handoff.
+- Route AC conversion and repair through the definition-configured agent while
+  preserving deterministic validation and canonical-ledger consolidation.
+- Offer an unperformed ticket migration again after an interrupted initializer
+  resumes. Verify routing, failures and resume using local regression doubles.
+
 ## v3.2.20 - 2026-09-12
 
 - Define batch annotation review: preserve dispositions and revision trace in

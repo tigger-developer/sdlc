@@ -78,6 +78,16 @@ classification; it is provenance, not current state.
 
 * Work items
 
+** REVIEW W013 - Route initializer writing agents by task :defect:
+:PROPERTIES:
+:CUSTOM_ID: w-013
+:PRIORITY: P1
+:SOURCE: operator BYPASS-GATE-7
+:CREATED: 2026-09-12
+:END:
+
+- *Specification:* [[file:../specs/W013-init-migration-agents/spec.org][W013 - Initializer migration agents]]
+
 ** ACTIVE W012 - Recover audit sessions and authentication failures :defect:
 :PROPERTIES:
 :CUSTOM_ID: w-012

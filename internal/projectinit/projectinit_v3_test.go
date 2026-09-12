@@ -817,8 +817,15 @@ func TestRunMigratesV1ThroughTicketSkillBeforeCreatingProfile(t *testing.T) {
 		}
 		if name == "codex" {
 			skillCalls++
-			if !strings.Contains(strings.Join(arguments, " "), "migrate-legacy-acs-to-sdlc-v1") {
+			prompt, err := io.ReadAll(input)
+			if err != nil {
+				return err
+			}
+			if !strings.Contains(string(prompt), "migrate-legacy-acs-to-sdlc-v1") {
 				return fmt.Errorf("unexpected skill invocation: %v", arguments)
+			}
+			if skillCalls == 1 {
+				return errors.New("migration launch failed")
 			}
 			writeProjectTestFile(t, filepath.Join(project, "docs", "ACs.org"), canonicalLegacyLedger("*** AC7.1 - Existing result\n\n**** Status\n\nHOLDING\n"))
 			writeProjectTestFile(t, filepath.Join(project, "docs", "ticket-migration.org"), "#+TITLE: Ticket Migration\n")
@@ -841,11 +848,15 @@ func TestRunMigratesV1ThroughTicketSkillBeforeCreatingProfile(t *testing.T) {
 		Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{}, RunCommand: runner,
 		Now: func() time.Time { return time.Date(2026, 9, 6, 0, 0, 0, 0, time.UTC) },
 	}
+	if err := Run(options); err == nil || !strings.Contains(err.Error(), "migration launch failed") {
+		t.Fatalf("first migration error = %v", err)
+	}
+	options.Input = strings.NewReader("yes\nn\n")
 	if err := Run(options); err != nil {
 		t.Fatal(err)
 	}
-	if skillCalls != 1 {
-		t.Fatalf("legacy migration skill calls = %d, want 1", skillCalls)
+	if skillCalls != 2 {
+		t.Fatalf("legacy migration skill calls = %d, want failed launch then retry", skillCalls)
 	}
 	if exists(filepath.Join(project, "docs", "ACs.org")) || exists(filepath.Join(project, "docs", "ACs.md")) {
 		t.Fatal("separate legacy AC ledger remains after consolidation")
@@ -1053,7 +1064,7 @@ warnings: []`
 					payload, _ := json.Marshal(map[string]string{"type": "assistant.message", "content": response})
 					_, _ = fmt.Fprintln(output, string(payload))
 				case "hermes":
-					_, _ = fmt.Fprintln(output, "SESSION_ID: native-session")
+					_, _ = fmt.Fprintln(errorOutput, "session_id: native-session")
 					_, _ = fmt.Fprintln(output, response)
 				}
 				return nil
@@ -1078,11 +1089,11 @@ func TestW004UnsupportedMutationAdapterReturnsExactHandoff(t *testing.T) {
 		t.Fatal("handoff attempted a harness call")
 		return nil
 	}}
-	err := runConfiguredMutationSkill(options, "/project", map[string]string{"SDLC_AUDIT_HARNESS": "claude"}, "migration-skill", "prompt")
+	err := runConfiguredMutationSkill(options, "/project", map[string]string{"SDLC_AUDIT_HARNESS": "unsupported"}, "SDLC_AUDIT", "migration-skill", "prompt")
 	if err == nil {
 		t.Fatal("unsupported mutation adapter succeeded")
 	}
-	for _, expected := range []string{"Harness: claude", "Project: /project", "Skill: $migration-skill", "Recovery record: .sdlc/.init", "Resume command: sdlc-init"} {
+	for _, expected := range []string{"Harness: unsupported", "Project: /project", "Skill: $migration-skill", "Recovery record: .sdlc/.init", "Resume command: sdlc-init"} {
 		if !strings.Contains(output.String(), expected) {
 			t.Fatalf("handoff lacks %q:\n%s", expected, output.String())
 		}
@@ -1212,7 +1223,7 @@ func TestRepairLegacyLedgerInvokesOneBoundedAgentAndRevalidates(t *testing.T) {
 			if name != "codex" || directory != project {
 				t.Fatalf("repair command = %s in %s", name, directory)
 			}
-			for _, want := range []string{"exec", "--ephemeral", "--sandbox", "workspace-write", "--model", "gpt-5.6-luna", "-"} {
+			for _, want := range []string{"exec", "--ephemeral", "--sandbox", "workspace-write", "--model", "definition-model", "-"} {
 				if !containsArgument(arguments, want) {
 					t.Fatalf("repair arguments lack %q: %#v", want, arguments)
 				}
@@ -1229,7 +1240,7 @@ func TestRepairLegacyLedgerInvokesOneBoundedAgentAndRevalidates(t *testing.T) {
 			writeProjectTestFile(t, ledgerPath, canonicalLegacyLedger("*** AC7.1 - Existing result\n\n**** Status\n\nHOLD\n"))
 			return nil
 		},
-	}, testSDLCRoot(t), project, map[string]string{"SDLC_AUDIT_HARNESS": "codex", "SDLC_AUDIT_MODEL": "gpt-5.6-luna"})
+	}, testSDLCRoot(t), project, map[string]string{"SDLC_SPEC_HARNESS": "codex", "SDLC_SPEC_MODEL": "definition-model", "SDLC_AUDIT_HARNESS": "hermes", "SDLC_AUDIT_MODEL": "bulk-model"})
 	if err != nil {
 		t.Fatal(err)
 	}

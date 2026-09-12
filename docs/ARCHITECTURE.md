@@ -181,6 +181,17 @@ re-enables those questions.
   top-level Status field because `docs/work.org` is now its sole lifecycle
   authority.
 
+Writing migrations use direct native CLI invocations, separate from the
+read-only audit runner. Bulk ticket migration selects the `delivery.audit`
+harness/provider/model; AC conversion and repair select `delivery.definition`.
+Codex runs with workspace-write, Hermes with normal tools, and Claude with
+acceptEdits; native command checks and hooks remain active. Provider applies
+only to Hermes. Other harnesses retain the manual handoff. Native failures stop
+the initializer, which offers ticket migration again on resume when its index
+is absent. Canonical AC ledgers require no agent; a repair must pass the same
+deterministic validator before consolidation. No audit session, round budget or
+audit timeout is attached to a writing migration.
+
 After migration, the initializer derives stable authorities from the bounded
 Git file inventory. It presents Markdown and Org files whose stems contain
 README, VISION, or ARCHITECTURE as multi-select product or architecture

@@ -1,0 +1,162 @@
+#+TITLE: W013 - Route initializer writing agents by task
+#+SCHEMA: 2
+#+SUBTITLE: Emergency migration routing repair
+#+STARTUP: overview
+#+OPTIONS: toc:2 num:nil
+#+OPERATOR_SIGNOFF: BYPASS-GATE-7 implementation authorized by operator, 2026-09-12; closure pending
+
+* Synopsis
+:PROPERTIES:
+:CUSTOM_ID: summary
+:END:
+
+** Outcome
+- The initializer invokes the configured *writing agent* for each migration task.
+** Before
+- *Ticket migration* and *AC conversion* both selected the audit settings and
+  rejected every harness except *Codex*.
+- *AC repair* also selected the audit settings; a failed launch could leave
+  *resume* skipping ticket migration.
+** After
+- *Ticket migration* uses =delivery.audit= as a model-selection profile, not an
+  audit role. *AC conversion and repair* use =delivery.definition=.
+- *Codex, Hermes and Claude* run directly with editing tools available and
+  their native command policies retained. *Copilot* retains a manual handoff.
+- A *canonical ledger* still merges deterministically, without an agent.
+** Changes
+- Separate configuration selection from invocation role; keep prompts literal,
+  project-local execution, and repair revalidation.
+** Unchanged
+- No *audit harness*, config schema, global configuration, client project,
+  deployment or ticket-classification rules change.
+** Edge cases
+- A *failed agent* stops migration; *invalid repair* never enters the work ledger.
+- *Missing Hermes provider* fails before launch; unsupported adapters give a
+  handoff. Resume offers ticket migration if its existing index is absent.
+** Decisions
+- Use the audit profile for *bulk processing*, the definition profile for
+  *requirements preservation*, and no agent for a *valid Org merge*.
+** Next step
+- Review the emergency change, release it, then operator installation and migration.
+
+-----
+
+* Context
+- Problem :: The initializer rejected Hermes before launch with a Codex-only
+  project-write check. This prevented the authorized ticket migration.
+- Authority :: Operator's explicit routing agreement and =BYPASS-GATE-7=.
+- Architecture :: [[file:../../docs/ARCHITECTURE.md][Initializer architecture]].
+- Profile :: [[file:../../.sdlc/project.yaml][Project configuration]].
+- Scope :: Direct writing-agent dispatch and retry of a launch that never ran.
+- Exclusions :: Audit execution, v2 read-only classification, native permission
+  enforcement design, migration semantics, authentication fallback and deployment.
+
+* Acceptance Criteria
+** AC013.1 - Task-specific writing agents
+:PROPERTIES:
+:CUSTOM_ID: ac-013-1
+:END:
+- Criterion :: Given configured agent profiles, *ticket migration* uses the
+  audit profile and *AC conversion or repair* uses the definition profile;
+  neither is executed as an audit.
+- Proven by :: [[#rt-013-1][RT013.1]] and [[#rt-013-4][RT013.4]].
+** AC013.2 - Native invocation and error boundary
+:PROPERTIES:
+:CUSTOM_ID: ac-013-2
+:END:
+- Criterion :: A supported migration agent receives the *literal prompt*,
+  *selected model* and *project working directory*, with editing available.
+  Only Hermes consumes provider; failed launches stop before downstream work.
+- Proven by :: [[#rt-013-1][RT013.1]], [[#rt-013-2][RT013.2]] and [[#rt-013-3][RT013.3]].
+** AC013.3 - Deterministic admission and retry
+:PROPERTIES:
+:CUSTOM_ID: ac-013-3
+:END:
+- Criterion :: *Canonical ledgers* need no repair agent. Invalid repair output
+  is rejected. A launch failure does not make an unperformed ticket migration
+  disappear from the resumed initializer's available workflow.
+- Proven by :: [[#rt-013-4][RT013.4]].
+
+* Test Definitions
+** RT013.1 - Migration and conversion routing
+:PROPERTIES:
+:CUSTOM_ID: rt-013-1
+:END:
+- Covers :: [[#ac-013-1][AC013.1]], [[#ac-013-2][AC013.2]].
+- Boundary :: =prepareLegacyProject= with local command doubles and temp files.
+- Action :: Select Hermes/audit and Codex/definition with distinct models.
+- Expected :: Hermes ticket migration precedes Codex AC conversion; exact CLI
+  arguments, provider applicability, stdin prompt and cwd match the selected task.
+** RT013.2 - Failed migration
+:PROPERTIES:
+:CUSTOM_ID: rt-013-2
+:END:
+- Covers :: [[#ac-013-2][AC013.2]].
+- Action :: Native-command double returns an error during ticket migration.
+- Expected :: The original error survives wrapping; no conversion is launched.
+** RT013.3 - Native CLI contract
+:PROPERTIES:
+:CUSTOM_ID: rt-013-3
+:END:
+- Covers :: [[#ac-013-2][AC013.2]].
+- Action :: Invoke Claude with an irrelevant provider and a literal prompt;
+  invoke Hermes without a provider; invoke an unsupported harness.
+- Expected :: Claude receives print/acceptEdits and the model, without provider
+  or audit read-only flags. Missing Hermes provider launches nothing.
+  Unsupported adapters return the existing actionable manual handoff.
+** RT013.4 - Repair and interrupted initialization
+:PROPERTIES:
+:CUSTOM_ID: rt-013-4
+:END:
+- Covers :: [[#ac-013-1][AC013.1]], [[#ac-013-3][AC013.3]].
+- Boundary :: Existing repair and full initializer regression tests.
+- Action :: Exercise canonical, invalid and repaired Org; fail a migration
+  launch, then rerun initialization and accept migration again.
+- Expected :: Valid input skips agents; repair uses the definition profile,
+  gets its validation error and template, and must pass deterministic validation.
+  Retry consolidates the ACs once and preserves the original archive branch.
+- Retention :: All RTs use local doubles; no metered service enters the test suite.
+
+* Edge Cases
+- Existing =docs/ticket-migration.org= retains its prior skip behaviour. This
+  change does not certify partially written migration reports as complete.
+- Unsupported adapters retain manual handoff; no automatic provider fallback or
+  permission-bypass switches are added.
+
+* Solution Design
+** Architecture context
+- Keep the initializer's =RunCommand= seam for direct native invocations.
+  Do not use =sdlc-harness=, audit records, audit sessions or audit timeouts.
+** Invocation contract
+- Callers select =SDLC_AUDIT= for ticket migration, =SDLC_SPEC= for conversion
+  and repair. These are resolved schema keys, not new configuration.
+- Codex :: =exec --ephemeral --sandbox workspace-write --model MODEL -=.
+- Hermes :: =chat --query-file - --oneshot --in PROJECT --model MODEL --provider PROVIDER=.
+- Claude :: =--print --permission-mode acceptEdits --model MODEL=, prompt on stdin.
+- Omitted model :: Preserve the native harness default; production values are
+  resolved by the existing configuration schema.
+- Failure :: Return native errors; retain initialization state and source files.
+  Repair is invoked at most once per attempt and revalidated before merge.
+** Security impact
+- The operator authorizes *project migration writes*, not a read-only audit.
+  No shell interpolates the prompt, no tools are disabled, and no global config,
+  authentication store, hook or dangerous-command approval policy is changed.
+- Hermes and Claude retain native policies and skill-defined project scope;
+  this change does not claim a new filesystem sandbox for them.
+
+* Delivery Handoff
+:PROPERTIES:
+:CUSTOM_ID: delivery-handoff
+:END:
+- Authority :: Emergency implementation was explicitly authorized before this
+  retrospective record; the new routing RTs observed RED before code changes.
+- Evidence :: [[file:validation.org][Validation]]; harness-owned [[file:audits.yaml][audit record]].
+- Documentation :: README, architecture, changelog, learnings and decision log.
+- Deployment :: Operator runs =make install=; no client-project migration here.
+- Native validation :: Operator retry on the blocked project remains a live
+  integration check; local doubles establish routing, not model task quality.
+
+* Hands-off mode decision log
+:PROPERTIES:
+:VISIBILITY: folded
+:END:

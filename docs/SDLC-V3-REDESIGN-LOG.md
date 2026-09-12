@@ -643,3 +643,16 @@ without reconstructing the work from conversation history.
   Both instruction markers were absent from the native transcript; only Claude's
   internal structured-output tool was observed. Original-file allowlisting is
   still the next unqualified boundary, not a completed capability.
+
+## 2026-09-12 - W013 initializer migration-agent routing
+
+- Operator authorized `BYPASS-GATE-7` after the Upload initializer refused
+  Hermes for a writing migration. No Upload files are changed by this work.
+- Ticket migration selects `delivery.audit` only for harness/provider/model;
+  direct native execution is a writing migration, not an audit-harness call.
+- AC conversion and repair select `delivery.definition`. This supersedes the
+  earlier Codex-only/audit-model repair decision recorded above.
+- Valid Org consolidation remains deterministic. Repair output is revalidated;
+  failed launches stop, and rerunning init can offer unperformed migration again.
+- Installation remains with the operator. Local routing verification uses
+  temporary projects and command doubles, not metered regression tests.
