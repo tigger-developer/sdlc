@@ -19,7 +19,12 @@
 - Latest applicability check :: At 9979601, the native stderr identity path used by these probes is unchanged. The removed stdout-envelope branches were obsolete. The final local overlay matrix passed again on 2026-09-12, including native stderr identity and stdout warning separation; the metered probes were not repeated.
 - Bounds :: Synthetic evidence only, five Hermes completions plus the Claude recovery attempt, 60 seconds per attempt. No metered regression tests were added.
 * OT012.3 - Installation verification
-- Status :: PENDING.
+- Status :: PASS for operator-reported installation and independently verified deployed artefacts/configuration admission; no new live provider probe.
+- Tester :: Operator performed installation; Codex verified deployment on 2026-09-12.
+- Tested revision :: v3.2.18, 6b6eb00 - Record retrospective review and final verification applicability.
+- Environment :: Darwin 25.6.0 arm64; deployed internal harness; existing global YAML configuration.
+- Evidence :: Installed helper reports v3.2.18; global release is v3.2.18. Installed helper SHA-256 is 372c7bfd31601fcbbc060a77d4b1fdf02c756aacc7bb034c9f60737ff92105db, identical to the locally built binary. Installed audit prompt YAML and AUDITS.md also match their release sources byte-for-byte.
+- Evidence :: Installed help describes recovery, fallback and cached results. A bounded invocation using current global YAML passed configuration and prompt loading, then rejected deliberately absent evidence before provider launch. No metered operation ran. Prior local and native checks supply behavioural evidence for the identical implementation.
 - Bounds :: One authorized make install from this repository.
 - Authority update :: On 2026-09-12 the operator withdrew agent installation authority and elected to run make install personally. Release preparation does not establish deployed behaviour.
 * OT012.4 - Cache identity
