@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## v3.2.19 - 2026-09-12
+
+- Refresh the HTML-Preview submodule to upstream revision `8231df3`, including
+  document navigation, metadata presentation and Org folding refinements.
+- Record the distinction between local orchestration checks, native one-off
+  probes, independent audits and deployment verification.
+
 ## v3.2.18 - 2026-09-12
 
 - Recover recorded Claude sessions explicitly reported missing, and replace

@@ -1,5 +1,16 @@
 # SDLC Standards: Design Learnings
 
+## Verify each boundary without repeating the whole workflow
+
+Local provider doubles prove orchestration and cache behaviour, not native
+authentication, session continuity or model quality. Bounded native one-off
+tests establish those adapter behaviours; an independent audit assesses the
+change; deployed binary and prompt checks establish which version is installed.
+Keep these claims separate. Do not repeat metered reviews merely to satisfy a
+mechanical documentary condition, or turn native probes into regression-pack
+entries. Record the tested revision and carry evidence forward only when the
+relevant behaviour is demonstrably unchanged.
+
 ## Cache the audit contract, not just the primary file
 
 An unchanged spec can receive a different audit when its standards, supporting
