@@ -1,5 +1,15 @@
 # SDLC Standards: Design Learnings
 
+## Distinguish provider buffering from runner buffering
+
+A final-only provider format cannot emit progress before completion; a runner
+cannot flush bytes it has not received. Conversely, retaining an already received
+error until process exit, then discarding it on failure, hides the cause behind
+an exit status. Use a provider's streaming format where supported, decode events
+incrementally, and preserve bounded failure diagnostics separately from the final
+response. Heartbeats establish runner liveness, not provider progress or success.
+Test unsuccessful exits and unterminated records as well as successful output.
+
 ## Audit timing must match the delivery route
 
 Test definitions and implemented tests answer different questions. Definitions

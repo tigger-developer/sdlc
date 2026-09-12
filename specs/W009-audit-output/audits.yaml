@@ -1,0 +1,50 @@
+version: 1
+audits:
+    - work_item: W009-audit-output
+      gate: implementation
+      session_id: 3f4385f9-7203-4993-8d66-676323b1921e
+      harness: claude
+      external_round: 1
+      status: incident
+      updated: "2026-09-12T06:30:55Z"
+      history:
+        - incident: start-failed
+          evidence:
+            - path: /Users/tigger/code/agents/sdlc/.sdlc/project.yaml
+              sha256: 7435fbc30502a8a150bf976a612f9355ec4fafad508f66042eaeddd0a70de02d
+              bytes: 307
+            - path: /Users/tigger/code/agents/sdlc/docs/ARCHITECTURE.md
+              sha256: 356458b6cc0ee5ad2164c5c7b7c4de310020062fdb59714423afdc0bba054eb2
+              bytes: 11966
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/claude_output.go
+              sha256: 3e87cff5a1f1b11016969cb6a5c39cb92283ebc3dc98822e40e07ca73459a616
+              bytes: 1170
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/output_test.go
+              sha256: 67ad683c1e2a17c6ae77e246c277c54abed3e57038e98ae9d78dcefcd22f4c0e
+              bytes: 5989
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/runner.go
+              sha256: 71a7b709bef13289d34d70796cddb5fcc8eeb81472de73ac5e02125f32a41570
+              bytes: 13931
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/runner_test.go
+              sha256: 13d0a47984987a2bf80d248ee19748ecbc27a5ec716f53dda8179e8a0b6a826b
+              bytes: 12926
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/session_output.go
+              sha256: 7fd5f20c84a5437198ec9a960ac94a08a1321c5053f7c2b906c15761218f3e63
+              bytes: 5854
+            - path: /Users/tigger/code/agents/sdlc/specs/W009-audit-output/spec.org
+              sha256: f773cd1e934f88dc2155ca6964ae4e43e39edfe93647aa2380c81f4fb2b94ca7
+              bytes: 4722
+            - path: /Users/tigger/code/agents/sdlc/specs/W009-audit-output/validation.org
+              sha256: 6d1df34b379242d7fbd6d9200632c14946c8092b6b5f56983c492f650828981a
+              bytes: 810
+            - path: /Users/tigger/code/agents/sdlc/src/CODING.md
+              sha256: f2a2511d89cbf407f0d96dc3845ee66264eb40eb18d638716475936f1fa9b723
+              bytes: 13368
+            - path: /Users/tigger/code/agents/sdlc/src/TESTING.md
+              sha256: 5ed902d49dbb8321ea093fd60db68d5195e59c95c763c02e4ca0c09f6fa1e932
+              bytes: 13561
+            - path: /Users/tigger/code/agents/sdlc/src/technologies/GO.md
+              sha256: 63a41c24322b2c4144367b69777528b023a30222593c462b0696df98b1967917
+              bytes: 7301
+          round: 1
+          updated: "2026-09-12T06:30:53Z"

@@ -88,9 +88,23 @@ Output
 ======
 
 - **stderr:** provider progress, diagnostics, and `SESSION_ID`.
+- Provider stdout events are decoded as they arrive. Progress shows event types,
+  not prompts, reasoning or tool payloads; at most 200 event notices are shown.
+  Provider stderr remains live. Claude uses `stream-json --verbose` for both
+  start and resume; the other adapters retain their existing output modes.
+- Provider error fields are reported even on unsuccessful exits or timeout,
+  including a final record without a newline. Error text is bounded to 4 KiB
+  before terminal escaping. Plain-text startup failures retain their last line;
+  unknown structured payloads are not dumped.
+- Captured provider stdout is limited to 16 MiB. Exceeding it fails explicitly
+  with `output-limit`; it never yields a silently truncated verdict.
 - The harness also emits a liveness line at start and every 30 seconds while
   waiting; this is not provider progress or a verdict.
 - **stdout:** the provider's final response.
+- A progress event or final-result record is not success until the provider exits
+  successfully and evidence and response validation pass. Claude error envelopes
+  are rejected even if the provider exits zero. The runner cannot flush output
+  that the provider has not emitted; its existing deadline remains in force.
 
 Start example
 =============

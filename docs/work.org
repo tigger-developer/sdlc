@@ -78,6 +78,16 @@ classification; it is provenance, not current state.
 
 * Work items
 
+** BLOCKED W009 - Stream audit progress and preserve provider errors :defect:
+:PROPERTIES:
+:CUSTOM_ID: w-009
+:PRIORITY: P1
+:SOURCE: operator paired development
+:CREATED: 2026-09-12
+:END:
+
+- *Specification:* [[file:../specs/W009-audit-output/spec.org][W009 - Observable audit output]]
+
 ** ACTIVE W008 - Goal-driven hands-off delivery :feature:
 :PROPERTIES:
 :CUSTOM_ID: w-008

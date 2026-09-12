@@ -1,0 +1,24 @@
+#+TITLE: W009 - Audit output validation
+#+STARTUP: content
+
+* Automated evidence
+
+** RT009.1 through RT009.3 - Progress, errors and bounded results
+- RED :: Local fixtures reproduced missing progress, lost errors across all four providers, accepted Claude error envelopes and unbounded capture.
+- GREEN :: =go test -race ./internal/harness ./cmd/sdlc-harness -count=1= passed after remediation.
+- Static checks :: =go vet= and =golangci-lint= passed for those packages.
+- Boundary :: Local executors and existing CLI fixtures; no paid providers in regression tests.
+
+* Qualification limits
+- The original HTML-Preview audit was not rerun or modified.
+- A provider that buffers internally may still emit no useful progress until its next event. Existing deadlines apply.
+
+* One-off evidence
+
+** OT009.1 - Live failed-provider diagnostic visibility
+- Date :: 2026-09-12.
+- Build :: Local W009 source binary, before deployment.
+- Scope :: One configured Claude invocation for this work item's change-scoped review; no retry.
+- Observation :: System and assistant event notices appeared, followed by the provider's OAuth-expired diagnostic and unsuccessful exit. No final response was emitted on stdout.
+- Verification result :: PASS for live progress and failure-diagnostic visibility, not evidence of a successful audit or delivery closure.
+- Audit record :: [[file:audits.yaml][Harness-owned audit evidence]]

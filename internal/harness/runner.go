@@ -105,6 +105,7 @@ func Execute(ctx context.Context, request Request, resume bool, evidence *Eviden
 		return Result{}, err
 	}
 	stdout := newSessionOutput(request, resume)
+	stdout.progress = errorOutput
 	if err := stdout.checkpoint(); err != nil {
 		return Result{}, err
 	}
@@ -115,7 +116,9 @@ func Execute(ctx context.Context, request Request, resume bool, evidence *Eviden
 		reportHeartbeat(errorOutput, request.Harness, request.SessionID, stopHeartbeat)
 	}()
 	defer func() { <-heartbeatDone }()
-	if err := executor(ctx, invocation.Command, invocation.Args, invocation.Dir, strings.NewReader(invocation.Stdin), stdout, errorOutput); err != nil {
+	executionErr := executor(ctx, invocation.Command, invocation.Args, invocation.Dir, strings.NewReader(invocation.Stdin), stdout, errorOutput)
+	stdout.finish(executionErr != nil)
+	if err := executionErr; err != nil {
 		close(stopHeartbeat)
 		if stdout.err != nil {
 			return Result{}, stdout.err
@@ -228,7 +231,7 @@ func BuildStart(request Request) (Invocation, error) {
 		invocation.Args = []string{"exec", "-m", request.Model, "-s", "read-only", "-C", request.Directory, "--skip-git-repo-check", "--json", "-o", request.ResultFile, "-"}
 		invocation.Stdin = request.Prompt
 	case "claude":
-		invocation.Args = []string{"-p", "--output-format", "json", "--model", request.Model, "--session-id", request.SessionID, "--tools", "", "--permission-mode", "plan", request.Prompt}
+		invocation.Args = []string{"-p", "--output-format", "stream-json", "--verbose", "--model", request.Model, "--session-id", request.SessionID, "--tools", "Read", "--permission-mode", "plan", request.Prompt}
 	case "copilot":
 		invocation.Args = []string{"-p", request.Prompt, "-s", "--output-format", "json", "--model", request.Model, "--name", request.SessionID, "--available-tools="}
 	case "hermes":
@@ -249,7 +252,7 @@ func BuildResume(request Request) (Invocation, error) {
 		invocation.Args = []string{"exec", "resume", "-m", request.Model, "--skip-git-repo-check", "--json", "-o", request.ResultFile, request.SessionID, "-"}
 		invocation.Stdin = request.Prompt
 	case "claude":
-		invocation.Args = []string{"-p", "--output-format", "json", "--model", request.Model, "--resume", request.SessionID, "--tools", "", "--permission-mode", "plan", request.Prompt}
+		invocation.Args = []string{"-p", "--output-format", "stream-json", "--verbose", "--model", request.Model, "--resume", request.SessionID, "--tools", "Read", "--permission-mode", "plan", request.Prompt}
 	case "copilot":
 		invocation.Args = []string{"-p", request.Prompt, "-s", "--output-format", "json", "--model", request.Model, "--resume=" + request.SessionID, "--available-tools="}
 	case "hermes":
@@ -296,13 +299,11 @@ func ParseResult(harness string, stdout, resultFile []byte, preassignedIdentity 
 		}
 		result.Response = strings.TrimSpace(string(resultFile))
 	case "claude":
-		var envelope struct {
-			Result string `json:"result"`
+		var err error
+		result.Response, err = parseClaudeResponse(stdout)
+		if err != nil {
+			return Result{}, newIncident("response-malformed", harness, result.SessionID, err)
 		}
-		if err := json.Unmarshal(stdout, &envelope); err != nil {
-			return Result{}, newIncident("response-malformed", harness, result.SessionID, fmt.Errorf("parsing Claude result: %w", err))
-		}
-		result.Response = strings.TrimSpace(envelope.Result)
 	case "copilot":
 		scanner := bufio.NewScanner(bytes.NewReader(stdout))
 		for scanner.Scan() {

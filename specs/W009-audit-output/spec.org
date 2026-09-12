@@ -1,0 +1,104 @@
+#+TITLE: W009 - Observable audit output
+#+STARTUP: content
+#+OPTIONS: toc:2 num:nil
+
+* Observable audit output
+
+- Outcome :: *Provider progress and errors* are *visible during audits*.
+- Before :: Provider stdout is buffered; failed exits discard its diagnostics.
+- After :: *Concise events* reach *stderr promptly*; stdout remains *final response only*.
+- Changes :: Claude streaming, incremental event handling, bounded capture, error reporting.
+- Unchanged :: Permissions, configuration, audit criteria, timeout, round limits and session reuse.
+- Edge cases :: Split writes, missing final newline, error envelopes, timeout, excess output.
+- Decisions :: Operator authorized fixing harness buffering; this is separate from the isolation prototype.
+- Next step :: Verify with local provider fixtures; live provider qualification is separate.
+
+-----
+
+* Context
+
+The HTML-Preview annotation audit failed with only =start-failed: exit status 1=.
+The runner buffers stdout and returns before parsing it on unsuccessful exits.
+Authority: [[file:../../docs/ARCHITECTURE.md][SDLC architecture]], the operator's
+request, and the provider CLI output contracts. No model change or replacement
+audit session is authorized by this change.
+
+* Acceptance Criteria
+
+** AC009.1 - Progress is observable before exit
+:PROPERTIES:
+:CUSTOM_ID: ac-009-1
+:END:
+- Provider events produce *bounded stderr progress before process exit*, without dumping prompts or tool payloads.
+- Proved by :: [[#rt-009-1][RT009.1 - Incremental output]]
+
+** AC009.2 - Errors survive failure
+:PROPERTIES:
+:CUSTOM_ID: ac-009-2
+:END:
+- *Provider error diagnostics remain visible* on failure or timeout, including a final unterminated record.
+- Error envelopes cannot become successful audit responses, even with a zero process exit.
+- Proved by :: [[#rt-009-2][RT009.2 - Failure diagnostics]]
+
+** AC009.3 - Final response and recovery stay intact
+:PROPERTIES:
+:CUSTOM_ID: ac-009-3
+:END:
+- Successful stdout contains *only the final response*. Streaming retains native identity and existing timeout behaviour.
+- Capture is *bounded*; overflow produces an explicit incident, not a truncated verdict.
+- Proved by :: [[#rt-009-3][RT009.3 - Stream result and bounds]]
+
+* Test Definitions
+
+** RT009.1 - Incremental output
+:PROPERTIES:
+:CUSTOM_ID: rt-009-1
+:END:
+- Covers :: [[#ac-009-1][AC009.1 - Progress before exit]]
+- Exercise =Execute= with a local executor writing split events; assert stderr visibility before it returns and no payload leakage.
+
+** RT009.2 - Failure diagnostics
+:PROPERTIES:
+:CUSTOM_ID: rt-009-2
+:END:
+- Covers :: [[#ac-009-2][AC009.2 - Errors survive failure]]
+- Supply provider error output then nonzero exit or timeout; expect the detail on stderr and no result. Check Claude error envelope on zero exit.
+
+** RT009.3 - Stream result and bounds
+:PROPERTIES:
+:CUSTOM_ID: rt-009-3
+:END:
+- Covers :: [[#ac-009-3][AC009.3 - Final response and recovery]]
+- Start/resume fixtures verify Claude stream arguments, final-result extraction, legacy JSON compatibility, split identity and excess-output rejection.
+- Retention :: All RTs are local, deterministic tests; no metered provider calls in regression packs.
+
+* Edge Cases
+
+- Split records and missing newlines are processed without losing error details.
+- Progress or a result received before process termination does not cancel the deadline or establish PASS.
+- Oversized output is rejected explicitly; unknown structured payloads are not dumped to diagnostics.
+
+* Solution Design
+
+** Architecture context
+Keep orchestration in =internal/harness=. Process stdout is decoded incrementally;
+provider stderr and concise progress share the existing synchronized writer.
+
+** High-level design
+Claude start/resume use =--output-format stream-json --verbose=. Parse its final
+result record, retaining single-object compatibility. Existing providers keep
+their invocation modes. Bound captured stdout to 16 MiB; cap individual displayed
+diagnostics to 4 KiB and progress notices to 200 per invocation. Flush the final
+partial record after the process exits, including unsuccessful exits.
+
+** Security impact
+Do not widen tools, file access, model selection or configuration. Progress shows
+event types, not prompts, reasoning or tool inputs/results. Error fields are
+bounded and terminal-escaped; provider diagnostic text may itself contain data
+and remains operator-visible stderr, not a new persistent transcript.
+
+* Delivery Handoff
+
+- Read :: =internal/harness/runner.go=, =session_output.go= and their tests.
+- Evidence :: [[file:validation.org][Validation record]]; audit state belongs only in =audits.yaml=.
+- Documentation :: Harness help and architecture output contract, changelog and learnings.

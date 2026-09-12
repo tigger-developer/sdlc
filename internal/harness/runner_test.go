@@ -52,8 +52,8 @@ func TestW004FixedStartAndResumeInvocations(t *testing.T) {
 		},
 		{
 			name:   "claude",
-			start:  []string{"-p", "--output-format", "json", "--model", "model", "--session-id", "session", "--tools", "", "--permission-mode", "plan", "prompt"},
-			resume: []string{"-p", "--output-format", "json", "--model", "model", "--resume", "session", "--tools", "", "--permission-mode", "plan", "prompt"},
+			start:  []string{"-p", "--output-format", "stream-json", "--verbose", "--model", "model", "--session-id", "session", "--tools", "Read", "--permission-mode", "plan", "prompt"},
+			resume: []string{"-p", "--output-format", "stream-json", "--verbose", "--model", "model", "--resume", "session", "--tools", "Read", "--permission-mode", "plan", "prompt"},
 		},
 		{
 			name:   "copilot",

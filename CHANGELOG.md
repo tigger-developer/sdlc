@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## v3.2.12 - 2026-09-12
+
+- Stream Claude audit events and relay bounded provider progress and error
+  diagnostics to stderr across adapters, including unsuccessful exits and
+  timeouts. Preserve final-response-only stdout and reject Claude error
+  envelopes even after zero exit. Bound captured output to 16 MiB.
+- Retain the previously requested Claude Read-only tool selection with plan-mode
+  permissions for original-path evidence.
+- Local harness/CLI race tests, vet and lint pass. One live invocation exposed an
+  OAuth-expired error promptly; successful external qualification awaits restored
+  provider authentication.
+
 ## v3.2.11 - 2026-09-12
 
 - Clarify paired and emergency ticket timing and implementation-first auditing.

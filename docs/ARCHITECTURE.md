@@ -123,6 +123,14 @@ operator sign-off, and `audits.yaml` alone owns audit state. Legacy `audits.org`
 records are preserved in YAML through the existing migration. Delivery does not
 repeat the definition gate when entering a new context.
 
+Provider stdout is decoded incrementally for bounded progress metadata and error
+diagnostics on stderr. Claude uses native streaming JSON; its final result alone
+becomes the returned response. Failed exits and timeouts flush the final partial
+record instead of discarding it. Capture is limited to 16 MiB, with an explicit
+overflow incident; provider stderr remains live. Event metadata is not a verdict
+or proof that the provider has finished. Tool payloads and prompts are not
+replayed as progress, and existing process deadlines still govern termination.
+
 ## Initialization and migration
 
 `sdlc-init` is a once-only migration controller. It requires a clean Git
