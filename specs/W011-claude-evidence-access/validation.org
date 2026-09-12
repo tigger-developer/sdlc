@@ -3,11 +3,20 @@
 
 * Automated verification
 
+- Revision :: Production code at =c09e901=; subsequent changes extend the fixture
+  filename with literal parentheses and update documentation only.
+- Results :: =make test= passed: repository-wide vet, Go lint, shell checks and
+  all Go packages, including the existing provider argument-matrix tests.
+  Focused =go test -race ./internal/harness ./cmd/sdlc-harness -count=1= also passed.
+  Both commands were repeated successfully after the fixture extension.
+
 ** RT011.1 - Exact adapter grants
+- Status :: PASS.
 - RED :: The adapter returned no evidence Read grants and accepted an unsupported path.
 - GREEN :: Focused adapter tests pass after permission projection was added.
 
 ** RT011.2 - CLI resume integration
+- Status :: PASS.
 - Sequence :: Added after adapter implementation as a supplementary integration
   check, not a test-first RED. RT011.1 supplied the behavioural RED for this fix.
 - Evidence :: Local executable fixture receives exact external-file grants on
@@ -17,11 +26,14 @@
 * One-off verification
 
 ** OT011.1 - Native external read
+- Status :: PASS.
 - Observation :: Against checkpoint =188e9fb=, the native Claude start invocation
   read the installed external template in full (334 lines), without an approval prompt.
+- Resume :: Against checkpoint =c09e901=, the retained native invocation reread
+  all 334 lines without denial or an approval prompt, after permission options
+  were moved before the positional prompt.
 - Limitation :: This establishes readability, not whether the new grant rather
-  than pre-existing native permissions caused access. Resume verification follows
-  the argument-order adjustment in the next required implementation audit.
+  than pre-existing native permissions or retained session state caused access.
 - Covers :: AC011.1 - Native external-file readability.
 - Procedure :: Supply the installed spec template to the required implementation
   audit. Inspect its report for successful reading or an explicit denial.

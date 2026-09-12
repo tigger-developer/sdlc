@@ -58,8 +58,9 @@ remains the separate, broader enforcement work; this change does not implement i
 :END:
 - Covers :: AC011.1 - Exact file grants; AC011.2 - Preserved restrictions.
 - Inspect public start/resume invocation results with real local evidence paths,
-  including spaces, glob characters and platform aliases. Decode settings and
-  compare exact Read rules; verify Read/plan remain and broad access flags are absent.
+  including spaces, glob characters, literal parentheses and platform aliases.
+  Decode settings and compare exact Read rules; verify Read/plan remain, broad
+  access flags are absent, and permission options precede the positional prompt.
 - Reject relative, control-character and prohibited =.env= paths.
 
 ** RT011.2 - CLI resume integration
@@ -87,6 +88,8 @@ remains the separate, broader enforcement work; this change does not implement i
 
 - Parent path aliases need grants for both original and resolved paths.
 - Glob characters and trailing spaces are escaped, not treated as wildcards.
+- Parentheses remain literal: [[https://code.claude.com/docs/en/permissions#permission-rule-syntax][Claude permission rule syntax]]
+  explicitly permits parentheses inside a specifier without escaping them.
 - This emergency adapter supports absolute POSIX permission paths; non-POSIX
   paths, control characters and unresolved files fail explicitly.
 - Existing policy may deny supplied evidence despite a Read grant. Report that
@@ -97,7 +100,8 @@ remains the separate, broader enforcement work; this change does not implement i
 - Architecture :: Pass the captured =Evidence.Files= through =harness.Request=.
   The Claude adapter projects the list through one shared helper on start/resume.
 - Interface :: JSON-encoded =--settings= containing =permissions.allow= with
-  exact =Read(//absolute/path)= rules; no persistent configuration file is edited.
+  exact =Read(//absolute/path)= rules before the positional prompt argument;
+  no persistent configuration file is edited.
 - Native contract :: [[https://code.claude.com/docs/en/settings#settings-precedence][Claude settings precedence]]
   documents command-line JSON merging, retention of omitted lower-level keys,
   and list merging. Only =permissions.allow= is supplied; deny and hook settings

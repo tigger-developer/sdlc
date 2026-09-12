@@ -21,7 +21,7 @@ func TestW011ClaudeGrantsExactEvidenceReadsOnStartAndResume(t *testing.T) {
 	if err := os.Symlink(realDir, aliasDir); err != nil {
 		t.Fatal(err)
 	}
-	file := filepath.Join(aliasDir, "a file [draft]*.org")
+	file := filepath.Join(aliasDir, "a file (notes) [draft]*.org")
 	if err := os.WriteFile(file, []byte("evidence"), 0o600); err != nil {
 		t.Fatal(err)
 	}
@@ -29,11 +29,11 @@ func TestW011ClaudeGrantsExactEvidenceReadsOnStartAndResume(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := []string{"Read(/" + filepath.ToSlash(filepath.Dir(file)) + "/a file \\[draft\\]\\*.org)"}
+	want := []string{"Read(/" + filepath.ToSlash(filepath.Dir(file)) + "/a file (notes) \\[draft\\]\\*.org)"}
 	if canonical == file {
 		t.Fatal("fixture did not create an aliased path")
 	}
-	want = append(want, "Read(/"+filepath.ToSlash(filepath.Dir(canonical))+"/a file \\[draft\\]\\*.org)")
+	want = append(want, "Read(/"+filepath.ToSlash(filepath.Dir(canonical))+"/a file (notes) \\[draft\\]\\*.org)")
 	request := matrixRequest("claude", t.TempDir())
 	request.Evidence = []EvidenceFile{{Path: file}}
 	for _, build := range []func(Request) (Invocation, error){BuildStart, BuildResume} {

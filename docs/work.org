@@ -78,7 +78,7 @@ classification; it is provenance, not current state.
 
 * Work items
 
-** ACTIVE W011 - Read supplied external evidence in Claude audits :defect:
+** REVIEW W011 - Read supplied external evidence in Claude audits :defect:
 :PROPERTIES:
 :CUSTOM_ID: w-011
 :PRIORITY: P1
