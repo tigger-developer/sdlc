@@ -28,4 +28,7 @@ audits:
     # Evidence is stored once per round, not copied to a top-level field.
     # Old history entries without evidence remain valid historical records.
     # New rounds also record session_id, harness, provider (if used), and model.
+    # cache_key: sha256:<versioned digest of inputs, prompts, work/gate and model config>
+    # Only incident-free, validated responses with matching keys are reusable.
+    # Cache hits do not append history, consume a round or change this record.
     # Replacements preserve history and external_round; only the harness writes them.

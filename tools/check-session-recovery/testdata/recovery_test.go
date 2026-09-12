@@ -4,15 +4,136 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/tigger-developer/sdlc/internal/harness"
 )
+
+func TestCacheIdentityAndIncidentsOneOff(t *testing.T) {
+	config := harness.Config{Harness: "claude", Model: "primary", Timeout: time.Minute, MaxRounds: 5}
+	registry := auditPromptDocument{Version: 1, EvidenceInstructions: "read evidence"}
+	evidence := harness.Evidence{Files: []harness.EvidenceFile{{Path: "/spec.org", SHA256: "a", Bytes: 1}, {Path: "/standard.md", SHA256: "b", Bytes: 1}}}
+	keyFor := func(work, gate, prompt string, doc auditPromptDocument, inputs harness.Evidence, agent harness.Config) string {
+		key, err := auditCacheKey(work, gate, prompt, doc, inputs, agent)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return key
+	}
+	key := keyFor("W012", "definition", "review", registry, evidence, config)
+	changedModel := config
+	changedModel.Model = "other"
+	changedFallback := config
+	changedFallback.Fallback = &harness.AgentConfig{Harness: "codex", Model: "fallback"}
+	changedLimits := config
+	changedLimits.MaxRounds, changedLimits.Timeout = 1, 2*time.Minute
+	changedRegistry := registry
+	changedRegistry.EvidenceInstructions = "different contract"
+	for name, candidate := range map[string]string{
+		"work":     keyFor("W013", "definition", "review", registry, evidence, config),
+		"gate":     keyFor("W012", "implementation", "review", registry, evidence, config),
+		"prompt":   keyFor("W012", "definition", "different", registry, evidence, config),
+		"registry": keyFor("W012", "definition", "review", changedRegistry, evidence, config),
+		"model":    keyFor("W012", "definition", "review", registry, evidence, changedModel),
+		"fallback": keyFor("W012", "definition", "review", registry, evidence, changedFallback),
+		"omitted":  keyFor("W012", "definition", "review", registry, harness.Evidence{Files: evidence.Files[:1]}, config),
+	} {
+		if candidate == key {
+			t.Fatalf("%s did not invalidate cache", name)
+		}
+	}
+	if keyFor("W012", "definition", "review", registry, evidence, changedLimits) != key {
+		t.Fatal("execution limits changed verdict identity")
+	}
+	valid := harness.AuditRound{CacheKey: key, SessionID: "native", Verdict: "PASS", Revision: "a", Response: "GATE: definition\nREVISION: a\nVERDICT: PASS"}
+	for _, kind := range []string{"timeout", "authentication-failed", "interrupted", "response-malformed"} {
+		incident := valid
+		incident.Incident = kind
+		if _, ok := cachedAudit(harness.AuditEntry{Gate: "definition", History: []harness.AuditRound{incident}}, key); ok {
+			t.Fatalf("%s was cached", kind)
+		}
+	}
+	for _, defect := range []string{"legacy", "malformed", "mismatch", "running"} {
+		round := valid
+		entry := harness.AuditEntry{Gate: "definition"}
+		switch defect {
+		case "legacy":
+			round.CacheKey = ""
+		case "malformed":
+			round.Response = "PASS"
+		case "mismatch":
+			round.Verdict = "FAIL"
+		case "running":
+			entry.Status = "running"
+		}
+		entry.History = []harness.AuditRound{round}
+		if _, ok := cachedAudit(entry, key); ok {
+			t.Fatalf("%s was cached", defect)
+		}
+	}
+}
+
+func TestAuditCacheOneOff(t *testing.T) {
+	for _, verdict := range []string{"PASS", "FAIL", "PROVISIONAL PASS"} {
+		t.Run(verdict, func(t *testing.T) {
+			root := t.TempDir()
+			paths := map[string]string{
+				"claude":       "#!/bin/sh\nprintf x >> \"$PROBE_CALLS\"\nprintf '%s\\n' '{\"type\":\"result\",\"result\":\"GATE: definition\\nREVISION: fixture\\nVERDICT: " + verdict + "\"}'\n",
+				"global.yaml":  "delivery:\n  audit:\n    harness: claude\n    model: fixture\n    max_rounds: 1\n",
+				"prompts.yaml": "version: 1\ngates:\n  definition:\n    prompt: Review only the stated requirement.\n",
+				"spec.org":     "A stable requirement", "standard.md": "A stable standard",
+			}
+			for name, data := range paths {
+				if err := os.WriteFile(filepath.Join(root, name), []byte(data), 0700); err != nil {
+					t.Fatal(err)
+				}
+			}
+			t.Setenv("PATH", root)
+			t.Setenv("PROBE_CALLS", filepath.Join(root, "calls"))
+			for _, key := range []string{"SDLC_AUDIT_HARNESS", "SDLC_AUDIT_MODEL", "SDLC_AUDIT_PROVIDER", "SDLC_AUDIT_TIMEOUT"} {
+				t.Setenv(key, "")
+			}
+			record := filepath.Join(root, "audits.yaml")
+			args := []string{"start", "--project", root, "--global-config", filepath.Join(root, "global.yaml"), "--gate", "definition", "--audit-prompts", filepath.Join(root, "prompts.yaml"), "--audit-record", record, "--work-item", "W012-cache", "--input", filepath.Join(root, "spec.org"), "--input", filepath.Join(root, "standard.md")}
+			var output, diagnostic bytes.Buffer
+			if err := run(args, strings.NewReader("review"), &output, &diagnostic); err != nil {
+				t.Fatal(err)
+			}
+			response := output.String()
+			before, _ := os.ReadFile(record)
+			for _, action := range []string{"start", "resume"} {
+				args[0] = action
+				output.Reset()
+				diagnostic.Reset()
+				if err := run(args, strings.NewReader("review"), &output, &diagnostic); err != nil {
+					t.Fatalf("cache should precede round exhaustion: %v", err)
+				}
+				if output.String() != response || !strings.Contains(diagnostic.String(), "AUDIT CACHE HIT") {
+					t.Fatalf("cache result: %q; %q", output.String(), diagnostic.String())
+				}
+			}
+			after, _ := os.ReadFile(record)
+			calls, _ := os.ReadFile(filepath.Join(root, "calls"))
+			if string(calls) != "x" || !bytes.Equal(before, after) {
+				t.Fatal("cache invoked a provider or changed the record")
+			}
+			if err := os.WriteFile(filepath.Join(root, "standard.md"), []byte("Changed standard"), 0600); err != nil {
+				t.Fatal(err)
+			}
+			if err := run(args, strings.NewReader("review"), &output, &diagnostic); err == nil {
+				t.Fatal("changed secondary evidence used a cache despite exhausted budget")
+			}
+		})
+	}
+}
 
 func TestHermesEvidenceTransportOneOff(t *testing.T) {
 	root := t.TempDir()
@@ -43,6 +164,16 @@ func TestHermesEvidenceTransportOneOff(t *testing.T) {
 	}
 	if _, err := runner.prepare(harness.AuditEntry{}, harness.Config{Harness: "hermes"}, false, ""); err == nil {
 		t.Fatal("changed source was accepted for inline evidence")
+	}
+	var diagnostics bytes.Buffer
+	executor := func(_ context.Context, _ string, _ []string, _ string, _ io.Reader, out, errout io.Writer) error {
+		_, _ = fmt.Fprintln(errout, "session_id: native-hermes-session")
+		_, err := fmt.Fprint(out, "Warning: Unknown toolsets: none\nfinal response\n")
+		return err
+	}
+	result, err := harness.Execute(context.Background(), harness.Request{Harness: "hermes", Provider: "nous", Model: "fixture", Directory: root}, false, nil, executor, &diagnostics)
+	if err != nil || result.Response != "final response" || result.SessionID != "native-hermes-session" || !strings.Contains(diagnostics.String(), "Warning: Unknown toolsets: none") {
+		t.Fatalf("Hermes stream separation: %#v, %v, %s", result, err, diagnostics.String())
 	}
 }
 

@@ -5,12 +5,17 @@
 - Tester :: Codex, 2026-09-12.
 - Latest check :: Explicit Go-overlay OT matrix passed with race detection after the Hermes native-session adapter changes. Harness build and Git whitespace checks also passed.
 * OT012.2 - Native provider qualification
-- Status :: PARTIAL; not qualified for file-based auditing.
+- Status :: PASS for the bounded native recovery, evidence and cache probes; not a full project-audit qualification.
 - Evidence :: Native Claude missing-session rejection triggered a fresh session. That session reached the account usage limit, which correctly did not trigger authentication fallback.
-- Evidence :: An induced local authentication diagnostic selected the real Hermes fallback. Native stderr returned session 20260912_171947_3b7fd0; a subsequent invocation resumed that same conversation and returned the requested synthetic response.
+- Evidence :: An induced local authentication diagnostic selected the real Hermes fallback. Native stderr returned its session identity; a subsequent invocation resumed that same conversation and returned the requested synthetic response. Exact identities and responses are retained in the temporary harness-owned probe records.
 - Correction :: The initial top-level Hermes invocation did not honour resume metadata. The adapter now uses the native chat subcommand and checkpoints stderr session metadata rather than trusting model-written identifiers.
-- Limitation :: The synthetic prompt prohibited tool use and did not qualify evidence-file access. Explicitly disabling Hermes toolsets preserves the intended no-write boundary but prevents reading path-based evidence. Enabling its file toolset would also expose write tools; that access change has not been authorized or implemented.
-- Bounds :: Synthetic evidence only, up to three Hermes completions plus the Claude recovery attempt, 60 seconds per attempt. No metered regression tests were added.
+- Evidence :: The later evidence probe supplied a deliberately subtracting JavaScript function through verified stdin text. Native Hermes identified the defect, then accepted the corrected addition in the same session. An unchanged third invocation returned AUDIT CACHE HIT at round 3 without another provider invocation.
+- Transport :: Filesystem tools remain disabled. Hermes receives verified UTF-8 contents; native paths remain in the hash manifest. Its startup toolset warning is redirected to stderr by the adapter rather than mixed into new responses; a local executor check covers that stream separation.
+- Bounds :: Synthetic evidence only, five Hermes completions plus the Claude recovery attempt, 60 seconds per attempt. No metered regression tests were added.
 * OT012.3 - Installation verification
 - Status :: PENDING.
 - Bounds :: One authorized make install from this repository.
+* OT012.4 - Cache identity
+- Status :: PASS.
+- Evidence :: Explicit one-off overlay checks exercised all three valid verdicts on start/resume, exact unchanged output and record bytes, no extra provider call at the round limit, secondary-evidence invalidation, work/gate/prompt/registry/model/fallback changes and incident/legacy/malformed exclusions.
+- Evidence :: The tests first failed before cache implementation. The updated matrix passed with race detection. They are outside the regression pack.

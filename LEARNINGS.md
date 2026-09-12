@@ -1,5 +1,31 @@
 # SDLC Standards: Design Learnings
 
+## Cache the audit contract, not just the primary file
+
+An unchanged spec can receive a different audit when its standards, supporting
+evidence, instructions or selected model change. Reuse the existing SHA-256
+manifest and fingerprint the complete supplied request. Cache all valid verdicts,
+including FAIL, but never confuse a provider incident with an audit result.
+Returning a cached response must not consume a round or rewrite its provenance.
+Unlisted ambient inputs remain outside this guarantee.
+
+## Session continuity is an optimization, not a dependency
+
+Provider contexts can disappear and configuration can change. Retain native
+ownership and history, then recover within the same budget on an explicit
+missing-session diagnostic. Authentication fallback needs a complete alternate
+tuple, not a mixture of primary and fallback settings. Neither silence nor a
+generic failure justifies another provider or invented evidence.
+
+## Qualify native adapters through their real interface
+
+A command accepting an option does not prove that its selected execution path
+honours it. Native start/resume probes exposed a Hermes shortcut that bypassed
+session options. Use its chat interface and native stderr identity. Where an
+adapter cannot expose read-only file tools, verified text over stdin preserves
+review capability without granting writes. This resends evidence on resume;
+path-capable adapters retain the more economical path-based approach.
+
 ## Version the template, not a second copy of the release
 
 A specification needs to identify the format it follows, independently of the

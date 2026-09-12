@@ -170,6 +170,13 @@ func Execute(ctx context.Context, request Request, resume bool, evidence *Eviden
 	var result Result
 	if request.Harness == "hermes" {
 		result = Result{SessionID: stdout.identity, Response: strings.TrimSpace(string(stdout.Bytes()))}
+		// Hermes emits this native startup notice on stdout for an empty resolved
+		// toolset. Keep it visible on stderr, outside the model's final response.
+		const noToolsNotice = "Warning: Unknown toolsets: none\n"
+		if response, found := strings.CutPrefix(result.Response, noToolsNotice); found {
+			fmt.Fprint(errorOutput, noToolsNotice)
+			result.Response = strings.TrimSpace(response)
+		}
 		if diagnostics.identity == "" {
 			return Result{}, newIncident("identity-missing", request.Harness, "", errors.New("Hermes omitted native stderr session info"))
 		}

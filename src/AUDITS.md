@@ -14,6 +14,15 @@ configuration. If documented recovery cannot proceed, report the exact command
 and diagnostic without speculative causes; continue other authorized work.
 Harness investigation requires the operator to explicitly place it in scope.
 
+An identical request may return a **cached result** from `audits.yaml`: the same
+PASS, FAIL or PROVISIONAL PASS and findings, without a model call or another
+round. The harness checks all supplied file paths/hashes, work item, gate,
+prompts, caller context and primary/fallback model configuration. Include the
+relevant SDLC standards as evidence; independently read files are not covered.
+Cache hits retain all verdict conditions. Incidents are not verdicts, and old
+records without a request key are not cache entries. Changing or omitting an
+input invalidates the key; do not alter inputs merely to evade a cached FAIL.
+
 ## Composite gates
 
 The **definition gate** reviews the specification, solution design, and RT/UT/OT
@@ -82,7 +91,10 @@ While waiting, the harness emits a start message and 30-second liveness
 heartbeats to stderr. A heartbeat is not provider progress, a verdict, or
 evidence that the audit has completed.
 
-The harness passes original absolute evidence paths, not document copies. Supply
+Codex and Claude receive original absolute evidence paths, not document copies.
+Hermes has no filesystem tools: the harness supplies verified UTF-8 contents in
+stdin on every invocation. It stores only the paths/hashes, never document copies.
+Supply
 the complete input list on each invocation; the per-attempt manifest in
 `audits.yaml` identifies added, changed, unchanged, and omitted inputs on resume.
 Reuse unchanged evidence only while its meaning remains understood; reread it

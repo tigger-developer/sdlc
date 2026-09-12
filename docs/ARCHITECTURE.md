@@ -104,13 +104,21 @@ Each gate retains one external session per work item. Composite prompts live in
 harness owns session identity, timeout, round limits, and persistence. Authoring
 agents remediate all findings before resuming the same gate session.
 
-The provider receives original absolute paths and a metadata-only evidence
-manifest. The harness hashes regular files before and after execution, rejects
+Codex and Claude receive original absolute paths and a metadata-only evidence
+manifest. Hermes runs without filesystem tools and receives the verified UTF-8
+contents through stdin on every invocation, without retained copies. The harness
+hashes regular files before and after execution, rejects
 mutation, and checkpoints each invocation's manifest before execution in
 `audits.yaml` under `history[].evidence`. Resume compares against that gate's
 last recorded manifest. There is no document-copy cache; hashes do not imply
 that an auditor remembers unchanged content. Provider read-only controls remain
 necessary, and additional reads outside the input list are not hash-verified.
+
+Validated verdicts are cached per work item/gate using a versioned SHA-256 key
+over the full supplied manifest, prompt registry, caller context and effective
+primary/fallback model settings. The newest matching incident-free response is
+returned before session recovery and round admission, without any record mutation.
+Unkeyed legacy records and incomplete attempts cannot produce cache hits.
 
 For Claude, the captured manifest also supplies exact invocation-local Read
 permissions, including resolved path aliases. JSON settings preserve literal

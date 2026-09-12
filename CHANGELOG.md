@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+## v3.2.18 - 2026-09-12
+
+- Recover recorded Claude sessions explicitly reported missing, and replace
+  contexts when the configured harness/model changes. Preserve findings,
+  retired identities and the existing round budget.
+- Add whole-tuple phase fallbacks for explicit authentication failures, with
+  project override/disable semantics and retained fallback-session reuse.
+- Cache validated PASS, FAIL and PROVISIONAL PASS responses by a versioned
+  SHA-256 request key covering all supplied evidence, prompts and model settings.
+  Identical requests consume no provider call or audit round; incidents are not cached.
+- Use native Hermes chat/resume and stderr session identity. Supply verified
+  UTF-8 evidence through stdin with tools disabled, without retained file copies.
+- Keep client agents outside harness internals and model troubleshooting; use
+  documented recovery and report unresolved diagnostics without speculative causes.
+- Verify recovery and caching through explicitly invoked one-off checks and
+  bounded native probes, not new regression-pack or metered CI entries.
+
 ## v3.2.17 - 2026-09-12
 
 - Start spec-template versioning at `#+SCHEMA: 1`, independently of the SDLC

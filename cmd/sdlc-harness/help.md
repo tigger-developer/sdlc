@@ -51,8 +51,8 @@ Evidence and instruction
 ========================
 
 - Repeat `--input <file>` for every exact evidence file.
-- Paths are resolved against `--project`. Files are referenced by absolute path,
-  not copied or pasted into the prompt. The provider is launched from the project.
+- Paths are resolved against `--project`. Codex and Claude read original absolute
+  paths. The provider is launched from the project; no document copies are retained.
 - Claude start/resume add invocation-local Read permissions for the exact supplied
   files and their resolved aliases, never their containing directories. Literal
   pattern characters are escaped. Read-only tools, plan mode and existing deny
@@ -61,6 +61,10 @@ Evidence and instruction
 - Hermes uses `chat --quiet --query-file -` with its native resume option and
   reads native `session_id:` stderr metadata. Top-level `-z` is not used because
   it bypasses session options; model-written session identifiers are not trusted.
+- Hermes runs with tools disabled. Its supplied UTF-8 evidence is hash-verified
+  and sent through stdin on every invocation, including resume, so it needs no
+  filesystem tools. This adapter-specific transport resends the full text;
+  only paths and hashes are stored in the audit record, not file contents.
 - Supply the complete evidence list on every invocation. The harness hashes it
   and, on resume, identifies added, changed, unchanged, and removed inputs against
   the last recorded round. Removed means omitted from the list, not deleted.
@@ -81,7 +85,8 @@ Evidence and instruction
 - `--audit-record <file> --work-item <id> --gate <gate>` makes the harness own
   the retained session mapping and attempt budget in `audits.yaml`. Use this
   combination for recoverable audits. The record is output, not an `--input`.
-- With a record, `start` refuses an existing mapping and `resume` loads its
+- With a record, either operation first checks for an identical cached result.
+  On a cache miss, `start` refuses an existing mapping and `resume` loads its
   recorded session ID. A supplied resume ID must match it.
 - Audit status, findings, revisions, round numbers, and session IDs belong only
   in that `audits.yaml` record; do not copy them into a specification or ticket.
@@ -108,7 +113,7 @@ Output
   with `output-limit`; it never yields a silently truncated verdict.
 - The harness also emits a liveness line at start and every 30 seconds while
   waiting; this is not provider progress or a verdict.
-- **stdout:** the provider's final response.
+- **stdout:** the provider's final response, or that exact response from cache.
 - A progress event or final-result record is not success until the provider exits
   successfully and evidence and response validation pass. Claude error envelopes
   are rejected even if the provider exits zero. The runner cannot flush output
@@ -138,8 +143,30 @@ Resume example
       --input .sdlc/project.yaml \
       < audit-context.txt
 
-Timeout recovery
-================
+Cached results
+==============
+
+With `--audit-record`, repeated identical requests return the recorded `PASS`,
+`FAIL` or `PROVISIONAL PASS` and findings without launching a provider, changing
+the record or consuming a round. Stderr says `AUDIT CACHE HIT` and names the
+source round. No new session ID is emitted. A cached FAIL still requires
+remediation; a cached provisional pass retains its conditions.
+
+The versioned SHA-256 key covers work item, gate, every supplied path and content
+hash, audit prompt registry, caller context and effective primary/fallback model
+configuration. File order and timestamps do not matter. Added, changed or omitted
+inputs invalidate it. Include all relevant SDLC standards as inputs; ambient
+instructions or independently read files are not covered by this cache.
+
+Only validated, incident-free responses are reusable. Running attempts, timeouts,
+authentication failures and malformed responses are not cache results. Older
+entries without keys remain history and require a real audit before reuse.
+The lookup precedes round exhaustion and native-session recovery: a recorded
+result needs no live provider session. Execution limits alone do not invalidate
+it, unless their configuration file is itself a supplied, changed input.
+
+Recovery
+========
 
 Session and authentication recovery
 -----------------------------------

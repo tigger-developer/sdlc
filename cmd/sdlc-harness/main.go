@@ -159,6 +159,7 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 	}()
 	identity := *session
 	var entry harness.AuditEntry
+	cacheKey := ""
 	if normalizedPhase == "audit" && strings.TrimSpace(*auditRecord) != "" {
 		if strings.TrimSpace(*workItem) == "" {
 			return errors.New("--work-item is required with --audit-record")
@@ -171,6 +172,21 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		entry, found, recordErr = harness.ReadAuditEntry(*auditRecord, *workItem, normalizedGate)
 		if recordErr != nil {
 			return recordErr
+		}
+		cacheKey, err = auditCacheKey(*workItem, normalizedGate, string(prompt), registry, evidence, config)
+		if err != nil {
+			return err
+		}
+		if identity != "" && identity != entry.SessionID {
+			return fmt.Errorf("supplied session does not match recorded audit session %s", entry.SessionID)
+		}
+		if cached, ok := cachedAudit(entry, cacheKey); ok {
+			if err := evidence.Verify(); err != nil {
+				return err
+			}
+			fmt.Fprintf(errorOutput, "AUDIT CACHE HIT: %s/%s round=%d; no provider invoked; no round consumed; record=%s\n", *workItem, normalizedGate, cached.Round, *auditRecord)
+			_, err = fmt.Fprintln(output, cached.Response)
+			return err
 		}
 		if action == "start" && found && (entry.SessionID != "" || entry.ExternalRound > 0) {
 			if entry.SessionID == "" {
@@ -205,7 +221,7 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		recordPath = strings.TrimSpace(*auditRecord)
 	}
 	runner := recoveryRun{config: config, request: request, evidence: evidence, registry: registry,
-		path: recordPath, work: *workItem, gate: normalizedGate, audit: normalizedPhase == "audit", diagnostics: errorOutput}
+		path: recordPath, work: *workItem, gate: normalizedGate, cacheKey: cacheKey, audit: normalizedPhase == "audit", diagnostics: errorOutput}
 	result, err := runner.execute(entry, action == "resume")
 	if err != nil {
 		return err

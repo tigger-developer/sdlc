@@ -45,6 +45,7 @@ type AuditEntry struct {
 }
 
 type AuditRound struct {
+	CacheKey  string         `yaml:"cache_key,omitempty"`
 	SessionID string         `yaml:"session_id,omitempty"`
 	Harness   string         `yaml:"harness,omitempty"`
 	Provider  string         `yaml:"provider,omitempty"`

@@ -18,7 +18,7 @@ type auditAttempt struct {
 	finalized bool
 }
 
-func beginAuditAttempt(path string, entry harness.AuditEntry, work, gate string, config harness.Config, evidence harness.Evidence) (*auditAttempt, error) {
+func beginAuditAttempt(path string, entry harness.AuditEntry, work, gate string, config harness.Config, evidence harness.Evidence, cacheKey string) (*auditAttempt, error) {
 	if len(entry.History) == 0 && (entry.Response != "" || entry.Verdict != "" || entry.Revision != "") {
 		entry.History = append(entry.History, harness.AuditRound{Round: entry.ExternalRound, Revision: entry.Revision, Verdict: entry.Verdict, Response: entry.Response, Findings: entry.Findings, Updated: entry.Updated, SessionID: entry.SessionID, Harness: entry.Harness, Provider: entry.Provider, Model: entry.Model})
 	}
@@ -30,6 +30,7 @@ func beginAuditAttempt(path string, entry harness.AuditEntry, work, gate string,
 	// Existing structured findings/remediation remain available; a timeout does
 	// not resolve them. Prior response bodies remain in their historical rounds.
 	entry.History = append(entry.History, harness.AuditRound{Round: entry.ExternalRound, Evidence: evidence.Files, Incident: "interrupted", Harness: config.Harness, Provider: config.Provider, Model: config.Model})
+	entry.History[len(entry.History)-1].CacheKey = cacheKey
 	attempt := &auditAttempt{path: path, entry: entry, limit: config.MaxRounds}
 	return attempt, harness.WriteAuditEntry(path, entry)
 }

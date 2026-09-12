@@ -10,6 +10,7 @@
 :END:
 ** Outcome
 - *Unavailable sessions* and *authentication failures* no longer require manual audit-record repair.
+- *Identical audit requests* reuse their recorded verdict without another model call.
 ** Before
 - A changed *audit harness* rejects the retained session.
 - An explicit *missing session* or *logged-out provider* blocks further auditing.
@@ -19,6 +20,8 @@
 ** Changes
 - Record *session ownership*, replacement reason and per-round provenance in =audits.yaml=.
 - Give replacements *all current evidence* and *historical findings*.
+- Cache *PASS*, *FAIL* and *PROVISIONAL PASS* by the whole request's *SHA-256* identity.
+- Give tools-disabled *Hermes* verified evidence through stdin without retained document copies.
 ** Unchanged
 - Preserve *findings*, *round budget*, *per-attempt timeout* and *human approval* boundaries.
 - No fallback for *FAIL*, *timeouts*, *permission denials* or *unclassified failures*.
@@ -65,6 +68,12 @@
 :END:
 - Criterion :: The authorized installation deploys the revised helper, prompts and instructions; the installed helper can resolve the configured fallback.
 - Proven by :: [[#ot012-3][OT012.3 - Installation verification]].
+** AC012.5 - Reuse identical completed audits
+:PROPERTIES:
+:CUSTOM_ID: ac012-5
+:END:
+- Criterion :: An unchanged request returns its recorded PASS, FAIL or PROVISIONAL PASS and findings without another provider invocation, record mutation or round. Identity includes work item, gate, all supplied paths and content hashes, audit instructions/context and primary/fallback model configuration. Incidents and unkeyed historical records are not cache results.
+- Proven by :: [[#ot012-4][OT012.4 - Cache identity]], [[#ot012-2][OT012.2 - Native provider qualification]].
 
 * Test Definitions
 ** OT012.1 - Local recovery cases
@@ -82,7 +91,7 @@
 - Covers :: AC012.1, AC012.2.
 - Procedure :: In a temporary project, use a nonexistent Claude conversation ID to exercise a native missing-session response; separately induce a local authentication diagnostic and let the configured Hermes fallback answer a tiny fixed audit prompt. Read the resulting harness-owned record.
 - Expected :: New native identities and correct fallback ownership; no invented PASS for an incident.
-- Bounds :: One missing-session probe plus its fresh Claude invocation; one initial Hermes fallback probe and one corrected probe with retained resume. Synthetic evidence only, at most three Hermes completions plus the Claude attempt, 60 seconds per attempt. Explicitly authorized metered OT, never a regression target.
+- Bounds :: One missing-session probe plus its fresh Claude invocation; three initial Hermes session probes and two further evidence probes, 60 seconds per attempt. The latter detect an incorrect calculation, resume after correction, then repeat unchanged to check the cache without another model call. Synthetic evidence only; explicitly authorized metered OT, never a regression target.
 ** OT012.3 - Installation verification
 :PROPERTIES:
 :CUSTOM_ID: ot012-3
@@ -91,6 +100,14 @@
 - Procedure :: Run =make install= exactly once from the SDLC repository after validation; check installed release/help and binary identity.
 - Expected :: Successful deployment and executable deployed helper; no client-project mutation.
 - Bounds :: One operator-authorized installation.
+** OT012.4 - Cache identity
+:PROPERTIES:
+:CUSTOM_ID: ot012-4
+:END:
+- Covers :: AC012.5.
+- Procedure :: Explicit overlay checks with local CLI doubles. Verify all three verdicts, unchanged response/history/round counts, secondary evidence changes, prompt/registry/model/work/gate changes, exhausted budgets and incident/legacy exclusions.
+- Expected :: Only identical validated responses are cached, including a cached FAIL; changed inputs do not evade the existing round limit.
+- Bounds :: Local one-off checks only; no metered calls or regression-pack additions.
 
 * Edge Cases
 - Unknown native error formats remain *incidents*, not proof of a missing session.
@@ -110,6 +127,11 @@
 - Persist retired identity/tuple/reason and per-attempt identity/tuple. New contexts receive full current manifest and history; resumes retain manifest comparisons.
 - Each attempt keeps the configured deadline and consumes the same recorded budget.
 - Hermes :: Use native =chat --quiet --query-file -= rather than top-level =-z=, which bypasses resume/session options in the installed CLI. Read native =session_id:= from stderr; never ask the model to invent or repeat an ID.
+- Hermes evidence :: Keep tools disabled; send verified UTF-8 source contents as JSON data over stdin on each invocation. No on-disk evidence copies or contents in =audits.yaml=. Codex/Claude retain path-based transport.
+** Result cache
+- Store =history[].cache_key= alongside each attempt. Hash canonical request data with SHA-256: work/gate, sorted evidence manifest, prompt registry, supplied context and primary/fallback tuples.
+- Look up the newest matching validated, incident-free response before provider/session admission and round-limit checks. Return the exact response with a cache diagnostic; do not change the record.
+- Never cache an incomplete attempt or fabricate keys for historical responses. Supplied file changes invalidate the cache; unlisted ambient reads are not covered. Execution limits alone do not change the verdict identity.
 ** Security impact
 - No access grant changes, credentials copied or login attempts. Fallback grants only the already-authorized invocation to the explicitly configured provider.
 - Do not interpret permission failures or arbitrary provider errors as authentication failures. No secrets are added to records.

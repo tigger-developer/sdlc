@@ -20,6 +20,7 @@ type recoveryRun struct {
 	evidence         harness.Evidence
 	registry         auditPromptDocument
 	path, work, gate string
+	cacheKey         string
 	audit            bool
 	diagnostics      io.Writer
 }
@@ -159,7 +160,7 @@ func (r recoveryRun) invoke(entry harness.AuditEntry, selected harness.Config, r
 	if r.path != "" {
 		primary := r.config.Agent()
 		entry.Configured = &primary
-		attempt, err = beginAuditAttempt(r.path, entry, r.work, r.gate, selected, r.evidence)
+		attempt, err = beginAuditAttempt(r.path, entry, r.work, r.gate, selected, r.evidence, r.cacheKey)
 		if err != nil {
 			return result, err
 		}
