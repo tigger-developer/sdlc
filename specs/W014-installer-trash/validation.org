@@ -12,6 +12,9 @@
   fixture paths into a disposable recovery tree. No host Trash or deployment used.
 - Existing evidence :: Installer integration covers retired commands, symlink
   recovery, provider configuration preservation and unchanged reruns.
+- Static checks :: =go vet= and =golangci-lint= passed for the companion deployer
+  and the changed SDLC installer packages. =gofmt= and =git diff --check= are clean.
+- Documentation :: Changed documentation passed =sanitize= without differences.
 
 * Operator validation
 

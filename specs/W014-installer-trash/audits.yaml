@@ -1,0 +1,79 @@
+version: 1
+audits:
+    - work_item: W014-installer-trash
+      gate: implementation
+      session_id: 61f1fb22-7337-4603-b857-4abf050d1d88
+      harness: claude
+      model: claude-opus-5
+      configured:
+        harness: claude
+        model: claude-opus-5
+      external_round: 1
+      status: incident
+      updated: "2026-09-12T23:09:05Z"
+      history:
+        - cache_key: sha256:f09a411725dbf7396f375691e4bc3122cce9ecc8ced49a613f69ceb21dd05cdd
+          session_id: 61f1fb22-7337-4603-b857-4abf050d1d88
+          harness: claude
+          model: claude-opus-5
+          incident: start-failed
+          evidence:
+            - path: /Users/tigger/.agents/sdlc/ARCHITECTURE.md
+              sha256: bd7a66ffd967010eefb8dc7abe64b059994c7b0f44ed5f5c30ec73e354f5b7f7
+              bytes: 8154
+            - path: /Users/tigger/.agents/sdlc/CODING.md
+              sha256: a69a5d3b7ce3604b093703d72ab0de1bb6d607f140baab17292d209054fe902f
+              bytes: 13502
+            - path: /Users/tigger/.agents/sdlc/TESTING.md
+              sha256: 5ed902d49dbb8321ea093fd60db68d5195e59c95c763c02e4ca0c09f6fa1e932
+              bytes: 13561
+            - path: /Users/tigger/.agents/sdlc/technologies/GO.md
+              sha256: 63a41c24322b2c4144367b69777528b023a30222593c462b0696df98b1967917
+              bytes: 7301
+            - path: /Users/tigger/code/agents/README.md
+              sha256: b08e882b53fa1eed0dfe39632b1a45de16ea9e0d4c0e1fde288e4dedeaca2136
+              bytes: 4111
+            - path: /Users/tigger/code/agents/docs/agents-deploy-help.md
+              sha256: 28ef1935119f0db7b65087968a436e1cb63b34d170f602fb1a6728f0a851cb99
+              bytes: 3645
+            - path: /Users/tigger/code/agents/internal/deploy/deploy.go
+              sha256: 21436ffcad7c897444f05fe796195ddef19d447ce6506c981a7844837e225151
+              bytes: 20632
+            - path: /Users/tigger/code/agents/sdlc/.sdlc/project.yaml
+              sha256: 7435fbc30502a8a150bf976a612f9355ec4fafad508f66042eaeddd0a70de02d
+              bytes: 307
+            - path: /Users/tigger/code/agents/sdlc/README.md
+              sha256: 502a3e69ae8ac847a949503a5f31b94ad2effb53c47c72500242c5c64952974e
+              bytes: 19260
+            - path: /Users/tigger/code/agents/sdlc/docs/ARCHITECTURE.md
+              sha256: 7a770893e55c2d1d56774b812d84fb9ea87665c7c72a25b52d6fc850a5df661d
+              bytes: 14711
+            - path: /Users/tigger/code/agents/sdlc/docs/work.org
+              sha256: bea338a104fbfbbd9bf817cb24f9cb79f2f4f8fd797b048ef2cecd7421e115ed
+              bytes: 8556
+            - path: /Users/tigger/code/agents/sdlc/internal/installer/installer.go
+              sha256: bf112eb625bf158bdade2f8752628162cca74a4111aacd7f38433c3220df7e37
+              bytes: 60714
+            - path: /Users/tigger/code/agents/sdlc/internal/installer/installer_v3_test.go
+              sha256: 8701d7fce8aff35c1f17a826a2cb73ad0d4d7d2a4f6834b2ec90cd1b1ac5b17c
+              bytes: 15554
+            - path: /Users/tigger/code/agents/sdlc/internal/installer/release.go
+              sha256: fafde8a727a24fd8bfd7a13044b733c25c2674d33eafddd73e49f25a9de8d0cb
+              bytes: 4092
+            - path: /Users/tigger/code/agents/sdlc/internal/installer/trash.go
+              sha256: 16fc3436f6714fde890fa43377d06fde8b5ec14fd85d719d101f3763ee3e321a
+              bytes: 955
+            - path: /Users/tigger/code/agents/sdlc/internal/installer/trash_test.go
+              sha256: 14d425fe0d52b73439035b21261a06fe17aaac70d86bae89614996529a99a4ab
+              bytes: 4195
+            - path: /Users/tigger/code/agents/sdlc/specs/W014-installer-trash/validation.org
+              sha256: 14be3376d229018274d7c38c19685b661c00ed52e0c316b26c1c54d3efc88470
+              bytes: 991
+            - path: /Users/tigger/code/agents/tests/regression/agents_deploy_test.go
+              sha256: 4495f8385bef51aabb330ad1e293ee06d0d6263812c4614556af5b99e247a836
+              bytes: 13917
+            - path: /Users/tigger/code/agents/tests/regression/trash_test.go
+              sha256: 88110fb663b623f03cae03e358fe28310cd2d6337a13d3b06ab6c4a36dbc9628
+              bytes: 1923
+          round: 1
+          updated: "2026-09-12T23:09:03Z"
