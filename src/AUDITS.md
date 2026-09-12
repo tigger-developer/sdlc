@@ -5,6 +5,15 @@ tests, or implementation evidence. The **audit harness** owns the prompts,
 provider invocation, timeout, round limit, and retained session. No individual
 audit skill is required or deployed.
 
+For a client-project agent, the harness is an **external tool**, not part of
+the work. Use its help, supply the required evidence, and follow its documented
+recovery instructions. Do not inspect or troubleshoot its internals, provider
+authentication or model behaviour, or ask the operator to choose replacements.
+Model selection, fallback and session recovery belong to the harness and its
+configuration. If documented recovery cannot proceed, report the exact command
+and diagnostic without speculative causes; continue other authorized work.
+Harness investigation requires the operator to explicitly place it in scope.
+
 ## Composite gates
 
 The **definition gate** reviews the specification, solution design, and RT/UT/OT
