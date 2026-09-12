@@ -168,8 +168,8 @@ it, unless their configuration file is itself a supplied, changed input.
 Recovery
 ========
 
-Session and authentication recovery
------------------------------------
+Session and fallback recovery
+-----------------------------
 
 With `--audit-record`, the harness records the session's harness/provider/model.
 On resume, a changed effective tuple or an explicit missing-session diagnostic
@@ -177,7 +177,7 @@ starts a new context automatically. All history, previous IDs and findings remai
 in `audits.yaml`; replacements receive the full current evidence and historical
 findings. A missing session is not assumed to have expired. Never delete mappings.
 
-Configure an optional authentication fallback beside the primary for any phase:
+Configure an optional fallback beside the primary:
 
     delivery:
       audit:
@@ -192,17 +192,23 @@ The same `fallback` mapping works under `definition` and `build`. Project YAML
 replaces the entire global fallback tuple; `fallback: {}` disables inheritance.
 Omission inherits. There are no fallback CLI/environment overrides. Harness and
 model are required; provider is required by Hermes and ignored by other adapters.
-An explicit authentication diagnostic selects the fallback once, never recursively.
+For audits, an attempted provider run ending without a usable verdict selects
+the configured fallback once: usage limits, authentication, launch failures,
+timeouts, empty/malformed responses or a wrong-gate response qualify.
+PASS, FAIL and PROVISIONAL PASS are usable verdicts and never trigger fallback.
+PENDING/running is not a final verdict: wait for completion or the harness timeout.
 A retained fallback audit resumes it while primary and fallback settings match.
-Timeouts, FAIL verdicts, permission errors and generic failures do not select it.
+Invalid configuration, evidence-integrity failures, record errors and exhausted
+rounds stop locally; fallback does not bypass these checks or widen permissions.
+Non-audit definition/build invocations retain authentication-only fallback.
 
 Missing-session recovery recognizes Claude's exact `No conversation found with
 session ID: <requested ID>` diagnostic. Unknown provider messages fail closed.
 Authentication recovery recognizes explicit login, expired-OAuth and invalid-key
-diagnostics, not arbitrary HTTP errors. This is not a general provider retry loop.
-At most one missing-session restart and one authentication fallback occur per
+diagnostics. Other failed audit invocations do not need a diagnostic allowlist.
+At most one missing-session restart and one configured fallback occur per
 command. Each launch consumes a round and gets the configured timeout; replacements
-do not reset `max_rounds`. Without an audit record, authentication fallback is still
+do not reset `max_rounds`. Without an audit record, one fallback is still
 available, but missing-session replacement and cross-call tracking are not.
 
 Timeout behaviour
@@ -213,7 +219,9 @@ attempt's evidence and records the native session ID as soon as it is observed.
 Timeouts count towards `delivery.audit.max_rounds`. Prior verdicts remain in
 history; a timed-out attempt has an `incident`, not a fabricated verdict.
 
-In HANDS-OFF mode, follow the timeout diagnostic and repeat the invocation with
+The harness first tries an unused configured fallback when budget remains.
+If it returns a timeout instead, in HANDS-OFF mode follow that diagnostic and
+repeat the invocation with
 `resume`, the same configuration, inputs and context. With `--audit-record`, no
 manual session argument is needed: the Resume example above loads it. The
 harness adds continuation instructions from YAML and compares evidence against

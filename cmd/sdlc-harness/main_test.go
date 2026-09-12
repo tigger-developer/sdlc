@@ -109,7 +109,7 @@ printf '{"type":"thread.started","thread_id":"native-session"}\n'
 		t.Fatal(err)
 	}
 	t.Setenv("PROBE_MUTATE", "1")
-	err = run(append([]string{"resume"}, args...), strings.NewReader("review"), &bytes.Buffer{}, &bytes.Buffer{})
+	err = run(append([]string{"resume"}, args...), strings.NewReader("review with mutation probe"), &bytes.Buffer{}, &bytes.Buffer{})
 	if err == nil || !strings.Contains(err.Error(), "changed") {
 		t.Fatalf("mutation error = %v", err)
 	}

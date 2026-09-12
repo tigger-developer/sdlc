@@ -20,3 +20,15 @@
 
 - Pending :: Run installation on the operator's host and confirm Trash recovery
   and adjacent configuration backups. No live installation was run by this agent.
+
+* 2026-09-13 - Emergency audit-fallback follow-up
+
+- RED :: New process-boundary tests reproduced no fallback for subscription
+  limits, launch failures, timeout and unusable responses.
+- GREEN :: =go test ./cmd/sdlc-harness ./internal/harness= passed after the
+  recovery change. Valid verdicts avoid fallback; failed fallback stops; budgets,
+  evidence integrity, provenance and retained fallback reuse are checked.
+- Fixture correction :: Two existing tests expected a provider invocation for
+  an identical cached result. The mutation probe now changes its caller context;
+  the timeout test accepts a cached PASS while verifying no extra provider call.
+- Scope :: Local provider doubles only; no metered regression test.

@@ -110,6 +110,29 @@ classification; it is provenance, not current state.
 - Evidence :: [[file:../specs/W014-installer-trash/validation.org][W014 - Validation]];
   [[file:../specs/W014-installer-trash/audits.yaml][W014 - Harness-owned audit record]].
 
+*** Emergency follow-up - Unusable audit result fallback
+
+- Authority :: Operator explicitly extends BYPASS-GATE-7 to the audit harness
+  after the configured primary reports its subscription limit. Confirmed usable
+  verdicts are PASS, FAIL and PROVISIONAL PASS; running work is not a failed attempt.
+- AC014.4 :: An *audit attempt ending without a usable verdict* selects the
+  configured fallback *once*, retaining history and the shared round budget.
+  Valid verdicts do not trigger it; later review resumes the selected fallback.
+- AC014.5 :: *Local configuration, evidence-integrity and record failures* do
+  not bypass their checks. Exhausted budgets do not launch another provider.
+  Non-audit definition/build retain authentication-only fallback.
+- RT014.4 :: Local executable provider doubles exercise usage-limit and launch
+  failures, timeout, empty/malformed/wrong-gate responses, all valid verdicts,
+  failed fallback, exhausted rounds, changed evidence and retained-session reuse.
+  Observe actual calls, audit history, configured tuple and final output. Covers
+  AC014.4 and AC014.5; no metered provider enters automated tests.
+- Design :: Extend the existing recovery decision after provider termination
+  and verdict validation. Typed provider incidents permit fallback; local evidence
+  and record errors stop. No new configuration fields, provider-message catalogue,
+  permission bypass, timeout increase or manual session replacement.
+- Security :: Exact evidence checks and configured permissions remain mandatory.
+  Fallback is operator-configured; no unconfigured provider is chosen.
+
 ** REVIEW W013 - Route initializer writing agents by task :defect:
 :PROPERTIES:
 :CUSTOM_ID: w-013

@@ -1,5 +1,14 @@
 # SDLC Standards: Design Learnings
 
+## Fallback follows result usability, not guessed failure causes
+
+A subscription usage limit can block delivery as effectively as an expired
+login. Audit failover should handle a terminated invocation without a usable
+verdict, not maintain a growing list of provider error phrases. Preserve valid
+verdicts and distinguish running work from terminated attempts. Keep evidence,
+record and budget checks outside fallback, and retain the fallback session for
+later reviews instead of repeatedly trying the unavailable primary.
+
 ## Separate deployment recovery from configuration history
 
 Adjacent backups of every deployed instruction accumulate stale context that

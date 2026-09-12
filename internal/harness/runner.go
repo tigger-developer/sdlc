@@ -164,7 +164,7 @@ func Execute(ctx context.Context, request Request, resume bool, evidence *Eviden
 	if request.ResultFile != "" {
 		resultFile, err = os.ReadFile(request.ResultFile)
 		if err != nil {
-			return Result{}, fmt.Errorf("reading %s final response: %w", request.Harness, err)
+			return Result{}, newIncident("response-missing", request.Harness, stdout.identity, fmt.Errorf("reading final response: %w", err))
 		}
 	}
 	var result Result

@@ -119,8 +119,11 @@ sleep 10
 	}
 	for _, action := range []string{"start", "resume"} {
 		err := run(append([]string{action}, args...), strings.NewReader("review"), &bytes.Buffer{}, &bytes.Buffer{})
-		if err == nil {
+		if err == nil && recovery != "success" {
 			t.Fatalf("%s evaded exhausted attempt limit", action)
+		}
+		if err != nil && recovery == "success" {
+			t.Fatalf("%s rejected identical cached PASS: %v", action, err)
 		}
 	}
 	after, err := os.ReadFile(filepath.Join(root, "calls"))

@@ -202,7 +202,7 @@ delivery:
     model: gpt-5.6-luna
     timeout: 5m
     max_rounds: 5
-    # Optional: select only after an explicit authentication failure.
+    # Optional: use when an audit attempt ends without a usable verdict.
     # fallback:
     #   harness: hermes
     #   provider: nous
@@ -220,8 +220,11 @@ standards, so `.sdlc/project.yaml` does not duplicate an SDLC release pin.
 Each of `delivery.definition`, `delivery.build` and `delivery.audit` accepts an
 optional `fallback` mapping containing `harness`, `provider` where supported, and
 `model`. Project YAML replaces the global tuple as a whole; `fallback: {}` disables
-it. Omission inherits it. Fallback handles explicit authentication failures, not
-timeouts, audit FAILs or file-access denials. It has no separate timeout or round
+it. Omission inherits it. Audit fallback handles attempts ending without a usable
+verdict, including usage limits, launch/authentication errors, timeout and malformed
+output. PASS, FAIL and PROVISIONAL PASS never trigger it; running attempts must finish
+or time out. Local configuration, evidence and record errors remain blockers.
+Non-audit definition/build retain authentication-only fallback. It has no separate timeout or round
 budget. Session recovery is harness-owned: configuration changes and recognized
 missing-session errors create a replacement with full evidence and preserved
 audit history. Run the installed harness's `--help` for diagnostic boundaries.

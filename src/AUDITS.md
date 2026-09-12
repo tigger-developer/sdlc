@@ -65,15 +65,22 @@ findings/history, supplies the full evidence and historical findings, and keeps
 the existing round budget. It never claims that an unavailable session expired.
 
 An optional `delivery.<phase>.fallback` supplies one alternate harness/provider/model
-tuple for explicit authentication failures. A retained fallback audit continues on
+tuple. For audits, use it once when an attempted provider run ends without a usable
+verdict, including usage limits, authentication/launch errors, timeout, or an empty,
+malformed or wrong-gate response. PASS, FAIL and PROVISIONAL PASS never trigger
+fallback. A PENDING/running attempt must finish or time out before recovery.
+A retained fallback audit continues on
 that tuple while the configured primary and fallback remain unchanged. Each CLI
-invocation permits at most one missing-session restart and one authentication
+invocation permits at most one missing-session restart and one configured
 fallback, subject to the remaining audit rounds. Every launched attempt consumes a
-round and has the configured timeout. Neither FAIL, timeout, permission denial nor
-an unclassified provider failure triggers fallback. Calling agents do not repair
+round and has the configured timeout. Invalid configuration, evidence-integrity
+failures, record errors and exhausted rounds still stop locally. No permission
+is widened. Non-audit definition/build retain authentication-only fallback.
+Calling agents do not repair
 or delete mappings themselves.
 
-On timeout, follow the harness recovery diagnostic. In HANDS-OFF mode, resume
+The harness tries an unused configured fallback before returning a timeout.
+On a returned timeout, follow the recovery diagnostic. In HANDS-OFF mode, resume
 automatically while a native session is recorded and the limit permits it.
 Resubmitting unchanged evidence after timeout is allowed, but does not waive
 earlier FAIL findings. The resumed prompt continues unfinished review and reuses

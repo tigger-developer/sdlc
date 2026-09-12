@@ -1,4 +1,4 @@
-// ABOUTME: Recovers unavailable contexts and configured authentication fallbacks within fixed bounds.
+// ABOUTME: Recovers unavailable contexts and unusable audit results within fixed bounds.
 // ABOUTME: Preserves session provenance, findings and the existing audit attempt budget.
 package main
 
@@ -37,7 +37,7 @@ func (r recoveryRun) execute(entry harness.AuditEntry, resume bool) (harness.Res
 		}
 	}
 	missingRecovered, fallbackUsed := false, selected.Agent() != r.config.Agent()
-	// One missing-session replacement and one authentication fallback per invocation.
+	// At most one configured fallback; every launch shares the audit round budget.
 	for {
 		if r.path != "" && entry.ExternalRound >= r.config.MaxRounds {
 			return harness.Result{}, fmt.Errorf("audit reached max_rounds=%d; no recovery budget remains", r.config.MaxRounds)
@@ -79,17 +79,26 @@ func (r recoveryRun) execute(entry harness.AuditEntry, resume bool) (harness.Res
 			entry = saved
 		}
 		switch {
+		case fallbackEligible(incident, r.audit) && !fallbackUsed && r.config.Fallback != nil && *r.config.Fallback != selected.Agent():
+			fallbackUsed = true
+			selected = selected.WithAgent(*r.config.Fallback)
+			reason = incident.Kind + "-fallback"
 		case incident.Kind == "session-unavailable" && resume && !missingRecovered && r.path != "":
 			missingRecovered = true
 			reason = "session-unavailable"
-		case incident.Kind == "authentication-failed" && !fallbackUsed && r.config.Fallback != nil && *r.config.Fallback != selected.Agent():
-			fallbackUsed = true
-			selected = selected.WithAgent(*r.config.Fallback)
-			reason = "authentication-fallback"
 		default:
 			return harness.Result{}, err
 		}
 	}
+}
+
+func fallbackEligible(incident *harness.Incident, audit bool) bool {
+	if incident.Kind == "authentication-failed" {
+		return true
+	}
+	// Invalid configuration is not a failed audit. Evidence and record failures
+	// are untyped local errors and never reach this provider-recovery decision.
+	return audit && incident.Kind != "configuration-invalid" && incident.Kind != "capability-unsupported"
 }
 
 func owns(entry harness.AuditEntry, agent harness.AgentConfig) bool {
@@ -171,7 +180,7 @@ func (r recoveryRun) invoke(entry harness.AuditEntry, selected harness.Config, r
 				return
 			}
 			var incident *harness.Incident
-			if errors.As(runErr, &incident) && incident.Kind == "timeout" {
+			if errors.As(runErr, &incident) && incident.Kind == "timeout" && (r.config.Fallback == nil || selected.Agent() == *r.config.Fallback) {
 				attempt.reportTimeout(r.registry, r.diagnostics)
 			}
 		}()
@@ -187,7 +196,7 @@ func (r recoveryRun) invoke(entry harness.AuditEntry, selected harness.Config, r
 			return result, err
 		}
 		if auditField(result.Response, "GATE") != r.gate {
-			return result, fmt.Errorf("audit response gate does not match requested %s gate", r.gate)
+			return result, &harness.Incident{Kind: "response-malformed", Harness: selected.Harness, SessionID: result.SessionID, Err: fmt.Errorf("audit response gate does not match requested %s gate", r.gate)}
 		}
 	}
 	if attempt != nil {
