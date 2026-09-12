@@ -40,8 +40,8 @@ func (r recoveryRun) execute(entry harness.AuditEntry, resume bool) (harness.Res
 	missingRecovered, fallbackUsed := false, selected.Agent() != r.config.Agent()
 	// At most one configured fallback; every launch shares the audit round budget.
 	for {
-		if r.path != "" && entry.ExternalRound >= r.config.MaxRounds {
-			return harness.Result{}, fmt.Errorf("audit reached max_rounds=%d; no recovery budget remains", r.config.MaxRounds)
+		if r.path != "" && entry.RoundsUsed() >= r.config.MaxRounds {
+			return harness.Result{}, fmt.Errorf("audit reached max_rounds=%d; no recovery budget remains; operator may authorize --reset-session; see --help", r.config.MaxRounds)
 		}
 		if reason != "" {
 			if err := r.evidence.Verify(); err != nil {
@@ -213,7 +213,7 @@ func (r recoveryRun) invoke(entry harness.AuditEntry, selected harness.Config, r
 		entry.Revision, entry.Verdict, entry.Response = auditField(result.Response, "REVISION"), auditField(result.Response, "VERDICT"), result.Response
 		if entry.Verdict == "PASS" || entry.Verdict == "PROVISIONAL PASS" {
 			entry.Status = "passed"
-		} else if entry.ExternalRound >= selected.MaxRounds {
+		} else if entry.RoundsUsed() >= selected.MaxRounds {
 			entry.Status = "exhausted"
 		}
 		round := &entry.History[len(entry.History)-1]

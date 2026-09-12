@@ -104,6 +104,12 @@ Each gate retains one external session per work item. Composite prompts live in
 harness owns session identity, timeout, round limits, and persistence. Authoring
 agents remediate all findings before resuming the same gate session.
 
+Lifetime audit numbering is separate from the current bounded allowance.
+Operator-authorized `resume --reset-session` appends a timestamped budget
+boundary and exits without invoking a provider. It preserves native context,
+findings and cached results; subsequent launches consume the fresh allowance.
+Spec changes and provider recovery do not reset it automatically.
+
 Codex and Claude receive original absolute paths and a metadata-only evidence
 manifest. Hermes runs without filesystem tools and receives the verified UTF-8
 contents through stdin on every invocation, without retained copies. The harness

@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## v3.2.27 - 2026-09-13
+
+- Add operator-authorized `sdlc-harness resume --reset-session` to reset a
+  work item/gate's audit allowance without deleting its native session, findings,
+  cached verdicts or lifetime history. Reset exits without a provider call;
+  subsequent audits and fallback share the fresh configured allowance.
+- Record timestamped budget boundaries separately from lifetime attempt numbers.
+  Reject resets of missing or running records and retain bounded retry behaviour.
+
 ## v3.2.26 - 2026-09-13
 
 - Use the configured audit fallback once after a provider attempt ends without

@@ -130,4 +130,28 @@ sleep 10
 	if err != nil || !bytes.Equal(before, after) {
 		t.Fatalf("blocked invocation called provider: %q -> %q (%v)", before, after, err)
 	}
+	if recovery == "exhausted" {
+		resetArgs := []string{"resume", "--reset-session", "--project", root, "--gate", "implementation", "--audit-record", record, "--work-item", "W006-recovery"}
+		if err := run(resetArgs, strings.NewReader(""), &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+			t.Fatal(err)
+		}
+		for round := 3; round <= 4; round++ {
+			err := run(append([]string{"resume"}, args...), strings.NewReader("review"), &bytes.Buffer{}, &bytes.Buffer{})
+			var incident *harness.Incident
+			if !errors.As(err, &incident) || incident.Kind != "timeout" {
+				t.Fatalf("post-reset timeout %d: %v", round, err)
+			}
+			entry, _, err := harness.ReadAuditEntry(record, "W006-recovery", "implementation")
+			if err != nil || entry.RoundsUsed() != round-2 || len(entry.History) != round || entry.SessionID != "native-timeout" {
+				t.Fatalf("post-reset accounting: %#v (%v)", entry, err)
+			}
+		}
+		if err := run(append([]string{"resume"}, args...), strings.NewReader("review"), &bytes.Buffer{}, &bytes.Buffer{}); err == nil || !strings.Contains(err.Error(), "max_rounds") {
+			t.Fatalf("reset allowed unbounded retries: %v", err)
+		}
+		calls, err := os.ReadFile(filepath.Join(root, "calls"))
+		if err != nil || string(calls) != "xxxx" {
+			t.Fatalf("post-reset calls: %q (%v)", calls, err)
+		}
+	}
 }

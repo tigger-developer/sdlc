@@ -73,6 +73,7 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 	model := flags.String("model", "", "model override")
 	timeout := flags.Duration("timeout", 0, "execution timeout")
 	session := flags.String("session", "", "stable session identity for resume")
+	resetSession := flags.Bool("reset-session", false, "operator-authorized audit budget reset only; preserve context and history, then exit")
 	var inputs inputList
 	flags.Var(&inputs, "input", "exact evidence file to include; repeat as needed")
 	flags.Usage = func() {
@@ -99,6 +100,20 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 	projectRoot, err := filepath.Abs(*project)
 	if err != nil {
 		return err
+	}
+	if *resetSession {
+		if action != "resume" || normalizedPhase != "audit" || strings.TrimSpace(*auditRecord) == "" || strings.TrimSpace(*workItem) == "" || *session != "" || len(inputs) != 0 {
+			return errors.New("--reset-session requires resume --phase audit --gate --audit-record --work-item, without --session or --input; resets the budget only")
+		}
+		path := *auditRecord
+		if !filepath.IsAbs(path) {
+			path = filepath.Join(projectRoot, path)
+		}
+		if err := harness.ResetAuditBudget(path, *workItem, normalizedGate); err != nil {
+			return err
+		}
+		fmt.Fprintf(output, "AUDIT BUDGET RESET: %s/%s; attempts used=0; native session and history retained; no provider invoked. Resume the audit without --reset-session.\n", *workItem, normalizedGate)
+		return nil
 	}
 	config, err := harness.ResolveConfig(harness.ConfigOptions{
 		ProjectRoot: projectRoot, GlobalPath: *globalConfig, Phase: normalizedPhase,
@@ -201,8 +216,8 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 			if !found || entry.SessionID == "" {
 				return fmt.Errorf("no resumable native audit session for %s/%s; inspect the record before starting or recovering an audit", *workItem, normalizedGate)
 			}
-			if entry.ExternalRound >= config.MaxRounds {
-				return fmt.Errorf("audit session for %s/%s has reached max_rounds=%d; operator decision required", *workItem, normalizedGate, config.MaxRounds)
+			if entry.RoundsUsed() >= config.MaxRounds {
+				return fmt.Errorf("audit session for %s/%s has reached max_rounds=%d; operator may authorize --reset-session; see --help", *workItem, normalizedGate, config.MaxRounds)
 			}
 			if identity == "" {
 				identity = entry.SessionID

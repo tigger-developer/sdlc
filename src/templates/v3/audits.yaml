@@ -9,7 +9,10 @@ audits:
     model: ""                        # model owning the current context
     configured: {}                   # primary harness/provider/model used to select it
     previous_sessions: []            # retired IDs/configuration, reason and timestamp
-    external_round: 0                 # invocations, including timeouts, starting at 1
+    external_round: 0                 # lifetime invocations, including timeouts
+    budget_resets: []                 # operator resets: after_round and updated (UTC)
+    # Budget used = external_round minus the last reset's after_round (or zero).
+    # Only resume --reset-session writes reset boundaries; never edit directly.
     status: active                    # active, running, passed, timed-out, incident, identity-missing, exhausted
     revision: ""                     # exact audited revision or digest
     verdict: ""                      # PASS, PROVISIONAL PASS, or FAIL

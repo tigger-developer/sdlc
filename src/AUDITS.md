@@ -53,9 +53,14 @@ For either gate:
 The harness stores one session mapping per work item and gate in `audits.yaml`.
 The first invocation starts a session; later invocations resume its recorded
 `session_id`. The round limit is `delivery.audit.max_rounds` (default five) and
-applies to the current invoking session only. Every provider invocation,
-including a timeout, consumes one recorded round. Recovery never resets that
-counter. Earlier unrecorded timeouts cannot be reconstructed automatically.
+applies to the current explicitly bounded audit cycle. Every provider invocation,
+including a timeout, consumes one round. To start a new allowance, the operator
+must authorize `resume --reset-session`; this resets only the selected work
+item/gate's budget and exits without an audit. Run it once, then resume normally
+without the flag. Never reset autonomously to evade the limit. The harness retains
+native context, findings, cached results and lifetime history, recording a reset
+boundary in `audits.yaml`. Spec changes and provider recovery never reset the
+budget. Earlier unrecorded timeouts cannot be reconstructed automatically.
 
 Session reuse is an optimization, not a delivery prerequisite. The harness records
 the native ID, owning harness/provider/model and effective primary configuration.

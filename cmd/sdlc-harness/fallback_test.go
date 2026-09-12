@@ -14,7 +14,7 @@ import (
 // RT014.4: exercise real process, output validation and audit persistence using
 // local doubles only. No metered provider is part of this regression test.
 func TestFallbackForUnusableAuditResult(t *testing.T) {
-	for _, mode := range []string{"limit", "launch-error", "timeout", "malformed", "wrong-gate", "empty", "PASS", "FAIL", "PROVISIONAL PASS", "fallback-fails", "exhausted", "evidence-changed"} {
+	for _, mode := range []string{"limit", "reset-limit", "launch-error", "timeout", "malformed", "wrong-gate", "empty", "PASS", "FAIL", "PROVISIONAL PASS", "fallback-fails", "exhausted", "evidence-changed"} {
 		t.Run(mode, func(t *testing.T) {
 			root := t.TempDir()
 			bin := filepath.Join(root, "bin")
@@ -23,6 +23,9 @@ func TestFallbackForUnusableAuditResult(t *testing.T) {
 			}
 			t.Setenv("PATH", bin+string(os.PathListSeparator)+os.Getenv("PATH"))
 			t.Setenv("FALLBACK_MODE", mode)
+			if mode == "reset-limit" {
+				t.Setenv("FALLBACK_MODE", "limit")
+			}
 			t.Setenv("FALLBACK_CALLS", filepath.Join(root, "calls"))
 			source := filepath.Join(root, "spec.org")
 			t.Setenv("FALLBACK_SOURCE", source)
@@ -72,6 +75,19 @@ printf 'GATE: implementation\nREVISION: fixture\nVERDICT: PASS\n'
 			}
 			record := filepath.Join(root, "audits.yaml")
 			args := []string{"start", "--project", root, "--global-config", config, "--audit-prompts", registry, "--gate", "implementation", "--audit-record", record, "--work-item", "W015-fallback", "--input", source}
+			roundBase := 0
+			if mode == "reset-limit" {
+				roundBase = 5
+				prior := harness.AuditEntry{WorkItem: "W015-fallback", Gate: "implementation", SessionID: "old-claude", Harness: "claude", Model: "fixture", ExternalRound: 5, Status: "exhausted", History: []harness.AuditRound{{Round: 5, Incident: "resume-failed"}}}
+				if err := harness.WriteAuditEntry(record, prior); err != nil {
+					t.Fatal(err)
+				}
+				reset := []string{"resume", "--reset-session", "--project", root, "--gate", "implementation", "--audit-record", record, "--work-item", "W015-fallback"}
+				if err := run(reset, strings.NewReader(""), &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+					t.Fatal(err)
+				}
+				args[0] = "resume"
+			}
 			var output, diagnostics bytes.Buffer
 			err := run(args, strings.NewReader("audit"), &output, &diagnostics)
 			blocked := mode == "exhausted" || mode == "fallback-fails" || mode == "evidence-changed"
@@ -88,7 +104,7 @@ printf 'GATE: implementation\nREVISION: fixture\nVERDICT: PASS\n'
 				t.Fatalf("calls = %q (%v), want %q", calls, readErr, wantCalls)
 			}
 			entry, found, readErr := harness.ReadAuditEntry(record, "W015-fallback", "implementation")
-			if readErr != nil || !found || entry.ExternalRound != strings.Count(wantCalls, "\n") {
+			if readErr != nil || !found || entry.ExternalRound != roundBase+strings.Count(wantCalls, "\n") || entry.RoundsUsed() != strings.Count(wantCalls, "\n") {
 				t.Fatalf("record = %#v (%v)", entry, readErr)
 			}
 			if valid && entry.Verdict != mode {

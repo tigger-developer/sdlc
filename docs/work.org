@@ -78,6 +78,16 @@ classification; it is provenance, not current state.
 
 * Work items
 
+** ACTIVE W015 - Reset an exhausted audit allowance :defect:
+:PROPERTIES:
+:CUSTOM_ID: w-015
+:PRIORITY: P1
+:SOURCE: operator BYPASS-GATE-7
+:CREATED: 2026-09-13
+:END:
+
+- *Request:* [[file:../specs/W015-audit-budget-reset/request.md][W015 - Reset an exhausted audit allowance]]
+
 ** REVIEW W014 - Recover replaced installer artefacts through Trash :maintenance:
 :PROPERTIES:
 :CUSTOM_ID: w-014

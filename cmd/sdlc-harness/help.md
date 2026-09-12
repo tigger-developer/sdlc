@@ -170,6 +170,28 @@ it, unless their configuration file is itself a supplied, changed input.
 Recovery
 ========
 
+Reset the attempt budget
+------------------------
+
+After explicit operator authorization, use `resume --reset-session` to give
+one work item/gate a fresh `max_rounds` allowance. It **only resets the budget
+and exits**: no prompt, evidence files, provider call or model configuration is
+required. It retains the native session, findings, cached results and lifetime
+history. It does not create a new provider session or approve the work.
+
+    /absolute/path/to/.agents/sdlc/bin/sdlc-harness resume \
+      --reset-session --phase audit --gate definition --project . \
+      --audit-record specs/W001-change/audits.yaml --work-item W001-change
+
+Then repeat the normal Resume example **without `--reset-session`**, supplying
+the full evidence and context. Never leave the reset flag in a retry loop.
+Changing a specification or recovering a provider does not reset the budget.
+The reset records a timestamped `budget_resets` boundary; `external_round`
+continues to number lifetime attempts. Repeating a reset before another attempt
+does nothing. Missing records and running/interrupted attempts are rejected.
+Reset does not repair a missing native identity. `--session` and `--input` are
+not accepted with the reset flag. Other work items and gates are unchanged.
+
 Session and fallback recovery
 -----------------------------
 

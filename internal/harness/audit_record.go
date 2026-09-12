@@ -25,23 +25,63 @@ type LegacyAudit struct {
 }
 
 type AuditEntry struct {
-	WorkItem      string           `yaml:"work_item"`
-	Gate          string           `yaml:"gate"`
-	SessionID     string           `yaml:"session_id"`
-	Harness       string           `yaml:"harness,omitempty"`
-	Provider      string           `yaml:"provider,omitempty"`
-	Model         string           `yaml:"model,omitempty"`
-	Configured    *AgentConfig     `yaml:"configured,omitempty"`
-	Sessions      []RetiredSession `yaml:"previous_sessions,omitempty"`
-	ExternalRound int              `yaml:"external_round"`
-	Status        string           `yaml:"status"`
-	Updated       string           `yaml:"updated"`
-	Revision      string           `yaml:"revision,omitempty"`
-	Verdict       string           `yaml:"verdict,omitempty"`
-	Response      string           `yaml:"response,omitempty"`
-	Findings      []string         `yaml:"findings,omitempty"`
-	Remediation   []string         `yaml:"remediation,omitempty"`
-	History       []AuditRound     `yaml:"history,omitempty"`
+	WorkItem      string             `yaml:"work_item"`
+	Gate          string             `yaml:"gate"`
+	SessionID     string             `yaml:"session_id"`
+	Harness       string             `yaml:"harness,omitempty"`
+	Provider      string             `yaml:"provider,omitempty"`
+	Model         string             `yaml:"model,omitempty"`
+	Configured    *AgentConfig       `yaml:"configured,omitempty"`
+	Sessions      []RetiredSession   `yaml:"previous_sessions,omitempty"`
+	ExternalRound int                `yaml:"external_round"`
+	BudgetResets  []AuditBudgetReset `yaml:"budget_resets,omitempty"`
+	Status        string             `yaml:"status"`
+	Updated       string             `yaml:"updated"`
+	Revision      string             `yaml:"revision,omitempty"`
+	Verdict       string             `yaml:"verdict,omitempty"`
+	Response      string             `yaml:"response,omitempty"`
+	Findings      []string           `yaml:"findings,omitempty"`
+	Remediation   []string           `yaml:"remediation,omitempty"`
+	History       []AuditRound       `yaml:"history,omitempty"`
+}
+
+// AuditBudgetReset starts a new bounded cycle without erasing lifetime history.
+type AuditBudgetReset struct {
+	AfterRound int    `yaml:"after_round"`
+	Updated    string `yaml:"updated"`
+}
+
+// RoundsUsed counts provider launches since the last explicit operator reset.
+func (entry AuditEntry) RoundsUsed() int {
+	if len(entry.BudgetResets) == 0 {
+		return entry.ExternalRound
+	}
+	return entry.ExternalRound - entry.BudgetResets[len(entry.BudgetResets)-1].AfterRound
+}
+
+// ResetAuditBudget preserves native context, findings, cache entries and history.
+func ResetAuditBudget(path, workItem, gate string) error {
+	entry, found, err := ReadAuditEntry(path, workItem, gate)
+	if err != nil {
+		return err
+	}
+	if !found {
+		return fmt.Errorf("no audit record for %s/%s", workItem, gate)
+	}
+	if entry.Status == "running" {
+		return errors.New("cannot reset a running or interrupted audit; establish that it has stopped first")
+	}
+	if entry.RoundsUsed() == 0 {
+		return nil
+	}
+	entry.BudgetResets = append(entry.BudgetResets, AuditBudgetReset{AfterRound: entry.ExternalRound, Updated: time.Now().UTC().Format(time.RFC3339)})
+	if entry.Status == "exhausted" {
+		entry.Status = "active"
+		if entry.SessionID == "" {
+			entry.Status = "identity-missing"
+		}
+	}
+	return WriteAuditEntry(path, entry)
 }
 
 type AuditRound struct {

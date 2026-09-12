@@ -1,5 +1,15 @@
 # SDLC Standards: Design Learnings
 
+## Retained context must not imply a lifetime retry cap
+
+Reusing an auditor across delivery sessions saves context, but its lifetime
+attempt number cannot also represent the current delivery allowance. That
+conflation exhausted old work items and prevented fallback after a provider
+failure. Keep historical numbering intact and record explicit operator-authorized
+budget boundaries. A spec edit must invalidate stale cached results, not silently
+replenish retries. Budget reset, provider-session recovery and result caching
+are distinct operations.
+
 ## Fallback follows result usability, not guessed failure causes
 
 A subscription usage limit can block delivery as effectively as an expired

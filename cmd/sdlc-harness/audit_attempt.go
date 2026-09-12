@@ -61,7 +61,7 @@ func (attempt *auditAttempt) finish(runErr error) error {
 	if attempt.entry.SessionID == "" {
 		attempt.entry.Status = "identity-missing"
 	}
-	if attempt.entry.ExternalRound >= attempt.limit {
+	if attempt.entry.RoundsUsed() >= attempt.limit {
 		attempt.entry.Status = "exhausted"
 	}
 	round := &attempt.entry.History[len(attempt.entry.History)-1]
@@ -77,8 +77,8 @@ func lastIncident(entry harness.AuditEntry) string {
 }
 
 func (attempt *auditAttempt) reportTimeout(registry auditPromptDocument, output io.Writer) {
-	remaining := attempt.limit - attempt.entry.ExternalRound
-	fmt.Fprintf(output, "AUDIT TIMEOUT: no verdict; attempt %d/%d; remaining=%d; record=%s\n", attempt.entry.ExternalRound, attempt.limit, remaining, attempt.path)
+	remaining := attempt.limit - attempt.entry.RoundsUsed()
+	fmt.Fprintf(output, "AUDIT TIMEOUT: no verdict; attempt %d/%d; remaining=%d; record=%s\n", attempt.entry.RoundsUsed(), attempt.limit, remaining, attempt.path)
 	if attempt.entry.SessionID == "" || remaining <= 0 {
 		fmt.Fprintln(output, strings.TrimSpace(registry.TimeoutBlockedMessage))
 		fmt.Fprintf(output, "Recovery unavailable: native_session_recorded=%t; remaining=%d\n", attempt.entry.SessionID != "", remaining)
