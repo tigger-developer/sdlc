@@ -1,5 +1,13 @@
 # SDLC Standards: Design Learnings
 
+## Document titles and section headings have different purposes
+
+Repeating a specification's change title as its first section heading duplicates
+the title in rendered HTML and the Org outline. Keep the change name in
+`#+TITLE:` and name the opening summary section `Synopsis`. Retain its stable
+anchor and summary-to-detail contract; presentation changes need not change
+requirements or traceability.
+
 ## An evidence manifest is not a native permission grant
 
 Naming an external file in the audit prompt does not authorize the provider's

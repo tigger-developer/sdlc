@@ -143,6 +143,8 @@ gate.
 Set `#+TITLE:` to the work identifier followed by a concise, change-specific
 title. Generic titles such as `Spec sheet`, `Specification`, `Change`, or
 `Untitled` fail the definition gate.
+Name the opening level-one section `Synopsis`, not a repetition of the document
+title. Retain its `CUSTOM_ID: summary` so existing summary links remain stable.
 
 ## Acceptance criteria
 

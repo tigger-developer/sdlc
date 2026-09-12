@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## v3.2.16 - 2026-09-12
+
+- Name the specification's opening section Synopsis while retaining the
+  change-specific document title, summary anchor and summary-to-detail contract.
+  Align the canonical template, specification standards and definition skill.
+
 ## v3.2.15 - 2026-09-12
 
 - Grant Claude exact invocation-local Read permissions for supplied audit evidence

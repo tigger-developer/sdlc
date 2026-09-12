@@ -12,6 +12,8 @@ Use a new project-wide work number and never reuse an identifier. Replace every
 instructional placeholder before definition sign-off. The document title must
 name the change as =WNNN - [concise change-specific title]=. Generic titles such
 as =Spec sheet=, =Specification=, =Change=, or =Untitled= are invalid.
+Keep the opening section named =Synopsis=; do not repeat the document title
+as its headline. Preserve its =CUSTOM_ID: summary= for stable links.
 
 Apply the ABC presentation contract in =ISSUES.md=. Use the fixed level-one
 headlines below for the major sections, level-two headlines for addressable
@@ -43,7 +45,7 @@ specification change resets both specification fields and moves the work item
 to =REVIEW=. Detailed audit evidence remains in =audits.yaml=.
 #+end_comment
 
-* [Concise change-specific title]
+* Synopsis
 :PROPERTIES:
 :CUSTOM_ID: summary
 :END:

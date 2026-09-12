@@ -41,7 +41,8 @@ change-specific title, Org hierarchy, description-list, and semantic-emphasis
 requirements in `ISSUES.md`; generic titles and visually unscannable drafts are
 not ready for audit.
 
-The opening summary must accurately and completely represent the detail below
+Keep the opening section named `Synopsis`, distinct from the change-specific
+`#+TITLE:`. Its summary must accurately and completely represent the detail below
 its section break. Invoke the composite definition audit through the installed
 audit harness with `--phase audit --gate definition`, using `audits.yaml` for
 the retained session mapping. Remediate **all** findings before resuming that
