@@ -19,6 +19,8 @@ timeout_blocked_message: |
   Stop: no safe automatic continuation remains. The native session identity is unavailable or
   max_rounds is exhausted. Report the incident for operator recovery; do not invent a session,
   start a replacement audit, or change the configured bounds. Timeout is not PASS or FAIL.
+  For an exhausted budget, the operator may authorize resume --reset-session as documented
+  in --help. Run reset once, then resume without that flag. Never reset autonomously.
 evidence_instructions: |
   The harness owns native session IDs, recovery and cache lookup. Return only the requested audit
   envelope and findings; do not invent session IDs, invoke another auditor or troubleshoot the harness.

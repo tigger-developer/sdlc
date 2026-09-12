@@ -1,0 +1,232 @@
+version: 1
+audits:
+    - work_item: W015-audit-budget-reset
+      gate: implementation
+      session_id: 20260913_005041_68f303
+      harness: hermes
+      provider: nous
+      model: z-ai/glm-5.3
+      configured:
+        harness: hermes
+        provider: nous
+        model: z-ai/glm-5.3
+      external_round: 1
+      status: passed
+      updated: "2026-09-12T23:51:16Z"
+      revision: W015 emergency delta (change.patch 549cd150, request.md 65972452)
+      verdict: PASS
+      response: |-
+        GATE: implementation
+        REVISION: W015 emergency delta (change.patch 549cd150, request.md 65972452)
+        VERDICT: PASS
+
+        Findings: none blocking.
+
+        Basis:
+
+        - Scope and authority: Workflow emergency, BYPASS-GATE-7, request.md is the durable operator-authorized record; no advance definition demanded. Delta (change.patch) matches the supplied files; no installer cleanup or unrelated harness changes present, matching the operator's withdrawn portion.
+
+        - AC015.1 (reset-only CLI): the --reset-session branch in run() executes before ResolveConfig, stdin read, prompt registry load, evidence capture and temp-file creation; it validates action/phase/gate/record/work-item, rejects --session and --input, then exits with a single stdout line. Gate validity (definition|implementation) is enforced by the earlier audit-phase check. Relative record paths resolve against --project per help.md.
+
+        - AC015.2 (preserve evidence): ResetAuditBudget appends {after_round, updated} via the existing atomic writer; SessionID, History, Findings, ExternalRound, cache keys and other gates are untouched (RT015.1 asserts byte-identical repeated reset, which the RoundsUsed()==0 early return guarantees). Exhausted status transitions to active, or identity-missing when no native ID — matching "reset does not repair a missing native identity".
+
+        - AC015.3 (retain bounds): all four admission/exhaustion/reporting points (main resume check, recovery loop guard, invoke status update, reportTimeout remaining) now use the shared RoundsUsed() = external_round − last reset boundary; legacy records with no boundary keep prior semantics. RT015.3 verifies two post-reset attempts then a fifth-call rejection with four histories retained; RT015.4 verifies fallback after reset consumes the new allowance with lifetime numbering continuing past the prior five.
+
+        - Test quality: reset_test, timeout_test and fallback_test cover happy, no-op, repeated, missing-record, running, ambiguous-invocation and cross-gate isolation paths, all asserting record bytes or structured state; doubles are local shell scripts with no metered providers, satisfying TESTING.md and the operator's constraint. Structural review: the reset path adds no new subsystem, dependency, permission or concurrency mechanism (running state is simply rejected), consistent with request.md's explicit non-goal.
+
+        - Traceability: RT015.1–RT015.4 map to the implemented tests via request.md; test function names are behavioural. RED evidence for the absent flag is recorded in the ticket as TDD evidence, not duplicated audit state — no audits.yaml duplication finding.
+
+        - One non-blocking observation: reset_test.go does not cite the RT015 identifiers adjacent to the test functions (fallback_test cites RT014.4). Testing.md's adjacent-descriptor rule applies to cited identifiers, so this is a consistency nit, not a violation; no action required for sign-off.
+      history:
+        - cache_key: sha256:123f1506a11379c274731dfd76d232addb8ab87299332b21da97c4356010100f
+          session_id: 20260913_005041_68f303
+          harness: hermes
+          provider: nous
+          model: z-ai/glm-5.3
+          evidence:
+            - path: /Users/tigger/code/agents/sdlc/.sdlc/project.yaml
+              sha256: 7435fbc30502a8a150bf976a612f9355ec4fafad508f66042eaeddd0a70de02d
+              bytes: 307
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/audit_attempt.go
+              sha256: 12a18b39ab68b47eb78d86328c8bf6e03f5fd6e063504788031eb39ea3f27f3e
+              bytes: 3801
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/cache.go
+              sha256: f4839aa558bf21c3cb2eae61ea0bef08ac6c02a672f512e2a7c7d33cb91e2f88
+              bytes: 1750
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/fallback_test.go
+              sha256: 9591c5f025b661bc0dee0756fb110ad3164adc7a298eefa60084bb2af755f1d7
+              bytes: 6282
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/help.md
+              sha256: e3d8d548938972c254407fdeb4708d59aeee090588462345be5a35f3c4f90684
+              bytes: 14063
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/main.go
+              sha256: cec351998a0d14d290c3a2ca9e864c27c57df5a9b29fd07b5e5ee7543a110b2d
+              bytes: 11195
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/recovery.go
+              sha256: 1aebb6fba5b396b3996adb9c725c006b925fb8a740594518769cf14e7a409023
+              bytes: 8739
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/reset_test.go
+              sha256: 3ca97dfd08d21dcabe8cb0eff571f17b750f34ab7862c6224342a35744ef6414
+              bytes: 3778
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/timeout_test.go
+              sha256: b7b3a018315b654dec97caff6f4c5128f3dd9f8637aed35875417af1fdc050d6
+              bytes: 6426
+            - path: /Users/tigger/code/agents/sdlc/docs/ARCHITECTURE.md
+              sha256: eef33c7cc61d2bdad219b699076b5ec3265135bdfc2a3747806065c94de53a83
+              bytes: 15080
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/audit_record.go
+              sha256: c358040e9b54b60bf79fbbb6b2b00bc9ef2d197d966dd255fcc15f2226448a28
+              bytes: 8236
+            - path: /Users/tigger/code/agents/sdlc/specs/W015-audit-budget-reset/request.md
+              sha256: 65972452f1588c67aecb2bd5a68c3b60c6e764d837db38622b12b6b4de054ae9
+              bytes: 4101
+            - path: /Users/tigger/code/agents/sdlc/src/ARCHITECTURE.md
+              sha256: bd7a66ffd967010eefb8dc7abe64b059994c7b0f44ed5f5c30ec73e354f5b7f7
+              bytes: 8154
+            - path: /Users/tigger/code/agents/sdlc/src/AUDITS.md
+              sha256: acf483346ec388b751f5ccb5d82a6d75b77f558e5545f6f77d79a67ee9736b87
+              bytes: 11492
+            - path: /Users/tigger/code/agents/sdlc/src/CODING.md
+              sha256: a69a5d3b7ce3604b093703d72ab0de1bb6d607f140baab17292d209054fe902f
+              bytes: 13502
+            - path: /Users/tigger/code/agents/sdlc/src/TESTING.md
+              sha256: 5ed902d49dbb8321ea093fd60db68d5195e59c95c763c02e4ca0c09f6fa1e932
+              bytes: 13561
+            - path: /Users/tigger/code/agents/sdlc/src/technologies/GO.md
+              sha256: 63a41c24322b2c4144367b69777528b023a30222593c462b0696df98b1967917
+              bytes: 7301
+            - path: /Users/tigger/code/agents/sdlc/src/templates/v3/audits.yaml
+              sha256: e97783c24a85c325dd5aaebdd89117b7764af10f26cb4b8c350b470c3c9fabe1
+              bytes: 2620
+            - path: /var/folders/wn/zk3zl2050rd7qkfgkfzn6rwr0000gp/T/sdlc-audit-reset.v82IGjSSJD/change.patch
+              sha256: 549cd150e5b104bec11c1b9032413b1a3612ecc7db7b59aa4230c68357640156
+              bytes: 21002
+          round: 1
+          revision: W015 emergency delta (change.patch 549cd150, request.md 65972452)
+          verdict: PASS
+          response: |-
+            GATE: implementation
+            REVISION: W015 emergency delta (change.patch 549cd150, request.md 65972452)
+            VERDICT: PASS
+
+            Findings: none blocking.
+
+            Basis:
+
+            - Scope and authority: Workflow emergency, BYPASS-GATE-7, request.md is the durable operator-authorized record; no advance definition demanded. Delta (change.patch) matches the supplied files; no installer cleanup or unrelated harness changes present, matching the operator's withdrawn portion.
+
+            - AC015.1 (reset-only CLI): the --reset-session branch in run() executes before ResolveConfig, stdin read, prompt registry load, evidence capture and temp-file creation; it validates action/phase/gate/record/work-item, rejects --session and --input, then exits with a single stdout line. Gate validity (definition|implementation) is enforced by the earlier audit-phase check. Relative record paths resolve against --project per help.md.
+
+            - AC015.2 (preserve evidence): ResetAuditBudget appends {after_round, updated} via the existing atomic writer; SessionID, History, Findings, ExternalRound, cache keys and other gates are untouched (RT015.1 asserts byte-identical repeated reset, which the RoundsUsed()==0 early return guarantees). Exhausted status transitions to active, or identity-missing when no native ID — matching "reset does not repair a missing native identity".
+
+            - AC015.3 (retain bounds): all four admission/exhaustion/reporting points (main resume check, recovery loop guard, invoke status update, reportTimeout remaining) now use the shared RoundsUsed() = external_round − last reset boundary; legacy records with no boundary keep prior semantics. RT015.3 verifies two post-reset attempts then a fifth-call rejection with four histories retained; RT015.4 verifies fallback after reset consumes the new allowance with lifetime numbering continuing past the prior five.
+
+            - Test quality: reset_test, timeout_test and fallback_test cover happy, no-op, repeated, missing-record, running, ambiguous-invocation and cross-gate isolation paths, all asserting record bytes or structured state; doubles are local shell scripts with no metered providers, satisfying TESTING.md and the operator's constraint. Structural review: the reset path adds no new subsystem, dependency, permission or concurrency mechanism (running state is simply rejected), consistent with request.md's explicit non-goal.
+
+            - Traceability: RT015.1–RT015.4 map to the implemented tests via request.md; test function names are behavioural. RED evidence for the absent flag is recorded in the ticket as TDD evidence, not duplicated audit state — no audits.yaml duplication finding.
+
+            - One non-blocking observation: reset_test.go does not cite the RT015 identifiers adjacent to the test functions (fallback_test cites RT014.4). Testing.md's adjacent-descriptor rule applies to cited identifiers, so this is a consistency nit, not a violation; no action required for sign-off.
+          updated: "2026-09-12T23:50:41Z"
+    - work_item: W015-audit-budget-reset
+      gate: definition
+      session_id: 20260913_005204_414c37
+      harness: hermes
+      provider: nous
+      model: z-ai/glm-5.3
+      configured:
+        harness: hermes
+        provider: nous
+        model: z-ai/glm-5.3
+      external_round: 1
+      status: passed
+      updated: "2026-09-12T23:52:29Z"
+      revision: fccae04 (W015-audit-budget-reset, request.md revision as recorded in validation.org)
+      verdict: PASS
+      response: |-
+        GATE: definition
+        REVISION: fccae04 (W015-audit-budget-reset, request.md revision as recorded in validation.org)
+
+        VERDICT: PASS
+
+        Findings from the retrospective definition review:
+
+        1. Requirement clarity and traceability: AC015.1-015.3 are observable, bounded and mutually distinguishable. Each is traced by at least one RT (RT015.1→AC1/2, RT015.2→AC3, RT015.3→AC2/3, RT015.4→AC3). RT015.3's arithmetic is internally consistent (two timeout rounds, reset, two resumed rounds, fifth launch refused, four histories retained). RT015.4's "lifetime numbering continuing beyond five" is grounded in the seeded exhausted record, not invented state.
+
+        2. Design fidelity and architecture fit: the documented design (optional budget_resets with after_round/timestamp, external_round kept as lifetime count, one shared RoundsUsed at every admission point, reuse of the existing atomic YAML writer, refusal of running state, no concurrent-writer support, no new dependency or access change) is exactly what the code and template evidence show. The documented compromise — operators must not reset while an audit is launching — records its consequence and matches AUDITS.md, help.md and the template. No coexistence of old/new accounting paths: existing records need no rewrite, and the single subtraction rule is authoritative.
+
+        3. Scope and proportionality: the design introduces no per-spec automatic reset, no retry loop, no concurrent-writer machinery, no audit identity repair and no new ceremony. The only new state is the boundary list itself, which is the minimal mechanism for the requested outcome. Not over-engineered; no template-driven mechanisms. The operator's withdrawn PATH/installer cleanup is correctly excluded.
+
+        4. Test feasibility and classification: all RTs use disposable local files and process doubles at real external boundaries (CLI dispatch, provider limit simulation), consistent with TESTING.md; no metered calls in regression automation, no source-text greps. The documentation check is correctly classified as a bounded OT (OT015.1) rather than a persistent prose test. Reset-only exit (no stdin read, no provider config, no provider call) is observable at the CLI boundary, so the design makes the tests feasible.
+
+        5. Evidence and audit-state hygiene: validation.org records RT/OT results and operator-owned boundaries only; no verdicts, round numbers, revision-of-audit or session identity duplicated from audits.yaml. request.md links to audits.yaml without copying audit state. No spec.org was supplied for this work item, so the annotation-record FAIL rule does not apply. The RED observation (missing -reset-session flag) is implementation evidence, not audit state.
+
+        No blocking defects. The definition is a faithful, proportionate record of the operator-authorized emergency scope.
+      history:
+        - cache_key: sha256:d2c7bcb4ec4587fbb0b5dd3e6b7249b0ddf31722261a64c3bd79707a90a9a7a4
+          session_id: 20260913_005204_414c37
+          harness: hermes
+          provider: nous
+          model: z-ai/glm-5.3
+          evidence:
+            - path: /Users/tigger/code/agents/sdlc/.sdlc/project.yaml
+              sha256: 7435fbc30502a8a150bf976a612f9355ec4fafad508f66042eaeddd0a70de02d
+              bytes: 307
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/help.md
+              sha256: e3d8d548938972c254407fdeb4708d59aeee090588462345be5a35f3c4f90684
+              bytes: 14063
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/main.go
+              sha256: cec351998a0d14d290c3a2ca9e864c27c57df5a9b29fd07b5e5ee7543a110b2d
+              bytes: 11195
+            - path: /Users/tigger/code/agents/sdlc/docs/ARCHITECTURE.md
+              sha256: eef33c7cc61d2bdad219b699076b5ec3265135bdfc2a3747806065c94de53a83
+              bytes: 15080
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/audit_record.go
+              sha256: c358040e9b54b60bf79fbbb6b2b00bc9ef2d197d966dd255fcc15f2226448a28
+              bytes: 8236
+            - path: /Users/tigger/code/agents/sdlc/specs/W015-audit-budget-reset/request.md
+              sha256: 65972452f1588c67aecb2bd5a68c3b60c6e764d837db38622b12b6b4de054ae9
+              bytes: 4101
+            - path: /Users/tigger/code/agents/sdlc/specs/W015-audit-budget-reset/validation.org
+              sha256: f64e5835e9e1cbbebf9956c81b9283390a448f4effe4ada27f21103fa209de7e
+              bytes: 1753
+            - path: /Users/tigger/code/agents/sdlc/src/ARCHITECTURE.md
+              sha256: bd7a66ffd967010eefb8dc7abe64b059994c7b0f44ed5f5c30ec73e354f5b7f7
+              bytes: 8154
+            - path: /Users/tigger/code/agents/sdlc/src/AUDITS.md
+              sha256: acf483346ec388b751f5ccb5d82a6d75b77f558e5545f6f77d79a67ee9736b87
+              bytes: 11492
+            - path: /Users/tigger/code/agents/sdlc/src/DOCUMENTATION.md
+              sha256: bd32656992311c5b4da2f83ac154bfcb073a71fe987a8bf0d7618b05e7e5cf2c
+              bytes: 3994
+            - path: /Users/tigger/code/agents/sdlc/src/ISSUES.md
+              sha256: 8545a6297e21423a9ed1797bc3b6f90ac4425600606ae20152252d2da3c0cc42
+              bytes: 16332
+            - path: /Users/tigger/code/agents/sdlc/src/TESTING.md
+              sha256: 5ed902d49dbb8321ea093fd60db68d5195e59c95c763c02e4ca0c09f6fa1e932
+              bytes: 13561
+            - path: /Users/tigger/code/agents/sdlc/src/templates/v3/audits.yaml
+              sha256: e97783c24a85c325dd5aaebdd89117b7764af10f26cb4b8c350b470c3c9fabe1
+              bytes: 2620
+          round: 1
+          revision: fccae04 (W015-audit-budget-reset, request.md revision as recorded in validation.org)
+          verdict: PASS
+          response: |-
+            GATE: definition
+            REVISION: fccae04 (W015-audit-budget-reset, request.md revision as recorded in validation.org)
+
+            VERDICT: PASS
+
+            Findings from the retrospective definition review:
+
+            1. Requirement clarity and traceability: AC015.1-015.3 are observable, bounded and mutually distinguishable. Each is traced by at least one RT (RT015.1→AC1/2, RT015.2→AC3, RT015.3→AC2/3, RT015.4→AC3). RT015.3's arithmetic is internally consistent (two timeout rounds, reset, two resumed rounds, fifth launch refused, four histories retained). RT015.4's "lifetime numbering continuing beyond five" is grounded in the seeded exhausted record, not invented state.
+
+            2. Design fidelity and architecture fit: the documented design (optional budget_resets with after_round/timestamp, external_round kept as lifetime count, one shared RoundsUsed at every admission point, reuse of the existing atomic YAML writer, refusal of running state, no concurrent-writer support, no new dependency or access change) is exactly what the code and template evidence show. The documented compromise — operators must not reset while an audit is launching — records its consequence and matches AUDITS.md, help.md and the template. No coexistence of old/new accounting paths: existing records need no rewrite, and the single subtraction rule is authoritative.
+
+            3. Scope and proportionality: the design introduces no per-spec automatic reset, no retry loop, no concurrent-writer machinery, no audit identity repair and no new ceremony. The only new state is the boundary list itself, which is the minimal mechanism for the requested outcome. Not over-engineered; no template-driven mechanisms. The operator's withdrawn PATH/installer cleanup is correctly excluded.
+
+            4. Test feasibility and classification: all RTs use disposable local files and process doubles at real external boundaries (CLI dispatch, provider limit simulation), consistent with TESTING.md; no metered calls in regression automation, no source-text greps. The documentation check is correctly classified as a bounded OT (OT015.1) rather than a persistent prose test. Reset-only exit (no stdin read, no provider config, no provider call) is observable at the CLI boundary, so the design makes the tests feasible.
+
+            5. Evidence and audit-state hygiene: validation.org records RT/OT results and operator-owned boundaries only; no verdicts, round numbers, revision-of-audit or session identity duplicated from audits.yaml. request.md links to audits.yaml without copying audit state. No spec.org was supplied for this work item, so the annotation-record FAIL rule does not apply. The RED observation (missing -reset-session flag) is implementation evidence, not audit state.
+
+            No blocking defects. The definition is a faithful, proportionate record of the operator-authorized emergency scope.
+          updated: "2026-09-12T23:52:04Z"

@@ -1,0 +1,36 @@
+#+TITLE: W015 - Audit budget reset validation
+#+STARTUP: content
+
+* Regression evidence
+
+- Revision :: =fccae04= (audit allowance reset implementation).
+- Environment :: Local macOS Go toolchain, disposable local process doubles.
+- RED :: Focused reset test failed with =flag provided but not defined: -reset-session=.
+- GREEN :: =make test= passed: go vet, golangci-lint, shellcheck, shfmt and the
+  full Go suite. No metered provider calls were made by regression tests.
+- Coverage :: RT015.1 - Lossless reset; RT015.2 - Invalid reset;
+  RT015.3 - Bounded resumed attempts; RT015.4 - Fallback after reset.
+
+* OT015.1 - Review compiled reset help and documentation
+:PROPERTIES:
+:CUSTOM_ID: ot-015-1
+:END:
+
+- Category :: One-off test.
+- Requirement :: AC015.1 - Renew the allowance without invoking a provider.
+- Expected :: Built =resume --help= documents reset-only behaviour, required
+  identifiers, retained state, rejection cases and a usable command example.
+- Procedure :: Build the candidate in an OS temporary directory; run
+  =resume --help= and review the output. Process changed documentation through
+  =sanitize= and compare it with the source.
+- Result :: PASS, 2026-09-13, Claudius. The compiled help includes the reset flag,
+  reset-only example, preservation guarantees and instructions to omit the flag
+  from subsequent audits. Sanitize proposed no changes to the reviewed documents.
+- Scope :: Local executable help and document review only; no client-project
+  reset, deployment or metered test. Temporary binary remains in the task's
+  OS temporary directory for inspection.
+
+* Operator validation
+
+- Client-project reset and subsequent real audit are not run here.
+- Installation and live PATH cleanup remain operator-controlled.
