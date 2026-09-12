@@ -78,6 +78,17 @@ classification; it is provenance, not current state.
 
 * Work items
 
+** TODO W010 - Enforce harness filesystem write boundaries :maintenance:
+:PROPERTIES:
+:CUSTOM_ID: w-010
+:PRIORITY: P1
+:SOURCE: operator
+:CREATED: 2026-09-12
+:END:
+
+- *Specification:* [[file:../specs/W010-harness-filesystem-boundaries/spec.org][W010 - Enforce harness filesystem write boundaries]]
+- *Next step:* Define provider-specific enforcement and verification; ticket creation does not authorize implementation.
+
 ** REVIEW W009 - Stream audit progress and preserve provider errors :defect:
 :PROPERTIES:
 :CUSTOM_ID: w-009

@@ -39,6 +39,25 @@ Create `~/.agents/sdlc.yaml` with non-secret defaults. Omit anything that should
 be decided per project. A project may inherit a global value without copying it
 or record an explicit override in `.sdlc/project.yaml`.
 
+### Recommended driver and auditor setup
+
+- Use one coding agent to **drive definition and delivery**, and a separate
+  agent context to **audit**. Prefer a different model or provider for a second
+  perspective; a different harness alone does not guarantee independence.
+- Choose an **auditor capable of evaluating the author's work**, especially on
+  complex requirements and architecture. Do not choose it on low price alone:
+  repeated misunderstandings and review loops can erase the saving.
+- Set the driver through `delivery.definition` and `delivery.build`, and the
+  auditor through `delivery.audit` in the [configuration](README.md#configuration).
+  Model capability matters more than harness branding, but the selected
+  **harness must support the model, authentication and session resumption**.
+- **Hermes offers multiple provider routes**, but is not exempt from model
+  availability or billing constraints. Its direct Anthropic route supports a
+  metered API key; current documentation also describes Claude Max OAuth with
+  purchased extra usage credits, **not the base Max allowance**. Other routes
+  have their own terms. Check [Hermes provider and billing documentation](https://hermes-agent.nousresearch.com/docs/integrations/providers#subscription-plans-what-your-plan-pays-for)
+  before assuming a login includes the required usage.
+
 ## 3. Initialize one project
 
 Start on the branch that represents the project state to preserve. Ensure the

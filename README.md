@@ -19,6 +19,9 @@ output, and resumable-session contracts.
 
 ## Install
 
+For the recommended **driver/auditor setup**, including model capability,
+authentication and billing, see the [quickstart configuration guidance](QUICKSTART.md#recommended-driver-and-auditor-setup).
+
 `make install` also initializes the pinned
 [tigger-developer/HTML-Preview](https://github.com/tigger-developer/HTML-Preview)
 submodule and runs its own `make install` if `htmlpreview` is absent from PATH.

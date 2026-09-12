@@ -1,0 +1,53 @@
+#+TITLE: W010 - Enforce harness filesystem write boundaries
+#+STARTUP: content
+#+OPTIONS: toc:2 num:nil
+
+* Enforce harness filesystem write boundaries
+
+- Outcome :: *Enforce filesystem boundaries* through harness configuration,
+  rather than relying only on agent instructions.
+- Changes :: *Read-only auditors*; driving agents may *write within cwd* and
+  the permitted OS temporary directory.
+- Unchanged :: Model selection, audit criteria, project ownership and unrelated
+  personal configuration.
+- Decisions :: Operator requested a separate ticket, not implementation.
+- Next step :: Elaborate the provider-specific design and tests before approval.
+
+-----
+
+* Context
+
+[[file:../../src/MAIN.md][MAIN's project scope and write rules]] define the
+instruction boundary. This ticket adds enforceable harness controls for normal
+driving sessions and external audit sessions, including resumed sessions.
+
+* Requirements to elaborate
+
+- Auditors must *not modify project evidence or other projects*. The trusted
+  SDLC harness retains responsibility for writing =audits.yaml=.
+- Driving agents may *write only within the selected project cwd* and permitted
+  OS scratch storage. Commands, subprocesses and symlink targets must not
+  silently bypass this boundary.
+- Relevant external standards and authority documents remain *readable without
+  granting write access*.
+- Report unsupported enforcement honestly. Do not silently fall back to full
+  access or describe tool-selection restrictions as OS-level isolation.
+
+* Design and verification to resolve
+
+- Determine supported native controls for each harness and platform, covering
+  file tools as well as shell commands and start/resume behaviour.
+- Distinguish agent-controlled writes from the provider CLI's own authentication,
+  session storage and the trusted audit-record writer; document exact exceptions.
+- Define bounded positive and negative checks for allowed project writes,
+  rejected external writes, read-only audits and temporary files. No metered
+  provider invocation belongs in an automated regression pack.
+- Preserve unrelated settings; deployment must remain recoverable and idempotent.
+- This is independent of [[file:../W007-isolated-claude-auditor/spec.org][W007 - Isolated Claude auditor]]:
+  it does not depend on removing personal instructions or adopting that prototype.
+
+* Delivery Handoff
+
+- This skeleton is not an implementation-ready specification. Acceptance
+  criteria, traced test definitions and the approved security design remain to
+  be written through the definition workflow.

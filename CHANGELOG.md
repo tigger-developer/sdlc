@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## v3.2.14 - 2026-09-12
+
+- Add quickstart guidance for separate driving and auditing agents, capability-led
+  auditor selection, and provider authentication/billing constraints.
+- Record W010 - Enforce harness filesystem write boundaries as a separate future
+  change. No harness settings or enforcement code are changed in this release.
+
 ## v3.2.13 - 2026-09-12
 
 - Make project scope and the cwd write boundary explicit in MAIN. Consulting an

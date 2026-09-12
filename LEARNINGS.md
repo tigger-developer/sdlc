@@ -1,5 +1,14 @@
 # SDLC Standards: Design Learnings
 
+## Auditor capability and billing are setup decisions
+
+An inexpensive auditor is not necessarily a cheaper review: difficulty assessing
+the author's work can produce unnecessary scope expansion and repeated rounds.
+Select for the complexity being reviewed, then confirm the harness can run that
+model and retain its session. A separate model offers a different perspective;
+a different harness name alone establishes neither capability nor independence.
+Authentication support and included subscription usage are separate questions.
+
 ## Reading an authority does not expand project scope
 
 An infrastructure contract, consumed API, or SDLC instruction may govern the
