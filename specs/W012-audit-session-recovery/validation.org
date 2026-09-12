@@ -16,6 +16,7 @@
 - Correction :: The initial top-level Hermes invocation did not honour resume metadata. The adapter now uses the native chat subcommand and checkpoints stderr session metadata rather than trusting model-written identifiers.
 - Evidence :: The later evidence probe supplied a deliberately subtracting JavaScript function through verified stdin text. Native Hermes identified the defect, then accepted the corrected addition in the same session. An unchanged third invocation returned AUDIT CACHE HIT at round 3 without another provider invocation.
 - Transport :: Filesystem tools remain disabled. Hermes receives verified UTF-8 contents; native paths remain in the hash manifest. Its startup toolset warning is redirected to stderr by the adapter rather than mixed into new responses; a local executor check covers that stream separation.
+- Latest applicability check :: At 9979601, the native stderr identity path used by these probes is unchanged. The removed stdout-envelope branches were obsolete. The final local overlay matrix passed again on 2026-09-12, including native stderr identity and stdout warning separation; the metered probes were not repeated.
 - Bounds :: Synthetic evidence only, five Hermes completions plus the Claude recovery attempt, 60 seconds per attempt. No metered regression tests were added.
 * OT012.3 - Installation verification
 - Status :: PENDING.

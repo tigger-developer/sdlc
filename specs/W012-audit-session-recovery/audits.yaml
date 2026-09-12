@@ -147,3 +147,95 @@ audits:
             - **`run()` remains ~190 lines** against the 50-line tripwire in CODING.md and GO.md, though the delta cut roughly 70 lines from it by extracting `recoveryRun`. Direction of travel is right; not a blocker.
             - **Coverage gap, low value:** no implemented check that a timeout or a FAIL verdict declines fallback. The `switch` in `recovery.go:81-91` matches only two incident kinds, so the evidence is structural. Not requesting a test.
           updated: "2026-09-12T16:55:24Z"
+    - work_item: W012-audit-session-recovery
+      gate: definition
+      session_id: 20260912_181804_ba0469
+      harness: hermes
+      provider: nous
+      model: z-ai/glm-5.3
+      configured:
+        harness: hermes
+        provider: nous
+        model: z-ai/glm-5.3
+      external_round: 1
+      status: passed
+      updated: "2026-09-12T17:18:49Z"
+      revision: "9979601"
+      verdict: PROVISIONAL PASS
+      response: |-
+        GATE: definition
+        REVISION: 9979601
+        VERDICT: PROVISIONAL PASS
+
+        Retrospective review of W012 (Workflow: emergency, Review: retrospective). All supplied evidence text was read. The specification faithfully records the operator-authorized scope (missing-session recovery, configuration-change recovery, authentication-only whole-tuple fallback, SHA-256 caching of identical validated verdicts), traces each AC to named OT definitions and back, and accurately states design, bounds, exclusions, and the OT-only/no-new-RT decision. Architecture fit is consistent with ARCHITECTURE.md and AUDITS.md; no audit findings, status, or session identity are duplicated in spec.org or validation.org (test statuses in validation.org are that record's designated content). The Hermes stdin evidence transport is presented as supporting the authorized Hermes fallback tuple rather than as an invented requirement; it is documented with its security implications and I do not treat it as scope expansion. The cache-key definition in AC012.5 matches the implemented identity (work, gate, prompt, registry, full evidence manifest, primary/fallback tuples; execution limits excluded), and OT012.4 exercises behavioural outcomes through CLI doubles rather than grepping source.
+
+        Conditions (bounded, reversible, do not invalidate definition sign-off):
+
+        1. OT012.3 - Installation verification remains PENDING. The operator has reserved make install; after they run it, record the observed result in validation.org and confirm the installed helper resolves the configured fallback before closure. No installation or fabrication of this result is authorized from this audit.
+
+        2. OT012.2's native probes are recorded at revision 27879b7, which predates the final Hermes adapter change at 9979601 (retiring stdout identity parsing). The local matrix at 9979601 covers Hermes stderr/session-id stream separation, and the native probes relied on stderr identity, so the result appears current; but validation.org should note a latest-check against the final revision, or repeat the bounded native probe if any session-identity behaviour materially changed. Documentary follow-up only.
+      history:
+        - cache_key: sha256:f28983af4f5bb8f5fbbc78e5da302606c038fb9133a37ce2852dee4f9bc5e427
+          session_id: 20260912_181804_ba0469
+          harness: hermes
+          provider: nous
+          model: z-ai/glm-5.3
+          evidence:
+            - path: /Users/tigger/code/agents/sdlc/.sdlc/project.yaml
+              sha256: 7435fbc30502a8a150bf976a612f9355ec4fafad508f66042eaeddd0a70de02d
+              bytes: 307
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/cache.go
+              sha256: f4839aa558bf21c3cb2eae61ea0bef08ac6c02a672f512e2a7c7d33cb91e2f88
+              bytes: 1750
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/help.md
+              sha256: 2f6bbc4204373543d9236206fcba2f3c730d34624c207adbbb246f89caf33d50
+              bytes: 12214
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/recovery.go
+              sha256: 968a7830099bbd903e114d305284aa126d9a3c5d0688abb2dddcd5570e076618
+              bytes: 7797
+            - path: /Users/tigger/code/agents/sdlc/docs/ARCHITECTURE.md
+              sha256: 26d95f4fc1abae883b960096244c9695fa22c878c0b01cfc3ae3b5e63345e51a
+              bytes: 13293
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/provider_failure.go
+              sha256: 6f6c1574a15d3d5f41bd0e6becac7b611b597449c74e8179d82c5bd8ecc2780e
+              bytes: 2541
+            - path: /Users/tigger/code/agents/sdlc/specs/W012-audit-session-recovery/spec.org
+              sha256: 85b9d9c7a63e8fbc1fd5daec372e17f4e2751884bfd61833058f00df8c00a2ad
+              bytes: 10419
+            - path: /Users/tigger/code/agents/sdlc/specs/W012-audit-session-recovery/validation.org
+              sha256: 79a7bc596b663c982cbcb756a988a2ebafa3cecf8e9f7e476bcbd566e88f78b8
+              bytes: 3802
+            - path: /Users/tigger/code/agents/sdlc/src/AUDITS.md
+              sha256: 498222449600bdb3f4560985d869fe22b052a41c47516f1b75ff55a4e70c5cfb
+              bytes: 9695
+            - path: /Users/tigger/code/agents/sdlc/src/ISSUES.md
+              sha256: b0800882299429a3a74d2d890d8a0d819843f9c11bc13108beb88ad1290885c9
+              bytes: 13907
+            - path: /Users/tigger/code/agents/sdlc/src/MAIN.md
+              sha256: dedd438f189d1d04c15b532f419927e6d94960ed26cf47a12a237e370e8be4d7
+              bytes: 11209
+            - path: /Users/tigger/code/agents/sdlc/src/TESTING.md
+              sha256: 5ed902d49dbb8321ea093fd60db68d5195e59c95c763c02e4ca0c09f6fa1e932
+              bytes: 13561
+            - path: /Users/tigger/code/agents/sdlc/src/prompts/audits.yaml
+              sha256: 5ffa17e49b08befb2718c75477fcd5cd22c77603b97dc822c8539d1911dd820d
+              bytes: 7764
+            - path: /Users/tigger/code/agents/sdlc/tools/check-session-recovery/testdata/recovery_test.go
+              sha256: f7af306b0bb6aef89579d6cc9a4fa7cde36536caf12cb989d7113d0c2f05a64a
+              bytes: 15417
+          round: 1
+          revision: "9979601"
+          verdict: PROVISIONAL PASS
+          response: |-
+            GATE: definition
+            REVISION: 9979601
+            VERDICT: PROVISIONAL PASS
+
+            Retrospective review of W012 (Workflow: emergency, Review: retrospective). All supplied evidence text was read. The specification faithfully records the operator-authorized scope (missing-session recovery, configuration-change recovery, authentication-only whole-tuple fallback, SHA-256 caching of identical validated verdicts), traces each AC to named OT definitions and back, and accurately states design, bounds, exclusions, and the OT-only/no-new-RT decision. Architecture fit is consistent with ARCHITECTURE.md and AUDITS.md; no audit findings, status, or session identity are duplicated in spec.org or validation.org (test statuses in validation.org are that record's designated content). The Hermes stdin evidence transport is presented as supporting the authorized Hermes fallback tuple rather than as an invented requirement; it is documented with its security implications and I do not treat it as scope expansion. The cache-key definition in AC012.5 matches the implemented identity (work, gate, prompt, registry, full evidence manifest, primary/fallback tuples; execution limits excluded), and OT012.4 exercises behavioural outcomes through CLI doubles rather than grepping source.
+
+            Conditions (bounded, reversible, do not invalidate definition sign-off):
+
+            1. OT012.3 - Installation verification remains PENDING. The operator has reserved make install; after they run it, record the observed result in validation.org and confirm the installed helper resolves the configured fallback before closure. No installation or fabrication of this result is authorized from this audit.
+
+            2. OT012.2's native probes are recorded at revision 27879b7, which predates the final Hermes adapter change at 9979601 (retiring stdout identity parsing). The local matrix at 9979601 covers Hermes stderr/session-id stream separation, and the native probes relied on stderr identity, so the result appears current; but validation.org should note a latest-check against the final revision, or repeat the bounded native probe if any session-identity behaviour materially changed. Documentary follow-up only.
+          updated: "2026-09-12T17:18:03Z"
