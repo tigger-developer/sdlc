@@ -130,6 +130,10 @@ classification; it is provenance, not current state.
   and verdict validation. Typed provider incidents permit fallback; local evidence
   and record errors stop. No new configuration fields, provider-message catalogue,
   permission bypass, timeout increase or manual session replacement.
+- RT014.5 :: A failed primary writes a plausible verdict to the temporary
+  response file; the fallback exits without writing output. No stale verdict
+  may be accepted. Clear the CLI-owned temporary response before every attempt.
+  Covers AC014.4 and AC014.5.
 - Security :: Exact evidence checks and configured permissions remain mandatory.
   Fallback is operator-configured; no unconfigured provider is chosen.
 

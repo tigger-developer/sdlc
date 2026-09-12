@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 	"time"
 
@@ -164,6 +165,13 @@ func (r recoveryRun) invoke(entry harness.AuditEntry, selected harness.Config, r
 	}
 	if err != nil {
 		return result, err
+	}
+	// The CLI owns this temporary output file. Never let a failed attempt's
+	// bytes supply a later attempt's verdict, even with the same native adapter.
+	if request.ResultFile != "" {
+		if err := os.Truncate(request.ResultFile, 0); err != nil {
+			return result, fmt.Errorf("clearing temporary provider response: %w", err)
+		}
 	}
 	var attempt *auditAttempt
 	if r.path != "" {

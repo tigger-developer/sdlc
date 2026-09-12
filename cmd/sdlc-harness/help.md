@@ -78,6 +78,8 @@ Evidence and instruction
   Older records without hashes retain their session and receive a full evidence
   pass. Without `--audit-record`, no cross-invocation hash comparison is possible.
 - No document cache is created. The small final-response temporary file is
+  cleared before each attempt so fallback cannot reuse failed-provider output,
+  then
   removed on normal return, including handled errors and timeouts. Abrupt process
   termination can leave that file behind. Provider-owned session storage is separate.
 - For audits, stdin is additional bounded context; the gate prompt is loaded
