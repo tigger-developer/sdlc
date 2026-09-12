@@ -119,7 +119,7 @@ func (output *sessionOutput) report(line []byte) {
 		// Never dump an unknown structured payload. Plain-text startup failures
 		// may have no JSON envelope, and are useful only on unsuccessful exit.
 		trimmed := bytes.TrimSpace(line)
-		if trimmed[0] != '{' && trimmed[0] != '[' && !bytes.HasPrefix(trimmed, []byte("SESSION_ID:")) {
+		if trimmed[0] != '{' && trimmed[0] != '[' {
 			if len(trimmed) > maxDiagnostic {
 				trimmed = trimmed[len(trimmed)-maxDiagnostic:]
 			}
@@ -188,10 +188,6 @@ func nativeIdentity(provider string, line []byte) string {
 		}
 		if json.Unmarshal(line, &event) == nil && event.Type == "thread.started" {
 			identity = event.ThreadID
-		}
-	case "hermes":
-		if strings.HasPrefix(string(line), "SESSION_ID:") {
-			identity = strings.TrimSpace(strings.TrimPrefix(string(line), "SESSION_ID:"))
 		}
 	}
 	if strings.ContainsAny(identity, " \t\r\n") {

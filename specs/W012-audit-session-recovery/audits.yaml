@@ -1,0 +1,149 @@
+version: 1
+audits:
+    - work_item: W012-audit-session-recovery
+      gate: implementation
+      session_id: 6196a14e-635e-4b81-9226-e36fe5718d9d
+      harness: claude
+      model: claude-opus-5
+      configured:
+        harness: claude
+        model: claude-opus-5
+      external_round: 1
+      status: passed
+      updated: "2026-09-12T17:01:34Z"
+      revision: sha256:5020c015cca327bfa43cd1022f8493a2a2addac301a84bef60f6fcb19fa39335
+      verdict: PROVISIONAL PASS
+      response: |-
+        GATE: implementation
+        REVISION: sha256:5020c015cca327bfa43cd1022f8493a2a2addac301a84bef60f6fcb19fa39335
+        VERDICT: PROVISIONAL PASS
+
+        ## Basis
+
+        Reviewed the full patch, the ten changed source files, the implemented one-off checks, the adjacent regression tests the patch touched (`runner_test.go`, `output_test.go`), and W012 `spec.org`/`validation.org` against AUDITS, TESTING, CODING and GO.
+
+        **No duplication trigger.** `spec.org` links to `audits.yaml` and carries no verdict, round or session state. `validation.org` records OT results, which TESTING.md mandates; its "round 3" reference belongs to a throwaway probe record, not this work item's audit state. No FAIL on that ground.
+
+        **Behaviour verified as correct** in the focus areas: cache identity is computed pre-admission and excludes execution limits only (`main.go:176-190`, `cache.go:13-49`); incidents, keyless legacy rounds, `running` entries and verdict/response disagreement are all excluded from reuse; every attempt increments `ExternalRound` and replacements re-check the budget at loop top (`recovery.go:42-43`); retired identity, tuple and reason are preserved (`recovery.go:100-106`); evidence is hash-verified on capture, before transport, and before and after execution, including on a cache hit; fallback is bounded to one missing-session restart plus one authentication fallback and cannot be re-entered once sticky (`recovery.go:39, 81-91`); Hermes identity now comes only from native stderr, never from model-written text.
+
+        ## Conditions
+
+        **1. Stale Hermes assertions pin abandoned production branches.** `Execute` no longer routes Hermes through `ParseResult` (`internal/harness/runner.go:171-186`), yet three retained regression tests still assert the old model-written stdout envelope:
+
+        - `internal/harness/runner_test.go:112` — `TestW004ParseNativeFinalResponses` hermes case
+        - `internal/harness/runner_test.go:134` — `TestW004RunnerRejectsInvalidOutcomes` hermes case
+        - `internal/harness/runner_test.go:262` — `TestW004HermesRequiresNativeSessionEnvelope`
+
+        They keep `ParseResult`'s `hermes` case (`runner.go:364-375`), `nativeIdentity`'s `hermes` case (`session_output.go:192-195`) and the `SESSION_ID:` guard in `report()` (`session_output.go:122`) alive as unreachable code that contradicts the contract help.md now documents. The patch updated the matrix executors and `timeout_test.go` for exactly this and missed these three.
+
+        **Remedy:** delete the dead branches and the three assertions, or repoint them at the stderr contract. No new tests required — `TestW004FixedStartAndResumeInvocations`, `TestW004ExecuteStartAndResumeAcrossHarnesses`, `TestW009SplitIdentityCheckpointsExactlyOnce` and `TestTimeoutRetainsOnlyNativeIdentity` already cover the new path.
+
+        **2. AC012.4 is unproven.** OT012.3 is `PENDING` by deliberate sequencing. Run the one authorized `make install`, check installed release/help and binary identity, and record the observed result.
+
+        **3. `validation.org` completed entries are incomplete under TESTING.md.** A completed entry must carry the tested revision and relevant environment. OT012.1, OT012.2 and OT012.4 give none; OT012.2 and OT012.4 also name no tester. Backfill revision and environment.
+
+        ## Non-blocking observations
+
+        - **Fallback misclassification tail risk:** on non-zero exit, `providerFailure` scans `diagnostics.tail + failureText + plainFailure` (`runner.go:146`). For Hermes, non-JSON model prose reaches `plainFailure`, so a response line starting "Not logged in" or "Authentication failed" could select one spurious fallback. Bounded to one attempt, one round, with recorded provenance. Worth narrowing to stderr for Hermes later.
+        - **Inline transport exposure:** Hermes now receives full evidence text up to the 64 MiB evidence ceiling in one stdin prompt, filtered only by the `.env` guard. Authorized by the spec and documented; caller responsibility for a Hermes-configured phase. W010 covers the broader sandboxing.
+        - **`run()` remains ~190 lines** against the 50-line tripwire in CODING.md and GO.md, though the delta cut roughly 70 lines from it by extracting `recoveryRun`. Direction of travel is right; not a blocker.
+        - **Coverage gap, low value:** no implemented check that a timeout or a FAIL verdict declines fallback. The `switch` in `recovery.go:81-91` matches only two incident kinds, so the evidence is structural. Not requesting a test.
+      history:
+        - cache_key: sha256:15f2326ec736e7013a7be4fbbbc24753c4d2142d94c93fcc1dcea750b3effcd3
+          session_id: 6196a14e-635e-4b81-9226-e36fe5718d9d
+          harness: claude
+          model: claude-opus-5
+          evidence:
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/audit_attempt.go
+              sha256: 35640be29fcb6d7779fdc244490d21aa896df1cd83877f26dd6014f50416fab6
+              bytes: 3804
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/cache.go
+              sha256: f4839aa558bf21c3cb2eae61ea0bef08ac6c02a672f512e2a7c7d33cb91e2f88
+              bytes: 1750
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/main.go
+              sha256: 38020db6a71304fe6ad7568783321bea2922efd8bcb688c6432b240736017617
+              bytes: 10262
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/recovery.go
+              sha256: 968a7830099bbd903e114d305284aa126d9a3c5d0688abb2dddcd5570e076618
+              bytes: 7797
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/audit_record.go
+              sha256: a66cfa7163330b1d2832b4d20a239ef72aff82b6ee7700a78a868acbaacd42d0
+              bytes: 6844
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/config.go
+              sha256: 8798c2116e34fa2e5c92933cebcfa0eee2dd9c826ae8c6e4a8842b94dd34d2db
+              bytes: 6655
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/evidence.go
+              sha256: 3d894f44faa31165ce5432e3c59274a05894bcf8a1a09e285b441b1cc4ee541c
+              bytes: 6120
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/provider_failure.go
+              sha256: 6f6c1574a15d3d5f41bd0e6becac7b611b597449c74e8179d82c5bd8ecc2780e
+              bytes: 2541
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/runner.go
+              sha256: 84e496666425d4044e67ed8b771b3d3bc7fac96acbf090352709dea672aa3ae2
+              bytes: 15783
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/session_output.go
+              sha256: 8d6a6e1c7289e2f9949b215f80177e0d4beac55eb5a1e360d1d640f9e3933c66
+              bytes: 6131
+            - path: /Users/tigger/code/agents/sdlc/specs/W012-audit-session-recovery/spec.org
+              sha256: 0870607d0b17f292ada787306f3e19ce717d473d7a90dcb564f4443d8986715e
+              bytes: 10288
+            - path: /Users/tigger/code/agents/sdlc/specs/W012-audit-session-recovery/validation.org
+              sha256: bda455e2cd77d76ad9d12b853d28e740ce04d093ab811af0cbe8d83e6bd3e025
+              bytes: 2887
+            - path: /Users/tigger/code/agents/sdlc/src/AUDITS.md
+              sha256: 498222449600bdb3f4560985d869fe22b052a41c47516f1b75ff55a4e70c5cfb
+              bytes: 9695
+            - path: /Users/tigger/code/agents/sdlc/src/CODING.md
+              sha256: f2a2511d89cbf407f0d96dc3845ee66264eb40eb18d638716475936f1fa9b723
+              bytes: 13368
+            - path: /Users/tigger/code/agents/sdlc/src/TESTING.md
+              sha256: 5ed902d49dbb8321ea093fd60db68d5195e59c95c763c02e4ca0c09f6fa1e932
+              bytes: 13561
+            - path: /Users/tigger/code/agents/sdlc/src/technologies/GO.md
+              sha256: 63a41c24322b2c4144367b69777528b023a30222593c462b0696df98b1967917
+              bytes: 7301
+            - path: /Users/tigger/code/agents/sdlc/tools/check-session-recovery/testdata/recovery_test.go
+              sha256: f7af306b0bb6aef89579d6cc9a4fa7cde36536caf12cb989d7113d0c2f05a64a
+              bytes: 15417
+            - path: /var/folders/wn/zk3zl2050rd7qkfgkfzn6rwr0000gp/T/sdlc-recovery-check.fHmFgcKAYw/W012-implementation.patch
+              sha256: 5020c015cca327bfa43cd1022f8493a2a2addac301a84bef60f6fcb19fa39335
+              bytes: 69168
+          round: 1
+          revision: sha256:5020c015cca327bfa43cd1022f8493a2a2addac301a84bef60f6fcb19fa39335
+          verdict: PROVISIONAL PASS
+          response: |-
+            GATE: implementation
+            REVISION: sha256:5020c015cca327bfa43cd1022f8493a2a2addac301a84bef60f6fcb19fa39335
+            VERDICT: PROVISIONAL PASS
+
+            ## Basis
+
+            Reviewed the full patch, the ten changed source files, the implemented one-off checks, the adjacent regression tests the patch touched (`runner_test.go`, `output_test.go`), and W012 `spec.org`/`validation.org` against AUDITS, TESTING, CODING and GO.
+
+            **No duplication trigger.** `spec.org` links to `audits.yaml` and carries no verdict, round or session state. `validation.org` records OT results, which TESTING.md mandates; its "round 3" reference belongs to a throwaway probe record, not this work item's audit state. No FAIL on that ground.
+
+            **Behaviour verified as correct** in the focus areas: cache identity is computed pre-admission and excludes execution limits only (`main.go:176-190`, `cache.go:13-49`); incidents, keyless legacy rounds, `running` entries and verdict/response disagreement are all excluded from reuse; every attempt increments `ExternalRound` and replacements re-check the budget at loop top (`recovery.go:42-43`); retired identity, tuple and reason are preserved (`recovery.go:100-106`); evidence is hash-verified on capture, before transport, and before and after execution, including on a cache hit; fallback is bounded to one missing-session restart plus one authentication fallback and cannot be re-entered once sticky (`recovery.go:39, 81-91`); Hermes identity now comes only from native stderr, never from model-written text.
+
+            ## Conditions
+
+            **1. Stale Hermes assertions pin abandoned production branches.** `Execute` no longer routes Hermes through `ParseResult` (`internal/harness/runner.go:171-186`), yet three retained regression tests still assert the old model-written stdout envelope:
+
+            - `internal/harness/runner_test.go:112` — `TestW004ParseNativeFinalResponses` hermes case
+            - `internal/harness/runner_test.go:134` — `TestW004RunnerRejectsInvalidOutcomes` hermes case
+            - `internal/harness/runner_test.go:262` — `TestW004HermesRequiresNativeSessionEnvelope`
+
+            They keep `ParseResult`'s `hermes` case (`runner.go:364-375`), `nativeIdentity`'s `hermes` case (`session_output.go:192-195`) and the `SESSION_ID:` guard in `report()` (`session_output.go:122`) alive as unreachable code that contradicts the contract help.md now documents. The patch updated the matrix executors and `timeout_test.go` for exactly this and missed these three.
+
+            **Remedy:** delete the dead branches and the three assertions, or repoint them at the stderr contract. No new tests required — `TestW004FixedStartAndResumeInvocations`, `TestW004ExecuteStartAndResumeAcrossHarnesses`, `TestW009SplitIdentityCheckpointsExactlyOnce` and `TestTimeoutRetainsOnlyNativeIdentity` already cover the new path.
+
+            **2. AC012.4 is unproven.** OT012.3 is `PENDING` by deliberate sequencing. Run the one authorized `make install`, check installed release/help and binary identity, and record the observed result.
+
+            **3. `validation.org` completed entries are incomplete under TESTING.md.** A completed entry must carry the tested revision and relevant environment. OT012.1, OT012.2 and OT012.4 give none; OT012.2 and OT012.4 also name no tester. Backfill revision and environment.
+
+            ## Non-blocking observations
+
+            - **Fallback misclassification tail risk:** on non-zero exit, `providerFailure` scans `diagnostics.tail + failureText + plainFailure` (`runner.go:146`). For Hermes, non-JSON model prose reaches `plainFailure`, so a response line starting "Not logged in" or "Authentication failed" could select one spurious fallback. Bounded to one attempt, one round, with recorded provenance. Worth narrowing to stderr for Hermes later.
+            - **Inline transport exposure:** Hermes now receives full evidence text up to the 64 MiB evidence ceiling in one stdin prompt, filtered only by the `.env` guard. Authorized by the spec and documented; caller responsibility for a Hermes-configured phase. W010 covers the broader sandboxing.
+            - **`run()` remains ~190 lines** against the 50-line tripwire in CODING.md and GO.md, though the delta cut roughly 70 lines from it by extracting `recoveryRun`. Direction of travel is right; not a blocker.
+            - **Coverage gap, low value:** no implemented check that a timeout or a FAIL verdict declines fallback. The `switch` in `recovery.go:81-91` matches only two incident kinds, so the evidence is structural. Not requesting a test.
+          updated: "2026-09-12T16:55:24Z"

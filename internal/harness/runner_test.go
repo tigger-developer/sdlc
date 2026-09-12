@@ -109,7 +109,6 @@ func TestW004ParseNativeFinalResponses(t *testing.T) {
 		{name: "codex", stdout: "{\"type\":\"thread.started\",\"thread_id\":\"codex-id\"}\n", resultFile: "final", identity: "codex-id", response: "final"},
 		{name: "claude", stdout: `{"result":"final"}`, identity: "session", response: "final"},
 		{name: "copilot", stdout: "{\"type\":\"assistant.message\",\"content\":\"final\"}\n", identity: "session", response: "final"},
-		{name: "hermes", stdout: "SESSION_ID: hermes-id\nfinal\n", identity: "hermes-id", response: "final"},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -131,7 +130,6 @@ func TestW004RunnerRejectsInvalidOutcomes(t *testing.T) {
 		{name: "codex", stdout: `{}`},
 		{name: "claude", stdout: `{}`},
 		{name: "copilot", stdout: `{}`},
-		{name: "hermes", stdout: "final"},
 	} {
 		if _, err := ParseResult(test.name, []byte(test.stdout), nil, ""); err == nil {
 			t.Errorf("%s malformed result succeeded", test.name)
@@ -260,7 +258,12 @@ func TestW004ExecuteFailureMatrixAcrossHarnesses(t *testing.T) {
 }
 
 func TestW004HermesRequiresNativeSessionEnvelope(t *testing.T) {
-	if _, err := ParseResult("hermes", []byte("final\n"), nil, "preassigned-session"); err == nil {
+	request := matrixRequest("hermes", t.TempDir())
+	executor := func(_ context.Context, _ string, _ []string, _ string, _ io.Reader, stdout, _ io.Writer) error {
+		_, err := io.WriteString(stdout, "SESSION_ID: model-written-id\nfinal\n")
+		return err
+	}
+	if _, err := Execute(context.Background(), request, false, nil, executor, io.Discard); err == nil {
 		t.Fatal("Hermes response without native session envelope succeeded")
 	} else {
 		assertIncidentKind(t, err, "identity-missing")
