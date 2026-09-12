@@ -232,12 +232,13 @@ func BuildStart(request Request) (Invocation, error) {
 		invocation.Args = []string{"exec", "-m", request.Model, "-s", "read-only", "-C", request.Directory, "--skip-git-repo-check", "--json", "-o", request.ResultFile, "-"}
 		invocation.Stdin = request.Prompt
 	case "claude":
-		invocation.Args = []string{"-p", "--output-format", "stream-json", "--verbose", "--model", request.Model, "--session-id", request.SessionID, "--tools", "Read", "--permission-mode", "plan", request.Prompt}
+		invocation.Args = []string{"-p", "--output-format", "stream-json", "--verbose", "--model", request.Model, "--session-id", request.SessionID, "--tools", "Read", "--permission-mode", "plan"}
 		settings, err := claudeEvidenceSettings(request.Evidence)
 		if err != nil {
 			return Invocation{}, err
 		}
 		invocation.Args = append(invocation.Args, settings...)
+		invocation.Args = append(invocation.Args, request.Prompt)
 	case "copilot":
 		invocation.Args = []string{"-p", request.Prompt, "-s", "--output-format", "json", "--model", request.Model, "--name", request.SessionID, "--available-tools="}
 	case "hermes":
@@ -258,12 +259,13 @@ func BuildResume(request Request) (Invocation, error) {
 		invocation.Args = []string{"exec", "resume", "-m", request.Model, "--skip-git-repo-check", "--json", "-o", request.ResultFile, request.SessionID, "-"}
 		invocation.Stdin = request.Prompt
 	case "claude":
-		invocation.Args = []string{"-p", "--output-format", "stream-json", "--verbose", "--model", request.Model, "--resume", request.SessionID, "--tools", "Read", "--permission-mode", "plan", request.Prompt}
+		invocation.Args = []string{"-p", "--output-format", "stream-json", "--verbose", "--model", request.Model, "--resume", request.SessionID, "--tools", "Read", "--permission-mode", "plan"}
 		settings, err := claudeEvidenceSettings(request.Evidence)
 		if err != nil {
 			return Invocation{}, err
 		}
 		invocation.Args = append(invocation.Args, settings...)
+		invocation.Args = append(invocation.Args, request.Prompt)
 	case "copilot":
 		invocation.Args = []string{"-p", request.Prompt, "-s", "--output-format", "json", "--model", request.Model, "--resume=" + request.SessionID, "--available-tools="}
 	case "hermes":

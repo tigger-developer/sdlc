@@ -1,0 +1,163 @@
+version: 1
+audits:
+    - work_item: W011-claude-evidence-access
+      gate: implementation
+      session_id: 6cb02576-e375-49ac-a785-ada6fa5158e4
+      harness: claude
+      external_round: 1
+      status: passed
+      updated: "2026-09-12T07:10:25Z"
+      revision: W011 working tree as identified by the supplied evidence manifest (no commit identifier present in evidence)
+      verdict: PROVISIONAL PASS
+      response: |-
+        All twelve manifest files read in full.
+
+        **OT011.1 read report (explicit):** I **successfully read** `/Users/tigger/.agents/sdlc/templates/v3/spec.org` in this invocation — 334 lines, full content, **no approval prompt**. It is the canonical v3 spec template (`#+DEFINITION_GATE`, `#+OPERATOR_SIGNOFF`, AC/RT/UT/OT sections). I cannot attribute that success causally to the new grant from inside the session: a pre-existing session or native permission would produce the same outcome. The read happened; the causal claim is unverified.
+
+        ---
+
+        GATE: implementation
+        REVISION: W011 working tree as identified by the supplied evidence manifest (no commit identifier present in evidence)
+        VERDICT: PROVISIONAL PASS
+
+        ## What the delta does, verified against the code
+
+        - **`claude_permissions.go`** projects `[]EvidenceFile` into `--settings` JSON with `permissions.allow` = exact `Read(//abs/path)` rules, emitting both the supplied path and `EvalSymlinks` target, deduplicated via `seen`.
+        - **`runner.go:236-240` / `runner.go:262-266`** call the same helper on start and resume; `--tools Read` and `--permission-mode plan` are untouched, and no other provider branch changed.
+        - **`main.go:223`** passes `evidence.Files` into `Request`; **`main.go:226-232`** builds the invocation *before* `beginAuditAttempt` (line 238), so an invalid path fails without consuming round budget or invoking the provider — AC011.2's "rejected before provider invocation" holds structurally.
+        - **Escaping** is correct for gitignore semantics: backslash escaped first in the `Replacer` (single non-overlapping pass, no double-processing), `*?[]{}` escaped, trailing spaces escaped as `\ `. Leading `!`/`#` cannot occur because every rule starts with `/`.
+        - **ARCHITECTURE.md:115-119** describes exactly this behaviour and names the limitation ("not a complete filesystem sandbox"). Accurate against the code.
+
+        ## Test quality
+
+        RT011.1 and RT011.2 are real behavioural tests at defensible boundaries — the public `BuildStart`/`BuildResume` contract, and the CLI `run()` entry point against a local `/bin/sh` fixture. Neither invokes a metered provider. RT011.1 asserts the settings object contains **only** `permissions.allow`, that `--tools Read` and `--permission-mode plan` survive, and that `--add-dir`/`--dangerously-skip-permissions` are **absent** — that is genuine evidence for AC011.2's "no directory or write permissions", not an implementation-detail assertion. RT011.2 proves the same identity reaches the process on start (`--session-id`) and resume (`--resume`) and that the audit mapping is retained. The `#nosec G306` suppression is narrow, rule-named, and justified.
+
+        ## Findings — bounded follow-up
+
+        **F1. `--settings` is appended after the positional prompt; ordering is unverified.**
+        In both `runner.go:235-240` and `261-266` the prompt is the last fixed argument and `--settings <json>` is appended after it. Nothing in the evidence establishes that the Claude CLI parses flags following a positional argument. If it does not, the grants are silently discarded and the change is inert.
+        - **Remediation:** insert the settings pair **before** `request.Prompt` — safe under any parser — or cite the `claude --help`/documented behaviour that permits trailing flags. Re-run RT011.1, RT011.2 and OT011.1 after the change.
+
+        **F2. `--settings` merge semantics are assumed, not established.**
+        AC011.2 requires that grants "do not disable existing hooks or deny rules". The code emits a settings object containing *only* `permissions.allow`. If `--settings` **replaces** rather than layers over configured settings, existing deny rules and hooks are dropped for the invocation — the opposite of the stated security posture. RT011.1's assertion that the object has exactly one key confirms the emitted payload, not the provider's precedence rule.
+        - **Remediation:** cite the documented precedence for `--settings`, or record the unverified assumption explicitly as an emergency limitation alongside the POSIX-only note in `spec.org`.
+
+        **F3. The symlink-alias branch is not deterministically exercised.**
+        Both RTs compute `canonical` at runtime and append the second grant **conditionally** (`claude_permissions_test.go:25-27`, `cmd/.../claude_permissions_test.go:52-54`). On a platform where `t.TempDir()` returns an unaliased path, the dual-grant assertion silently degrades to a single rule and the alias behaviour — the core of AC011.1 and the first listed edge case — goes untested. TESTING.md requires deterministic tests independent of the developer's environment.
+        - **Remediation:** create a symlinked parent directory inside `t.TempDir()`, pass the aliased path, and assert **both** rules unconditionally.
+
+        **F4. RT011.2 has no recorded RED.**
+        `validation.org` records RED/GREEN for RT011.1 but only "Evidence" for RT011.2. TESTING.md requires the author to observe each automated RT fail for the intended reason.
+        - **Remediation:** record RT011.2's RED reason, or state why it was not written test-first.
+
+        **F5. OT011.1 remains PENDING and must be recorded against this revision.**
+        Record the read report above in `validation.org`, including the causal limitation, attributed to this audit invocation. Per TESTING.md, if F1–F3 change the permission projection, this OT result is no longer current and must be repeated.
+
+        ## Observations — no remediation required
+
+        - `claudeEvidenceSettings` returns plain `fmt.Errorf` values while every other `BuildStart`/`BuildResume` rejection returns a typed `*Incident` with a stable `Kind`. Harmless at present (`main.go:226` fails before any attempt is recorded), but inconsistent with the module's established failure vocabulary.
+        - `spec.org` Delivery Handoff claims documentation impact on "CLI help, changelog and learnings"; none of those files are in the manifest, so those claims are **unverified here**. Only `ARCHITECTURE.md` was supplied and it is accurate.
+        - `claude_permissions.go:26` packs four rejection conditions into one line; splitting would aid the next maintainer. `spec.org` uses `Proved by ::` where the template uses `Proven by ::`.
+
+        **No duplication defect:** neither `spec.org` nor `validation.org` contains audit findings, verdicts, revisions, round numbers, or session identifiers. The audit record remains solely `audits.yaml`.
+
+        **Not audited, by instruction:** W010 filesystem sandboxing, the pre-existing runner/CLI architecture, other providers, and native Claude enforcement. POSIX-only projection is accepted as a declared emergency limitation.
+
+        I edited no files and ran no commands.
+      history:
+        - evidence:
+            - path: /Users/tigger/.agents/sdlc/templates/v3/spec.org
+              sha256: 8e8c072b9b0fb174056f9bcce24682610438dc69e7ef613fba1f0b0812c1b559
+              bytes: 12004
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/claude_permissions_test.go
+              sha256: 3b8a99b85621a16eed5ff23d9ddd0bf939e5bc4e8e25f179fab8c36d27480726
+              bytes: 3097
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/main.go
+              sha256: ba992f5c5c2349d97730b7e0795e620a760986b7f559544cd1b826b5b48d6ad5
+              bytes: 12386
+            - path: /Users/tigger/code/agents/sdlc/docs/ARCHITECTURE.md
+              sha256: 34b059fc83755689a490ce429ce434e59c28790a3699865e109571485c4c44c7
+              bytes: 12345
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/claude_permissions.go
+              sha256: aae25bc9ce7b7e9f35f52123a47596596e96f44d5bce147e5955adb784fbf86d
+              bytes: 1835
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/claude_permissions_test.go
+              sha256: d336eebf9baf217c22252142e3232d80e7fffeb53837066962158b2b6c59cd10
+              bytes: 2433
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/evidence.go
+              sha256: 95894415797313625532ebb5ee9bfeb33d1dff436991a5fc87a28fa6fee95027
+              bytes: 4862
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/runner.go
+              sha256: 0820dd0d396d996cfb042aeba40d0b57fbca4cf9fd8eebe0fc1c5713b16936de
+              bytes: 14292
+            - path: /Users/tigger/code/agents/sdlc/specs/W011-claude-evidence-access/spec.org
+              sha256: b99a38ef077c880c42e134bf524af7cfb31eb73ae900e390ec24b1f9931be18f
+              bytes: 5722
+            - path: /Users/tigger/code/agents/sdlc/specs/W011-claude-evidence-access/validation.org
+              sha256: 4dc1af354c2165fa292c44e14db19950f74d6770c8afc8a23fea727e8cca317a
+              bytes: 1038
+            - path: /Users/tigger/code/agents/sdlc/src/CODING.md
+              sha256: f2a2511d89cbf407f0d96dc3845ee66264eb40eb18d638716475936f1fa9b723
+              bytes: 13368
+            - path: /Users/tigger/code/agents/sdlc/src/TESTING.md
+              sha256: 5ed902d49dbb8321ea093fd60db68d5195e59c95c763c02e4ca0c09f6fa1e932
+              bytes: 13561
+          round: 1
+          revision: W011 working tree as identified by the supplied evidence manifest (no commit identifier present in evidence)
+          verdict: PROVISIONAL PASS
+          response: |-
+            All twelve manifest files read in full.
+
+            **OT011.1 read report (explicit):** I **successfully read** `/Users/tigger/.agents/sdlc/templates/v3/spec.org` in this invocation — 334 lines, full content, **no approval prompt**. It is the canonical v3 spec template (`#+DEFINITION_GATE`, `#+OPERATOR_SIGNOFF`, AC/RT/UT/OT sections). I cannot attribute that success causally to the new grant from inside the session: a pre-existing session or native permission would produce the same outcome. The read happened; the causal claim is unverified.
+
+            ---
+
+            GATE: implementation
+            REVISION: W011 working tree as identified by the supplied evidence manifest (no commit identifier present in evidence)
+            VERDICT: PROVISIONAL PASS
+
+            ## What the delta does, verified against the code
+
+            - **`claude_permissions.go`** projects `[]EvidenceFile` into `--settings` JSON with `permissions.allow` = exact `Read(//abs/path)` rules, emitting both the supplied path and `EvalSymlinks` target, deduplicated via `seen`.
+            - **`runner.go:236-240` / `runner.go:262-266`** call the same helper on start and resume; `--tools Read` and `--permission-mode plan` are untouched, and no other provider branch changed.
+            - **`main.go:223`** passes `evidence.Files` into `Request`; **`main.go:226-232`** builds the invocation *before* `beginAuditAttempt` (line 238), so an invalid path fails without consuming round budget or invoking the provider — AC011.2's "rejected before provider invocation" holds structurally.
+            - **Escaping** is correct for gitignore semantics: backslash escaped first in the `Replacer` (single non-overlapping pass, no double-processing), `*?[]{}` escaped, trailing spaces escaped as `\ `. Leading `!`/`#` cannot occur because every rule starts with `/`.
+            - **ARCHITECTURE.md:115-119** describes exactly this behaviour and names the limitation ("not a complete filesystem sandbox"). Accurate against the code.
+
+            ## Test quality
+
+            RT011.1 and RT011.2 are real behavioural tests at defensible boundaries — the public `BuildStart`/`BuildResume` contract, and the CLI `run()` entry point against a local `/bin/sh` fixture. Neither invokes a metered provider. RT011.1 asserts the settings object contains **only** `permissions.allow`, that `--tools Read` and `--permission-mode plan` survive, and that `--add-dir`/`--dangerously-skip-permissions` are **absent** — that is genuine evidence for AC011.2's "no directory or write permissions", not an implementation-detail assertion. RT011.2 proves the same identity reaches the process on start (`--session-id`) and resume (`--resume`) and that the audit mapping is retained. The `#nosec G306` suppression is narrow, rule-named, and justified.
+
+            ## Findings — bounded follow-up
+
+            **F1. `--settings` is appended after the positional prompt; ordering is unverified.**
+            In both `runner.go:235-240` and `261-266` the prompt is the last fixed argument and `--settings <json>` is appended after it. Nothing in the evidence establishes that the Claude CLI parses flags following a positional argument. If it does not, the grants are silently discarded and the change is inert.
+            - **Remediation:** insert the settings pair **before** `request.Prompt` — safe under any parser — or cite the `claude --help`/documented behaviour that permits trailing flags. Re-run RT011.1, RT011.2 and OT011.1 after the change.
+
+            **F2. `--settings` merge semantics are assumed, not established.**
+            AC011.2 requires that grants "do not disable existing hooks or deny rules". The code emits a settings object containing *only* `permissions.allow`. If `--settings` **replaces** rather than layers over configured settings, existing deny rules and hooks are dropped for the invocation — the opposite of the stated security posture. RT011.1's assertion that the object has exactly one key confirms the emitted payload, not the provider's precedence rule.
+            - **Remediation:** cite the documented precedence for `--settings`, or record the unverified assumption explicitly as an emergency limitation alongside the POSIX-only note in `spec.org`.
+
+            **F3. The symlink-alias branch is not deterministically exercised.**
+            Both RTs compute `canonical` at runtime and append the second grant **conditionally** (`claude_permissions_test.go:25-27`, `cmd/.../claude_permissions_test.go:52-54`). On a platform where `t.TempDir()` returns an unaliased path, the dual-grant assertion silently degrades to a single rule and the alias behaviour — the core of AC011.1 and the first listed edge case — goes untested. TESTING.md requires deterministic tests independent of the developer's environment.
+            - **Remediation:** create a symlinked parent directory inside `t.TempDir()`, pass the aliased path, and assert **both** rules unconditionally.
+
+            **F4. RT011.2 has no recorded RED.**
+            `validation.org` records RED/GREEN for RT011.1 but only "Evidence" for RT011.2. TESTING.md requires the author to observe each automated RT fail for the intended reason.
+            - **Remediation:** record RT011.2's RED reason, or state why it was not written test-first.
+
+            **F5. OT011.1 remains PENDING and must be recorded against this revision.**
+            Record the read report above in `validation.org`, including the causal limitation, attributed to this audit invocation. Per TESTING.md, if F1–F3 change the permission projection, this OT result is no longer current and must be repeated.
+
+            ## Observations — no remediation required
+
+            - `claudeEvidenceSettings` returns plain `fmt.Errorf` values while every other `BuildStart`/`BuildResume` rejection returns a typed `*Incident` with a stable `Kind`. Harmless at present (`main.go:226` fails before any attempt is recorded), but inconsistent with the module's established failure vocabulary.
+            - `spec.org` Delivery Handoff claims documentation impact on "CLI help, changelog and learnings"; none of those files are in the manifest, so those claims are **unverified here**. Only `ARCHITECTURE.md` was supplied and it is accurate.
+            - `claude_permissions.go:26` packs four rejection conditions into one line; splitting would aid the next maintainer. `spec.org` uses `Proved by ::` where the template uses `Proven by ::`.
+
+            **No duplication defect:** neither `spec.org` nor `validation.org` contains audit findings, verdicts, revisions, round numbers, or session identifiers. The audit record remains solely `audits.yaml`.
+
+            **Not audited, by instruction:** W010 filesystem sandboxing, the pre-existing runner/CLI architecture, other providers, and native Claude enforcement. POSIX-only projection is accepted as a declared emergency limitation.
+
+            I edited no files and ran no commands.
+          updated: "2026-09-12T07:07:44Z"

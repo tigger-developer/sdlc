@@ -8,6 +8,8 @@
 - GREEN :: Focused adapter tests pass after permission projection was added.
 
 ** RT011.2 - CLI resume integration
+- Sequence :: Added after adapter implementation as a supplementary integration
+  check, not a test-first RED. RT011.1 supplied the behavioural RED for this fix.
 - Evidence :: Local executable fixture receives exact external-file grants on
   start and resume, with the same recorded native identity.
 - Boundary :: Local fixtures verify the emitted contract, not Claude's native enforcement.
@@ -15,9 +17,14 @@
 * One-off verification
 
 ** OT011.1 - Native external read
-- Status :: PENDING.
+- Observation :: Against checkpoint =188e9fb=, the native Claude start invocation
+  read the installed external template in full (334 lines), without an approval prompt.
+- Limitation :: This establishes readability, not whether the new grant rather
+  than pre-existing native permissions caused access. Resume verification follows
+  the argument-order adjustment in the next required implementation audit.
 - Covers :: AC011.1 - Native external-file readability.
 - Procedure :: Supply the installed spec template to the required implementation
   audit. Inspect its report for successful reading or an explicit denial.
 - Expected :: The auditor reads the supplied external template without approval prompts.
-- Bounds :: One configured audit invocation, no separate metered probe or client-project writes.
+- Bounds :: One start and one retained resume within required audits; no separate
+  metered probe or client-project writes.

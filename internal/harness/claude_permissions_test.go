@@ -13,7 +13,15 @@ import (
 
 func TestW011ClaudeGrantsExactEvidenceReadsOnStartAndResume(t *testing.T) {
 	root := t.TempDir()
-	file := filepath.Join(root, "a file [draft]*.org")
+	realDir := filepath.Join(root, "real")
+	aliasDir := filepath.Join(root, "alias")
+	if err := os.Mkdir(realDir, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(realDir, aliasDir); err != nil {
+		t.Fatal(err)
+	}
+	file := filepath.Join(aliasDir, "a file [draft]*.org")
 	if err := os.WriteFile(file, []byte("evidence"), 0o600); err != nil {
 		t.Fatal(err)
 	}
@@ -22,9 +30,10 @@ func TestW011ClaudeGrantsExactEvidenceReadsOnStartAndResume(t *testing.T) {
 		t.Fatal(err)
 	}
 	want := []string{"Read(/" + filepath.ToSlash(filepath.Dir(file)) + "/a file \\[draft\\]\\*.org)"}
-	if canonical != file {
-		want = append(want, "Read(/"+filepath.ToSlash(filepath.Dir(canonical))+"/a file \\[draft\\]\\*.org)")
+	if canonical == file {
+		t.Fatal("fixture did not create an aliased path")
 	}
+	want = append(want, "Read(/"+filepath.ToSlash(filepath.Dir(canonical))+"/a file \\[draft\\]\\*.org)")
 	request := matrixRequest("claude", t.TempDir())
 	request.Evidence = []EvidenceFile{{Path: file}}
 	for _, build := range []func(Request) (Invocation, error){BuildStart, BuildResume} {
@@ -35,6 +44,9 @@ func TestW011ClaudeGrantsExactEvidenceReadsOnStartAndResume(t *testing.T) {
 		i := slices.Index(invocation.Args, "--settings")
 		if i < 0 || i+1 >= len(invocation.Args) {
 			t.Fatal("evidence read grants missing")
+		}
+		if invocation.Args[len(invocation.Args)-1] != request.Prompt || i+2 >= len(invocation.Args) {
+			t.Fatal("permission options must precede the positional prompt")
 		}
 		var settings map[string]map[string][]string
 		if err := json.Unmarshal([]byte(invocation.Args[i+1]), &settings); err != nil {

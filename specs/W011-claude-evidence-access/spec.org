@@ -78,10 +78,10 @@ remains the separate, broader enforcement work; this change does not implement i
 - Covers :: AC011.1 - Native external-file readability.
 - During this work item's required implementation audit, supply the canonical
   external spec template and require an explicit statement that it was read.
-- Bounds :: One configured Claude audit invocation; no extra provider probe,
+- Bounds :: One start and one retained resume within required Claude audits; no extra provider probe,
   credential changes, client-project writes or attempts to bypass denial.
-- Record actual read evidence or refusal in =validation.org=. Native resume
-  permission enforcement is not separately qualified by this one-off check.
+- Record actual read evidence or refusal in =validation.org=, distinguishing
+  successful access from causal proof of which native permission allowed it.
 
 * Edge Cases
 
@@ -98,6 +98,10 @@ remains the separate, broader enforcement work; this change does not implement i
   The Claude adapter projects the list through one shared helper on start/resume.
 - Interface :: JSON-encoded =--settings= containing =permissions.allow= with
   exact =Read(//absolute/path)= rules; no persistent configuration file is edited.
+- Native contract :: [[https://code.claude.com/docs/en/settings#settings-precedence][Claude settings precedence]]
+  documents command-line JSON merging, retention of omitted lower-level keys,
+  and list merging. Only =permissions.allow= is supplied; deny and hook settings
+  are not replaced or disabled. Managed restrictions retain precedence.
 - Security :: Resolve aliases, escape gitignore metacharacters, reject unsupported
   paths, preserve =--tools Read --permission-mode plan= and existing deny policy.
   This adds permissions for supplied evidence, not a complete filesystem sandbox
