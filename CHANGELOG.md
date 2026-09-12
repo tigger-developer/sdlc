@@ -2,7 +2,13 @@
 
 ## Unreleased
 
-## v3.2.11 - 2026-09-11
+## v3.2.11 - 2026-09-12
+
+- Clarify paired and emergency ticket timing and implementation-first auditing.
+  Audit test code and production code together, then review the consolidated
+  specification, design, and test definitions retrospectively in the separate
+  definition session. Route behaviour/design changes to the operator; retain
+  normal delivery and the documentation-only ticket exemption.
 
 - Add W008 goal-backed delivery instructions and a read-only `goal-config`
   resolver. Schema defaults are 20 continuation turns and 100,000 Codex tokens;

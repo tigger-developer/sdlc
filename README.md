@@ -284,11 +284,16 @@ cleanup details.
 - `$pair-change` supports explicitly selected live human-agent implementation.
   The bounded objective and each explicit iteration instruction form the
   working specification. User validations are first-class evidence and are
-  consolidated into durable artefacts at closure.
+  consolidated into durable artefacts at closure. Create a skeleton ticket
+  before coding and audit each coherent implemented increment promptly.
 - The exact operator token `BYPASS-GATE-7` invokes `$emergency-change`. It uses
   a bounded temporary specification, preserves TDD where an automated test is
-  justified, runs the implementation gate, then backfills the durable
-  specification, design, validation, and documentation.
+  justified, records the ticket immediately after the fix, and runs the
+  implementation gate before consolidating the specification and documentation.
+- Both routes audit implemented tests and code together, then retrospectively
+  review requirements, design, and test definitions in the separate definition
+  session. Proposed behaviour or design changes return to the operator for
+  normal delivery. Documentation-only edits do not require a ticket.
 
 ## Project artefacts
 

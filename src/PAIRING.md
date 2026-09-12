@@ -13,16 +13,24 @@ two-phase workflow remains the default for autonomous or pre-specified delivery.
 
 ```text
 Bounded objective
+  -> reuse or create a skeleton work item
   -> explicit iteration instruction
   -> reviewable implementation slice
   -> objective checks and operator validation
+  -> combined implementation audit of each coherent code increment
   -> repeat as directed
   -> consolidate the durable specification and validation record
-  -> run applicable change-scoped audits
+  -> retrospective definition review in its separate retained context
   -> operator closure decision
 ```
 
 ## Specification boundary
+
+For code or script work, create the skeleton before coding unless an applicable
+work item already exists. Record its ID, title, bounded objective, constraints,
+and links to evidence in the normal work directory and index. Append authorized
+requirements and decisions as the session progresses; do not fill a template
+with invented detail. Documentation-only work needs no ticket.
 
 The bounded session objective and each explicit operator instruction define the
 specification for that iteration. A question, suggestion, or request for an
@@ -57,7 +65,10 @@ For each bounded iteration:
 4. Run proportionate objective checks that add useful evidence.
 5. Present the rendered or otherwise user-visible result.
 6. Retain any explicit operator validation in a provisional validation ledger.
-7. Continue from the operator's next instruction.
+7. Audit implemented tests and code together once the increment is coherent and
+   reviewable, before moving to unrelated work. Remediate findings under
+   `AUDITS.md`; do not audit every keystroke or deliberately unfinished edit.
+8. Continue from the operator's next instruction.
 
 The agent must not manufacture automated tests merely to reproduce visual or
 subjective validation the operator has already performed. Follow
@@ -75,11 +86,13 @@ an imagined advance plan. Reference artefact-native authority instead of
 duplicating CSS, templates, Markdown, YAML, or other reviewed artefacts in
 prose.
 
-Do not route the completed paired change through the normal pre-implementation
-definition checkpoint retrospectively. Use the composite audit harness described
-by `~/.agents/sdlc/AUDITS.md` for any material code or equivalent artefact changes;
-do not invoke individual audit skills.
-creates their corresponding durable specification, design, or test material.
+After the current implementation passes its gate, run the retrospective
+definition review described by `~/.agents/sdlc/AUDITS.md`. Supply
+`Workflow: paired` in audit context. This reviews requirements, design, and test
+definitions against the authorized outcome; it is not fictional advance
+approval. Correct documentary errors, but refer proposed behaviour or design
+changes to the operator for normal delivery. Do not invoke individual audit
+skills or reopen implementation merely to pursue optional improvements.
 
 At closure, present one consolidated handback containing:
 

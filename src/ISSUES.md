@@ -5,8 +5,14 @@ an issue lifecycle or a delivery workflow.
 
 ## Defined specifications
 
-Code requires a durable specification agreed for the work. A specification is
-defined when it identifies:
+Every code or script change requires a work item; documentation-only changes do
+not. Reuse an applicable item or allocate one under the project's numbering
+scheme. Normal delivery requires the agreed durable specification before code.
+Paired delivery creates a skeleton before code; emergency delivery creates it
+immediately after the bounded fix. Their operator-authorized working
+specifications follow `PAIRING.md` and `EMERGENCY.md`.
+
+A specification is defined when it identifies:
 
 - the user or system outcome;
 - behaviour within and outside scope;
@@ -177,8 +183,9 @@ A bug is a mismatch between observed behaviour and a requirement.
 
 - If an existing requirement covers the behaviour, cite it with a descriptor
   and add regression evidence against that requirement.
-- If no requirement covers the behaviour, amend the specification before
-  implementation. Do not manufacture a parallel requirement that conflicts
+- If no requirement covers the behaviour, amend the normal specification or
+  establish the paired/emergency working specification before implementation.
+  Do not manufacture a parallel requirement that conflicts
   with the original feature specification.
 - Treat the human's observation as evidence to investigate. A code-reading
   hypothesis does not disprove it.

@@ -1,5 +1,19 @@
 # SDLC Standards: Design Learnings
 
+## Audit timing must match the delivery route
+
+Test definitions and implemented tests answer different questions. Definitions
+belong with requirements and design; implemented tests belong with production
+code in a shared implementation review. A separate pre-code test audit adds a
+gate without replacing meaningful RED evidence.
+
+Paired work needs a skeleton ticket before coding; emergency work needs the fix
+before ticket ceremony. Both need a durable authorized scope before implementation
+audit and a retrospective definition review afterwards. That review must detect
+misrepresentation and material design defects without pretending to grant prior
+approval or expanding the change. Documentary corrections can be remediated;
+behaviour and design decisions return to the operator.
+
 ## Goal configuration is not native activation
 
 Hands-off instructions alone do not ensure that a provider continues after a

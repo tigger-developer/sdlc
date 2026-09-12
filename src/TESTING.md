@@ -73,7 +73,13 @@ automated test execution.
 At the definition gate, audit only the proposed RT, UT, and OT definitions. Do
 not demand test code, execution results, or RED/GREEN evidence before
 implementation. At the implementation gate, the audit harness reviews the
-actual test changes and current evidence against those signed-off definitions.
+actual test changes and current evidence against those signed-off definitions
+(or the recorded operator-authorized scope in paired and emergency delivery).
+Review test code and production code together in one retained implementation
+context after RED, implementation, and GREEN; no separate external test-code
+gate is required before production code. The author must still check that RED
+fails for the intended reason. Retrospective test-definition review uses the
+separate definition context, not the implementation auditor's session.
 Planned tests are not implementation evidence, and implemented tests do not
 retroactively repair an inadequate definition.
 
@@ -103,7 +109,8 @@ repository.
 
 When a change selects any one-off or user test, its specification directory must
 contain `validation.org`. Create the record before implementation with each
-selected test marked `PENDING`, then replace that status with the observed
+selected test marked `PENDING` (for an emergency, backfill it with the durable
+ticket immediately after the fix). Replace that status with the observed
 `PASS` or `FAIL` result after execution.
 
 Every planned entry must include:

@@ -173,8 +173,8 @@ implemented-test and code gate. Test definitions classified as OT or UT are
 recorded but do not pretend to be TDD. After PASS, execute them, record results
 in `validation.org`, reconcile documentation, and decide closure.
 
-Use `$audit-definition`, `$audit-implementation`, or any focused audit
-independently when a separate review is wanted.
+For a separate review, use the audit harness described in
+[AUDITS.md](src/AUDITS.md), not retired individual audit skills.
 
 ## 6. Use a variant only when selected
 
@@ -192,3 +192,10 @@ BYPASS-GATE-7 <bounded emergency change>
 
 The exact token invokes `$emergency-change`. The agent cannot infer, suggest, or
 self-authorize the route.
+
+Paired code work starts with a skeleton ticket; emergency work records the ticket
+immediately after the fix. Both audit implemented tests and code together before
+retrospectively reviewing the consolidated specification, design, and test
+definitions in the separate definition context. Design or behaviour changes
+require an operator decision and normal delivery. Documentation-only edits do
+not require a ticket.

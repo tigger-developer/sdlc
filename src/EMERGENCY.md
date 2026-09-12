@@ -12,8 +12,10 @@ Exact token and sufficient temporary specification
   -> observe RED where an automated regression test applies
   -> implement the bounded fix
   -> observe GREEN and run immediate checks
-  -> reconcile the durable specification, design, and documentation
+  -> reuse or create the durable work item and record the bounded change
   -> pass the combined implementation gate
+  -> reconcile the durable specification, design, and documentation
+  -> retrospective definition review in its separate retained context
   -> execute one-off and user tests
   -> operator closure decision
 ```
@@ -50,13 +52,21 @@ reason; urgency, difficulty, or inconvenience is insufficient.
 
 Define the expected evidence for one-off and user tests before implementation
 where practical, but do not require them to produce a pre-change failure. After
-implementation and automated verification, reconcile the change into the
-durable unified specification, design, and affected documentation. The durable
-record must state the actual requirements, selected test definitions, and
-concise solution design without inventing advance ceremony. Retain executed
-results in the validation record. Run the combined implementation gate and
-remediate blocking findings until it has an effective PASS. Then execute and record the required
-one-off and user tests against that audited candidate.
+implementation and automated verification, reuse or create the durable work item
+with its ID, directory, authorized request, actual change, and available evidence.
+This lean record is sufficient to start the implementation audit; a complete
+definition or prior definition PASS is not required. Documentation-only changes
+need no ticket. Never delay the fix for ticket creation.
+
+Run the combined implemented-test and production-code audit first. Remediate all
+blocking findings within the configured limits. After its effective PASS,
+consolidate the actual requirements, test definitions, solution design, and
+affected documentation without inventing advance ceremony. Run the retrospective
+definition review under `AUDITS.md`, supplying `Workflow: emergency` in audit
+context. Correct documentary errors; refer behaviour or design changes to the
+operator for normal delivery. Then execute and record required one-off and user
+tests against the audited candidate. Missing results block closure, not audit
+admission.
 
 If a one-off or user test exposes a defect and remediation changes code, the
 earlier audit remains evidence for its audited revision but is no longer current

@@ -9,8 +9,15 @@ audit skill is required or deployed.
 
 The **definition gate** reviews the specification, solution design, and RT/UT/OT
 test definitions together. The **implementation gate** reviews implemented tests
-and the production delta against the signed-off definition. The implementation
-gate never reopens a signed-off definition.
+and the production delta in one context: assess test quality and evidence, then
+code conformance. Normal delivery uses the signed-off definition; paired and
+emergency delivery use the recorded operator-authorized scope. The implementation
+gate never reopens a signed-off definition or demands advance definition approval
+from a valid paired or emergency route.
+
+Test definitions and test code are different audit subjects. Definitions belong
+to the definition context; implemented tests share the production-code context.
+Do not add a mandatory external test-code audit between RED and implementation.
 
 For either gate:
 
@@ -96,8 +103,34 @@ must be reported.
 
 ## Variant workflows
 
-Paired work records live user validation and uses the same harness only when a
-gate is appropriate. It does not audit every live iteration.
+Paired work creates a skeleton ticket before code and audits each coherent code
+increment promptly, not every live edit. Emergency work fixes first, records the
+durable ticket, then audits implementation. Both consolidate and retrospectively
+review the definition after the implementation gate has an effective PASS.
+
+Run `~/.agents/sdlc/bin/sdlc-harness --help` before first use. In its stdin audit
+context, supply `Workflow: paired` or `Workflow: emergency` for an operator-invoked
+variant. For the subsequent `--gate definition` invocation, also supply
+`Review: retrospective`. These are prompt instructions, not new CLI flags;
+normal delivery omits them. Include the recorded operator scope as evidence.
+The YAML prompts select the review contract from these explicit markers, never
+from the mere presence of code. Keep the same work ID and audit record:
+implementation and definition have separate retained sessions; each gate resumes
+its own session on subsequent rounds.
+
+Retrospective review checks fidelity to the authorized outcome, requirement and
+test-definition traceability, accurate design and limitations, architecture fit,
+and material standards or security defects. It must not fail solely because the
+definition was written after implementation, demand an imagined advance plan,
+or turn optional improvements into requirements. Code is evidence, not approval
+of unrequested behaviour.
+
+Correct documentary defects within the existing audit allowance. Findings that
+require changed behaviour or design must be raised to the operator and, if
+authorized, handled through normal delivery; do not redesign during wrap-up.
+Report immediate safety risks promptly. Unresolved blocking findings remain
+blocking; operator review does not manufacture an audit PASS. Audit outcomes
+remain solely in `audits.yaml`, and operator closure remains separate.
 
 # Canary
 
