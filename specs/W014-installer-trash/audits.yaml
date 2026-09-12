@@ -15,33 +15,22 @@ audits:
           model: claude-opus-5
           reason: resume-failed-fallback
           updated: "2026-09-12T23:16:26Z"
-      external_round: 3
+      external_round: 4
       status: passed
-      updated: "2026-09-12T23:17:08Z"
-      revision: W014 candidate (production-delta.patch cd3e815b, covering installer Trash replacement and audit-harness unusable-result fallback)
+      updated: "2026-09-12T23:19:47Z"
+      revision: W014 candidate (production-delta.patch cd3e815b plus RT014.5 response-isolation remediation; recovery.go 42048da1)
       verdict: PASS
       response: |-
         GATE: implementation
-        REVISION: W014 candidate (production-delta.patch cd3e815b, covering installer Trash replacement and audit-harness unusable-result fallback)
+        REVISION: W014 candidate (production-delta.patch cd3e815b plus RT014.5 response-isolation remediation; recovery.go 42048da1)
 
         VERDICT: PASS
 
-        Reviewed implemented tests first, then the production delta, against the recorded W014 operator-authorized scope (trash for replaced owned artefacts, adjacent .bak for shared configuration, no initializer archive changes) and the emergency follow-up scope (single fallback for audit attempts ending without a usable verdict).
+        Delta since the prior round: recovery.go now truncates the CLI-owned temporary response file before every attempt, help.md documents the clearing, and the new fallback_output_test.go (RT014.5) verifies a failed primary's stale verdict cannot become the fallback's output. The prior verdict-accepting defect is resolved with the correct, minimal mechanism: truncation before each launch, fail-closed via the existing response-empty incident.
 
-        Tests
-        - RT014.1–RT014.3 (internal/installer/trash_test.go): recoverability via a command double moving exact paths to a disposable tree, no adjacent .bak for managed artefacts, adjacent backup retained for configuration merges, missing-source and missing/failing/no-move trash all stop replacement. Coverage matches AC014.1–AC014.3 and uses a real process boundary without host Trash.
-        - Companion deployer regression (tests/regression/trash_test.go, agents_deploy_test.go): drift replacement trashed with prior bytes recoverable, configuration backup asserted, failure modes stop deployment, idempotence and destination-only preservation retained.
-        - RT014.4 (cmd/sdlc-harness/fallback_test.go): mode matrix covers usage limit, launch error, timeout, malformed, wrong-gate, empty, all three valid verdicts, failed fallback, exhausted rounds, changed evidence, and retained-fallback resume; asserts actual calls, round accounting, provenance tuple, primary incident retention, and no verdict emitted on blocked paths. No metered provider involved.
-        - Existing installer integration and timeout/recovery tests were correctly adjusted for the new cache/fallback semantics rather than weakened; the mutation probe still verifies evidence-change rejection.
+        Verified: RT014.5 uses a real process double where the primary writes a plausible PASS then exits nonzero and the fallback writes nothing; the harness must reject the empty response and emit no stdout verdict, which the test asserts. The truncation is unconditional per attempt, so it also covers same-adapter primary/fallback configurations, not just cross-harness ones. Evidence-integrity checks remain before invocation and are not bypassed. work.org's RT014.5 definition and validation.org's RED/GREEN record cover the new test without duplicating audit state.
 
-        Production
-        - trash.go / deploy.go trashArtifact: literal exec.CommandContext("trash", absolute) with 30s timeout, WaitDelay, CombinedOutput in the error, and a post-Lstat absence check — safe exact-path invocation, no shell evaluation, honest-failure stop. applyInstallation pre-checks LookPath("trash") before any mutation. synchronizeFile reads source bytes before trashing the destination, so a read failure cannot displace the installed file.
-        - Configuration changes retain the separate backupConfiguration/restore path; classification (configuration vs managed artefact) is explicit in plan steps on both installers. Init has no adjacent-.bak path, consistent with the stated no-archive-change boundary.
-        - recovery.go: fallbackEligible admits authentication failures everywhere (auth-only fallback for non-audit phases) and, for audits, typed provider incidents excluding configuration-invalid and capability-unsupported; local evidence/record errors are untyped and stop. Wrong-gate and response-missing are now typed incidents, so they qualify. fallbackUsed bounds fallback to once per command; the shared round budget is enforced at loop top; retained fallback resume is guarded by the owns() tuple check; timeout diagnostics are reported only when no unused fallback remains. This matches AC014.4/AC014.5 and the operator's confirmed verdict set (PASS/FAIL/PROVISIONAL PASS never trigger fallback; running attempts are not failed attempts).
-
-        Traceability, RED/GREEN evidence, and boundaries are recorded in validation.org without duplicating audit state; work.org carries only scope and acceptance criteria. No unauthorized scope or unjustified complexity found in the delta.
-
-        Note (non-blocking, recorded already in validation.org): operator host validation of live Trash recovery remains pending; that is closure evidence, not an implementation-gate condition.
+        Installer Trash replacement, companion deployer coverage, and the fallback-eligibility/budget/provenance behaviour previously reviewed are unchanged and remain conformant to the recorded operator-authorized scope. Pending operator host validation of live Trash recovery remains closure evidence, not a gate condition.
       history:
         - cache_key: sha256:f09a411725dbf7396f375691e4bc3122cce9ecc8ced49a613f69ceb21dd05cdd
           session_id: 61f1fb22-7337-4603-b857-4abf050d1d88
@@ -328,3 +317,396 @@ audits:
 
             Note (non-blocking, recorded already in validation.org): operator host validation of live Trash recovery remains pending; that is closure evidence, not an implementation-gate condition.
           updated: "2026-09-12T23:16:26Z"
+        - cache_key: sha256:a0bd2a54f11381d7a5661b863b4467ede974bdae4e0834322272826f81ae6f19
+          session_id: 20260913_001628_1ad53d
+          harness: hermes
+          provider: nous
+          model: z-ai/glm-5.3
+          evidence:
+            - path: /Users/tigger/.agents/sdlc/ARCHITECTURE.md
+              sha256: bd7a66ffd967010eefb8dc7abe64b059994c7b0f44ed5f5c30ec73e354f5b7f7
+              bytes: 8154
+            - path: /Users/tigger/.agents/sdlc/CODING.md
+              sha256: a69a5d3b7ce3604b093703d72ab0de1bb6d607f140baab17292d209054fe902f
+              bytes: 13502
+            - path: /Users/tigger/.agents/sdlc/TESTING.md
+              sha256: 5ed902d49dbb8321ea093fd60db68d5195e59c95c763c02e4ca0c09f6fa1e932
+              bytes: 13561
+            - path: /Users/tigger/.agents/sdlc/technologies/GO.md
+              sha256: 63a41c24322b2c4144367b69777528b023a30222593c462b0696df98b1967917
+              bytes: 7301
+            - path: /Users/tigger/code/agents/README.md
+              sha256: b08e882b53fa1eed0dfe39632b1a45de16ea9e0d4c0e1fde288e4dedeaca2136
+              bytes: 4111
+            - path: /Users/tigger/code/agents/docs/agents-deploy-help.md
+              sha256: 28ef1935119f0db7b65087968a436e1cb63b34d170f602fb1a6728f0a851cb99
+              bytes: 3645
+            - path: /Users/tigger/code/agents/internal/deploy/deploy.go
+              sha256: 21436ffcad7c897444f05fe796195ddef19d447ce6506c981a7844837e225151
+              bytes: 20632
+            - path: /Users/tigger/code/agents/sdlc/.sdlc/project.yaml
+              sha256: 7435fbc30502a8a150bf976a612f9355ec4fafad508f66042eaeddd0a70de02d
+              bytes: 307
+            - path: /Users/tigger/code/agents/sdlc/README.md
+              sha256: e59a99a15cda7d6164b04410aa5672ae653402d967c708295707887a8aca9ad3
+              bytes: 19532
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/audit_attempt.go
+              sha256: 35640be29fcb6d7779fdc244490d21aa896df1cd83877f26dd6014f50416fab6
+              bytes: 3804
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/fallback_output_test.go
+              sha256: ce46e2c0d2b342b783876a8b3ec321d59173778dd2bcc1184b65055ac6eeee44
+              bytes: 2194
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/fallback_test.go
+              sha256: 3df426ef741f856329f70565e23f356e609e68bc8b023b26167ebbb7a6e443d9
+              bytes: 5412
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/help.md
+              sha256: 1fd4ce4f0e668d476f22865da479fa5af406122a83478ea0c8a3233b44dbfb0f
+              bytes: 12801
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/main.go
+              sha256: 38020db6a71304fe6ad7568783321bea2922efd8bcb688c6432b240736017617
+              bytes: 10262
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/main_test.go
+              sha256: c129d24c560286e67dec0881696c75d8b645c36e8e20e0f70d66a4569c517f89
+              bytes: 10629
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/recovery.go
+              sha256: 42048da1b96190b1a10c8f390fc3b159d6fc68e91570389b3603dae451e50633
+              bytes: 8689
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/timeout_test.go
+              sha256: 43cd97b9d89069856fb7204982211e2df2a7cc5b8c5e3b548b24ab15294eda46
+              bytes: 5130
+            - path: /Users/tigger/code/agents/sdlc/docs/ARCHITECTURE.md
+              sha256: 7a770893e55c2d1d56774b812d84fb9ea87665c7c72a25b52d6fc850a5df661d
+              bytes: 14711
+            - path: /Users/tigger/code/agents/sdlc/docs/work.org
+              sha256: 3776e854f78c7957f09d58fb40280e99ec9dae833daf9b4d6a1110a9b32a1ab8
+              bytes: 10426
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/runner.go
+              sha256: af5323ffc2e4febdd930f7ab46a2ba79e43a4c7d40721700687a66efc84666e2
+              bytes: 15158
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/session_output.go
+              sha256: d5ed303294a79d5206ef11231fc12b9722cd7bd0f9d6b6ad4929d88e640aad3e
+              bytes: 5924
+            - path: /Users/tigger/code/agents/sdlc/internal/installer/installer.go
+              sha256: bf112eb625bf158bdade2f8752628162cca74a4111aacd7f38433c3220df7e37
+              bytes: 60714
+            - path: /Users/tigger/code/agents/sdlc/internal/installer/installer_v3_test.go
+              sha256: 8701d7fce8aff35c1f17a826a2cb73ad0d4d7d2a4f6834b2ec90cd1b1ac5b17c
+              bytes: 15554
+            - path: /Users/tigger/code/agents/sdlc/internal/installer/release.go
+              sha256: fafde8a727a24fd8bfd7a13044b733c25c2674d33eafddd73e49f25a9de8d0cb
+              bytes: 4092
+            - path: /Users/tigger/code/agents/sdlc/internal/installer/trash.go
+              sha256: 16fc3436f6714fde890fa43377d06fde8b5ec14fd85d719d101f3763ee3e321a
+              bytes: 955
+            - path: /Users/tigger/code/agents/sdlc/internal/installer/trash_test.go
+              sha256: 14d425fe0d52b73439035b21261a06fe17aaac70d86bae89614996529a99a4ab
+              bytes: 4195
+            - path: /Users/tigger/code/agents/sdlc/specs/W014-installer-trash/validation.org
+              sha256: efc78b132eebe10c5b409916c487990474ce864653387a495e37545265b2e11e
+              bytes: 2196
+            - path: /Users/tigger/code/agents/sdlc/src/AUDITS.md
+              sha256: 925830eba0f760dffd25e0657e61822e67efbf16b0480cd7e13d9a7893f7fcb5
+              bytes: 11082
+            - path: /Users/tigger/code/agents/tests/regression/agents_deploy_test.go
+              sha256: 4495f8385bef51aabb330ad1e293ee06d0d6263812c4614556af5b99e247a836
+              bytes: 13917
+            - path: /Users/tigger/code/agents/tests/regression/trash_test.go
+              sha256: 88110fb663b623f03cae03e358fe28310cd2d6337a13d3b06ab6c4a36dbc9628
+              bytes: 1923
+            - path: /var/folders/wn/zk3zl2050rd7qkfgkfzn6rwr0000gp/T/sdlc-trash-check.JahL5ctvf9/production-delta.patch
+              sha256: cd3e815b08e0ea58ba26f92b1838f76abade5c97d5710e20ee9cd045786beda4
+              bytes: 10241
+          round: 4
+          revision: W014 candidate (production-delta.patch cd3e815b plus RT014.5 response-isolation remediation; recovery.go 42048da1)
+          verdict: PASS
+          response: |-
+            GATE: implementation
+            REVISION: W014 candidate (production-delta.patch cd3e815b plus RT014.5 response-isolation remediation; recovery.go 42048da1)
+
+            VERDICT: PASS
+
+            Delta since the prior round: recovery.go now truncates the CLI-owned temporary response file before every attempt, help.md documents the clearing, and the new fallback_output_test.go (RT014.5) verifies a failed primary's stale verdict cannot become the fallback's output. The prior verdict-accepting defect is resolved with the correct, minimal mechanism: truncation before each launch, fail-closed via the existing response-empty incident.
+
+            Verified: RT014.5 uses a real process double where the primary writes a plausible PASS then exits nonzero and the fallback writes nothing; the harness must reject the empty response and emit no stdout verdict, which the test asserts. The truncation is unconditional per attempt, so it also covers same-adapter primary/fallback configurations, not just cross-harness ones. Evidence-integrity checks remain before invocation and are not bypassed. work.org's RT014.5 definition and validation.org's RED/GREEN record cover the new test without duplicating audit state.
+
+            Installer Trash replacement, companion deployer coverage, and the fallback-eligibility/budget/provenance behaviour previously reviewed are unchanged and remain conformant to the recorded operator-authorized scope. Pending operator host validation of live Trash recovery remains closure evidence, not a gate condition.
+          updated: "2026-09-12T23:19:15Z"
+    - work_item: W014-installer-trash
+      gate: definition
+      session_id: 20260913_002014_0e6726
+      harness: hermes
+      provider: nous
+      model: z-ai/glm-5.3
+      configured:
+        harness: claude
+        model: claude-opus-5
+      previous_sessions:
+        - session_id: 64b1d0af-ac47-41db-add6-a8560a34f9e5
+          harness: claude
+          model: claude-opus-5
+          reason: start-failed-fallback
+          updated: "2026-09-12T23:20:13Z"
+      external_round: 2
+      status: passed
+      updated: "2026-09-12T23:20:50Z"
+      revision: W014 current candidate (production-delta.patch sha256 cd3e815b...eda4, evidence manifest as supplied)
+      verdict: PASS
+      response: |-
+        GATE: definition
+        REVISION: W014 current candidate (production-delta.patch sha256 cd3e815b...eda4, evidence manifest as supplied)
+        VERDICT: PASS
+
+        Findings and assessment:
+
+        Retrospective review of W014 (installer Trash replacement plus the operator-authorized audit-fallback emergency follow-up), per the recorded BYPASS-GATE-7 scope in docs/work.org.
+
+        Requirements and traceability
+        - AC014.1–014.3 map to RT014.1–014.3, implemented in internal/installer/trash_test.go and the companion deployer regression pack; observable outcomes asserted (recovered bytes in the double's recovery tree, no adjacent .bak for managed paths, one exact .bak for configuration, idempotence, symlink-target preservation).
+        - AC014.4/014.5 map to RT014.4/RT014.5, implemented in fallback_test.go and fallback_output_test.go. Coverage spans limit, launch-error, timeout, malformed, wrong-gate, empty, all three valid verdicts, failed fallback, exhausted rounds, changed evidence, retained-fallback resume, and the stale-response-file isolation case. These exercise the real process boundary with local doubles and assert calls, audit-record history, provenance tuple and output — behavioural, not source-text tests. No metered provider in automated tests, consistent with TESTING.md.
+        - Emergency backfill is present: work.org W014 entry, validation.org with RED/GREEN evidence and boundaries, operator validation correctly left Pending (closure concern, not this gate).
+
+        Design and architecture fit
+        - trash.go is a bounded, literal `trash ABSOLUTE_PATH` invocation with timeout, WaitDelay, combined-output error context, and a post-condition Lstat that the original path is gone — satisfying AC014.2's "dishonest trash" case. No shell evaluation, no widened permissions.
+        - Configuration classification is clean: applyConfigurationChange retains the adjacent .bak and restore-on-failure path; trash is used only for owned files, directories, links and retirements. Init archives untouched, per scope.
+        - The fallback delta reuses the existing AgentConfig fallback tuple with no new configuration surface, no provider-message catalogue, and no permission changes. fallbackEligible correctly excludes configuration-invalid and capability-unsupported; local evidence/record errors are untyped and never reach the recovery decision, satisfying AC014.5. The wrong-gate mismatch is now a typed incident; the result file is truncated before every attempt so a failed primary's bytes cannot become a fallback verdict; timeouts on the fallback itself still report the bounded diagnostic. Shared round budget and once-per-call fallback are enforced and tested.
+        - Error propagation in synchronizeFile reads source bytes before trashing the destination (verified by TestMissingSourceDoesNotTrashDestination). Batch stop without rollback of prior items is an explicitly recorded, recoverable-through-Trash compromise with its consequence stated in the work record.
+
+        Proportionality
+        - No scope expansion beyond the operator-authorized change; no template inflation; the duplicated trashArtifact across the two repositories is a consequence of separate module boundaries, not an unnecessary abstraction. Nothing added merely to fill template sections.
+
+        Audit-state hygiene
+        - work.org and validation.org reference audits.yaml by link only; no duplicated verdicts, revisions, rounds or session IDs. No annotation records present; no feedback.yaml supplied. Nothing to fail on.
+
+        Optional note (non-blocking): the operator validation entry in validation.org remains Pending; that is a closure prerequisite under TESTING.md, not a definition-gate condition.
+      history:
+        - cache_key: sha256:f5d96c18ccf5903dc289f2a885771082f4d3ecd38a45ec6d8de480cf48deb83c
+          session_id: 64b1d0af-ac47-41db-add6-a8560a34f9e5
+          harness: claude
+          model: claude-opus-5
+          incident: start-failed
+          evidence:
+            - path: /Users/tigger/.agents/sdlc/ARCHITECTURE.md
+              sha256: bd7a66ffd967010eefb8dc7abe64b059994c7b0f44ed5f5c30ec73e354f5b7f7
+              bytes: 8154
+            - path: /Users/tigger/.agents/sdlc/CODING.md
+              sha256: a69a5d3b7ce3604b093703d72ab0de1bb6d607f140baab17292d209054fe902f
+              bytes: 13502
+            - path: /Users/tigger/.agents/sdlc/TESTING.md
+              sha256: 5ed902d49dbb8321ea093fd60db68d5195e59c95c763c02e4ca0c09f6fa1e932
+              bytes: 13561
+            - path: /Users/tigger/.agents/sdlc/technologies/GO.md
+              sha256: 63a41c24322b2c4144367b69777528b023a30222593c462b0696df98b1967917
+              bytes: 7301
+            - path: /Users/tigger/code/agents/README.md
+              sha256: b08e882b53fa1eed0dfe39632b1a45de16ea9e0d4c0e1fde288e4dedeaca2136
+              bytes: 4111
+            - path: /Users/tigger/code/agents/docs/agents-deploy-help.md
+              sha256: 28ef1935119f0db7b65087968a436e1cb63b34d170f602fb1a6728f0a851cb99
+              bytes: 3645
+            - path: /Users/tigger/code/agents/internal/deploy/deploy.go
+              sha256: 21436ffcad7c897444f05fe796195ddef19d447ce6506c981a7844837e225151
+              bytes: 20632
+            - path: /Users/tigger/code/agents/sdlc/.sdlc/project.yaml
+              sha256: 7435fbc30502a8a150bf976a612f9355ec4fafad508f66042eaeddd0a70de02d
+              bytes: 307
+            - path: /Users/tigger/code/agents/sdlc/README.md
+              sha256: e59a99a15cda7d6164b04410aa5672ae653402d967c708295707887a8aca9ad3
+              bytes: 19532
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/audit_attempt.go
+              sha256: 35640be29fcb6d7779fdc244490d21aa896df1cd83877f26dd6014f50416fab6
+              bytes: 3804
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/fallback_output_test.go
+              sha256: ce46e2c0d2b342b783876a8b3ec321d59173778dd2bcc1184b65055ac6eeee44
+              bytes: 2194
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/fallback_test.go
+              sha256: 3df426ef741f856329f70565e23f356e609e68bc8b023b26167ebbb7a6e443d9
+              bytes: 5412
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/help.md
+              sha256: 1fd4ce4f0e668d476f22865da479fa5af406122a83478ea0c8a3233b44dbfb0f
+              bytes: 12801
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/main.go
+              sha256: 38020db6a71304fe6ad7568783321bea2922efd8bcb688c6432b240736017617
+              bytes: 10262
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/main_test.go
+              sha256: c129d24c560286e67dec0881696c75d8b645c36e8e20e0f70d66a4569c517f89
+              bytes: 10629
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/recovery.go
+              sha256: 42048da1b96190b1a10c8f390fc3b159d6fc68e91570389b3603dae451e50633
+              bytes: 8689
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/timeout_test.go
+              sha256: 43cd97b9d89069856fb7204982211e2df2a7cc5b8c5e3b548b24ab15294eda46
+              bytes: 5130
+            - path: /Users/tigger/code/agents/sdlc/docs/ARCHITECTURE.md
+              sha256: 7a770893e55c2d1d56774b812d84fb9ea87665c7c72a25b52d6fc850a5df661d
+              bytes: 14711
+            - path: /Users/tigger/code/agents/sdlc/docs/work.org
+              sha256: 3776e854f78c7957f09d58fb40280e99ec9dae833daf9b4d6a1110a9b32a1ab8
+              bytes: 10426
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/runner.go
+              sha256: af5323ffc2e4febdd930f7ab46a2ba79e43a4c7d40721700687a66efc84666e2
+              bytes: 15158
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/session_output.go
+              sha256: d5ed303294a79d5206ef11231fc12b9722cd7bd0f9d6b6ad4929d88e640aad3e
+              bytes: 5924
+            - path: /Users/tigger/code/agents/sdlc/internal/installer/installer.go
+              sha256: bf112eb625bf158bdade2f8752628162cca74a4111aacd7f38433c3220df7e37
+              bytes: 60714
+            - path: /Users/tigger/code/agents/sdlc/internal/installer/installer_v3_test.go
+              sha256: 8701d7fce8aff35c1f17a826a2cb73ad0d4d7d2a4f6834b2ec90cd1b1ac5b17c
+              bytes: 15554
+            - path: /Users/tigger/code/agents/sdlc/internal/installer/release.go
+              sha256: fafde8a727a24fd8bfd7a13044b733c25c2674d33eafddd73e49f25a9de8d0cb
+              bytes: 4092
+            - path: /Users/tigger/code/agents/sdlc/internal/installer/trash.go
+              sha256: 16fc3436f6714fde890fa43377d06fde8b5ec14fd85d719d101f3763ee3e321a
+              bytes: 955
+            - path: /Users/tigger/code/agents/sdlc/internal/installer/trash_test.go
+              sha256: 14d425fe0d52b73439035b21261a06fe17aaac70d86bae89614996529a99a4ab
+              bytes: 4195
+            - path: /Users/tigger/code/agents/sdlc/specs/W014-installer-trash/validation.org
+              sha256: efc78b132eebe10c5b409916c487990474ce864653387a495e37545265b2e11e
+              bytes: 2196
+            - path: /Users/tigger/code/agents/sdlc/src/AUDITS.md
+              sha256: 925830eba0f760dffd25e0657e61822e67efbf16b0480cd7e13d9a7893f7fcb5
+              bytes: 11082
+            - path: /Users/tigger/code/agents/tests/regression/agents_deploy_test.go
+              sha256: 4495f8385bef51aabb330ad1e293ee06d0d6263812c4614556af5b99e247a836
+              bytes: 13917
+            - path: /Users/tigger/code/agents/tests/regression/trash_test.go
+              sha256: 88110fb663b623f03cae03e358fe28310cd2d6337a13d3b06ab6c4a36dbc9628
+              bytes: 1923
+            - path: /var/folders/wn/zk3zl2050rd7qkfgkfzn6rwr0000gp/T/sdlc-trash-check.JahL5ctvf9/production-delta.patch
+              sha256: cd3e815b08e0ea58ba26f92b1838f76abade5c97d5710e20ee9cd045786beda4
+              bytes: 10241
+          round: 1
+          updated: "2026-09-12T23:20:10Z"
+        - cache_key: sha256:f5d96c18ccf5903dc289f2a885771082f4d3ecd38a45ec6d8de480cf48deb83c
+          session_id: 20260913_002014_0e6726
+          harness: hermes
+          provider: nous
+          model: z-ai/glm-5.3
+          evidence:
+            - path: /Users/tigger/.agents/sdlc/ARCHITECTURE.md
+              sha256: bd7a66ffd967010eefb8dc7abe64b059994c7b0f44ed5f5c30ec73e354f5b7f7
+              bytes: 8154
+            - path: /Users/tigger/.agents/sdlc/CODING.md
+              sha256: a69a5d3b7ce3604b093703d72ab0de1bb6d607f140baab17292d209054fe902f
+              bytes: 13502
+            - path: /Users/tigger/.agents/sdlc/TESTING.md
+              sha256: 5ed902d49dbb8321ea093fd60db68d5195e59c95c763c02e4ca0c09f6fa1e932
+              bytes: 13561
+            - path: /Users/tigger/.agents/sdlc/technologies/GO.md
+              sha256: 63a41c24322b2c4144367b69777528b023a30222593c462b0696df98b1967917
+              bytes: 7301
+            - path: /Users/tigger/code/agents/README.md
+              sha256: b08e882b53fa1eed0dfe39632b1a45de16ea9e0d4c0e1fde288e4dedeaca2136
+              bytes: 4111
+            - path: /Users/tigger/code/agents/docs/agents-deploy-help.md
+              sha256: 28ef1935119f0db7b65087968a436e1cb63b34d170f602fb1a6728f0a851cb99
+              bytes: 3645
+            - path: /Users/tigger/code/agents/internal/deploy/deploy.go
+              sha256: 21436ffcad7c897444f05fe796195ddef19d447ce6506c981a7844837e225151
+              bytes: 20632
+            - path: /Users/tigger/code/agents/sdlc/.sdlc/project.yaml
+              sha256: 7435fbc30502a8a150bf976a612f9355ec4fafad508f66042eaeddd0a70de02d
+              bytes: 307
+            - path: /Users/tigger/code/agents/sdlc/README.md
+              sha256: e59a99a15cda7d6164b04410aa5672ae653402d967c708295707887a8aca9ad3
+              bytes: 19532
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/audit_attempt.go
+              sha256: 35640be29fcb6d7779fdc244490d21aa896df1cd83877f26dd6014f50416fab6
+              bytes: 3804
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/fallback_output_test.go
+              sha256: ce46e2c0d2b342b783876a8b3ec321d59173778dd2bcc1184b65055ac6eeee44
+              bytes: 2194
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/fallback_test.go
+              sha256: 3df426ef741f856329f70565e23f356e609e68bc8b023b26167ebbb7a6e443d9
+              bytes: 5412
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/help.md
+              sha256: 1fd4ce4f0e668d476f22865da479fa5af406122a83478ea0c8a3233b44dbfb0f
+              bytes: 12801
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/main.go
+              sha256: 38020db6a71304fe6ad7568783321bea2922efd8bcb688c6432b240736017617
+              bytes: 10262
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/main_test.go
+              sha256: c129d24c560286e67dec0881696c75d8b645c36e8e20e0f70d66a4569c517f89
+              bytes: 10629
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/recovery.go
+              sha256: 42048da1b96190b1a10c8f390fc3b159d6fc68e91570389b3603dae451e50633
+              bytes: 8689
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/timeout_test.go
+              sha256: 43cd97b9d89069856fb7204982211e2df2a7cc5b8c5e3b548b24ab15294eda46
+              bytes: 5130
+            - path: /Users/tigger/code/agents/sdlc/docs/ARCHITECTURE.md
+              sha256: 7a770893e55c2d1d56774b812d84fb9ea87665c7c72a25b52d6fc850a5df661d
+              bytes: 14711
+            - path: /Users/tigger/code/agents/sdlc/docs/work.org
+              sha256: 3776e854f78c7957f09d58fb40280e99ec9dae833daf9b4d6a1110a9b32a1ab8
+              bytes: 10426
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/runner.go
+              sha256: af5323ffc2e4febdd930f7ab46a2ba79e43a4c7d40721700687a66efc84666e2
+              bytes: 15158
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/session_output.go
+              sha256: d5ed303294a79d5206ef11231fc12b9722cd7bd0f9d6b6ad4929d88e640aad3e
+              bytes: 5924
+            - path: /Users/tigger/code/agents/sdlc/internal/installer/installer.go
+              sha256: bf112eb625bf158bdade2f8752628162cca74a4111aacd7f38433c3220df7e37
+              bytes: 60714
+            - path: /Users/tigger/code/agents/sdlc/internal/installer/installer_v3_test.go
+              sha256: 8701d7fce8aff35c1f17a826a2cb73ad0d4d7d2a4f6834b2ec90cd1b1ac5b17c
+              bytes: 15554
+            - path: /Users/tigger/code/agents/sdlc/internal/installer/release.go
+              sha256: fafde8a727a24fd8bfd7a13044b733c25c2674d33eafddd73e49f25a9de8d0cb
+              bytes: 4092
+            - path: /Users/tigger/code/agents/sdlc/internal/installer/trash.go
+              sha256: 16fc3436f6714fde890fa43377d06fde8b5ec14fd85d719d101f3763ee3e321a
+              bytes: 955
+            - path: /Users/tigger/code/agents/sdlc/internal/installer/trash_test.go
+              sha256: 14d425fe0d52b73439035b21261a06fe17aaac70d86bae89614996529a99a4ab
+              bytes: 4195
+            - path: /Users/tigger/code/agents/sdlc/specs/W014-installer-trash/validation.org
+              sha256: efc78b132eebe10c5b409916c487990474ce864653387a495e37545265b2e11e
+              bytes: 2196
+            - path: /Users/tigger/code/agents/sdlc/src/AUDITS.md
+              sha256: 925830eba0f760dffd25e0657e61822e67efbf16b0480cd7e13d9a7893f7fcb5
+              bytes: 11082
+            - path: /Users/tigger/code/agents/tests/regression/agents_deploy_test.go
+              sha256: 4495f8385bef51aabb330ad1e293ee06d0d6263812c4614556af5b99e247a836
+              bytes: 13917
+            - path: /Users/tigger/code/agents/tests/regression/trash_test.go
+              sha256: 88110fb663b623f03cae03e358fe28310cd2d6337a13d3b06ab6c4a36dbc9628
+              bytes: 1923
+            - path: /var/folders/wn/zk3zl2050rd7qkfgkfzn6rwr0000gp/T/sdlc-trash-check.JahL5ctvf9/production-delta.patch
+              sha256: cd3e815b08e0ea58ba26f92b1838f76abade5c97d5710e20ee9cd045786beda4
+              bytes: 10241
+          round: 2
+          revision: W014 current candidate (production-delta.patch sha256 cd3e815b...eda4, evidence manifest as supplied)
+          verdict: PASS
+          response: |-
+            GATE: definition
+            REVISION: W014 current candidate (production-delta.patch sha256 cd3e815b...eda4, evidence manifest as supplied)
+            VERDICT: PASS
+
+            Findings and assessment:
+
+            Retrospective review of W014 (installer Trash replacement plus the operator-authorized audit-fallback emergency follow-up), per the recorded BYPASS-GATE-7 scope in docs/work.org.
+
+            Requirements and traceability
+            - AC014.1–014.3 map to RT014.1–014.3, implemented in internal/installer/trash_test.go and the companion deployer regression pack; observable outcomes asserted (recovered bytes in the double's recovery tree, no adjacent .bak for managed paths, one exact .bak for configuration, idempotence, symlink-target preservation).
+            - AC014.4/014.5 map to RT014.4/RT014.5, implemented in fallback_test.go and fallback_output_test.go. Coverage spans limit, launch-error, timeout, malformed, wrong-gate, empty, all three valid verdicts, failed fallback, exhausted rounds, changed evidence, retained-fallback resume, and the stale-response-file isolation case. These exercise the real process boundary with local doubles and assert calls, audit-record history, provenance tuple and output — behavioural, not source-text tests. No metered provider in automated tests, consistent with TESTING.md.
+            - Emergency backfill is present: work.org W014 entry, validation.org with RED/GREEN evidence and boundaries, operator validation correctly left Pending (closure concern, not this gate).
+
+            Design and architecture fit
+            - trash.go is a bounded, literal `trash ABSOLUTE_PATH` invocation with timeout, WaitDelay, combined-output error context, and a post-condition Lstat that the original path is gone — satisfying AC014.2's "dishonest trash" case. No shell evaluation, no widened permissions.
+            - Configuration classification is clean: applyConfigurationChange retains the adjacent .bak and restore-on-failure path; trash is used only for owned files, directories, links and retirements. Init archives untouched, per scope.
+            - The fallback delta reuses the existing AgentConfig fallback tuple with no new configuration surface, no provider-message catalogue, and no permission changes. fallbackEligible correctly excludes configuration-invalid and capability-unsupported; local evidence/record errors are untyped and never reach the recovery decision, satisfying AC014.5. The wrong-gate mismatch is now a typed incident; the result file is truncated before every attempt so a failed primary's bytes cannot become a fallback verdict; timeouts on the fallback itself still report the bounded diagnostic. Shared round budget and once-per-call fallback are enforced and tested.
+            - Error propagation in synchronizeFile reads source bytes before trashing the destination (verified by TestMissingSourceDoesNotTrashDestination). Batch stop without rollback of prior items is an explicitly recorded, recoverable-through-Trash compromise with its consequence stated in the work record.
+
+            Proportionality
+            - No scope expansion beyond the operator-authorized change; no template inflation; the duplicated trashArtifact across the two repositories is a consequence of separate module boundaries, not an unnecessary abstraction. Nothing added merely to fill template sections.
+
+            Audit-state hygiene
+            - work.org and validation.org reference audits.yaml by link only; no duplicated verdicts, revisions, rounds or session IDs. No annotation records present; no feedback.yaml supplied. Nothing to fail on.
+
+            Optional note (non-blocking): the operator validation entry in validation.org remains Pending; that is a closure prerequisite under TESTING.md, not a definition-gate condition.
+          updated: "2026-09-12T23:20:13Z"

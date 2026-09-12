@@ -8,6 +8,8 @@
   a usable verdict, including subscription limits, timeout and malformed output.
   Preserve valid verdicts, local safety checks, retained fallback sessions and
   the shared round budget. Non-audit fallback remains authentication-only.
+- Clear the temporary response before every attempt so failed-primary output
+  cannot become a fallback verdict.
 - Require `trash` for installation and move replaced or retired managed
   artefacts there instead of creating adjacent `.bak` files. Preserve adjacent
   backups for merged configuration, existing backup files, and initializer

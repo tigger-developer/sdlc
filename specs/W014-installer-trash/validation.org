@@ -35,3 +35,15 @@
 - Response isolation :: A further RED probe demonstrated a failed primary's
   temporary-file PASS being accepted as fallback output. Clearing that exact
   temporary file before each attempt makes the fallback correctly fail empty.
+
+* OT014.1 - Native configured fallback and retained-context reuse
+
+- Scope :: Bounded one-off execution of the locally built candidate harness;
+  not an automated test or installation. Global configuration was not changed.
+- Observed :: Claude reported its subscription session limit; the harness
+  selected the configured Hermes/Nous model and recorded both attempts. A later
+  invocation resumed the retained Hermes context rather than retrying Claude.
+- Evidence :: Provider/session provenance and responses are stored only in
+  [[file:audits.yaml][the harness-owned record]].
+- Bounds :: No override of timeout, max rounds, provider, model or credentials.
+  Retrospective review separately exercised the configured fallback at its gate.
