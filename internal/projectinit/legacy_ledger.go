@@ -55,6 +55,7 @@ func MergeLegacyAcceptanceCriteria(projectRoot string) (LegacyLedgerMerge, error
 	}
 
 	result := LegacyLedgerMerge{}
+	workWithCurrentTypes := normalizeLegacyTypeDeclaration(string(work))
 	existingBlock := legacyLedgerSection(string(work))
 	if errors.Is(legacyErr, os.ErrNotExist) {
 		if existingBlock == "" || strings.Contains(existingBlock, legacyLedgerPlaceholder) {
@@ -64,8 +65,8 @@ func MergeLegacyAcceptanceCriteria(projectRoot string) (LegacyLedgerMerge, error
 		if normalizeErr != nil {
 			return result, normalizeErr
 		}
-		if strings.TrimSpace(normalized) != strings.TrimSpace(existingBlock) {
-			updated := strings.Replace(string(work), existingBlock, normalized, 1)
+		updated := strings.Replace(workWithCurrentTypes, existingBlock, normalized, 1)
+		if updated != string(work) {
 			if err := writeAtomic(workPath, []byte(updated)); err != nil {
 				return result, fmt.Errorf("normalizing consolidated work ledger: %w", err)
 			}
@@ -81,11 +82,11 @@ func MergeLegacyAcceptanceCriteria(projectRoot string) (LegacyLedgerMerge, error
 		return result, err
 	}
 	result.AcceptanceCriteria = count
-	updatedWork, changed, err := mergeLegacyBlock(string(work), block)
+	updatedWork, changed, err := mergeLegacyBlock(workWithCurrentTypes, block)
 	if err != nil {
 		return result, err
 	}
-	if changed {
+	if changed || updatedWork != string(work) {
 		if err := writeAtomic(workPath, []byte(updatedWork)); err != nil {
 			return result, fmt.Errorf("writing consolidated work ledger: %w", err)
 		}
@@ -353,7 +354,7 @@ func isLegacyACHeading(line string) bool {
 		return false
 	}
 	text := strings.TrimSpace(strings.TrimPrefix(line, "*** "))
-	for _, state := range []string{"PENDING", "FAILING", "SUPERSEDED", "HOLD", "HOLDING", "ASSUMED_PASS"} {
+	for _, state := range []string{"PENDING", "FAILING", "SUPERSEDED", "VALID", "HOLD", "HOLDING", "ASSUMED_PASS"} {
 		text = strings.TrimSpace(strings.TrimPrefix(text, state+" "))
 	}
 	return strings.HasPrefix(text, "AC")
@@ -362,7 +363,7 @@ func isLegacyACHeading(line string) bool {
 func normalizeLegacyAcceptanceCriterion(lines []string) ([]string, error) {
 	heading := strings.TrimSpace(strings.TrimPrefix(lines[0], "*** "))
 	existingState := ""
-	for _, state := range []string{"ASSUMED_PASS", "SUPERSEDED", "HOLDING", "PENDING", "FAILING", "HOLD"} {
+	for _, state := range []string{"ASSUMED_PASS", "SUPERSEDED", "HOLDING", "PENDING", "FAILING", "VALID", "HOLD"} {
 		if strings.HasPrefix(heading, state+" ") {
 			existingState = normalizeLegacyState(state)
 			heading = strings.TrimSpace(strings.TrimPrefix(heading, state+" "))
@@ -426,7 +427,7 @@ func parseLegacyStatus(lines []string) (string, []string, error) {
 	value = strings.TrimSpace(strings.TrimPrefix(value, "- "))
 	value = strings.TrimLeft(value, "*=")
 	upper := strings.ToUpper(value)
-	for _, candidate := range []string{"ASSUMED PASS", "ASSUMED_PASS", "SUPERSEDED", "HOLDING", "PENDING", "FAILING", "HOLD"} {
+	for _, candidate := range []string{"ASSUMED PASS", "ASSUMED_PASS", "SUPERSEDED", "HOLDING", "PENDING", "FAILING", "VALID", "HOLD"} {
 		if !strings.HasPrefix(upper, candidate) {
 			continue
 		}
@@ -445,13 +446,30 @@ func parseLegacyStatus(lines []string) (string, []string, error) {
 
 func normalizeLegacyState(state string) string {
 	switch strings.ReplaceAll(strings.ToUpper(state), " ", "_") {
-	case "HOLDING":
-		return "HOLD"
+	case "HOLDING", "HOLD": // Old generated legacy-AC labels, never work lifecycle states.
+		return "VALID"
 	case "ASSUMED_PASS":
 		return "ASSUMED_PASS"
 	default:
 		return strings.ToUpper(state)
 	}
+}
+
+// Upgrade only the known legacy type sequence, not a project's lifecycle states.
+func normalizeLegacyTypeDeclaration(document string) string {
+	lines := strings.Split(document, "\n")
+	for i, line := range lines {
+		fields := strings.Fields(line)
+		if len(fields) != 7 || !strings.EqualFold(fields[0], "#+TYP_TODO:") ||
+			strings.Join(fields[1:5], " ") != "PENDING FAILING SUPERSEDED |" || fields[6] != "ASSUMED_PASS" {
+			continue
+		}
+		if fields[5] == "HOLD" || fields[5] == "HOLDING" {
+			fields[5] = "VALID"
+			lines[i] = strings.Join(fields, " ")
+		}
+	}
+	return strings.Join(lines, "\n")
 }
 
 func orgTopLevelSection(document, title string) string {

@@ -10,32 +10,31 @@ audits:
         harness: hermes
         provider: nous
         model: z-ai/glm-5.3
-      external_round: 2
+      external_round: 3
       status: passed
-      updated: "2026-09-12T21:28:13Z"
-      revision: working tree per evidence manifest, 2026-09-12 paired increment (projectinit.go 1945667a, migration_agent_test.go 71e0dd8b, resume_test.go dcc2ea31, main.go cc6a1638)
+      updated: "2026-09-12T21:45:22Z"
+      revision: working tree per evidence manifest, 2026-09-12 terminology increment (legacy_ledger.go 05484d50, legacy_ledger_test.go c75257b1, templates/skill/prompt wording)
       verdict: PASS
       response: |-
         GATE: implementation
-        REVISION: working tree per evidence manifest, 2026-09-12 paired increment (projectinit.go 1945667a, migration_agent_test.go 71e0dd8b, resume_test.go dcc2ea31, main.go cc6a1638)
+        REVISION: working tree per evidence manifest, 2026-09-12 terminology increment (legacy_ledger.go 05484d50, legacy_ledger_test.go c75257b1, templates/skill/prompt wording)
 
         VERDICT: PASS
 
-        Reviewed implemented tests first, then production code, against the amended W013 spec (paired authority), CODING/TESTING/GO standards, and the operator-authorized scope.
+        Reviewed implemented tests first, then production code, for the bounded VALID terminology delta against the amended W013 spec (AC013.5/RT013.6) and CODING/TESTING/GO standards. The previously audited routing/resume code is unchanged (projectinit.go hash matches the prior audit's 1945667a; its "removed" manifest entry reflects file extraction into legacy_ledger.go, consistent with the context that earlier code is untouched).
 
-        Routing change (RT013.1–RT013.3):
-        - prepareLegacyProject now selects SDLC_SPEC for ticket migration as well as conversion and repair; repairLegacyLedgerIfRequired already used SDLC_SPEC. The audit tuple is demonstrably ignored: TestMigrationAndConversionUseDefinitionAgent configures a Hermes/bulk-model audit tuple and asserts both stages launch Codex with the definition model and exact CLI arguments, cwd, and stdin prompts.
-        - RT013.2 (failure stops conversion, errors.Is preserved, one call), RT013.3 (Claude args without provider, Hermes full contract with provider, missing provider launches nothing, unsupported harness handoff) remain implemented and behavioural; the hermes test in TestDirectMigrationAgentArguments now asserts the full expected argument slice including --in /project and --provider.
-        - The stale Luna model reference remains only as an arbitrary test-double value in non-routing repair tests (SDLC_AUDIT_MODEL no longer selects anything), which is harmless; no production preference remains.
+        Tests (legacy_ledger_test.go, updated projectinit_v3_test.go):
+        - RT013.6 is implemented behaviourally. TestLegacyValidStatusAndCompatibility drives the real parseLegacyStatus and normalizeLegacyLedgerBlock with VALID, HOLD, HOLDING, and emphasized *HOLDING.* inputs, asserting all normalize to VALID and that qualification text ("Keep this qualification.") survives verbatim — validity is never conflated with a test pass.
+        - The main merge test is the strongest evidence: a full consolidation preserves "RT7.1: PENDING, historical execution not recorded." (test results stay pending), provenance links, a BLOCKED normal work item (work lifecycle untouched), and the Status qualification subtree, while producing "*** VALID AC7.1", the upgraded "#+TYP_TODO: PENDING FAILING SUPERSEDED | VALID ASSUMED_PASS" declaration, source date, and authority consolidation in the profile. A second run asserts byte-identical idempotence.
+        - Regression coverage stays intact: emphasized-status parsing, conflicting embedded copy rejected without removing the source ledger, unknown Spec Kit reference fails closed, existing-merged-ledger normalization, template-preamble preservation, and the v1 end-to-end initializer test now expecting "*** VALID AC7.1". RED (parser rejected VALID, returned HOLD) and GREEN recorded in validation.org with honest scope limits.
 
-        Resume change (RT013.5, AC013.4):
-        - interruptedMigration accepts master/main as invocation branch, requires a sole migration candidate, validates archive→migration ancestry (new merge-base check), recognizes the primary by archive ancestry rather than identical tips, warns and prompts [y/N] (default decline) before git switch, and fails closed on decline, ambiguity, or switch failure without deleting the workspace.
-        - resume_test.go uses real local Git in disposable repos (per TESTING.md boundary preference) and covers: resume already on migration branch (no prompt), y/yes from master and main, n and Enter decline leaving branch and files untouched, multiple migration branches, unrelated archive history, and a dirty conflicting file where the refused switch preserves the operator's edit and the workspace. Assertions are behavioural (actual branch state, file contents), not mock-call counting.
-        - RED/GREEN recorded in validation.org for both the routing amendment and the resume behaviour; scope limits and the unobserved native integration are stated honestly. Help wording in cmd/sdlc-init/main.go matches the implemented confirmation behaviour; -h/--help and --version remain side-effect-free per CODING.md.
+        Production code:
+        - normalizeLegacyState maps only HOLDING/HOLD→VALID with a comment marking them as old generated legacy-AC labels; ASSUMED_PASS and other states pass through unchanged. parseLegacyStatus and isLegacyACHeading accept VALID alongside the legacy aliases. Normal work states (TODO/BLOCKED/etc.) are not touched anywhere in the delta.
+        - normalizeLegacyTypeDeclaration is appropriately narrow: it upgrades only the exact known 7-field legacy declaration ("PENDING FAILING SUPERSEDED | HOLD|HOLDING ASSUMED_PASS") to VALID, leaving any other project declaration alone — matching the operator's "known old legacy type-declaration upgrade" scope and avoiding a general status system.
+        - Templates (v3/work.org, migration/ACs.org), the normalize prompt, and the migration skill consistently declare VALID with "applicable, not a test pass, not blocked" wording; the prompt also explicitly prevents reinterpreting genuine blocked work as validity and keeps ASSUMED PASS distinct.
+        - No new dependencies; atomic writes and fail-closed error handling preserved.
 
-        Security/code quality: no forced switches, resets, stashes, or state deletion; errors wrap causes; no shell interpolation; no new dependencies or metered tests.
-
-        Non-blocking observation (does not affect sign-off): RT013.1's definition-harness variation between Hermes and Codex is covered compositionally — the coordinator test uses Codex for both stages while TestDirectMigrationAgentArguments proves the Hermes argument contract at the same runConfiguredMutationSkill seam — but no single test runs prepareLegacyProject end-to-end with a Hermes definition harness. Bounded, reversible follow-up if desired; the pairing above already pins the contract.
+        Non-blocking observation (does not affect sign-off): the work.org template's vocabulary section still lists no HOLD legacy state, correct — HOLD remains only a parser compatibility alias, exactly as specified. Operator-led manual edits to existing project ledgers remain outside this audit's scope, as validation.org records.
       history:
         - cache_key: sha256:2825aa04be48f56054ddc3a7c4577454b874c53fb0066ca7aff224fbe57d8825
           session_id: 20260912_215032_acbcc7
@@ -161,6 +160,75 @@ audits:
 
             Non-blocking observation (does not affect sign-off): RT013.1's definition-harness variation between Hermes and Codex is covered compositionally — the coordinator test uses Codex for both stages while TestDirectMigrationAgentArguments proves the Hermes argument contract at the same runConfiguredMutationSkill seam — but no single test runs prepareLegacyProject end-to-end with a Hermes definition harness. Bounded, reversible follow-up if desired; the pairing above already pins the contract.
           updated: "2026-09-12T21:27:41Z"
+        - cache_key: sha256:b8f1196196f83b1eb534e8de4cfcef3b87303b90dab958818ac0e7efa5a3bdbf
+          session_id: 20260912_215032_acbcc7
+          harness: hermes
+          provider: nous
+          model: z-ai/glm-5.3
+          evidence:
+            - path: /Users/tigger/code/agents/sdlc/.sdlc/project.yaml
+              sha256: 7435fbc30502a8a150bf976a612f9355ec4fafad508f66042eaeddd0a70de02d
+              bytes: 307
+            - path: /Users/tigger/code/agents/sdlc/internal/projectinit/legacy_ledger.go
+              sha256: 05484d50975d073b205b3a89f0b5669c4dbfffb6a7ea651116d30751b8529c0f
+              bytes: 23261
+            - path: /Users/tigger/code/agents/sdlc/internal/projectinit/legacy_ledger_test.go
+              sha256: c75257b130114f3f6a06615071441155a395118cdde5ea117cfdfa52aa08387b
+              bytes: 11617
+            - path: /Users/tigger/code/agents/sdlc/internal/projectinit/projectinit_v3_test.go
+              sha256: 18e0ca8c71727e4f81def89dc2bbb4942a04ae0cfb73e563be4e32b8512f20da
+              bytes: 57003
+            - path: /Users/tigger/code/agents/sdlc/skills/migrate-legacy-acs-to-sdlc-v1/SKILL.md
+              sha256: 3e84381adff56fc767ddd2cb08be0c4f4b6c3636e6a1428cd6726a348053171a
+              bytes: 17946
+            - path: /Users/tigger/code/agents/sdlc/specs/W013-init-migration-agents/spec.org
+              sha256: 79b06c4571b2167b83c089a45057481d868bbe3431ef01b7c41c7858776d20ce
+              bytes: 11869
+            - path: /Users/tigger/code/agents/sdlc/specs/W013-init-migration-agents/validation.org
+              sha256: c05abc2c036eac45a429a5441cf7baca2f40b72845d5c3cc395cff5af0d62b17
+              bytes: 2750
+            - path: /Users/tigger/code/agents/sdlc/src/CODING.md
+              sha256: f2a2511d89cbf407f0d96dc3845ee66264eb40eb18d638716475936f1fa9b723
+              bytes: 13368
+            - path: /Users/tigger/code/agents/sdlc/src/TESTING.md
+              sha256: 5ed902d49dbb8321ea093fd60db68d5195e59c95c763c02e4ca0c09f6fa1e932
+              bytes: 13561
+            - path: /Users/tigger/code/agents/sdlc/src/prompts/normalize-legacy-acs.md
+              sha256: 44489c47c457ed857dba026da6304553f8d3a12f204952a4997c457c974fcd83
+              bytes: 2403
+            - path: /Users/tigger/code/agents/sdlc/src/technologies/GO.md
+              sha256: 63a41c24322b2c4144367b69777528b023a30222593c462b0696df98b1967917
+              bytes: 7301
+            - path: /Users/tigger/code/agents/sdlc/src/templates/migration/ACs.org
+              sha256: c565f16c3bd2ee3acfb15a8f911c8ecdfd5f2dc00d1770597d2af37f9dfbab01
+              bytes: 5432
+            - path: /Users/tigger/code/agents/sdlc/src/templates/v3/work.org
+              sha256: 40788f9bdc1fc2d2901aa4cc13af0b7a40f30564af4445f0ce50bfef0a671148
+              bytes: 3912
+          round: 3
+          revision: working tree per evidence manifest, 2026-09-12 terminology increment (legacy_ledger.go 05484d50, legacy_ledger_test.go c75257b1, templates/skill/prompt wording)
+          verdict: PASS
+          response: |-
+            GATE: implementation
+            REVISION: working tree per evidence manifest, 2026-09-12 terminology increment (legacy_ledger.go 05484d50, legacy_ledger_test.go c75257b1, templates/skill/prompt wording)
+
+            VERDICT: PASS
+
+            Reviewed implemented tests first, then production code, for the bounded VALID terminology delta against the amended W013 spec (AC013.5/RT013.6) and CODING/TESTING/GO standards. The previously audited routing/resume code is unchanged (projectinit.go hash matches the prior audit's 1945667a; its "removed" manifest entry reflects file extraction into legacy_ledger.go, consistent with the context that earlier code is untouched).
+
+            Tests (legacy_ledger_test.go, updated projectinit_v3_test.go):
+            - RT013.6 is implemented behaviourally. TestLegacyValidStatusAndCompatibility drives the real parseLegacyStatus and normalizeLegacyLedgerBlock with VALID, HOLD, HOLDING, and emphasized *HOLDING.* inputs, asserting all normalize to VALID and that qualification text ("Keep this qualification.") survives verbatim — validity is never conflated with a test pass.
+            - The main merge test is the strongest evidence: a full consolidation preserves "RT7.1: PENDING, historical execution not recorded." (test results stay pending), provenance links, a BLOCKED normal work item (work lifecycle untouched), and the Status qualification subtree, while producing "*** VALID AC7.1", the upgraded "#+TYP_TODO: PENDING FAILING SUPERSEDED | VALID ASSUMED_PASS" declaration, source date, and authority consolidation in the profile. A second run asserts byte-identical idempotence.
+            - Regression coverage stays intact: emphasized-status parsing, conflicting embedded copy rejected without removing the source ledger, unknown Spec Kit reference fails closed, existing-merged-ledger normalization, template-preamble preservation, and the v1 end-to-end initializer test now expecting "*** VALID AC7.1". RED (parser rejected VALID, returned HOLD) and GREEN recorded in validation.org with honest scope limits.
+
+            Production code:
+            - normalizeLegacyState maps only HOLDING/HOLD→VALID with a comment marking them as old generated legacy-AC labels; ASSUMED_PASS and other states pass through unchanged. parseLegacyStatus and isLegacyACHeading accept VALID alongside the legacy aliases. Normal work states (TODO/BLOCKED/etc.) are not touched anywhere in the delta.
+            - normalizeLegacyTypeDeclaration is appropriately narrow: it upgrades only the exact known 7-field legacy declaration ("PENDING FAILING SUPERSEDED | HOLD|HOLDING ASSUMED_PASS") to VALID, leaving any other project declaration alone — matching the operator's "known old legacy type-declaration upgrade" scope and avoiding a general status system.
+            - Templates (v3/work.org, migration/ACs.org), the normalize prompt, and the migration skill consistently declare VALID with "applicable, not a test pass, not blocked" wording; the prompt also explicitly prevents reinterpreting genuine blocked work as validity and keeps ASSUMED PASS distinct.
+            - No new dependencies; atomic writes and fail-closed error handling preserved.
+
+            Non-blocking observation (does not affect sign-off): the work.org template's vocabulary section still lists no HOLD legacy state, correct — HOLD remains only a parser compatibility alias, exactly as specified. Operator-led manual edits to existing project ledgers remain outside this audit's scope, as validation.org records.
+          updated: "2026-09-12T21:44:51Z"
     - work_item: W013-init-migration-agents
       gate: definition
       session_id: "20260912_215150_117060"
@@ -171,26 +239,25 @@ audits:
         harness: hermes
         provider: nous
         model: z-ai/glm-5.3
-      external_round: 2
+      external_round: 3
       status: passed
-      updated: "2026-09-12T21:29:26Z"
-      revision: specs/W013-init-migration-agents/spec.org @ 18a6b12ff491a4294271d762007634c2f262615dbd8b1e3a284aacb0719067a7
+      updated: "2026-09-12T21:46:41Z"
+      revision: specs/W013-init-migration-agents/spec.org @ 79b06c4571b2167b83c089a45057481d868bbe3431ef01b7c41c7858776d20ce
       verdict: PASS
       response: |-
         GATE: definition
-        REVISION: specs/W013-init-migration-agents/spec.org @ 18a6b12ff491a4294271d762007634c2f262615dbd8b1e3a284aacb0719067a7
+        REVISION: specs/W013-init-migration-agents/spec.org @ 79b06c4571b2167b83c089a45057481d868bbe3431ef01b7c41c7858776d20ce
 
         VERDICT: PASS
 
         Findings: none requiring remediation.
 
-        Verified against the paired amendment's recorded operator intent:
+        Verified against the recorded operator intent for the AC013.5 / RT013.6 amendment:
 
-        - Intent fidelity. Ticket migration now selects SDLC_SPEC (delivery.definition) in prepareLegacyProject, matching conversion and repair; the stale delivery.audit/Luna preference is gone. The migration skill (skills/migrate-legacy-acs-to-sdlc-v1/SKILL.md) explicitly consumes the configured delivery.definition tuple with no hardcoded model preference. Resume accepts a primary branch descended from the archive by ancestry (merge-base --is-ancestor), warns and requests default-no y/n confirmation only when invoked from master/main, switches with an ordinary git switch, and stops on ambiguity, unrelated history, or refused switch without reset/stash/deletion. All match the operator's amendment exactly; the spec records the amendment and prior authorization in Context without rewriting history.
-        - Traceability. AC013.1-3 link to RT013.1-4; the new AC013.4 (resume after primary advancement) links to RT013.5, which covers all independent conditions: on-branch resume without prompt, y/yes acceptance from master and main, decline and default-no leaving branch and files unchanged, ambiguous candidates, unrelated archive history, and a dirty conflicting file. RT013.1's procedure now precisely describes the Codex coordinator test; Hermes argument boundaries (provider applicability, missing provider launching nothing) live under RT013.3 as the operator directed. No coverage gaps found.
-        - Test classification and boundaries. RT013.5 uses real Git in disposable repositories (resume_test.go with localOnlyTestRunner and t.TempDir), consistent with TESTING.md's preference for real local dependencies; routing tests use command doubles at the actual external native-CLI boundary with exact argv, stdin, and cwd assertions — behavioural, not grep. No metered service enters the suite. RED/GREEN for the amendment is recorded in validation.org, including the correct pre-change failure modes.
-        - Design accuracy. The Recovery contract matches the implementation: sole migration candidate required from master/main, lineage validation, explicit confirmation prompt wording, rejection cases, and no destructive Git operations. README and ARCHITECTURE.md describe the same routing (definition profile for all writing migrations) and recovery behaviour with no contradictions; the global-config example's audit-model value is illustrative, not a stale routing preference.
-        - Compliance. No annotation records or blocks in spec.org. No audit findings, verdicts, revisions, or session identity duplicated in any supplied artefact. OPERATOR_SIGNOFF was correctly reset to PENDING after this material amendment, consistent with the template's renewed-approval rule.
+        - Intent fidelity. normalizeLegacyState maps HOLD/HOLDING to VALID as historic generated legacy-AC labels only, distinct from work-item lifecycle; ASSUMED_PASS is preserved as qualified migration inference, never conflated with VALID; parseLegacyStatus accepts VALID directly and the old labels as compatibility inputs with qualifications preserved. normalizeLegacyTypeDeclaration upgrades only the exact known legacy TYP_TODO sequence (PENDING FAILING SUPERSEDED | HOLD/HOLDING ASSUMED_PASS) and leaves a project's own lifecycle declarations untouched. Templates declare VALID (work.org TYP_TODO and glossary; ACs.org status vocabulary and placeholders), the migration skill instructs VALID with test results kept separate, and the normalize-legacy-acs repair prompt normalizes HOLDING/HOLD to VALID without reinterpreting genuine blocked work. Genuine BLOCKED work-item state is unchanged and explicitly asserted in tests. No work.org, installed global file, or other project was edited, matching the operator's manual-amendment boundary.
+        - Traceability and coverage. AC013.5 links to RT013.6, whose Action/Expected cover each independent condition: VALID and both historic label inputs, qualification and test-result preservation during consolidation, type-declaration recognition, idempotent rerun after source removal, and unchanged normal work items including BLOCKED. legacy_ledger_test.go implements exactly these at the real consolidation boundary with local fixtures — behavioural, not grep.
+        - Design accuracy and scope. The Legacy terminology design subsection bounds the change precisely: aliases live only in the legacy AC parser, ordinary work states are not renamed, historical glossary wording is provenance, and no new assertion of passing tests is made. README and ARCHITECTURE.md describe the same VALID semantics and compatibility aliasing without contradiction. The omitted previously-reviewed files (projectinit.go, migration/resume tests) are unchanged bytes whose relevant behaviour is fully exercised through the supplied legacy_ledger.go delta; omission waives nothing material.
+        - Compliance. No annotation records or blocks in spec.org; no audit findings, verdicts, revisions, or session identity duplicated in any supplied artefact; the amendment is recorded in Context as operator provenance, not audit state; OPERATOR_SIGNOFF correctly remains PENDING. RED/GREEN for the amendment is recorded in validation.org, including the correct pre-change failure modes, with the local-fixture boundary honestly stated.
       history:
         - cache_key: sha256:a281979909bc1cf2d12d1e223b0b93890765bd55e6f2bb588268adb42e471ae4
           session_id: "20260912_215150_117060"
@@ -308,3 +375,69 @@ audits:
             - Design accuracy. The Recovery contract matches the implementation: sole migration candidate required from master/main, lineage validation, explicit confirmation prompt wording, rejection cases, and no destructive Git operations. README and ARCHITECTURE.md describe the same routing (definition profile for all writing migrations) and recovery behaviour with no contradictions; the global-config example's audit-model value is illustrative, not a stale routing preference.
             - Compliance. No annotation records or blocks in spec.org. No audit findings, verdicts, revisions, or session identity duplicated in any supplied artefact. OPERATOR_SIGNOFF was correctly reset to PENDING after this material amendment, consistent with the template's renewed-approval rule.
           updated: "2026-09-12T21:29:00Z"
+        - cache_key: sha256:509d9bc08996622b682d5f7623e50add71b7be572ac323beb770b2055d5b5736
+          session_id: "20260912_215150_117060"
+          harness: hermes
+          provider: nous
+          model: z-ai/glm-5.3
+          evidence:
+            - path: /Users/tigger/code/agents/sdlc/.sdlc/project.yaml
+              sha256: 7435fbc30502a8a150bf976a612f9355ec4fafad508f66042eaeddd0a70de02d
+              bytes: 307
+            - path: /Users/tigger/code/agents/sdlc/README.md
+              sha256: 4b04578feb8557e874250215ef464d5aac040d4fb3cd950e18eff728997b0139
+              bytes: 18651
+            - path: /Users/tigger/code/agents/sdlc/docs/ARCHITECTURE.md
+              sha256: 7a770893e55c2d1d56774b812d84fb9ea87665c7c72a25b52d6fc850a5df661d
+              bytes: 14711
+            - path: /Users/tigger/code/agents/sdlc/internal/projectinit/legacy_ledger.go
+              sha256: 05484d50975d073b205b3a89f0b5669c4dbfffb6a7ea651116d30751b8529c0f
+              bytes: 23261
+            - path: /Users/tigger/code/agents/sdlc/internal/projectinit/legacy_ledger_test.go
+              sha256: c75257b130114f3f6a06615071441155a395118cdde5ea117cfdfa52aa08387b
+              bytes: 11617
+            - path: /Users/tigger/code/agents/sdlc/skills/migrate-legacy-acs-to-sdlc-v1/SKILL.md
+              sha256: 3e84381adff56fc767ddd2cb08be0c4f4b6c3636e6a1428cd6726a348053171a
+              bytes: 17946
+            - path: /Users/tigger/code/agents/sdlc/specs/W013-init-migration-agents/spec.org
+              sha256: 79b06c4571b2167b83c089a45057481d868bbe3431ef01b7c41c7858776d20ce
+              bytes: 11869
+            - path: /Users/tigger/code/agents/sdlc/specs/W013-init-migration-agents/validation.org
+              sha256: c05abc2c036eac45a429a5441cf7baca2f40b72845d5c3cc395cff5af0d62b17
+              bytes: 2750
+            - path: /Users/tigger/code/agents/sdlc/src/ISSUES.md
+              sha256: 8545a6297e21423a9ed1797bc3b6f90ac4425600606ae20152252d2da3c0cc42
+              bytes: 16332
+            - path: /Users/tigger/code/agents/sdlc/src/TESTING.md
+              sha256: 5ed902d49dbb8321ea093fd60db68d5195e59c95c763c02e4ca0c09f6fa1e932
+              bytes: 13561
+            - path: /Users/tigger/code/agents/sdlc/src/prompts/normalize-legacy-acs.md
+              sha256: 44489c47c457ed857dba026da6304553f8d3a12f204952a4997c457c974fcd83
+              bytes: 2403
+            - path: /Users/tigger/code/agents/sdlc/src/templates/migration/ACs.org
+              sha256: c565f16c3bd2ee3acfb15a8f911c8ecdfd5f2dc00d1770597d2af37f9dfbab01
+              bytes: 5432
+            - path: /Users/tigger/code/agents/sdlc/src/templates/v3/spec.org
+              sha256: e892d9da13150307ae4f3ad2f6df2692a521670a4ea06fbf36fc74be5f89e563
+              bytes: 15554
+            - path: /Users/tigger/code/agents/sdlc/src/templates/v3/work.org
+              sha256: 40788f9bdc1fc2d2901aa4cc13af0b7a40f30564af4445f0ce50bfef0a671148
+              bytes: 3912
+          round: 3
+          revision: specs/W013-init-migration-agents/spec.org @ 79b06c4571b2167b83c089a45057481d868bbe3431ef01b7c41c7858776d20ce
+          verdict: PASS
+          response: |-
+            GATE: definition
+            REVISION: specs/W013-init-migration-agents/spec.org @ 79b06c4571b2167b83c089a45057481d868bbe3431ef01b7c41c7858776d20ce
+
+            VERDICT: PASS
+
+            Findings: none requiring remediation.
+
+            Verified against the recorded operator intent for the AC013.5 / RT013.6 amendment:
+
+            - Intent fidelity. normalizeLegacyState maps HOLD/HOLDING to VALID as historic generated legacy-AC labels only, distinct from work-item lifecycle; ASSUMED_PASS is preserved as qualified migration inference, never conflated with VALID; parseLegacyStatus accepts VALID directly and the old labels as compatibility inputs with qualifications preserved. normalizeLegacyTypeDeclaration upgrades only the exact known legacy TYP_TODO sequence (PENDING FAILING SUPERSEDED | HOLD/HOLDING ASSUMED_PASS) and leaves a project's own lifecycle declarations untouched. Templates declare VALID (work.org TYP_TODO and glossary; ACs.org status vocabulary and placeholders), the migration skill instructs VALID with test results kept separate, and the normalize-legacy-acs repair prompt normalizes HOLDING/HOLD to VALID without reinterpreting genuine blocked work. Genuine BLOCKED work-item state is unchanged and explicitly asserted in tests. No work.org, installed global file, or other project was edited, matching the operator's manual-amendment boundary.
+            - Traceability and coverage. AC013.5 links to RT013.6, whose Action/Expected cover each independent condition: VALID and both historic label inputs, qualification and test-result preservation during consolidation, type-declaration recognition, idempotent rerun after source removal, and unchanged normal work items including BLOCKED. legacy_ledger_test.go implements exactly these at the real consolidation boundary with local fixtures — behavioural, not grep.
+            - Design accuracy and scope. The Legacy terminology design subsection bounds the change precisely: aliases live only in the legacy AC parser, ordinary work states are not renamed, historical glossary wording is provenance, and no new assertion of passing tests is made. README and ARCHITECTURE.md describe the same VALID semantics and compatibility aliasing without contradiction. The omitted previously-reviewed files (projectinit.go, migration/resume tests) are unchanged bytes whose relevant behaviour is fully exercised through the supplied legacy_ledger.go delta; omission waives nothing material.
+            - Compliance. No annotation records or blocks in spec.org; no audit findings, verdicts, revisions, or session identity duplicated in any supplied artefact; the amendment is recorded in Context as operator provenance, not audit state; OPERATOR_SIGNOFF correctly remains PENDING. RED/GREEN for the amendment is recorded in validation.org, including the correct pre-change failure modes, with the local-fixture boundary honestly stated.
+          updated: "2026-09-12T21:46:06Z"

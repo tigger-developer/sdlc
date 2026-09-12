@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+## v3.2.23 - 2026-09-12
+
+- Add a routed architecture standard for proportionate design, component reuse,
+  responsibilities and boundaries. Strengthen both audit prompts to verify
+  significant design decisions without authorizing scope expansion.
+- Advance the specification template to schema 3 with solution-design headings
+  for decomposition, shared behaviour, mechanisms and design verification.
+  Routine implementation choices do not authorize departures from approved design.
+- Replace the misleading legacy AC status HOLD/HOLDING with VALID in canonical
+  templates, migration and repair instructions, and importer output. Validity
+  means applicable, not blocked, and does not assert that tests passed.
+- Retain old generated labels as legacy-parser inputs and update the known old
+  legacy Org type declaration during consolidation. Preserve test results,
+  qualifications, normal work lifecycle and historical records.
+
 ## v3.2.22 - 2026-09-12
 
 - Select the definition-configured harness/provider/model for legacy ticket

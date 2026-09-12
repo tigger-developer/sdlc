@@ -31,3 +31,13 @@
 - Native boundary :: All recovery tests use real Git in disposable local repos.
   Provider routing uses command doubles, with no live migration or metered RT.
 - User validation :: No new operator validation has yet been recorded.
+
+* 2026-09-12 - Paired legacy VALID terminology
+- RED :: Parser tests rejected VALID and returned HOLD for old generated labels;
+  consolidation failed the new VALID headline/type-declaration expectations.
+- GREEN :: =go test ./internal/projectinit -count=1= passed after the change.
+- Preservation :: Real local ledger consolidation preserves PENDING test
+  evidence, qualifications, references and a BLOCKED normal work item. Existing
+  rerun checks establish idempotence after the source AC ledger is removed.
+- Boundary :: Local fixtures only. Existing project ledgers remain operator-owned
+  manual updates; no live migration or metered regression check was performed.

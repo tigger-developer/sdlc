@@ -8,13 +8,32 @@ import (
 	"time"
 )
 
+// RT013.6: VALID is a legacy requirement disposition, not a fabricated test pass.
+func TestLegacyValidStatusAndCompatibility(t *testing.T) {
+	for _, input := range []string{"VALID", "HOLD", "HOLDING", "*HOLDING.*"} {
+		t.Run(input, func(t *testing.T) {
+			state, qualification, err := parseLegacyStatus([]string{input, "Keep this qualification."})
+			if err != nil || state != "VALID" || len(qualification) != 1 || qualification[0] != "Keep this qualification." {
+				t.Fatalf("parsed = %s, %v, %v", state, qualification, err)
+			}
+			block, count, err := normalizeLegacyLedgerBlock(legacyLedgerHeading + "\n** Existing source\n*** " + state + " AC7.1 - Existing requirement\n**** Tests\nPending evidence stays pending.\n")
+			if err != nil || count != 1 || !strings.Contains(block, "*** VALID AC7.1") || !strings.Contains(block, "Pending evidence stays pending.") {
+				t.Fatalf("normalization = %s, count %d, %v", block, count, err)
+			}
+		})
+	}
+}
+
 func TestMergeLegacyAcceptanceCriteriaPreservesWorkAndConsolidatesAuthority(t *testing.T) {
 	root := t.TempDir()
 	writeProjectTestFile(t, filepath.Join(root, "docs", "work.org"), `#+TITLE: Existing Work
+#+TYP_TODO: PENDING FAILING SUPERSEDED | HOLD ASSUMED_PASS
 
 * Work items
 
 ** TODO W041 - Preserve this work item :defect:
+
+** BLOCKED W042 - Await operator dependency
 
 * Legacy Acceptance Criteria (SDLC v1)                         :legacy:
 :PROPERTIES:
@@ -63,6 +82,10 @@ Invalid hosts are rejected.
 
 *HOLDING:* Current requirement confirmed during migration.
 
+**** Tests
+
+- RT7.1: PENDING, historical execution not recorded.
+
 * Migration notes and footnotes
 
 [fn:migration] Historical evidence.
@@ -97,7 +120,10 @@ authorities:
 		":SOURCE_DATE: 2026-09-03",
 		"** Legacy ledger authority at migration",
 		"** Issue 7 - Reject invalid configuration",
-		"*** HOLD AC7.1 - Reject an invalid host definition",
+		"*** VALID AC7.1 - Reject an invalid host definition",
+		"#+TYP_TODO: PENDING FAILING SUPERSEDED | VALID ASSUMED_PASS",
+		"** BLOCKED W042 - Await operator dependency",
+		"RT7.1: PENDING, historical execution not recorded.",
 		"**** Status qualification",
 		"Current requirement confirmed during migration.",
 		"[[file:archive/migrated-tickets/7.md][#7 - Reject invalid configuration]]",
@@ -187,7 +213,7 @@ func TestParseLegacyStatusAcceptsEmphasizedSentenceStatus(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if state != "HOLD" || len(qualification) != 0 {
+	if state != "VALID" || len(qualification) != 0 {
 		t.Fatalf("parsed status = %q, qualification = %#v", state, qualification)
 	}
 }
@@ -290,7 +316,7 @@ HOLDING
 		legacyLedgerHeading,
 		"** Legacy ledger authority at migration",
 		"** Legacy status vocabulary at migration",
-		"*** HOLD AC1.1 - Existing requirement",
+		"*** VALID AC1.1 - Existing requirement",
 	} {
 		if !strings.Contains(string(contents), want) {
 			t.Fatalf("normalized ledger lacks %q:\n%s", want, contents)
@@ -325,7 +351,7 @@ func TestWriteWorkLedgerPreservesExistingContent(t *testing.T) {
 	}
 	for _, want := range []string{
 		"#+TITLE: Existing Work",
-		"#+TYP_TODO: PENDING FAILING SUPERSEDED | HOLD ASSUMED_PASS",
+		"#+TYP_TODO: PENDING FAILING SUPERSEDED | VALID ASSUMED_PASS",
 		"#+TAGS: feature defect maintenance migration legacy",
 		"** TODO W009 - Existing defect :defect:",
 		"* Work items",

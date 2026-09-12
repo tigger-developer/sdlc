@@ -45,6 +45,15 @@ gates:
       Apply all three criteria together: requirements and traceability; solution design and architecture fit;
       and RT, UT, and OT test definitions, coverage, classification, and TDD suitability. Read the named
       authorities and current implementation evidence, but do not expand the scope or rewrite the artefacts.
+      Apply the supplied SDLC ARCHITECTURE.md and project architecture. Verify proportionate responsibilities,
+      component reuse, shared behaviour and variation, boundaries, state ownership and essential mechanisms.
+      Reject material ambiguity that leaves significant design decisions for the delivery agent to invent.
+      Each important decision needs appropriate verification: traced behavioural tests for observable
+      consequences, or an explicit implementation-review check for structural conformance. Do not require
+      artificial source-text tests, unnecessary abstractions or exhaustive low-level design.
+      A blocking finding must identify a violated requirement, approved decision or applicable standard,
+      or a concrete correctness or security defect. Optional improvements and hypothetical future needs
+      are not grounds for FAIL or authority to expand scope.
       Challenge omissions, contradictions, invented requirements, weak boundaries, unsafe assumptions, and tests
       that merely grep source text.
       Default to normal forward-looking definition review. Only when the caller's audit context explicitly
@@ -82,10 +91,17 @@ gates:
       A skeleton ticket with that scope and evidence is sufficient; do not demand a completed definition or
       prior definition PASS. Never infer a variant from the mere presence of code.
       Do not re-audit or reopen the signed-off definition. Check test quality, RED/GREEN evidence, traceability,
+      design conformance under the supplied SDLC ARCHITECTURE.md and project architecture,
       behavioural assertions, security, regressions, and code quality. Review implemented tests first, then
       production code, together in this context. Test-definition quality belongs to the separate definition
       review; report concrete gaps in implemented coverage without inventing requirements. Do not demand
-      artificial tests or source greps. Return exactly one compact envelope:
+      artificial tests or source greps. Check the recorded structural review criteria as well as behavioural
+      tests: passing tests does not excuse departure from approved responsibilities, boundaries or mechanisms.
+      Allow routine details only where the design leaves them open. Identify the specific approved decision
+      or applicable standard violated; do not substitute the auditor's preferred architecture. A blocking
+      finding needs that violation or a concrete correctness or security defect, not an optional improvement.
+      For paired or emergency work, apply these checks to the recorded operator-authorized design and scope,
+      without imposing an advance definition gate. Return exactly one compact envelope:
       GATE: implementation
       REVISION: <audited revision>
       VERDICT: PASS | PROVISIONAL PASS | FAIL

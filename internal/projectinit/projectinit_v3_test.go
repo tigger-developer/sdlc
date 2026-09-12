@@ -432,7 +432,7 @@ func TestWriteWorkLedgerAllocatesMigratedV2WorkAboveHistoricIdentifiers(t *testi
 	if strings.Contains(string(contents), "* Migrated v2 work requiring disposition") {
 		t.Fatalf("work ledger added a non-template top-level section:\n%s", contents)
 	}
-	if !strings.HasPrefix(string(contents), "#+TITLE: Project Work Ledger\n#+STARTUP: overview\n#+TODO: TODO ACTIVE BLOCKED REVIEW | DONE ABANDONED\n#+TYP_TODO: PENDING FAILING SUPERSEDED | HOLD ASSUMED_PASS\n") {
+	if !strings.HasPrefix(string(contents), "#+TITLE: Project Work Ledger\n#+STARTUP: overview\n#+TODO: TODO ACTIVE BLOCKED REVIEW | DONE ABANDONED\n#+TYP_TODO: PENDING FAILING SUPERSEDED | VALID ASSUMED_PASS\n") {
 		t.Fatalf("work ledger did not preserve the canonical template preamble:\n%s", contents)
 	}
 	workItems := strings.Index(string(contents), "* Work items\n")
@@ -866,7 +866,7 @@ func TestRunMigratesV1ThroughTicketSkillBeforeCreatingProfile(t *testing.T) {
 		t.Fatalf("v1 requirement authorities = %q, %v", profile, err)
 	}
 	work, err := os.ReadFile(filepath.Join(project, "docs", "work.org"))
-	if err != nil || !strings.Contains(string(work), "*** HOLD AC7.1 - Existing result") {
+	if err != nil || !strings.Contains(string(work), "*** VALID AC7.1 - Existing result") {
 		t.Fatalf("v1 acceptance criteria missing from work ledger = %q, %v", work, err)
 	}
 	archived := runGitTest(t, project, "show", "sdlc_v1_state_2026-09-06:docs/ACs.md")

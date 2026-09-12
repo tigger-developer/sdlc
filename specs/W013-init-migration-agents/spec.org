@@ -23,6 +23,8 @@
 - *Codex, Hermes and Claude* run directly with editing tools available and
   their native command policies retained. *Copilot* retains a manual handoff.
 - A *canonical ledger* still merges deterministically, without an agent.
+- *Legacy ACs* use =VALID=, not the misleading =HOLD= or =HOLDING=. Validity
+  means the requirement remains applicable; test results remain separate.
 - *Resume* accepts an advanced primary branch. From *master or main*, it warns
   and requests *y/n confirmation* before switching to the sole migration branch.
 ** Changes
@@ -52,6 +54,9 @@
 - Paired amendment, 2026-09-12 :: Operator replaces the prior audit-profile choice
   with definition settings and requests migration-branch resume plus confirmation
   when invoked from master. The original authorized change remains in Git history.
+- Legacy-status amendment, 2026-09-12 :: Operator replaces the legacy AC status
+  HOLD/HOLDING with VALID in shared tooling. Existing project ledgers are being
+  amended manually by the operator; historical records are not rewritten.
 - Architecture :: [[file:../../docs/ARCHITECTURE.md][Initializer architecture]].
 - Profile :: [[file:../../.sdlc/project.yaml][Project configuration]].
 - Scope :: Direct writing-agent dispatch and recovery of interrupted migration,
@@ -95,6 +100,16 @@
   Decline, ambiguity, unrelated history or a refused Git switch leave recovery
   stopped without destructive Git operations.
 - Proven by :: [[#rt-013-5][RT013.5]].
+
+** AC013.5 - Legacy validity terminology
+:PROPERTIES:
+:CUSTOM_ID: ac-013-5
+:END:
+- Criterion :: Migration templates, skills and importer output use *VALID* for
+  an applicable legacy AC, without manufacturing a test PASS. Historical legacy
+  HOLD/HOLDING inputs remain readable aliases; normal work lifecycle and actual
+  blocked-work meanings are unchanged.
+- Proven by :: [[#rt-013-6][RT013.6 - Legacy status compatibility]].
 
 * Test Definitions
 ** RT013.1 - Migration and conversion routing
@@ -150,6 +165,17 @@
   acceptance switches safely; decline leaves it unchanged. Ambiguity, unrelated
   history and Git conflicts stop without deleting state or overwriting files.
 
+** RT013.6 - Legacy status compatibility
+:PROPERTIES:
+:CUSTOM_ID: rt-013-6
+:END:
+- Covers :: [[#ac-013-5][AC013.5]].
+- Action :: Parse VALID and historical HOLD/HOLDING; import a ledger with test
+  results and qualifiers into an existing work ledger, then rerun consolidation.
+- Expected :: Legacy AC headings use VALID, the legacy Org type declaration
+  recognizes it, qualifications/test results survive and a rerun is a no-op.
+  Normal work items and BLOCKED lifecycle remain unchanged.
+
 * Edge Cases
 - Existing =docs/ticket-migration.org= retains its prior skip behaviour. This
   change does not certify partially written migration reports as complete.
@@ -185,6 +211,12 @@
   authentication store, hook or dangerous-command approval policy is changed.
 - Hermes and Claude retain native policies and skill-defined project scope;
   this change does not claim a new filesystem sandbox for them.
+** Legacy terminology
+- Canonical status is =VALID=. Accept =HOLD= and =HOLDING= only as historic
+  aliases within the legacy AC parser. Do not rename ordinary work-item states.
+- Shared templates declare VALID, and a known old legacy type declaration is
+  updated during consolidation. Preserve source evidence and historical glossary
+  wording as provenance, not a new assertion of passing tests.
 
 * Delivery Handoff
 :PROPERTIES:

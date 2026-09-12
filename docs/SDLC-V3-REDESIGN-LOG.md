@@ -667,3 +667,31 @@ without reconstructing the work from conversation history.
   before switching from the primary branch. Do not reset history or discard work.
 - Changes remain in the SDLC repository; Upload and global configuration are
   not modified. Operator installation and real-project retry remain separate.
+
+## 2026-09-12 - Legacy VALID terminology
+
+- Operator clarified that HOLD means blocked. The earlier generated legacy-AC
+  definition instead meant applicable; VALID replaces that misleading label.
+- Canonical templates, migration skill, repair prompt and importer emit VALID.
+  Old HOLD/HOLDING spellings remain input compatibility only. Test results and
+  qualifications remain intact; validity alone is not a test pass.
+- This supersedes the HOLD vocabulary decisions above without rewriting their
+  history. The operator will amend existing work.org documents manually; no
+  client project or deployed copy is edited in this change.
+
+## 2026-09-12 - Architecture resolution and design conformance
+
+- Add a shared ARCHITECTURE.md standard, distinct from each project's architecture.
+  KISS requires proportionate responsibilities and reuse, not per-case duplication
+  or speculative frameworks. Scope expansion requires justification and approval.
+- Definition resolves significant structural decisions and identifies behavioural
+  tests or implementation-review checks for each. Extend the existing template
+  with named solution-design headings; advance its schema to 3.
+- Delivery follows the approved design. Only routine details left open may be
+  decided without renewed authority. Do not introduce a second design phase or
+  let an auditor's preferred mechanism authorize a redesign.
+- Both existing audit prompts apply the principles. Passing behavioural tests
+  alone does not prove structural conformance; optional improvements are not
+  grounds for FAIL. Paired and emergency routes retain their existing gates.
+- Update global routing and the definition, delivery and foundation skills.
+  This is documentation-only work, with no new ticket or production-code change.

@@ -3,9 +3,9 @@ name: deliver-change
 description: Deliver a signed-off SDLC v3 specification through TDD and validation, using native goal-backed hands-off continuation where available.
 ---
 
-Read `~/.agents/sdlc/MAIN.md`, `TESTING.md`, `CODING.md`, `DOCUMENTATION.md`,
-`GIT.md`, the project profile, selected standards, the signed-off `spec.org`, and
-its current audit evidence.
+Read `~/.agents/sdlc/MAIN.md`, `TESTING.md`, `CODING.md`, `ARCHITECTURE.md`,
+`DOCUMENTATION.md`, `GIT.md`, the project profile, selected standards, the
+signed-off `spec.org`, and its current audit evidence.
 
 Admit delivery only with explicit operator sign-off in `spec.org`, an `ACTIVE`
 work item in `docs/work.org`, and current `PASS` or effective `PROVISIONAL PASS`

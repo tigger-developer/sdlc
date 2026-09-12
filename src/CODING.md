@@ -2,6 +2,9 @@
 
 ## Readability and fit
 
+Apply `~/.agents/sdlc/ARCHITECTURE.md` for proportionality, responsibilities,
+reuse and conformance to the approved solution design.
+
 - Optimize for the next maintainer. Prefer explicit names and straightforward
   control flow over compressed cleverness.
 - Match surrounding code and established project conventions unless the plan

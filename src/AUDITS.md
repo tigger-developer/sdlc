@@ -25,6 +25,11 @@ input invalidates the key; do not alter inputs merely to evade a cached FAIL.
 
 ## Composite gates
 
+Apply `~/.agents/sdlc/ARCHITECTURE.md` at both gates and include it in the
+supplied evidence, alongside the relevant project architecture. Definition
+review resolves significant design decisions and their verification; implementation
+review checks adherence without substituting the auditor's preferred design.
+
 The **definition gate** reviews the specification, solution design, and RT/UT/OT
 test definitions together. The **implementation gate** reviews implemented tests
 and the production delta in one context: assess test quality and evidence, then

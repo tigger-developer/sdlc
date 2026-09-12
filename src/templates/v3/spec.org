@@ -1,5 +1,5 @@
 #+TITLE: WNNN - [Concise change-specific title]
-#+SCHEMA: 2
+#+SCHEMA: 3
 #+SUBTITLE: Unified change specification
 #+STARTUP: overview
 #+OPTIONS: toc:2 num:nil
@@ -302,9 +302,11 @@ contracts already defined elsewhere. If none are additional, say so concisely.
 
 #+begin_comment
 Describe enough of the after-state for a new delivery agent to begin with the
-defined tests. Follow the operator's direction, the project architecture, the
-selected standards, and external contracts. Do not expand the design into a
-task list or duplicate stable architecture documents.
+defined tests. Apply the SDLC ARCHITECTURE.md principles alongside the operator's
+direction, project architecture, selected standards and external contracts.
+Resolve significant design decisions here; do not leave them for delivery to
+invent. Do not expand the design into a task list or duplicate stable
+architecture documents.
 Keep each precise interface/configuration contract in one addressable subsection;
 prefer an after-state example or contract table to repeated prose. Use only the
 subordinate sections needed for this change. Keep security impact even when the
@@ -319,11 +321,33 @@ conclusion is a supported no-change rationale.
 
 ** High-level design
 
+*** Components and responsibilities
+
+- [Which existing or necessary new component owns each material responsibility,
+  and how it collaborates with the others. Link established architecture.]
+
+*** Reuse, shared behaviour and variation
+
+- Shared operation :: [Behaviour implemented once, and the existing component
+  reused or extended.]
+- Variation :: [What differs by case and is expressed through data, parameters
+  or a justified separate operation.]
+
+*** Boundaries and dependencies
+
+- [Internal and external boundaries, dependency direction and any justified new
+  dependency. Preserve ownership and identify departures requiring approval.]
+
 *** Flow
 
 1. [First material interaction or transformation.]
 2. [Next material interaction or transformation.]
 3. [Result and persistence or output boundary.]
+
+*** Essential mechanisms
+
+- [Algorithm or mechanism important to correctness or architectural fit.
+  Provide an example or pseudocode where prose would leave it ambiguous.]
 
 *** Interfaces and configuration
 
@@ -338,6 +362,25 @@ conclusion is a supported no-change rationale.
 *** Failure behaviour
 
 - [Validation, error, retry, atomicity, rollback, and observability behaviour.]
+
+*** Simplicity and proportionality
+
+- [Why this structure is sufficient for the actual change. Justify material
+  complexity; exclude speculative abstractions and per-case duplication.]
+
+** Design decisions and verification
+
+*** [Descriptive decision title; repeat for each important decision]
+
+- Decision :: [Important design decision the implementation must follow.]
+- Verification :: [Link to traced behavioural tests, or state an explicit
+  implementation-review check where the decision is structural. Do not invent
+  source-text tests or duplicate the detailed test definitions.]
+
+** Routine details left to implementation
+
+- [Only details deliberately left open within the approved design constraints.
+  Do not place unresolved architecture, scope or security decisions here.]
 
 ** Architecture impact
 

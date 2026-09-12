@@ -192,6 +192,11 @@ is absent. Canonical AC ledgers require no agent; a repair must pass the same
 deterministic validator before consolidation. No audit session, round budget or
 audit timeout is attached to a writing migration.
 
+Legacy AC output uses `VALID` for applicability; it does not synthesize a passing
+test result. `HOLD`/`HOLDING` are accepted only as historical legacy-parser
+aliases. Consolidation upgrades the known legacy type declaration while leaving
+normal work-item lifecycle, qualifiers and recorded test results unchanged.
+
 After migration, the initializer derives stable authorities from the bounded
 Git file inventory. It presents Markdown and Org files whose stems contain
 README, VISION, or ARCHITECTURE as multi-select product or architecture

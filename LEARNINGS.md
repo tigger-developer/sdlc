@@ -1,5 +1,20 @@
 # SDLC Standards: Design Learnings
 
+## Resolve structure before delegating implementation
+
+High-level outcomes and detailed tests do not alone explain how responsibilities,
+reuse and boundaries should fit together. Definition must resolve significant
+design decisions and identify their verification before handing work to a delivery
+agent. Behavioural tests establish outcomes; structural review checks establish
+design conformance where tests cannot. Both belong to the existing gates.
+
+KISS means a proportionate, coherent solution, not duplicated operations per case
+or a speculative framework. Record enough structure to guide implementation,
+without prescribing every function or filename. Routine details remain open only
+within the approved decisions; an auditor's preferred design is not authority to
+expand scope. Stronger design preparation should reduce avoidable remediation,
+but does not guarantee an audit PASS or make every audit failure author error.
+
 ## Annotations are a review inbox, not a second specification
 
 Keep pending feedback beside the passage it concerns, but separate its semantics
@@ -904,6 +919,14 @@ Requiring that branch to equal the original archive rejects preserved, valid
 history. Validate ancestry instead, reuse the existing migration branch, and
 ask before switching from the primary branch. Ambiguity and conflicting edits
 still require intervention; recovery is not permission to reset or stash.
+
+## Status names must describe the same concept as their definition
+
+Using HOLD/HOLDING for a legacy requirement that remained applicable conflicted
+with the operator's ordinary meaning of blocked work. The canonical label is
+now VALID. Applicability, delivery and test results are distinct facts: renaming
+a status must not fabricate evidence or reinterpret an actual blocked item.
+Compatibility belongs in the scoped legacy importer, not the new vocabulary.
 
 ## Licence
 

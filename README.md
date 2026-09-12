@@ -357,6 +357,13 @@ or deleting the source. The AC disposition becomes its headline state and the
 redundant Status field is removed. After the embedded copy is verified, the
 separate `docs/ACs.org` is removed.
 
+Applicable legacy ACs use **`VALID`**, not the old generated `HOLD`/`HOLDING`
+labels. Validity is not a test result. The importer accepts those old legacy
+labels for compatibility and emits `VALID`; normal work-item `BLOCKED` status
+is unchanged. For manually maintained migrated ledgers, update the legacy AC
+headlines, `#+TYP_TODO:` declaration and glossary in `docs/work.org`, and the
+intermediate `docs/ACs.org` if it still exists. Do not rewrite archived evidence.
+
 For an already initialized v3 project, run `sdlc-merge-legacy-acs` once from the
 project root. A successful rerun is a no-op.
 

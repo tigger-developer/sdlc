@@ -62,7 +62,8 @@ authorities.
 
 * Status vocabulary
 
-- *HOLD:* The requirement remains current and its recorded evidence passes.
+- *VALID:* The legacy requirement remains applicable. Test outcomes are recorded
+  separately; this label does not assert a test pass or mean blocked.
 - *PENDING:* The requirement or some required evidence remains unverified.
 - *FAILING:* Current evidence shows the requirement does not hold.
 - *SUPERSEDED:* A named later requirement replaces or retires it.
@@ -92,7 +93,7 @@ authorities.
 
 **** Status
 
-[HOLD, PENDING, FAILING, SUPERSEDED, OR ASSUMED PASS, WITH ANY QUALIFICATION]
+[VALID, PENDING, FAILING, SUPERSEDED, OR ASSUMED PASS, WITH ANY QUALIFICATION]
 
 **** Tests
 

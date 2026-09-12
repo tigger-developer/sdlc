@@ -68,6 +68,7 @@ Read this file first, then only the standards relevant to the work.
 | Specification, acceptance criteria, bugs, or clarification | `~/.agents/sdlc/ISSUES.md` |
 | Test definition or verification | `~/.agents/sdlc/TESTING.md` |
 | Audits or gates | `~/.agents/sdlc/AUDITS.md` |
+| Architecture, solution design, delivery, or either audit gate | `~/.agents/sdlc/ARCHITECTURE.md` |
 | Implementation or code review | `~/.agents/sdlc/CODING.md` |
 | Explicit paired delivery | `~/.agents/sdlc/PAIRING.md` |
 | Exact `BYPASS-GATE-7` emergency delivery | `~/.agents/sdlc/EMERGENCY.md` |

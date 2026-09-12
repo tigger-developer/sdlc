@@ -85,6 +85,10 @@ files. Keep complete source text in the archive rather than duplicating it here.
 
 ## Normalize the legacy AC ledger before reconciliation
 
+Use `VALID` for an applicable legacy AC, never `HOLD` or `HOLDING`. Keep test
+results and heuristic qualifications separate; validity is not a test pass.
+Those old generated labels are compatibility inputs, not blocked-work states.
+
 Read `~/.agents/sdlc/templates/migration/ACs.org` in full. Before indexing live
 RTs or appending migrated ACs, convert the pre-existing `docs/ACs.md` into
 `docs/ACs.org` using that canonical structure. Use `git mv` so the tracked

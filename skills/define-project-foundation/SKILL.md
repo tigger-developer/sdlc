@@ -9,9 +9,9 @@ brownfield project's Vision or Architecture; report that the existing
 authorities need a separate review.
 
 Read `~/.agents/sdlc/MAIN.md`, `ISSUES.md`, `TESTING.md`,
-`DOCUMENTATION.md`, `CODING.md`, `AUDITS.md`, and the project profile before
-drafting. Preserve human edits and keep the work limited to the two foundation
-documents and their review record.
+`DOCUMENTATION.md`, `CODING.md`, `ARCHITECTURE.md`, `AUDITS.md`, and the project
+profile before drafting. Preserve human edits and keep the work limited to the
+two foundation documents and their review record.
 
 ## Discovery
 

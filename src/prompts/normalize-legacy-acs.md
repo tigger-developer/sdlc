@@ -16,8 +16,11 @@ reinterpret, merge, split, reorder, or silently drop information.
 
 Apply the canonical Org hierarchy and plain status vocabulary. Remove
 presentation glyphs from statuses while preserving their meaning. Normalize
-legacy `HOLDING` to `HOLD`. A migration-heuristic status becomes `ASSUMED PASS`,
-not `HOLD`. Preserve trailing status text under `Status qualification`. Resolve
+the old generated legacy-AC labels `HOLDING` or `HOLD` to `VALID`. These aliases
+mean applicable, not blocked. Never reinterpret genuine blocked/on-hold work as
+validity. Preserve test outcomes separately; do not manufacture a test pass.
+A migration-heuristic status remains `ASSUMED PASS`, not `VALID`.
+Preserve trailing status text under `Status qualification`. Resolve
 an unrecognized state only when the ledger itself establishes its canonical
 meaning; otherwise leave it visible so validation fails safely. Restore
 struck-through AC headings as ordinary canonical AC headings while retaining
