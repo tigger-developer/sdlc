@@ -1,12 +1,13 @@
 ---
 name: migrate-legacy-acs-to-sdlc-v1
 description: Archive and close a brownfield project's legacy GitHub tickets while reconciling its SDLC v1 acceptance-criteria ledger and documentation before SDLC v3 initialization. Invoke only when the operator requests this migration.
-metadata:
-  preferred_provider: openai-codex
-  preferred_model: gpt-5.6-luna
 ---
 
 # Prepare an SDLC v1 project for SDLC v3
+
+`sdlc-init` invokes this writing migration with the configured
+`delivery.definition` harness, provider where applicable, and model. Do not
+substitute an audit model or a hardcoded model preference.
 
 If `~/.agents/sdlc/MAIN.md` is absent or unreadable, report that exact path;
 never search for another copy.

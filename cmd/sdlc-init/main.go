@@ -127,6 +127,10 @@ func printInitPurpose(output io.Writer) {
 	fmt.Fprintln(output, "ledger, optionally migrates legacy tickets, and preserves prior SDLC state.")
 	fmt.Fprintln(output, "It does not install or update the global SDLC framework; run make install")
 	fmt.Fprintln(output, "from the SDLC source repository for that operation.")
+	fmt.Fprintln(output, "")
+	fmt.Fprintln(output, "After interruption, rerun on the migration branch. From master or main,")
+	fmt.Fprintln(output, "confirm the proposed switch to the migration branch with y; n leaves it unchanged.")
+	fmt.Fprintln(output, "Ambiguous branch history requires selecting the intended migration branch first.")
 }
 
 func bootstrapSDLCRoot(arguments []string) (string, error) {

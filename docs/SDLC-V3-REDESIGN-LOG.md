@@ -656,3 +656,14 @@ without reconstructing the work from conversation history.
   failed launches stop, and rerunning init can offer unperformed migration again.
 - Installation remains with the operator. Local routing verification uses
   temporary projects and command doubles, not metered regression tests.
+
+## 2026-09-12 - W013 paired migration and recovery refinement
+
+- Operator reports migration quality concerns across projects and now selects
+  `delivery.definition` for ticket migration too. This supersedes the earlier
+  bulk-processing audit-profile decision; no model name belongs in the skill.
+- Resume must handle migration work merged into an advanced master/main.
+  Reuse the migration branch and archive, validate ancestry, warn and ask y/n
+  before switching from the primary branch. Do not reset history or discard work.
+- Changes remain in the SDLC repository; Upload and global configuration are
+  not modified. Operator installation and real-project retry remain separate.

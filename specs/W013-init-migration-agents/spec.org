@@ -1,9 +1,9 @@
 #+TITLE: W013 - Route initializer writing agents by task
 #+SCHEMA: 2
-#+SUBTITLE: Emergency migration routing repair
+#+SUBTITLE: Migration routing and paired recovery refinement
 #+STARTUP: overview
 #+OPTIONS: toc:2 num:nil
-#+OPERATOR_SIGNOFF: BYPASS-GATE-7 implementation authorized by operator, 2026-09-12; closure pending
+#+OPERATOR_SIGNOFF: PENDING
 
 * Synopsis
 :PROPERTIES:
@@ -18,11 +18,13 @@
 - *AC repair* also selected the audit settings; a failed launch could leave
   *resume* skipping ticket migration.
 ** After
-- *Ticket migration* uses =delivery.audit= as a model-selection profile, not an
-  audit role. *AC conversion and repair* use =delivery.definition=.
+- *Ticket migration, AC conversion and repair* use =delivery.definition=,
+  with no hardcoded model preference in the migration skill.
 - *Codex, Hermes and Claude* run directly with editing tools available and
   their native command policies retained. *Copilot* retains a manual handoff.
 - A *canonical ledger* still merges deterministically, without an agent.
+- *Resume* accepts an advanced primary branch. From *master or main*, it warns
+  and requests *y/n confirmation* before switching to the sole migration branch.
 ** Changes
 - Separate configuration selection from invocation role; keep prompts literal,
   project-local execution, and repair revalidation.
@@ -33,11 +35,13 @@
 - A *failed agent* stops migration; *invalid repair* never enters the work ledger.
 - *Missing Hermes provider* fails before launch; unsupported adapters give a
   handoff. Resume offers ticket migration if its existing index is absent.
+- *Ambiguous or unrelated branches* stop recovery. Declining confirmation keeps
+  the current branch and files untouched; ordinary Git switch safeguards apply.
 ** Decisions
-- Use the audit profile for *bulk processing*, the definition profile for
-  *requirements preservation*, and no agent for a *valid Org merge*.
+- Use the definition profile for *all writing migrations* and no agent for a
+  *valid Org merge*. Preserve the archive and existing work during recovery.
 ** Next step
-- Review the emergency change, release it, then operator installation and migration.
+- Review the paired increment, release it, then operator installation and migration.
 
 -----
 
@@ -45,9 +49,13 @@
 - Problem :: The initializer rejected Hermes before launch with a Codex-only
   project-write check. This prevented the authorized ticket migration.
 - Authority :: Operator's explicit routing agreement and =BYPASS-GATE-7=.
+- Paired amendment, 2026-09-12 :: Operator replaces the prior audit-profile choice
+  with definition settings and requests migration-branch resume plus confirmation
+  when invoked from master. The original authorized change remains in Git history.
 - Architecture :: [[file:../../docs/ARCHITECTURE.md][Initializer architecture]].
 - Profile :: [[file:../../.sdlc/project.yaml][Project configuration]].
-- Scope :: Direct writing-agent dispatch and retry of a launch that never ran.
+- Scope :: Direct writing-agent dispatch and recovery of interrupted migration,
+  including primary branches advanced by merging migration work.
 - Exclusions :: Audit execution, v2 read-only classification, native permission
   enforcement design, migration semantics, authentication fallback and deployment.
 
@@ -56,8 +64,8 @@
 :PROPERTIES:
 :CUSTOM_ID: ac-013-1
 :END:
-- Criterion :: Given configured agent profiles, *ticket migration* uses the
-  audit profile and *AC conversion or repair* uses the definition profile;
+- Criterion :: Given configured agent profiles, *ticket migration*,
+  *AC conversion and repair* use the definition profile;
   neither is executed as an audit.
 - Proven by :: [[#rt-013-1][RT013.1]] and [[#rt-013-4][RT013.4]].
 ** AC013.2 - Native invocation and error boundary
@@ -77,6 +85,17 @@
   disappear from the resumed initializer's available workflow.
 - Proven by :: [[#rt-013-4][RT013.4]].
 
+** AC013.4 - Resume after primary branch advancement
+:PROPERTIES:
+:CUSTOM_ID: ac-013-4
+:END:
+- Criterion :: Given an interrupted migration with an unambiguous archive and
+  primary branch descended from it, *resume succeeds on the migration branch*.
+  From *master or main*, confirmation is required before returning to that branch.
+  Decline, ambiguity, unrelated history or a refused Git switch leave recovery
+  stopped without destructive Git operations.
+- Proven by :: [[#rt-013-5][RT013.5]].
+
 * Test Definitions
 ** RT013.1 - Migration and conversion routing
 :PROPERTIES:
@@ -84,8 +103,8 @@
 :END:
 - Covers :: [[#ac-013-1][AC013.1]], [[#ac-013-2][AC013.2]].
 - Boundary :: =prepareLegacyProject= with local command doubles and temp files.
-- Action :: Select Hermes/audit and Codex/definition with distinct models.
-- Expected :: Hermes ticket migration precedes Codex AC conversion; exact CLI
+- Action :: Select Hermes for audit and Codex for definition with distinct models.
+- Expected :: Both writing stages use only the definition tuple; exact CLI
   arguments, provider applicability, stdin prompt and cwd match the selected task.
 ** RT013.2 - Failed migration
 :PROPERTIES:
@@ -117,6 +136,20 @@
   Retry consolidates the ACs once and preserves the original archive branch.
 - Retention :: All RTs use local doubles; no metered service enters the test suite.
 
+** RT013.5 - Branch recovery and confirmation
+:PROPERTIES:
+:CUSTOM_ID: rt-013-5
+:END:
+- Covers :: [[#ac-013-4][AC013.4]].
+- Setup :: Disposable Git repositories with an archived baseline, migration
+  changes merged into master or main, and retained initialization workspace.
+- Action :: Resume from the migration branch or primary branch; accept/decline
+  confirmation. Also provide multiple migration branches, unrelated archive
+  history, or a dirty file conflicting with the target branch.
+- Expected :: Migration-branch resume needs no extra prompt. Primary-branch
+  acceptance switches safely; decline leaves it unchanged. Ambiguity, unrelated
+  history and Git conflicts stop without deleting state or overwriting files.
+
 * Edge Cases
 - Existing =docs/ticket-migration.org= retains its prior skip behaviour. This
   change does not certify partially written migration reports as complete.
@@ -128,8 +161,9 @@
 - Keep the initializer's =RunCommand= seam for direct native invocations.
   Do not use =sdlc-harness=, audit records, audit sessions or audit timeouts.
 ** Invocation contract
-- Callers select =SDLC_AUDIT= for ticket migration, =SDLC_SPEC= for conversion
-  and repair. These are resolved schema keys, not new configuration.
+- All writing callers select =SDLC_SPEC=. These are resolved schema keys, not
+  new configuration. Remove the migration skill's provider/model preference;
+  the initializer supplies the configured definition tuple explicitly.
 - Codex :: =exec --ephemeral --sandbox workspace-write --model MODEL -=.
 - Hermes :: =chat --query-file - --oneshot --in PROJECT --model MODEL --provider PROVIDER=.
 - Claude :: =--print --permission-mode acceptEdits --model MODEL=, prompt on stdin.
@@ -137,6 +171,14 @@
   resolved by the existing configuration schema.
 - Failure :: Return native errors; retain initialization state and source files.
   Repair is invoked at most once per attempt and revalidated before merge.
+** Recovery contract
+- Reuse the existing migration branch, archive and initialization workspace.
+  Recognize a primary branch by archive ancestry rather than identical tips.
+- On master/main, require a sole migration candidate, validate its lineage,
+  warn and ask =Continue on migration branch NAME? [y/N]:= before =git switch=.
+- Reject ambiguous primary/archive/migration choices and unrelated histories.
+  Do not force switches, reset branches, stash edits, delete state or recreate
+  the archived baseline. Existing primary-name support remains master/main.
 ** Security impact
 - The operator authorizes *project migration writes*, not a read-only audit.
   No shell interpolates the prompt, no tools are disabled, and no global config,

@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## v3.2.22 - 2026-09-12
+
+- Select the definition-configured harness/provider/model for legacy ticket
+  migration as well as AC conversion and repair. Remove the migration skill's
+  stale Luna preference; audit configuration and its defaults are unchanged.
+- Resume interrupted initialization after the primary branch advances. From
+  master/main, warn and ask y/n before returning to the sole migration branch;
+  preserve native Git conflict checks and reject ambiguous or unrelated history.
+
 ## v3.2.21 - 2026-09-12
 
 - Invoke ticket migration directly with the audit-configured agent as a writer,

@@ -885,8 +885,10 @@ chosen checks reproducible.
 An inexpensive audit-configured model can also be appropriate for bulk ticket
 migration. Reusing its configuration must not import the auditor's read-only
 permissions, session lifecycle or verdict protocol. The initializer invokes a
-writing migration directly, while AC conversion and repair use the definition
-profile for requirements-preserving work. Deterministic parsing remains the
+writing migration directly. Experience across migrated projects subsequently
+favoured the definition profile for all requirements-preserving migration work,
+including ticket reconciliation; cheap bulk processing was not sufficient reason
+to select a less capable model. Deterministic parsing remains the
 admission boundary: valid ledgers need no model, and a repair must pass the same
 validator before consolidation.
 
@@ -894,6 +896,14 @@ Regression tests belong at that invocation boundary, using local command
 doubles for task selection, arguments, failure propagation and resume. They do
 not establish native authentication or the model's migration quality, and must
 not turn repeated test runs into metered migration attempts.
+
+## Recovery follows lineage, not unchanged branch tips
+
+An interrupted initializer can outlive a merge back into the primary branch.
+Requiring that branch to equal the original archive rejects preserved, valid
+history. Validate ancestry instead, reuse the existing migration branch, and
+ask before switching from the primary branch. Ambiguity and conflicting edits
+still require intervention; recovery is not permission to reset or stash.
 
 ## Licence
 

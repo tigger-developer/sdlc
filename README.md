@@ -161,7 +161,11 @@ Only archived v2 specification disposition requires model judgement. Pass
 instead. A temporary `.sdlc/.init/` working directory remains
 if initialization is interrupted. Rerunning `sdlc-init` on the migration
 branch resumes when the dated archive and original primary branch are
-unambiguous. A tracked `.sdlc/.gitignore` excludes that temporary directory from
+unambiguous, including after the primary branch has advanced. From `master` or
+`main`, a sole migration branch is proposed with a warning and a default-no
+`y/n` confirmation before switching. Multiple candidates require selecting the
+intended migration branch explicitly. No reset, stash or forced switch is used.
+A tracked `.sdlc/.gitignore` excludes that temporary directory from
 commits. The initializer never uses private `.git` paths as application storage.
 
 Example global configuration:
@@ -333,9 +337,10 @@ archives the old
 implementation plan, and closes tickets only after durable evidence is
 committed.
 
-The initializer selects `delivery.audit` for **bulk ticket migration**, but
+The initializer selects `delivery.definition` for **ticket migration** and
+**AC conversion or repair**. It
 invokes the configured CLI directly as a **writing migration agent**, not through
-`sdlc-harness`. **AC conversion and repair** use `delivery.definition` instead.
+`sdlc-harness`. The migration skill has no hardcoded model preference.
 Codex, Hermes and Claude have direct migration adapters; other selections retain
 an explicit manual handoff. Only Hermes consumes the configured provider.
 Native command policies and installed hooks remain enabled. A failed launch

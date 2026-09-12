@@ -19,3 +19,15 @@
 * Native integration
 - Operator migration retry after installation is not yet observed. These local
   results do not establish model compliance, authentication or migration quality.
+
+* 2026-09-12 - Paired definition-profile and resume amendment
+- RED :: Updated routing test observed Hermes from the audit profile instead
+  of Codex from the definition profile. Resume tests failed for advanced primary
+  tips and for master/main invocation before the implementation change.
+- GREEN :: =go test ./internal/projectinit -count=1= passed after the amendment.
+- Recovery cases :: Already on migration branch; y/yes confirmation from
+  master/main; n or Enter declines; ambiguous candidates, unrelated archive and
+  conflicting edits stop without switching or removing recovery state.
+- Native boundary :: All recovery tests use real Git in disposable local repos.
+  Provider routing uses command doubles, with no live migration or metered RT.
+- User validation :: No new operator validation has yet been recorded.

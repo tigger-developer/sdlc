@@ -826,14 +826,27 @@ func interruptedMigration(options Options, projectRoot, workspace string) (*proj
 	}
 	current = strings.TrimSpace(current)
 	const prefix = "sdlc-v3-migration-"
-	if !strings.HasPrefix(current, prefix) || len(current) < len(prefix)+10 {
-		return nil, fmt.Errorf("cannot safely resume initialization from %s on branch %q", workspace, current)
-	}
-	date := current[len(prefix) : len(prefix)+10]
 	branches, err := commandOutput(options, projectRoot, "git", "for-each-ref", "--format=%(refname:short)", "refs/heads")
 	if err != nil {
 		return nil, fmt.Errorf("listing archive branches for interrupted initialization: %w", err)
 	}
+	migration := current
+	if !strings.HasPrefix(current, prefix) || len(current) < len(prefix)+10 {
+		if current != "master" && current != "main" {
+			return nil, fmt.Errorf("cannot safely resume initialization from %s on branch %q", workspace, current)
+		}
+		var candidates []string
+		for _, branch := range strings.Fields(branches) {
+			if strings.HasPrefix(branch, prefix) && len(branch) >= len(prefix)+10 {
+				candidates = append(candidates, branch)
+			}
+		}
+		if len(candidates) != 1 {
+			return nil, fmt.Errorf("cannot safely resume initialization from %s: found %d migration branches; switch to the intended migration branch and rerun sdlc-init", workspace, len(candidates))
+		}
+		migration = candidates[0]
+	}
+	date := migration[len(prefix) : len(prefix)+10]
 	var archives []string
 	for _, branch := range strings.Fields(branches) {
 		if strings.HasPrefix(branch, "sdlc_") && strings.Contains(branch, "_state_"+date) {
@@ -849,23 +862,40 @@ func interruptedMigration(options Options, projectRoot, workspace string) (*proj
 	if separator < 1 {
 		return nil, fmt.Errorf("cannot safely derive the migration source from %s", archive)
 	}
-	base := ""
-	for _, candidate := range []string{"master", "main"} {
+	if err := options.RunCommand("git", []string{"merge-base", "--is-ancestor", archive, migration}, projectRoot, nil, io.Discard, io.Discard); err != nil {
+		return nil, fmt.Errorf("migration branch %s does not descend from archive %s: %w", migration, archive, err)
+	}
+	primaryCandidates := []string{"master", "main"}
+	if current != migration {
+		primaryCandidates = []string{current}
+	}
+	var bases []string
+	for _, candidate := range primaryCandidates {
 		if !branchExists(options, projectRoot, candidate) {
 			continue
 		}
-		archiveRevision, archiveErr := commandOutput(options, projectRoot, "git", "rev-parse", archive)
-		baseRevision, baseErr := commandOutput(options, projectRoot, "git", "rev-parse", candidate)
-		if archiveErr == nil && baseErr == nil && strings.TrimSpace(archiveRevision) == strings.TrimSpace(baseRevision) {
-			base = candidate
-			break
+		if err := options.RunCommand("git", []string{"merge-base", "--is-ancestor", archive, candidate}, projectRoot, nil, io.Discard, io.Discard); err == nil {
+			bases = append(bases, candidate)
 		}
 	}
-	if base == "" {
-		return nil, fmt.Errorf("cannot safely derive the primary branch from %s", archive)
+	if len(bases) != 1 {
+		return nil, fmt.Errorf("cannot safely derive the primary branch from %s: found %d matching primary branches", archive, len(bases))
+	}
+	if current != migration {
+		fmt.Fprintf(options.Output, "Warning: initialization is unfinished on %s; continuing will switch from %s.\n", migration, current)
+		yes, promptErr := promptYesNo(options, fmt.Sprintf("Continue on migration branch %s? [y/N]: ", migration), false)
+		if promptErr != nil {
+			return nil, promptErr
+		}
+		if !yes {
+			return nil, errors.New("initialization resume declined; branch and recovery state unchanged")
+		}
+		if err := options.RunCommand("git", []string{"switch", migration}, projectRoot, nil, options.Output, options.ErrorOutput); err != nil {
+			return nil, fmt.Errorf("switching to migration branch %s: %w", migration, err)
+		}
 	}
 	return &projectGeneration{
-		source: identity[:separator], base: base, archive: archive, migration: current, date: date,
+		source: identity[:separator], base: bases[0], archive: archive, migration: migration, date: date,
 	}, nil
 }
 
@@ -895,7 +925,7 @@ func chooseTicketMigration(options Options, projectRoot string) (bool, error) {
 
 func prepareLegacyProject(options Options, projectRoot string, values map[string]string, runTicketMigration bool) error {
 	if runTicketMigration {
-		if err := runConfiguredMutationSkill(options, projectRoot, values, "SDLC_AUDIT", "migrate-legacy-acs-to-sdlc-v1", "Use $migrate-legacy-acs-to-sdlc-v1 to prepare this project for SDLC v3 initialization. Complete the authorized migration before returning."); err != nil {
+		if err := runConfiguredMutationSkill(options, projectRoot, values, "SDLC_SPEC", "migrate-legacy-acs-to-sdlc-v1", "Use $migrate-legacy-acs-to-sdlc-v1 to prepare this project for SDLC v3 initialization. Complete the authorized migration before returning."); err != nil {
 			return fmt.Errorf("running legacy ticket migration: %w", err)
 		}
 	}

@@ -182,8 +182,8 @@ re-enables those questions.
   authority.
 
 Writing migrations use direct native CLI invocations, separate from the
-read-only audit runner. Bulk ticket migration selects the `delivery.audit`
-harness/provider/model; AC conversion and repair select `delivery.definition`.
+read-only audit runner. Ticket migration, AC conversion and repair select the
+`delivery.definition` harness/provider/model.
 Codex runs with workspace-write, Hermes with normal tools, and Claude with
 acceptEdits; native command checks and hooks remain active. Provider applies
 only to Hermes. Other harnesses retain the manual handoff. Native failures stop
@@ -218,6 +218,12 @@ remains available when initialization fails and is removed before a completed
 migration is staged. The initializer creates or extends `.sdlc/.gitignore` from
 the canonical template so `.init/` cannot be committed. It never uses private
 `.git` paths as application storage.
+
+Recovery validates archive ancestry for the migration and primary branches;
+their tips need not still equal the archived baseline. On `master` or `main`,
+the sole migration branch requires a warning and explicit confirmation before
+an ordinary Git switch. Ambiguous branches, unrelated history and switch
+conflicts stop recovery without deleting state, stashing edits or rewriting refs.
 
 The initializer commits the coherent migration and asks whether to merge it into
 the original branch. It never normalizes dormant unfinished work merely because

@@ -12,7 +12,7 @@ import (
 
 // RT013.1: exercise the real migration coordinator with local command doubles;
 // no regression test invokes a metered provider.
-func TestMigrationAndConversionUseDifferentConfiguredAgents(t *testing.T) {
+func TestMigrationAndConversionUseDefinitionAgent(t *testing.T) {
 	project := t.TempDir()
 	writeProjectTestFile(t, filepath.Join(project, "docs", "ACs.md"), "# Existing ACs\n")
 	var calls int
@@ -26,10 +26,10 @@ func TestMigrationAndConversionUseDifferentConfiguredAgents(t *testing.T) {
 			var skill string
 			switch calls {
 			case 1:
-				if name != "hermes" {
+				if name != "codex" {
 					t.Fatalf("ticket migration invoked %q", name)
 				}
-				want = []string{"chat", "--query-file", "-", "--oneshot", "--in", project, "--model", "bulk-model", "--provider", "bulk-provider"}
+				want = []string{"exec", "--ephemeral", "--sandbox", "workspace-write", "--model", "definition-model", "-"}
 				skill = "$migrate-legacy-acs-to-sdlc-v1"
 			case 2:
 				if name != "codex" {
@@ -77,7 +77,7 @@ func TestMigrationAgentFailureStopsPreparation(t *testing.T) {
 	err := prepareLegacyProject(Options{Output: &bytes.Buffer{}, RunCommand: func(string, []string, string, io.Reader, io.Writer, io.Writer) error {
 		calls++
 		return want
-	}}, project, map[string]string{"SDLC_AUDIT_HARNESS": "hermes", "SDLC_AUDIT_PROVIDER": "nous"}, true)
+	}}, project, map[string]string{"SDLC_SPEC_HARNESS": "hermes", "SDLC_SPEC_PROVIDER": "nous"}, true)
 	if !errors.Is(err, want) || calls != 1 {
 		t.Fatalf("error = %v; calls = %d", err, calls)
 	}
@@ -90,6 +90,7 @@ func TestDirectMigrationAgentArguments(t *testing.T) {
 		args           []string
 		wantError      bool
 	}{
+		{"hermes", "definition-provider", []string{"chat", "--query-file", "-", "--oneshot", "--in", "/project", "--model", "writer-model", "--provider", "definition-provider"}, false},
 		{"claude", "ignored", []string{"--print", "--permission-mode", "acceptEdits", "--model", "writer-model"}, false},
 		{"hermes", "", nil, true},
 	} {
