@@ -1,5 +1,21 @@
 # SDLC Standards: Design Learnings
 
+## Goal configuration is not native activation
+
+Hands-off instructions alone do not ensure that a provider continues after a
+response boundary. A delivery skill must activate an exposed native control and
+verify its state, or disclose the operator action needed. Configuration parsing,
+goal activation, native limit enforcement and real-task completion are separate
+claims. Goal continuation never replenishes the audit allowance or replaces
+operator approval. Native availability is qualified per harness, not inferred
+from a shared skill file.
+
+Budget parsing must inspect original YAML scalars before number conversion.
+Permit decimal digits or comma-separated groups of three; reject periods rather
+than guessing locale. Stripping a period can inflate an intended 100-token
+budget to 100,000. Validate grouping before stripping commas, and bound integers
+to exact JSON transport. Human-readable examples and schema defaults must agree.
+
 ## Qualify audit isolation independently of normal harness configuration
 
 W007 begins with an opt-in, tool-free Claude safe-mode experiment. Instruction

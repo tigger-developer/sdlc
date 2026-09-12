@@ -10,6 +10,31 @@ Usage
 =====
 
     sdlc-harness start|resume [options] < audit-context.txt
+    sdlc-harness goal-config [options]
+
+Goal configuration
+==================
+
+`goal-config` is read-only. It returns JSON integers `max_turns` and
+`max_token_budget` for the delivery skill; it does not invoke a provider,
+activate a goal, write configuration or enforce native continuation itself.
+
+    /absolute/path/to/.agents/sdlc/bin/sdlc-harness goal-config --project .
+
+- `--project DIR`: project root; defaults to the current directory.
+- `--global-config FILE`: defaults to `~/.agents/sdlc.yaml`.
+- `--sdlc-root DIR`: schema root; defaults to the deployed executable's parent
+  directory. Source-tree checks may pass `--sdlc-root src`.
+- `--goal-max-turns VALUE` and `--goal-max-token-budget VALUE`: explicit overrides.
+- Precedence: these overrides, `SDLC_GOAL_MAX_TURNS` / `SDLC_GOAL_MAX_TOKEN_BUDGET`,
+  project YAML, global YAML, then `config/project-init.schema.yaml` defaults.
+- Defaults: 20 continuations for Hermes/Copilot; 100,000 tokens for Codex.
+  Claude's documented eight-consecutive-Stop-hook-continuation cap is separate.
+- Accept `100000` or `"100,000"`. Reject periods (including unquoted `100.000`),
+  malformed groups, signs, zero, leading zeroes, scientific notation and values
+  above 9,007,199,254,740,991, the exact JSON integer limit. Do not infer locale.
+- stdout contains JSON only on success. Configuration errors produce no budget
+  output and exit nonzero. Existing start/resume audit behaviour is unchanged.
 
 Start and resume
 ================

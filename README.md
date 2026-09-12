@@ -176,6 +176,10 @@ delivery:
     harness: codex
     provider: openai
     model: gpt-5.6-terra
+  goal:
+    max_turns: 20             # Hermes and Copilot only.
+                             # Claude Code caps consecutive Stop-hook continuations at 8.
+    max_token_budget: "100,000" # Codex only; commas separate thousands.
   audit:
     harness: codex
     provider: openai
@@ -191,6 +195,21 @@ infrastructure:
 semantic-version Git tag deployed by `make install`; the installer maintains it
 without replacing unrelated settings. Projects follow those global skills and
 standards, so `.sdlc/project.yaml` does not duplicate an SDLC release pin.
+
+Goal values above match the schema defaults. Plain positive integers and
+correctly comma-grouped thousands are accepted; periods, decimals, malformed
+grouping, scientific notation, signs, zero and leading zeroes are rejected before
+numeric conversion. The exact JSON integer ceiling is 9,007,199,254,740,991.
+Project overrides use the same keys under `.sdlc/project.yaml`.
+
+`deliver-change` reads normalized limits through the internal harness's
+`goal-config` operation. Native activation is capability-dependent: Codex goal
+tools may be called directly; other harnesses may require operator activation.
+This release does not install goal-control plugins for Hermes or Copilot.
+Configuration is not proof of activation or a guaranteed spending ceiling.
+The skill reports the effective native state and limits; audit budgets and
+operator gates remain unchanged. See the
+[native goal instructions](skills/deliver-change/references/native-goal.md).
 
 Document inspection defaults to `htmlpreview`. Set `HTML_PREVIEW_TOOL` to an
 executable name or path to use another viewer; an unset or empty value uses the

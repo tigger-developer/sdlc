@@ -4,6 +4,12 @@
 
 ## v3.2.11 - 2026-09-11
 
+- Add W008 goal-backed delivery instructions and a read-only `goal-config`
+  resolver. Schema defaults are 20 continuation turns and 100,000 Codex tokens;
+  project/global overrides accept validated thousands grouping, rejecting raw
+  decimal spellings before YAML coercion. Native activation remains
+  capability-dependent, with explicit operator fallback and real-task tests pending.
+
 - Begin W007, a paired, undeployed Claude safe-mode auditor prototype with no
   operational tools, structured YAML output and bounded start/resume invocations.
   Local response checks and the tiny live start/resume probe pass. A separate

@@ -1,0 +1,19 @@
+#+TITLE: W008 - Goal-driven delivery validation
+#+STARTUP: content
+
+* RT008.1 - Configuration resolution
+
+- Category :: Automated regression test; no external service.
+- Status :: PASS for the local configuration boundary; native activation remains a separate user test.
+- Procedure :: [[file:spec.org::#rt-008-1][Configuration resolution definition]].
+- Tested state :: 2026-09-12 W008 working tree, Go on macOS. The separate uncommitted Claude Read-tool adapter change was not modified or included in W008.
+- RED :: Focused =TestGoal= execution failed because =goal-config= and the goal schema fields did not exist.
+- GREEN :: =go test ./internal/projectinit ./cmd/sdlc-harness -count=1= passed for both packages. Defaults, project/global/environment/CLI precedence, plain and grouped budgets, raw decimal rejection, malformed YAML, unknown keys, and unchanged configuration are exercised without a provider invocation.
+- Static checks :: =go vet= and =golangci-lint= passed for the two affected packages. Documentation sanitization and =git diff --check= produced no changes or errors.
+
+* UT008.1 - Real-task harness validation
+
+- Category :: User test.
+- Status :: PENDING.
+- Procedure :: [[file:spec.org::#ut-008-1][Real-task harness validation definition]].
+- Authority :: Operator will test each harness on separately authorized coding work. No native goal is activated by the configuration tests.

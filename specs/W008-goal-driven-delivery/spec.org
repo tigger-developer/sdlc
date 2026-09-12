@@ -1,0 +1,107 @@
+#+TITLE: W008 - Goal-driven hands-off delivery
+#+STARTUP: overview
+#+OPTIONS: toc:2 num:nil
+
+* Goal-driven hands-off delivery
+
+- Outcome :: The delivery skill uses *native same-session continuation* with *explicit budgets* where supported.
+- Before :: Hands-off delivery relies on instructions that agents sometimes disregard at response boundaries.
+- After :: The skill resolves *validated goal limits*, activates an available native mechanism, and reports the *actual activation state*.
+- Changes :: Delivery skill, schema defaults, a read-only goal-configuration command, and examples.
+- Unchanged :: Audit limits, retained audit sessions, signed-off scope, access permissions, human approval and closure.
+- Edge cases :: Unsupported activation, existing goals, malformed numbers, exhausted budgets, and interrupted delivery remain explicit.
+- Decisions :: Default to *20 continuation turns* for Hermes/Copilot and *100,000 tokens* for Codex. Claude's documented Stop-hook cap is separate.
+- Next step :: Implement the paired slice; the operator tests native activation on real coding tasks.
+
+-----
+
+* Context
+
+This separate *paired work item* records the operator-authorized delivery change.
+It is independent of W007's optional isolated Claude auditor experiment.
+
+- Architecture :: [[file:../../docs/ARCHITECTURE.md][SDLC architecture]].
+- Scope :: Configuration parsing and delivery-skill activation of existing native controls. Do not launch a replacement delivery agent, change personal provider settings, or claim that configuration resolution activates a goal.
+- Boundary :: A harness lacking an exposed same-session control requires explicit native operator activation; a future plugin bridge is not silently assumed available.
+
+* Acceptance Criteria
+
+** AC008.1 - Native continuation with honest activation
+:PROPERTIES:
+:CUSTOM_ID: ac-008-1
+:END:
+
+- Criterion :: Hands-off delivery attempts the supported *current-session goal mechanism*, verifies activation, and states when native activation or limit enforcement is unavailable. Attended work does not activate a goal. Existing unrelated goals are preserved.
+- Proven by :: [[#ut-008-1][UT008.1 - Real-task harness validation]].
+
+** AC008.2 - Configurable, separate goal budgets
+:PROPERTIES:
+:CUSTOM_ID: ac-008-2
+:END:
+
+- Criterion :: =delivery.goal.max_turns= defaults to *20* and =delivery.goal.max_token_budget= defaults to *100,000* in the schema and example. Resolution follows explicit command arguments, process environment, project YAML, global YAML, and defaults. Native goal budgets do not reset or replace audit limits.
+- Proven by :: [[#rt-008-1][RT008.1 - Configuration resolution]], [[#ut-008-1][UT008.1 - Real-task harness validation]].
+
+** AC008.3 - Unambiguous positive budgets
+:PROPERTIES:
+:CUSTOM_ID: ac-008-3
+:END:
+
+- Criterion :: Budgets accept plain positive decimal integers or *correctly comma-grouped thousands*. The original YAML scalar is validated *before numeric coercion*. Periods, malformed commas, signs, zero, leading zeroes, negative values, scientific notation, non-scalar values and values above the exact JSON integer ceiling of *9,007,199,254,740,991* are rejected. Only validated commas are removed; invalid input never silently falls back to a default or inflates the budget.
+- Examples :: =100000= and ="100,000"= are equivalent. =100.000=, ="100.000"= and ="100,00"= are errors.
+- Proven by :: [[#rt-008-1][RT008.1 - Configuration resolution]].
+
+** AC008.4 - Existing delivery boundaries remain authoritative
+:PROPERTIES:
+:CUSTOM_ID: ac-008-4
+:END:
+
+- Criterion :: Goal continuation retains the authorized work scope, human-only decisions, evidence requirements, audit session and round limits. Exhaustion reports unfinished work rather than success; the agent does not raise or reset limits automatically.
+- Proven by :: [[#ut-008-1][UT008.1 - Real-task harness validation]].
+
+* Test Definitions
+
+** RT008.1 - Configuration resolution
+:PROPERTIES:
+:CUSTOM_ID: rt-008-1
+:END:
+
+- Covers :: [[#ac-008-2][AC008.2 - Separate goal budgets]], [[#ac-008-3][AC008.3 - Unambiguous budgets]].
+- Boundary :: Read-only command and shared initializer validation using synthetic YAML.
+- Expected :: Defaults, overrides and grouped/plain values resolve exactly; malformed raw scalars fail without output or provider invocation. Original configuration files remain unchanged.
+- Retention :: Local Go regression tests; no metered services.
+
+** UT008.1 - Real-task harness validation
+:PROPERTIES:
+:CUSTOM_ID: ut-008-1
+:END:
+
+- Covers :: [[#ac-008-1][AC008.1 - Native activation]], [[#ac-008-2][AC008.2 - Separate budgets]], [[#ac-008-4][AC008.4 - Delivery boundaries]].
+- Reviewer :: Operator, on separately authorized coding tasks in each harness.
+- Expected :: Native activation and effective limit are visible; premature progress handbacks continue in the same session. Cancellation and genuine stopping conditions work. Unsupported controls are disclosed rather than simulated.
+- Bounds :: The selected task's native budget and existing audit allowance; never a metered regression target.
+- Record :: [[file:validation.org][Validation record]].
+
+* Edge Cases
+
+- *Native controls absent* :: Give the exact supported operator action without claiming activation or silently launching another process.
+- *Existing goal* :: Reuse only a matching authorized goal; do not replace another task or replenish a spent budget.
+- *Budget reached* :: Checkpoint evidence and report unfinished work, without changing audit state or claiming closure.
+
+* Solution Design
+
+- Configuration :: Add grouped-positive-integer schema fields and validate raw YAML nodes before coercion. Preserve operator configuration rather than copying global values into projects.
+- Read-only interface :: =sdlc-harness goal-config= returns normalized integer limits for the skill. It does not invoke a provider or write session state.
+- Skill routing :: Keep the common activation contract in =deliver-change= and route harness-specific instructions to a supporting reference.
+- Security impact :: Fail closed on ambiguous monetary limits. No permission broadening, credential access, provider-internal state edits, automatic budget resets or additional model processes.
+- Compatibility :: Existing audit start/resume behaviour is unchanged by this work item.
+
+* Paired Decision Log
+
+** 2026-09-12 - Native goals and explicit budgets
+
+The operator selected native continuation in =deliver-change=, with real-task
+validation performed by the operator. Defaults are 20 continuations and 100,000
+tokens. Commas are allowed only in complete three-digit groups. Periods must
+never be stripped: interpreting an intended 100 as 100,000 is an unacceptable
+budget inflation. This work has its own ticket, not the optional W007 prototype.

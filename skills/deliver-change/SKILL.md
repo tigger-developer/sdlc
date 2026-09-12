@@ -1,6 +1,6 @@
 ---
 name: deliver-change
-description: Deliver a signed-off SDLC v3 specification through automated TDD and recorded validation.
+description: Deliver a signed-off SDLC v3 specification through TDD and validation, using native goal-backed hands-off continuation where available.
 ---
 
 Read `~/.agents/sdlc/MAIN.md`, `TESTING.md`, `CODING.md`, `DOCUMENTATION.md`,
@@ -29,6 +29,17 @@ mode to **ATTENDED** until the operator invokes `HANDS-OFF` again. Hands-off
 mode is not a global default: it is activated only by invoking this delivery
 workflow, and it does not authorize changes to signed-off behaviour or other
 human-only decisions.
+
+On entering HANDS-OFF, read
+`~/.agents/skills/deliver-change/references/native-goal.md` and resolve its
+budgets before implementation. Activate the current harness's native goal
+control where exposed and authorized; verify its result before announcing
+`NATIVE GOAL: ACTIVE`. Do not treat a configured budget as an enforced budget.
+If native activation needs an operator command, give that command during the
+preflight; disclose the limitation rather than launching another agent or
+silently substituting instructions for native continuation. ATTENDED skips
+goal activation. Goal completion means ready for the agreed operator gate,
+not permission to close the work item.
 
 HANDS-OFF is the autonomous coding state. A final response, approval request,
 decision request, blocker handback, or other transfer of control is prohibited

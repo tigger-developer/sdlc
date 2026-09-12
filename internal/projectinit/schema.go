@@ -140,7 +140,7 @@ func (schema ConfigSchema) Validate() error {
 			return fmt.Errorf("field %s defines discovery_category outside the post-migration phase", field.Key)
 		}
 		switch field.Type {
-		case "string", "string-list", "boolean", "duration", "integer":
+		case "string", "string-list", "boolean", "duration", "integer", "grouped-integer":
 			if len(field.Choices) != 0 || field.ChoicesFrom != "" {
 				return fmt.Errorf("field %s cannot define choices", field.Key)
 			}
@@ -218,6 +218,10 @@ func validYAMLPath(value string) bool {
 
 // ValidateValue validates and canonicalizes a field value.
 func (field ConfigField) ValidateValue(value string, technologies []Technology) error {
+	if field.Type == "grouped-integer" {
+		_, err := parseGroupedInteger(value)
+		return err
+	}
 	value = strings.TrimSpace(value)
 	if value == "" {
 		if field.Required {

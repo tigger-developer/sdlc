@@ -78,6 +78,16 @@ classification; it is provenance, not current state.
 
 * Work items
 
+** ACTIVE W008 - Goal-driven hands-off delivery :feature:
+:PROPERTIES:
+:CUSTOM_ID: w-008
+:PRIORITY: P1
+:SOURCE: operator paired development
+:CREATED: 2026-09-12
+:END:
+
+- *Specification:* [[file:../specs/W008-goal-driven-delivery/spec.org][W008 - Goal-driven hands-off delivery]]. Independent of W007's optional auditor prototype.
+
 ** ACTIVE W007 - Prototype an isolated Claude auditor :maintenance:
 :PROPERTIES:
 :CUSTOM_ID: w-007

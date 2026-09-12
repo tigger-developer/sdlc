@@ -51,11 +51,14 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		return nil
 	}
 	if len(arguments) == 0 {
-		return errors.New("usage: sdlc-harness start|resume [options]")
+		return errors.New("usage: sdlc-harness start|resume|goal-config [options]")
 	}
 	action := arguments[0]
+	if action == "goal-config" {
+		return runGoalConfig(arguments[1:], output, errorOutput)
+	}
 	if action != "start" && action != "resume" {
-		return fmt.Errorf("unknown operation %q; use start or resume", action)
+		return fmt.Errorf("unknown operation %q; use start, resume or goal-config", action)
 	}
 	flags := flag.NewFlagSet("sdlc-harness "+action, flag.ContinueOnError)
 	flags.SetOutput(errorOutput)

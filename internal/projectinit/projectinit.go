@@ -483,6 +483,9 @@ func readYAMLConfig(path string) (map[string]any, error) {
 	if len(bytes.TrimSpace(contents)) == 0 {
 		return map[string]any{}, nil
 	}
+	if err := validateGoalYAML(contents); err != nil {
+		return nil, fmt.Errorf("validating SDLC configuration %q: %w", path, err)
+	}
 	decoder := yaml.NewDecoder(bytes.NewReader(contents))
 	decoder.KnownFields(false)
 	values := map[string]any{}

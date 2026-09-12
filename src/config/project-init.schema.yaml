@@ -201,6 +201,30 @@ fields:
     default: gpt-5.6-luna
     allow_global: true
 
+  - key: SDLC_GOAL_MAX_TURNS
+    path: delivery.goal.max_turns
+    flag: goal-max-turns
+    help: Maximum native goal continuation turns (Hermes and Copilot only)
+    type: grouped-integer
+    prompt: "Native goal continuation limit (Hermes and Copilot):"
+    default: "20"
+    allow_global: true
+    when:
+      field: SDLC_BUILD_HARNESS
+      values: [hermes, copilot]
+
+  - key: SDLC_GOAL_MAX_TOKEN_BUDGET
+    path: delivery.goal.max_token_budget
+    flag: goal-max-token-budget
+    help: Codex goal token budget; plain digits or comma-separated thousands, never periods
+    type: grouped-integer
+    prompt: "Native goal token budget (Codex):"
+    default: "100,000"
+    allow_global: true
+    when:
+      field: SDLC_BUILD_HARNESS
+      values: [codex]
+
   - key: SDLC_AUDIT_TIMEOUT
     path: delivery.audit.timeout
     flag: audit-timeout
