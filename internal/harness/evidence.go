@@ -3,6 +3,7 @@
 package harness
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -12,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"unicode/utf8"
 )
 
 const maximumInputBytes = 16 * 1024 * 1024
@@ -64,6 +66,10 @@ func CaptureEvidence(project string, paths []string) (Evidence, error) {
 }
 
 func hashEvidenceFile(path string) (result EvidenceFile, returnErr error) {
+	return readEvidenceFile(path, nil)
+}
+
+func readEvidenceFile(path string, contents io.Writer) (result EvidenceFile, returnErr error) {
 	if filepath.Base(path) == ".env" {
 		return result, fmt.Errorf("evidence input %q is a prohibited .env file", path)
 	}
@@ -94,7 +100,11 @@ func hashEvidenceFile(path string) (result EvidenceFile, returnErr error) {
 		return result, fmt.Errorf("evidence %q changed while opening", path)
 	}
 	hash := sha256.New()
-	n, err := io.Copy(hash, io.LimitReader(file, maximumInputBytes+1))
+	var destination io.Writer = hash
+	if contents != nil {
+		destination = io.MultiWriter(hash, contents)
+	}
+	n, err := io.Copy(destination, io.LimitReader(file, maximumInputBytes+1))
 	if err != nil {
 		return result, fmt.Errorf("hashing evidence %q: %w", path, err)
 	}
@@ -102,6 +112,35 @@ func hashEvidenceFile(path string) (result EvidenceFile, returnErr error) {
 		return result, fmt.Errorf("evidence %q exceeds the 16 MiB size limit", path)
 	}
 	return EvidenceFile{Path: path, SHA256: hex.EncodeToString(hash.Sum(nil)), Bytes: n}, nil
+}
+
+// ContentPrompt supplies verified text to a tools-disabled adapter over stdin.
+// Nothing is written to disk or persisted in the audit manifest.
+func (evidence Evidence) ContentPrompt() (string, error) {
+	type document struct {
+		EvidenceFile
+		Content string `json:"content"`
+	}
+	documents := make([]document, 0, len(evidence.Files))
+	for _, want := range evidence.Files {
+		var contents bytes.Buffer
+		got, err := readEvidenceFile(want.Path, &contents)
+		if err != nil {
+			return "", err
+		}
+		if got != want {
+			return "", fmt.Errorf("audit evidence %q changed before transport", want.Path)
+		}
+		if !utf8.Valid(contents.Bytes()) {
+			return "", fmt.Errorf("inline audit evidence %q must be UTF-8 text", want.Path)
+		}
+		documents = append(documents, document{EvidenceFile: want, Content: contents.String()})
+	}
+	encoded, err := json.Marshal(documents)
+	if err != nil {
+		return "", err
+	}
+	return "Evidence contents (tools-disabled adapter):\n" + string(encoded) + "\n", nil
 }
 
 // Verify checks originals immediately before and after provider execution.

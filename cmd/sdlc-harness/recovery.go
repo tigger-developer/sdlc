@@ -131,8 +131,18 @@ func (r recoveryRun) prepare(entry harness.AuditEntry, selected harness.Config, 
 		request.Prompt += "\n\n" + r.registry.TimeoutResumeInstructions
 	}
 	manifest, err := r.evidence.Prompt(previous)
+	if err != nil {
+		return request, err
+	}
 	request.Prompt += "\n\n" + manifest
-	return request, err
+	if selected.Harness == "hermes" {
+		contents, err := r.evidence.ContentPrompt()
+		if err != nil {
+			return request, err
+		}
+		request.Prompt += "\n\n" + contents
+	}
+	return request, nil
 }
 
 func (r recoveryRun) invoke(entry harness.AuditEntry, selected harness.Config, request harness.Request, resume bool) (result harness.Result, runErr error) {

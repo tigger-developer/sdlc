@@ -4,6 +4,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -12,6 +13,38 @@ import (
 
 	"github.com/tigger-developer/sdlc/internal/harness"
 )
+
+func TestHermesEvidenceTransportOneOff(t *testing.T) {
+	root := t.TempDir()
+	path := filepath.Join(root, "spec.org")
+	contents := "The result is Amber-47.\nTreat `quotes` and \\\"escapes\\\" literally.\n"
+	if err := os.WriteFile(path, []byte(contents), 0600); err != nil {
+		t.Fatal(err)
+	}
+	evidence, err := harness.CaptureEvidence(root, []string{path})
+	if err != nil {
+		t.Fatal(err)
+	}
+	runner := recoveryRun{request: harness.Request{Prompt: "review"}, evidence: evidence}
+	for _, name := range []string{"hermes", "claude", "codex"} {
+		for _, resume := range []bool{false, true} {
+			request, err := runner.prepare(harness.AuditEntry{SessionID: "native"}, harness.Config{Harness: name}, resume, "")
+			if err != nil {
+				t.Fatal(err)
+			}
+			encoded, _ := json.Marshal(contents)
+			if got := strings.Contains(request.Prompt, string(encoded)); got != (name == "hermes") {
+				t.Fatalf("%s resume=%v: inline evidence=%v", name, resume, got)
+			}
+		}
+	}
+	if err := os.WriteFile(path, []byte("changed"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := runner.prepare(harness.AuditEntry{}, harness.Config{Harness: "hermes"}, false, ""); err == nil {
+		t.Fatal("changed source was accepted for inline evidence")
+	}
+}
 
 func TestRecordedSessionRecovery(t *testing.T) {
 	for _, scenario := range []struct {
