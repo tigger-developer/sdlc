@@ -53,6 +53,11 @@ Evidence and instruction
 - Repeat `--input <file>` for every exact evidence file.
 - Paths are resolved against `--project`. Files are referenced by absolute path,
   not copied or pasted into the prompt. The provider is launched from the project.
+- Claude start/resume add invocation-local Read permissions for the exact supplied
+  files and their resolved aliases, never their containing directories. Literal
+  pattern characters are escaped. Read-only tools, plan mode and existing deny
+  rules remain in force; these grants do not bypass native policy. Unsupported
+  non-POSIX paths or control characters fail before invocation.
 - Supply the complete evidence list on every invocation. The harness hashes it
   and, on resume, identifies added, changed, unchanged, and removed inputs against
   the last recorded round. Removed means omitted from the list, not deleted.

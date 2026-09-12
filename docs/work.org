@@ -78,6 +78,16 @@ classification; it is provenance, not current state.
 
 * Work items
 
+** ACTIVE W011 - Read supplied external evidence in Claude audits :defect:
+:PROPERTIES:
+:CUSTOM_ID: w-011
+:PRIORITY: P1
+:SOURCE: operator BYPASS-GATE-7
+:CREATED: 2026-09-12
+:END:
+
+- *Specification:* [[file:../specs/W011-claude-evidence-access/spec.org][W011 - Claude external evidence access]]
+
 ** TODO W010 - Enforce harness filesystem write boundaries :maintenance:
 :PROPERTIES:
 :CUSTOM_ID: w-010

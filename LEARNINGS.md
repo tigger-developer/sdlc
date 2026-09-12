@@ -1,5 +1,14 @@
 # SDLC Standards: Design Learnings
 
+## An evidence manifest is not a native permission grant
+
+Naming an external file in the audit prompt does not authorize the provider's
+file tool to read it. Translate the explicit manifest into exact read permissions
+on both start and resume; retain write restrictions and native deny policy.
+Permission patterns must preserve literal filenames and resolved aliases without
+opening their parent directories. Local adapter tests prove the emitted contract;
+native access still requires bounded live evidence.
+
 ## Auditor capability and billing are setup decisions
 
 An inexpensive auditor is not necessarily a cheaper review: difficulty assessing

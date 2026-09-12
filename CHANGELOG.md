@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## v3.2.15 - 2026-09-12
+
+- Grant Claude exact invocation-local Read permissions for supplied audit evidence
+  on start and resume, including external files and resolved aliases. Preserve
+  existing read-only tools, plan mode and native denial rules.
+
 ## v3.2.14 - 2026-09-12
 
 - Add quickstart guidance for separate driving and auditing agents, capability-led

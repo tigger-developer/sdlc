@@ -29,6 +29,7 @@ type Request struct {
 	Directory  string
 	ResultFile string
 	SessionID  string
+	Evidence   []EvidenceFile
 	// OnSession checkpoints a native identity as soon as the adapter observes it.
 	OnSession func(string) error
 }
@@ -232,6 +233,11 @@ func BuildStart(request Request) (Invocation, error) {
 		invocation.Stdin = request.Prompt
 	case "claude":
 		invocation.Args = []string{"-p", "--output-format", "stream-json", "--verbose", "--model", request.Model, "--session-id", request.SessionID, "--tools", "Read", "--permission-mode", "plan", request.Prompt}
+		settings, err := claudeEvidenceSettings(request.Evidence)
+		if err != nil {
+			return Invocation{}, err
+		}
+		invocation.Args = append(invocation.Args, settings...)
 	case "copilot":
 		invocation.Args = []string{"-p", request.Prompt, "-s", "--output-format", "json", "--model", request.Model, "--name", request.SessionID, "--available-tools="}
 	case "hermes":
@@ -253,6 +259,11 @@ func BuildResume(request Request) (Invocation, error) {
 		invocation.Stdin = request.Prompt
 	case "claude":
 		invocation.Args = []string{"-p", "--output-format", "stream-json", "--verbose", "--model", request.Model, "--resume", request.SessionID, "--tools", "Read", "--permission-mode", "plan", request.Prompt}
+		settings, err := claudeEvidenceSettings(request.Evidence)
+		if err != nil {
+			return Invocation{}, err
+		}
+		invocation.Args = append(invocation.Args, settings...)
 	case "copilot":
 		invocation.Args = []string{"-p", request.Prompt, "-s", "--output-format", "json", "--model", request.Model, "--resume=" + request.SessionID, "--available-tools="}
 	case "hermes":

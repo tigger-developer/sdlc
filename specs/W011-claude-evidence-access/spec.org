@@ -1,0 +1,113 @@
+#+TITLE: W011 - Read supplied external evidence in Claude audits
+#+STARTUP: content
+#+OPTIONS: toc:2 num:nil
+
+* Read supplied external evidence in Claude audits
+
+- Outcome :: Claude audits can *read explicitly supplied external evidence*.
+- Before :: The manifest names external files but the adapter grants no corresponding permission.
+- After :: Each start and resume supplies *exact Read rules* for the manifest files.
+- Changes :: Invocation-local Claude settings and evidence plumbing.
+- Unchanged :: Read-only built-in tool selection, plan mode, authentication,
+  existing deny rules, other providers, timeout, round limits and retained sessions.
+- Edge cases :: Symlinked parent directories, literal glob characters, spaces,
+  prohibited or unsupported paths, and provider policies that still deny access.
+- Decisions :: Operator invoked =BYPASS-GATE-7= for this bounded permission fix.
+- Next step :: Verify the fix and present it for operator closure; no client-project edits.
+
+-----
+
+* Context
+
+The reported audit named five external files as unreadable despite their presence
+in =--input=. The CLI captures those inputs, but the Claude adapter previously
+passed only the manifest text. The operator authorized translating that supplied
+evidence into read permissions, not opening whole directories or enabling writes.
+
+Authority: [[file:../../docs/ARCHITECTURE.md][SDLC architecture]], the operator's
+emergency request, and [[https://code.claude.com/docs/en/permissions#read-and-edit][Claude Read permission syntax]].
+[[file:../W010-harness-filesystem-boundaries/spec.org][W010 - Harness filesystem boundaries]]
+remains the separate, broader enforcement work; this change does not implement it.
+
+* Acceptance Criteria
+
+** AC011.1 - Supplied files receive exact read grants
+:PROPERTIES:
+:CUSTOM_ID: ac-011-1
+:END:
+- Claude *start and resume* grant Read permission for each supplied file and
+  its resolved alias target, including files outside the project.
+- Literal pattern characters in filenames must *not expand the grant*.
+- Proved by :: [[#rt-011-1][RT011.1 - Exact adapter grants]], [[#rt-011-2][RT011.2 - CLI resume integration]], [[#ot-011-1][OT011.1 - Native external read]].
+
+** AC011.2 - Existing restrictions and recovery remain intact
+:PROPERTIES:
+:CUSTOM_ID: ac-011-2
+:END:
+- Grants add *no directory or write permissions*, and do not disable existing
+  hooks or deny rules. Native policy may still refuse a file; no bypass is permitted.
+- The CLI retains the recorded work-item/gate session on resume.
+- Invalid permission paths are rejected before provider invocation.
+- Proved by :: [[#rt-011-1][RT011.1 - Exact adapter grants]], [[#rt-011-2][RT011.2 - CLI resume integration]].
+
+* Test Definitions
+
+** RT011.1 - Exact adapter grants
+:PROPERTIES:
+:CUSTOM_ID: rt-011-1
+:END:
+- Covers :: AC011.1 - Exact file grants; AC011.2 - Preserved restrictions.
+- Inspect public start/resume invocation results with real local evidence paths,
+  including spaces, glob characters and platform aliases. Decode settings and
+  compare exact Read rules; verify Read/plan remain and broad access flags are absent.
+- Reject relative, control-character and prohibited =.env= paths.
+
+** RT011.2 - CLI resume integration
+:PROPERTIES:
+:CUSTOM_ID: rt-011-2
+:END:
+- Covers :: AC011.1 - Exact file grants; AC011.2 - Retained session.
+- Run CLI start/resume against a local executable fixture with an external input.
+  Inspect the received settings and session ID, and the resulting audit mapping.
+- Neither RT invokes a paid provider or simulates native permission enforcement.
+
+** OT011.1 - Native external read
+:PROPERTIES:
+:CUSTOM_ID: ot-011-1
+:END:
+- Covers :: AC011.1 - Native external-file readability.
+- During this work item's required implementation audit, supply the canonical
+  external spec template and require an explicit statement that it was read.
+- Bounds :: One configured Claude audit invocation; no extra provider probe,
+  credential changes, client-project writes or attempts to bypass denial.
+- Record actual read evidence or refusal in =validation.org=. Native resume
+  permission enforcement is not separately qualified by this one-off check.
+
+* Edge Cases
+
+- Parent path aliases need grants for both original and resolved paths.
+- Glob characters and trailing spaces are escaped, not treated as wildcards.
+- This emergency adapter supports absolute POSIX permission paths; non-POSIX
+  paths, control characters and unresolved files fail explicitly.
+- Existing policy may deny supplied evidence despite a Read grant. Report that
+  limitation; do not widen permissions or invent a completed read.
+
+* Solution Design
+
+- Architecture :: Pass the captured =Evidence.Files= through =harness.Request=.
+  The Claude adapter projects the list through one shared helper on start/resume.
+- Interface :: JSON-encoded =--settings= containing =permissions.allow= with
+  exact =Read(//absolute/path)= rules; no persistent configuration file is edited.
+- Security :: Resolve aliases, escape gitignore metacharacters, reject unsupported
+  paths, preserve =--tools Read --permission-mode plan= and existing deny policy.
+  This adds permissions for supplied evidence, not a complete filesystem sandbox
+  or revocation of permissions already present in native configuration/session state.
+- Other providers and existing evidence hash verification are unchanged.
+
+* Delivery Handoff
+
+- Changes :: =cmd/sdlc-harness/main.go= and =internal/harness/claude_permissions.go=
+  with start/resume integration in =runner.go=.
+- Verification :: [[file:validation.org][Validation record]].
+- Audit evidence :: [[file:audits.yaml][Harness-owned audit record]].
+- Documentation :: CLI help, architecture, changelog and learnings.

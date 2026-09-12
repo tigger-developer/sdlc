@@ -1,0 +1,23 @@
+#+TITLE: W011 - Claude evidence access validation
+#+STARTUP: content
+
+* Automated verification
+
+** RT011.1 - Exact adapter grants
+- RED :: The adapter returned no evidence Read grants and accepted an unsupported path.
+- GREEN :: Focused adapter tests pass after permission projection was added.
+
+** RT011.2 - CLI resume integration
+- Evidence :: Local executable fixture receives exact external-file grants on
+  start and resume, with the same recorded native identity.
+- Boundary :: Local fixtures verify the emitted contract, not Claude's native enforcement.
+
+* One-off verification
+
+** OT011.1 - Native external read
+- Status :: PENDING.
+- Covers :: AC011.1 - Native external-file readability.
+- Procedure :: Supply the installed spec template to the required implementation
+  audit. Inspect its report for successful reading or an explicit denial.
+- Expected :: The auditor reads the supplied external template without approval prompts.
+- Bounds :: One configured audit invocation, no separate metered probe or client-project writes.

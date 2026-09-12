@@ -112,6 +112,12 @@ last recorded manifest. There is no document-copy cache; hashes do not imply
 that an auditor remembers unchanged content. Provider read-only controls remain
 necessary, and additional reads outside the input list are not hash-verified.
 
+For Claude, the captured manifest also supplies exact invocation-local Read
+permissions, including resolved path aliases. JSON settings preserve literal
+filename characters without granting directory access. The adapter retains
+Read-only built-in tools and plan mode; existing permission denials still apply.
+This is evidence-access plumbing, not a complete filesystem sandbox.
+
 Native session identity is checkpointed as soon as the adapter observes it.
 Timeouts retain the attempt manifest and consume the same recorded round budget
 without producing a verdict. YAML supplies the caller recovery diagnostic and

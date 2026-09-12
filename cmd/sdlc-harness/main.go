@@ -220,6 +220,7 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 	request := harness.Request{
 		Harness: config.Harness, Provider: config.Provider, Model: config.Model,
 		Prompt: string(prompt) + "\n\n" + evidencePrompt, Directory: projectRoot, ResultFile: resultPath, SessionID: identity,
+		Evidence: evidence.Files,
 	}
 	if action == "start" {
 		_, err = harness.BuildStart(request)
