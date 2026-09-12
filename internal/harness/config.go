@@ -18,6 +18,23 @@ type Config struct {
 	Model     string
 	Timeout   time.Duration
 	MaxRounds int
+	Fallback  *AgentConfig
+}
+
+// AgentConfig identifies a provider context, independently of its execution limits.
+type AgentConfig struct {
+	Harness  string `yaml:"harness"`
+	Provider string `yaml:"provider,omitempty"`
+	Model    string `yaml:"model"`
+}
+
+func (config Config) Agent() AgentConfig {
+	return AgentConfig{Harness: config.Harness, Provider: config.Provider, Model: config.Model}
+}
+
+func (config Config) WithAgent(agent AgentConfig) Config {
+	config.Harness, config.Provider, config.Model = agent.Harness, agent.Provider, agent.Model
+	return config
 }
 
 // ConfigOptions supplies higher-precedence overrides and configuration paths.
@@ -33,11 +50,12 @@ type ConfigOptions struct {
 }
 
 type phaseDocument struct {
-	Harness   string `yaml:"harness"`
-	Provider  string `yaml:"provider"`
-	Model     string `yaml:"model"`
-	Timeout   string `yaml:"timeout"`
-	MaxRounds int    `yaml:"max_rounds"`
+	Harness   string       `yaml:"harness"`
+	Provider  string       `yaml:"provider"`
+	Model     string       `yaml:"model"`
+	Timeout   string       `yaml:"timeout"`
+	MaxRounds int          `yaml:"max_rounds"`
+	Fallback  *AgentConfig `yaml:"fallback"`
 }
 
 type configDocument struct {
@@ -88,6 +106,11 @@ func ResolveConfig(options ConfigOptions) (Config, error) {
 		}
 		if value.Model != "" {
 			config.Model = value.Model
+		}
+		// A project fallback replaces the whole tuple, never mixes providers/models.
+		// An explicit empty mapping disables an inherited fallback.
+		if value.Fallback != nil {
+			config.Fallback = value.Fallback
 		}
 		if value.Timeout != "" {
 			parsed, err := time.ParseDuration(value.Timeout)
@@ -180,6 +203,28 @@ func ResolveConfig(options ConfigOptions) (Config, error) {
 		config.Provider = ""
 	default:
 		return Config{}, fmt.Errorf("unsupported harness %q", config.Harness)
+	}
+	if config.Fallback != nil {
+		fallback := *config.Fallback
+		fallback.Harness = strings.ToLower(strings.TrimSpace(fallback.Harness))
+		if fallback == (AgentConfig{}) {
+			config.Fallback = nil
+		} else {
+			if strings.TrimSpace(fallback.Model) == "" {
+				return Config{}, errors.New("fallback requires a model")
+			}
+			switch fallback.Harness {
+			case "hermes":
+				if strings.TrimSpace(fallback.Provider) == "" {
+					return Config{}, errors.New("Hermes fallback requires a provider")
+				}
+			case "codex", "claude", "copilot":
+				fallback.Provider = ""
+			default:
+				return Config{}, fmt.Errorf("unsupported fallback harness %q", fallback.Harness)
+			}
+			config.Fallback = &fallback
+		}
 	}
 	return config, nil
 }

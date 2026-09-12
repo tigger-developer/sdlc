@@ -2,7 +2,6 @@
 package main
 
 import (
-	"context"
 	_ "embed"
 	"errors"
 	"flag"
@@ -159,7 +158,6 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		}
 	}()
 	identity := *session
-	var previousEvidence []harness.EvidenceFile
 	var entry harness.AuditEntry
 	if normalizedPhase == "audit" && strings.TrimSpace(*auditRecord) != "" {
 		if strings.TrimSpace(*workItem) == "" {
@@ -174,7 +172,6 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		if recordErr != nil {
 			return recordErr
 		}
-		previousEvidence = entry.LatestEvidence()
 		if action == "start" && found && (entry.SessionID != "" || entry.ExternalRound > 0) {
 			if entry.SessionID == "" {
 				return errors.New("prior audit attempt has no native session identity; operator recovery required, not a replacement session")
@@ -182,9 +179,6 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 			return fmt.Errorf("audit session already exists for %s/%s; resume session %s", *workItem, normalizedGate, entry.SessionID)
 		}
 		if action == "resume" {
-			if entry.Harness != "" && entry.Harness != config.Harness {
-				return fmt.Errorf("recorded session belongs to %s, not %s", entry.Harness, config.Harness)
-			}
 			if entry.Status == "running" {
 				return errors.New("recorded audit is running or was interrupted before recording its outcome; inspect it before resuming")
 			}
@@ -200,93 +194,21 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 				return fmt.Errorf("supplied session does not match recorded audit session %s", entry.SessionID)
 			}
 		}
-		if action == "resume" && lastIncident(entry) == "timeout" {
-			if registry.TimeoutResumeInstructions == "" {
-				return errors.New("audit prompt registry lacks timeout_resume_instructions; update the SDLC deployment")
-			}
-			prompt = append(prompt, []byte("\n\n"+registry.TimeoutResumeInstructions)...)
-		}
-	}
-	if action == "start" && identity == "" {
-		identity, err = harness.NewSessionIdentity()
-		if err != nil {
-			return err
-		}
-	}
-	evidencePrompt, err := evidence.Prompt(previousEvidence)
-	if err != nil {
-		return err
 	}
 	request := harness.Request{
 		Harness: config.Harness, Provider: config.Provider, Model: config.Model,
-		Prompt: string(prompt) + "\n\n" + evidencePrompt, Directory: projectRoot, ResultFile: resultPath, SessionID: identity,
+		Prompt: string(prompt), Directory: projectRoot, ResultFile: resultPath, SessionID: identity,
 		Evidence: evidence.Files,
 	}
-	if action == "start" {
-		_, err = harness.BuildStart(request)
-	} else {
-		_, err = harness.BuildResume(request)
+	recordPath := ""
+	if normalizedPhase == "audit" {
+		recordPath = strings.TrimSpace(*auditRecord)
 	}
+	runner := recoveryRun{config: config, request: request, evidence: evidence, registry: registry,
+		path: recordPath, work: *workItem, gate: normalizedGate, audit: normalizedPhase == "audit", diagnostics: errorOutput}
+	result, err := runner.execute(entry, action == "resume")
 	if err != nil {
 		return err
-	}
-	var attempt *auditAttempt
-	// Reserve and checkpoint the attempt before invoking the metered provider.
-	// An unfinished or timed-out invocation is not a verdict, but uses the budget.
-	if normalizedPhase == "audit" && strings.TrimSpace(*auditRecord) != "" {
-		var beginErr error
-		attempt, beginErr = beginAuditAttempt(*auditRecord, entry, *workItem, normalizedGate, config, evidence)
-		if beginErr != nil {
-			return beginErr
-		}
-		request.OnSession = attempt.recordIdentity
-		defer func() {
-			if err := attempt.finish(returnErr); err != nil {
-				returnErr = errors.Join(returnErr, err)
-				return
-			}
-			var incident *harness.Incident
-			if errors.As(returnErr, &incident) && incident.Kind == "timeout" {
-				attempt.reportTimeout(registry, errorOutput)
-			}
-		}()
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), config.Timeout)
-	defer cancel()
-	result, err := harness.Execute(ctx, request, action == "resume", &evidence, nil, errorOutput)
-	if err != nil {
-		return err
-	}
-	if config.Harness != "" && normalizedPhase == "audit" {
-		if err := harness.ValidateCompositeVerdict(result.Response); err != nil {
-			return err
-		}
-		if !strings.Contains(result.Response, "GATE: "+normalizedGate) {
-			return fmt.Errorf("audit response gate does not match requested %s gate", normalizedGate)
-		}
-	}
-	if normalizedPhase == "audit" && strings.TrimSpace(*auditRecord) != "" {
-		status := "active"
-		if strings.Contains(result.Response, "VERDICT: PASS") || strings.Contains(result.Response, "VERDICT: PROVISIONAL PASS") {
-			status = "passed"
-		}
-		entry, _, recordErr := harness.ReadAuditEntry(*auditRecord, *workItem, normalizedGate)
-		if recordErr != nil {
-			return recordErr
-		}
-		entry.WorkItem, entry.Gate, entry.SessionID, entry.Status = *workItem, normalizedGate, result.SessionID, status
-		entry.Revision = auditField(result.Response, "REVISION")
-		entry.Verdict = auditField(result.Response, "VERDICT")
-		entry.Response = result.Response
-		round := &entry.History[len(entry.History)-1]
-		round.Revision, round.Verdict, round.Response, round.Incident = entry.Revision, entry.Verdict, entry.Response, ""
-		if entry.ExternalRound >= config.MaxRounds && status == "active" {
-			entry.Status = "exhausted"
-		}
-		if err := harness.WriteAuditEntry(*auditRecord, entry); err != nil {
-			return err
-		}
-		attempt.finalized = true
 	}
 	fmt.Fprintf(errorOutput, "SESSION_ID: %s\n", result.SessionID)
 	_, err = fmt.Fprintln(output, result.Response)
@@ -303,12 +225,13 @@ func auditField(response, name string) string {
 }
 
 type auditPromptDocument struct {
-	Version                   int    `yaml:"version"`
-	EvidenceInstructions      string `yaml:"evidence_instructions"`
-	TimeoutResumeInstructions string `yaml:"timeout_resume_instructions"`
-	TimeoutMessage            string `yaml:"timeout_message"`
-	TimeoutBlockedMessage     string `yaml:"timeout_blocked_message"`
-	Gates                     map[string]struct {
+	Version                     int    `yaml:"version"`
+	EvidenceInstructions        string `yaml:"evidence_instructions"`
+	TimeoutResumeInstructions   string `yaml:"timeout_resume_instructions"`
+	TimeoutMessage              string `yaml:"timeout_message"`
+	TimeoutBlockedMessage       string `yaml:"timeout_blocked_message"`
+	SessionRecoveryInstructions string `yaml:"session_recovery_instructions"`
+	Gates                       map[string]struct {
 		Prompt string `yaml:"prompt"`
 	} `yaml:"gates"`
 }

@@ -62,8 +62,8 @@ func TestW004FixedStartAndResumeInvocations(t *testing.T) {
 		},
 		{
 			name: "hermes", provider: "provider", passesProvider: true,
-			start:  []string{"-z", hermesPrompt("prompt"), "-m", "model", "--provider", "provider", "-t", "", "--pass-session-id", "--safe-mode", "--in", "/project"},
-			resume: []string{"-z", hermesPrompt("prompt"), "-m", "model", "--provider", "provider", "-t", "", "--resume", "session", "--safe-mode", "--in", "/project"},
+			start:  []string{"chat", "--quiet", "--query-file", "-", "-m", "model", "--provider", "provider", "-t", "none", "--safe-mode", "--in", "/project"},
+			resume: []string{"chat", "--quiet", "--query-file", "-", "-m", "model", "--provider", "provider", "-t", "none", "--resume", "session", "--safe-mode", "--in", "/project"},
 		},
 	}
 	for _, test := range tests {
@@ -283,7 +283,7 @@ func matrixRequest(harnessName, root string) Request {
 
 func successfulMatrixExecutor(t *testing.T, request Request, resume bool) Executor {
 	t.Helper()
-	return func(_ context.Context, _ string, _ []string, _ string, _ io.Reader, stdout, _ io.Writer) error {
+	return func(_ context.Context, _ string, _ []string, _ string, _ io.Reader, stdout, stderr io.Writer) error {
 		switch request.Harness {
 		case "codex":
 			if err := os.WriteFile(request.ResultFile, []byte("final"), 0o600); err != nil {
@@ -297,7 +297,8 @@ func successfulMatrixExecutor(t *testing.T, request Request, resume bool) Execut
 		case "copilot":
 			_, _ = io.WriteString(stdout, "{\"type\":\"assistant.message\",\"content\":\"final\"}\n")
 		case "hermes":
-			_, _ = io.WriteString(stdout, "SESSION_ID: native-session\nfinal\n")
+			_, _ = io.WriteString(stderr, "session_id: native-session\n")
+			_, _ = io.WriteString(stdout, "final\n")
 		}
 		return nil
 	}
@@ -305,7 +306,7 @@ func successfulMatrixExecutor(t *testing.T, request Request, resume bool) Execut
 
 func emptyMatrixExecutor(t *testing.T, request Request) Executor {
 	t.Helper()
-	return func(_ context.Context, _ string, _ []string, _ string, _ io.Reader, stdout, _ io.Writer) error {
+	return func(_ context.Context, _ string, _ []string, _ string, _ io.Reader, stdout, stderr io.Writer) error {
 		switch request.Harness {
 		case "codex":
 			if err := os.WriteFile(request.ResultFile, nil, 0o600); err != nil {
@@ -317,7 +318,7 @@ func emptyMatrixExecutor(t *testing.T, request Request) Executor {
 		case "copilot":
 			_, _ = io.WriteString(stdout, `{}`)
 		case "hermes":
-			_, _ = io.WriteString(stdout, "SESSION_ID: native-session\n")
+			_, _ = io.WriteString(stderr, "session_id: native-session\n")
 		}
 		return nil
 	}

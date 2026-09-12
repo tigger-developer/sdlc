@@ -21,6 +21,7 @@ type sessionOutput struct {
 	notices      int
 	sawJSON      bool
 	plainFailure string
+	failureText  string
 }
 
 const maxProviderOutput = 16 * 1024 * 1024
@@ -60,7 +61,10 @@ func (output *sessionOutput) Write(data []byte) (int, error) {
 		line := output.pending[:index]
 		output.pending = output.pending[index+1:]
 		output.report(line)
-		identity := nativeIdentity(output.request.Harness, line)
+		identity := ""
+		if output.request.Harness != "hermes" {
+			identity = nativeIdentity(output.request.Harness, line)
+		}
 		if identity == "" {
 			continue
 		}
@@ -151,6 +155,7 @@ func (output *sessionOutput) report(line []byte) {
 			message = event.Type + " " + event.Subtype
 		}
 		output.diagnostic("provider error", message)
+		output.failureText = message
 		return
 	}
 	if event.Type == "" || output.notices >= maxProgressNotices {

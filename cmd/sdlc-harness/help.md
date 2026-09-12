@@ -58,6 +58,9 @@ Evidence and instruction
   pattern characters are escaped. Read-only tools, plan mode and existing deny
   rules remain in force; these grants do not bypass native policy. Unsupported
   non-POSIX paths or control characters fail before invocation.
+- Hermes uses `chat --quiet --query-file -` with its native resume option and
+  reads native `session_id:` stderr metadata. Top-level `-z` is not used because
+  it bypasses session options; model-written session identifiers are not trusted.
 - Supply the complete evidence list on every invocation. The harness hashes it
   and, on resume, identifies added, changed, unchanged, and removed inputs against
   the last recorded round. Removed means omitted from the list, not deleted.
@@ -137,6 +140,46 @@ Resume example
 
 Timeout recovery
 ================
+
+Session and authentication recovery
+-----------------------------------
+
+With `--audit-record`, the harness records the session's harness/provider/model.
+On resume, a changed effective tuple or an explicit missing-session diagnostic
+starts a new context automatically. All history, previous IDs and findings remain
+in `audits.yaml`; replacements receive the full current evidence and historical
+findings. A missing session is not assumed to have expired. Never delete mappings.
+
+Configure an optional authentication fallback beside the primary for any phase:
+
+    delivery:
+      audit:
+        harness: claude
+        model: claude-opus-5
+        fallback:
+          harness: codex
+          provider: openai
+          model: gpt-5.6-sol
+
+The same `fallback` mapping works under `definition` and `build`. Project YAML
+replaces the entire global fallback tuple; `fallback: {}` disables inheritance.
+Omission inherits. There are no fallback CLI/environment overrides. Harness and
+model are required; provider is required by Hermes and ignored by other adapters.
+An explicit authentication diagnostic selects the fallback once, never recursively.
+A retained fallback audit resumes it while primary and fallback settings match.
+Timeouts, FAIL verdicts, permission errors and generic failures do not select it.
+
+Missing-session recovery recognizes Claude's exact `No conversation found with
+session ID: <requested ID>` diagnostic. Unknown provider messages fail closed.
+Authentication recovery recognizes explicit login, expired-OAuth and invalid-key
+diagnostics, not arbitrary HTTP errors. This is not a general provider retry loop.
+At most one missing-session restart and one authentication fallback occur per
+command. Each launch consumes a round and gets the configured timeout; replacements
+do not reset `max_rounds`. Without an audit record, authentication fallback is still
+available, but missing-session replacement and cross-call tracking are not.
+
+Timeout behaviour
+-----------------
 
 A timeout is an incident, not PASS or FAIL. The harness checkpoints each
 attempt's evidence and records the native session ID as soon as it is observed.

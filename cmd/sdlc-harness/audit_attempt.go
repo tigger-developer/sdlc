@@ -20,15 +20,16 @@ type auditAttempt struct {
 
 func beginAuditAttempt(path string, entry harness.AuditEntry, work, gate string, config harness.Config, evidence harness.Evidence) (*auditAttempt, error) {
 	if len(entry.History) == 0 && (entry.Response != "" || entry.Verdict != "" || entry.Revision != "") {
-		entry.History = append(entry.History, harness.AuditRound{Round: entry.ExternalRound, Revision: entry.Revision, Verdict: entry.Verdict, Response: entry.Response, Findings: entry.Findings, Updated: entry.Updated})
+		entry.History = append(entry.History, harness.AuditRound{Round: entry.ExternalRound, Revision: entry.Revision, Verdict: entry.Verdict, Response: entry.Response, Findings: entry.Findings, Updated: entry.Updated, SessionID: entry.SessionID, Harness: entry.Harness, Provider: entry.Provider, Model: entry.Model})
 	}
 	entry.WorkItem, entry.Gate, entry.Harness = work, gate, config.Harness
+	entry.Provider, entry.Model = config.Provider, config.Model
 	entry.ExternalRound++
 	entry.Status = "running"
 	entry.Revision, entry.Verdict, entry.Response = "", "", ""
 	// Existing structured findings/remediation remain available; a timeout does
 	// not resolve them. Prior response bodies remain in their historical rounds.
-	entry.History = append(entry.History, harness.AuditRound{Round: entry.ExternalRound, Evidence: evidence.Files, Incident: "interrupted"})
+	entry.History = append(entry.History, harness.AuditRound{Round: entry.ExternalRound, Evidence: evidence.Files, Incident: "interrupted", Harness: config.Harness, Provider: config.Provider, Model: config.Model})
 	attempt := &auditAttempt{path: path, entry: entry, limit: config.MaxRounds}
 	return attempt, harness.WriteAuditEntry(path, entry)
 }
@@ -38,6 +39,7 @@ func (attempt *auditAttempt) recordIdentity(identity string) error {
 		return errors.New("native session identity differs from the recorded audit session")
 	}
 	attempt.entry.SessionID = identity
+	attempt.entry.History[len(attempt.entry.History)-1].SessionID = identity
 	return harness.WriteAuditEntry(attempt.path, attempt.entry)
 }
 

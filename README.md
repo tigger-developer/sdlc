@@ -189,6 +189,11 @@ delivery:
     model: gpt-5.6-luna
     timeout: 5m
     max_rounds: 5
+    # Optional: select only after an explicit authentication failure.
+    # fallback:
+    #   harness: hermes
+    #   provider: nous
+    #   model: z-ai/glm-5.3
 infrastructure:
   owner: Example platform team
   contract: /absolute/path/to/PROJECT-INTEGRATION.md
@@ -198,6 +203,15 @@ infrastructure:
 semantic-version Git tag deployed by `make install`; the installer maintains it
 without replacing unrelated settings. Projects follow those global skills and
 standards, so `.sdlc/project.yaml` does not duplicate an SDLC release pin.
+
+Each of `delivery.definition`, `delivery.build` and `delivery.audit` accepts an
+optional `fallback` mapping containing `harness`, `provider` where supported, and
+`model`. Project YAML replaces the global tuple as a whole; `fallback: {}` disables
+it. Omission inherits it. Fallback handles explicit authentication failures, not
+timeouts, audit FAILs or file-access denials. It has no separate timeout or round
+budget. Session recovery is harness-owned: configuration changes and recognized
+missing-session errors create a replacement with full evidence and preserved
+audit history. Run the installed harness's `--help` for diagnostic boundaries.
 
 Goal values above match the schema defaults. Plain positive integers and
 correctly comma-grouped thousands are accepted; periods, decimals, malformed

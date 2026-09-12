@@ -1,0 +1,125 @@
+#+TITLE: W012 - Recover audit sessions and authentication failures
+#+SCHEMA: 1
+#+STARTUP: overview
+#+OPTIONS: toc:2 num:nil
+#+OPERATOR_SIGNOFF: Emergency scope authorized by operator, 2026-09-12; closure pending
+
+* Synopsis
+:PROPERTIES:
+:CUSTOM_ID: summary
+:END:
+** Outcome
+- *Unavailable sessions* and *authentication failures* no longer require manual audit-record repair.
+** Before
+- A changed *audit harness* rejects the retained session.
+- An explicit *missing session* or *logged-out provider* blocks further auditing.
+** After
+- The harness creates a *replacement context* for configuration changes or a recognized missing session.
+- An optional *authentication fallback* selects the operator-configured alternate tuple.
+** Changes
+- Record *session ownership*, replacement reason and per-round provenance in =audits.yaml=.
+- Give replacements *all current evidence* and *historical findings*.
+** Unchanged
+- Preserve *findings*, *round budget*, *per-attempt timeout* and *human approval* boundaries.
+- No fallback for *FAIL*, *timeouts*, *permission denials* or *unclassified failures*.
+** Edge cases
+- Stop at *max_rounds* even if replacement would otherwise apply.
+- Older records with unknown model/provider retain that historical uncertainty.
+** Decisions
+- *OT only*: the operator explicitly excluded new regression tests and accepted bounded API cost.
+- *Project fallback* replaces the entire global tuple; an empty mapping disables it.
+** Next step
+- Verify recovery, install once as authorized, and present evidence for operator closure.
+
+-----
+
+* Context
+- Route :: Operator-authorized emergency change; this record follows the initial implementation.
+- Problem :: W006 in HTML-Preview retained a Codex session while configuration selected Claude. Another reported resume could not locate its native conversation; expiry is unproven.
+- Authorities :: [[file:../../docs/ARCHITECTURE.md][Architecture]], [[file:../../src/AUDITS.md][Audit standards]], [[file:../../.sdlc/project.yaml][Project profile]].
+- Scope :: Internal harness configuration, session orchestration, state provenance and documented recovery.
+- Excluded :: Client-project edits, manual audit-record edits, permissive retry loops and changes to verdict criteria.
+
+* Acceptance Criteria
+** AC012.1 - Recover context without losing evidence
+:PROPERTIES:
+:CUSTOM_ID: ac012-1
+:END:
+- Criterion :: When configuration changes or the provider explicitly reports the retained session unavailable, the harness uses a fresh context with current evidence and historical findings, retaining prior identities and audit history.
+- Proven by :: [[#ot012-1][OT012.1 - Local recovery cases]], [[#ot012-2][OT012.2 - Native provider qualification]].
+** AC012.2 - Select configured authentication fallback
+:PROPERTIES:
+:CUSTOM_ID: ac012-2
+:END:
+- Criterion :: Each phase accepts one optional fallback tuple; recognized authentication failure selects it. Project configuration replaces the global fallback as a unit. An unchanged retained fallback audit continues on that tuple.
+- Proven by :: [[#ot012-1][OT012.1 - Local recovery cases]], [[#ot012-2][OT012.2 - Native provider qualification]].
+** AC012.3 - Preserve bounded failure semantics
+:PROPERTIES:
+:CUSTOM_ID: ac012-3
+:END:
+- Criterion :: Replacement never resets audit rounds or creates a verdict. A command permits at most one missing-session restart and one authentication fallback. Unclassified failures, permission errors, timeouts and FAIL verdicts do not trigger fallback.
+- Proven by :: [[#ot012-1][OT012.1 - Local recovery cases]].
+** AC012.4 - Deploy the verified helper
+:PROPERTIES:
+:CUSTOM_ID: ac012-4
+:END:
+- Criterion :: The authorized installation deploys the revised helper, prompts and instructions; the installed helper can resolve the configured fallback.
+- Proven by :: [[#ot012-3][OT012.3 - Installation verification]].
+
+* Test Definitions
+** OT012.1 - Local recovery cases
+:PROPERTIES:
+:CUSTOM_ID: ot012-1
+:END:
+- Covers :: AC012.1, AC012.2, AC012.3.
+- Procedure :: Explicit Go-overlay checks under =tools/check-session-recovery/testdata/=, with local executable doubles. Check missing/config-changed sessions, authentication and OAuth errors, permissions/generic failures, budget exhaustion, history, sticky fallback, all three phases and project/global overrides.
+- Expected :: Only recognized recovery paths launch replacements; history, ownership and rounds remain correct.
+- Bounds :: Temporary local fixtures; no metered calls; not in =make test= or CI.
+** OT012.2 - Native provider qualification
+:PROPERTIES:
+:CUSTOM_ID: ot012-2
+:END:
+- Covers :: AC012.1, AC012.2.
+- Procedure :: In a temporary project, use a nonexistent Claude conversation ID to exercise a native missing-session response; separately induce a local authentication diagnostic and let the configured Hermes fallback answer a tiny fixed audit prompt. Read the resulting harness-owned record.
+- Expected :: New native identities and correct fallback ownership; no invented PASS for an incident.
+- Bounds :: One missing-session probe plus its fresh Claude invocation; one initial Hermes fallback probe and one corrected probe with retained resume. Synthetic evidence only, at most three Hermes completions plus the Claude attempt, 60 seconds per attempt. Explicitly authorized metered OT, never a regression target.
+** OT012.3 - Installation verification
+:PROPERTIES:
+:CUSTOM_ID: ot012-3
+:END:
+- Covers :: AC012.4.
+- Procedure :: Run =make install= exactly once from the SDLC repository after validation; check installed release/help and binary identity.
+- Expected :: Successful deployment and executable deployed helper; no client-project mutation.
+- Bounds :: One operator-authorized installation.
+
+* Edge Cases
+- Unknown native error formats remain *incidents*, not proof of a missing session.
+- Empty native identity after an interrupted start still requires operator recovery; no session is guessed.
+- Exhaustion prevents additional provider launches, including replacement.
+
+* Solution Design
+** Architecture context
+- Extend the existing fixed-adapter runner and harness-owned YAML record; no new service or dependency.
+** Configuration
+- After-state :: =delivery.<definition|build|audit>.fallback= contains =harness=, =provider= where required and =model=.
+- Inheritance :: Global mapping unless replaced by a project mapping; =fallback: {}= disables. No fallback CLI/environment overrides.
+- Provider :: Required for Hermes, ignored for Codex/Claude/Copilot.
+** Recovery
+- Known configuration change selects a new primary session; a previously selected fallback remains active while both tuples still match.
+- Provider error classification reads bounded error diagnostics, not assistant review prose. Claude's exact missing-conversation message must name the requested ID.
+- Persist retired identity/tuple/reason and per-attempt identity/tuple. New contexts receive full current manifest and history; resumes retain manifest comparisons.
+- Each attempt keeps the configured deadline and consumes the same recorded budget.
+- Hermes :: Use native =chat --quiet --query-file -= rather than top-level =-z=, which bypasses resume/session options in the installed CLI. Read native =session_id:= from stderr; never ask the model to invent or repeat an ID.
+** Security impact
+- No access grant changes, credentials copied or login attempts. Fallback grants only the already-authorized invocation to the explicitly configured provider.
+- Do not interpret permission failures or arbitrary provider errors as authentication failures. No secrets are added to records.
+
+* Delivery Handoff
+- Evidence :: [[file:audits.yaml][Harness-owned audit record]], [[file:validation.org][One-off verification]].
+- Documentation :: Harness help, AUDITS, architecture, configuration example and changelog.
+- Implementation holds :: None beyond verification and the authorized single installation.
+
+* Hands-off mode decision log
+:PROPERTIES:
+:VISIBILITY: folded
+:END:

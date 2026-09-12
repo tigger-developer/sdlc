@@ -117,8 +117,17 @@ func Execute(ctx context.Context, request Request, resume bool, evidence *Eviden
 		reportHeartbeat(errorOutput, request.Harness, request.SessionID, stopHeartbeat)
 	}()
 	defer func() { <-heartbeatDone }()
-	executionErr := executor(ctx, invocation.Command, invocation.Args, invocation.Dir, strings.NewReader(invocation.Stdin), stdout, errorOutput)
+	diagnostics := &providerDiagnostics{writer: errorOutput, request: request}
+	executionErr := executor(ctx, invocation.Command, invocation.Args, invocation.Dir, strings.NewReader(invocation.Stdin), stdout, diagnostics)
 	stdout.finish(executionErr != nil)
+	if request.Harness == "hermes" {
+		if diagnostics.identity != "" {
+			stdout.identity = diagnostics.identity
+		}
+		if diagnostics.err != nil {
+			stdout.err = diagnostics.err
+		}
+	}
 	if err := executionErr; err != nil {
 		close(stopHeartbeat)
 		if stdout.err != nil {
@@ -134,11 +143,17 @@ func Execute(ctx context.Context, request Request, resume bool, evidence *Eviden
 		if errors.Is(err, exec.ErrNotFound) {
 			kind = "executable-unavailable"
 		}
+		if recovery := providerFailure(diagnostics.tail+"\n"+stdout.failureText+"\n"+stdout.plainFailure, request, resume); recovery != "" {
+			kind = recovery
+		}
 		return Result{}, newIncident(kind, request.Harness, stdout.identity, err)
 	}
 	close(stopHeartbeat)
 	if stdout.err != nil {
 		return Result{}, stdout.err
+	}
+	if recovery := providerFailure(stdout.failureText, request, resume); recovery != "" {
+		return Result{}, newIncident(recovery, request.Harness, stdout.identity, errors.New("provider rejected the invocation; see stderr"))
 	}
 	if evidence != nil {
 		if err := evidence.Verify(); err != nil {
@@ -152,7 +167,18 @@ func Execute(ctx context.Context, request Request, resume bool, evidence *Eviden
 			return Result{}, fmt.Errorf("reading %s final response: %w", request.Harness, err)
 		}
 	}
-	result, err := ParseResult(request.Harness, stdout.Bytes(), resultFile, stdout.identity)
+	var result Result
+	if request.Harness == "hermes" {
+		result = Result{SessionID: stdout.identity, Response: strings.TrimSpace(string(stdout.Bytes()))}
+		if diagnostics.identity == "" {
+			return Result{}, newIncident("identity-missing", request.Harness, "", errors.New("Hermes omitted native stderr session info"))
+		}
+		if result.Response == "" {
+			return Result{}, newIncident("response-empty", request.Harness, result.SessionID, errors.New("Hermes omitted final response"))
+		}
+	} else {
+		result, err = ParseResult(request.Harness, stdout.Bytes(), resultFile, stdout.identity)
+	}
 	if err != nil {
 		return Result{}, err
 	}
@@ -242,7 +268,8 @@ func BuildStart(request Request) (Invocation, error) {
 	case "copilot":
 		invocation.Args = []string{"-p", request.Prompt, "-s", "--output-format", "json", "--model", request.Model, "--name", request.SessionID, "--available-tools="}
 	case "hermes":
-		invocation.Args = []string{"-z", hermesPrompt(request.Prompt), "-m", request.Model, "--provider", request.Provider, "-t", "", "--pass-session-id", "--safe-mode", "--in", request.Directory}
+		invocation.Args = []string{"chat", "--quiet", "--query-file", "-", "-m", request.Model, "--provider", request.Provider, "-t", "none", "--safe-mode", "--in", request.Directory}
+		invocation.Stdin = request.Prompt
 	}
 	return invocation, nil
 }
@@ -269,13 +296,10 @@ func BuildResume(request Request) (Invocation, error) {
 	case "copilot":
 		invocation.Args = []string{"-p", request.Prompt, "-s", "--output-format", "json", "--model", request.Model, "--resume=" + request.SessionID, "--available-tools="}
 	case "hermes":
-		invocation.Args = []string{"-z", hermesPrompt(request.Prompt), "-m", request.Model, "--provider", request.Provider, "-t", "", "--resume", request.SessionID, "--safe-mode", "--in", request.Directory}
+		invocation.Args = []string{"chat", "--quiet", "--query-file", "-", "-m", request.Model, "--provider", request.Provider, "-t", "none", "--resume", request.SessionID, "--safe-mode", "--in", request.Directory}
+		invocation.Stdin = request.Prompt
 	}
 	return invocation, nil
-}
-
-func hermesPrompt(prompt string) string {
-	return "Return your native session identity on the first output line exactly as SESSION_ID: <id>, followed by the requested response.\n\n" + prompt
 }
 
 func validateRequest(request Request, resume bool) error {

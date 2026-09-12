@@ -1,0 +1,16 @@
+#+TITLE: W012 - Audit recovery verification
+* OT012.1 - Local recovery cases
+- Status :: PASS, including extended configuration and sticky-fallback checks.
+- Evidence :: The pre-change run rejected missing/config-changed sessions and authentication fallback. Post-change local matrix passed with race detection. These checks are explicitly one-off and excluded from the regression suite.
+- Tester :: Codex, 2026-09-12.
+- Latest check :: Explicit Go-overlay OT matrix passed with race detection after the Hermes native-session adapter changes. Harness build and Git whitespace checks also passed.
+* OT012.2 - Native provider qualification
+- Status :: PARTIAL; not qualified for file-based auditing.
+- Evidence :: Native Claude missing-session rejection triggered a fresh session. That session reached the account usage limit, which correctly did not trigger authentication fallback.
+- Evidence :: An induced local authentication diagnostic selected the real Hermes fallback. Native stderr returned session 20260912_171947_3b7fd0; a subsequent invocation resumed that same conversation and returned the requested synthetic response.
+- Correction :: The initial top-level Hermes invocation did not honour resume metadata. The adapter now uses the native chat subcommand and checkpoints stderr session metadata rather than trusting model-written identifiers.
+- Limitation :: The synthetic prompt prohibited tool use and did not qualify evidence-file access. Explicitly disabling Hermes toolsets preserves the intended no-write boundary but prevents reading path-based evidence. Enabling its file toolset would also expose write tools; that access change has not been authorized or implemented.
+- Bounds :: Synthetic evidence only, up to three Hermes completions plus the Claude recovery attempt, 60 seconds per attempt. No metered regression tests were added.
+* OT012.3 - Installation verification
+- Status :: PENDING.
+- Bounds :: One authorized make install from this repository.

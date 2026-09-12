@@ -12,7 +12,7 @@ import (
 func TestTimeoutRetainsOnlyNativeIdentity(t *testing.T) {
 	for _, test := range []struct{ name, output, want string }{
 		{"codex", "{\"type\":\"thread.started\",\"thread_id\":\"native-codex\"}\n", "native-codex"},
-		{"hermes", "SESSION_ID: native-hermes\n", "native-hermes"},
+		{"hermes", "session_id: native-hermes\n", "native-hermes"},
 		{"codex", "", ""},
 		{"hermes", "", ""},
 	} {
@@ -22,7 +22,10 @@ func TestTimeoutRetainsOnlyNativeIdentity(t *testing.T) {
 			request := Request{Harness: test.name, Model: "fixture", Provider: "fixture", SessionID: "not-native", Directory: t.TempDir()}
 			observed := ""
 			request.OnSession = func(id string) error { observed = id; return nil }
-			executor := func(_ context.Context, _ string, _ []string, _ string, _ io.Reader, stdout, _ io.Writer) error {
+			executor := func(_ context.Context, _ string, _ []string, _ string, _ io.Reader, stdout, stderr io.Writer) error {
+				if test.name == "hermes" {
+					stdout = stderr
+				}
 				// Split output across writes as real provider streams may do.
 				for _, part := range strings.SplitAfter(test.output, ":") {
 					if _, err := io.WriteString(stdout, part); err != nil {

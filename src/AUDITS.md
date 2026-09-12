@@ -23,7 +23,7 @@ For either gate:
 
 1. Invoke `~/.agents/sdlc/bin/sdlc-harness` with the gate and exact evidence.
 2. On `FAIL`, remediate **all** findings before resuming the recorded session.
-3. Never resubmit a known FAIL unchanged or create a replacement session.
+3. Never resubmit a known FAIL unchanged or manually create a replacement session.
 4. Stop after the configured maximum rounds, or for a decision that cannot be
    made safely from the authorities.
 
@@ -33,6 +33,22 @@ The first invocation starts a session; later invocations resume its recorded
 applies to the current invoking session only. Every provider invocation,
 including a timeout, consumes one recorded round. Recovery never resets that
 counter. Earlier unrecorded timeouts cannot be reconstructed automatically.
+
+Session reuse is an optimization, not a delivery prerequisite. The harness records
+the native ID, owning harness/provider/model and effective primary configuration.
+Changed configuration or an explicit provider report that the session is missing
+causes a fresh context automatically. It preserves old session provenance and all
+findings/history, supplies the full evidence and historical findings, and keeps
+the existing round budget. It never claims that an unavailable session expired.
+
+An optional `delivery.<phase>.fallback` supplies one alternate harness/provider/model
+tuple for explicit authentication failures. A retained fallback audit continues on
+that tuple while the configured primary and fallback remain unchanged. Each CLI
+invocation permits at most one missing-session restart and one authentication
+fallback, subject to the remaining audit rounds. Every launched attempt consumes a
+round and has the configured timeout. Neither FAIL, timeout, permission denial nor
+an unclassified provider failure triggers fallback. Calling agents do not repair
+or delete mappings themselves.
 
 On timeout, follow the harness recovery diagnostic. In HANDS-OFF mode, resume
 automatically while a native session is recorded and the limit permits it.

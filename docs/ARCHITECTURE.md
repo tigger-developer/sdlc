@@ -122,7 +122,12 @@ Native session identity is checkpointed as soon as the adapter observes it.
 Timeouts retain the attempt manifest and consume the same recorded round budget
 without producing a verdict. YAML supplies the caller recovery diagnostic and
 the resumed auditor's continuation instruction. Missing identity or exhausted
-bounds stop automatic recovery; they never authorize a replacement session.
+bounds stop timeout recovery. Explicit missing-session diagnostics and configuration
+changes permit a harness-owned replacement, with previous identities/configuration
+retained and all historical findings supplied to the new context. An optional
+phase-local fallback tuple handles explicit authentication failures once per call.
+Missing-session restart is likewise limited to once per call. Every launch consumes
+the existing round budget and retains the configured per-attempt deadline.
 
 The work ledger owns lifecycle state, the specification owns requirements and
 operator sign-off, and `audits.yaml` alone owns audit state. Legacy `audits.org`

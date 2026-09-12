@@ -25,30 +25,46 @@ type LegacyAudit struct {
 }
 
 type AuditEntry struct {
-	WorkItem      string       `yaml:"work_item"`
-	Gate          string       `yaml:"gate"`
-	SessionID     string       `yaml:"session_id"`
-	Harness       string       `yaml:"harness,omitempty"`
-	ExternalRound int          `yaml:"external_round"`
-	Status        string       `yaml:"status"`
-	Updated       string       `yaml:"updated"`
-	Revision      string       `yaml:"revision,omitempty"`
-	Verdict       string       `yaml:"verdict,omitempty"`
-	Response      string       `yaml:"response,omitempty"`
-	Findings      []string     `yaml:"findings,omitempty"`
-	Remediation   []string     `yaml:"remediation,omitempty"`
-	History       []AuditRound `yaml:"history,omitempty"`
+	WorkItem      string           `yaml:"work_item"`
+	Gate          string           `yaml:"gate"`
+	SessionID     string           `yaml:"session_id"`
+	Harness       string           `yaml:"harness,omitempty"`
+	Provider      string           `yaml:"provider,omitempty"`
+	Model         string           `yaml:"model,omitempty"`
+	Configured    *AgentConfig     `yaml:"configured,omitempty"`
+	Sessions      []RetiredSession `yaml:"previous_sessions,omitempty"`
+	ExternalRound int              `yaml:"external_round"`
+	Status        string           `yaml:"status"`
+	Updated       string           `yaml:"updated"`
+	Revision      string           `yaml:"revision,omitempty"`
+	Verdict       string           `yaml:"verdict,omitempty"`
+	Response      string           `yaml:"response,omitempty"`
+	Findings      []string         `yaml:"findings,omitempty"`
+	Remediation   []string         `yaml:"remediation,omitempty"`
+	History       []AuditRound     `yaml:"history,omitempty"`
 }
 
 type AuditRound struct {
-	Incident string         `yaml:"incident,omitempty"`
-	Evidence []EvidenceFile `yaml:"evidence,omitempty"`
-	Round    int            `yaml:"round"`
-	Revision string         `yaml:"revision,omitempty"`
-	Verdict  string         `yaml:"verdict,omitempty"`
-	Response string         `yaml:"response,omitempty"`
-	Findings []string       `yaml:"findings,omitempty"`
-	Updated  string         `yaml:"updated"`
+	SessionID string         `yaml:"session_id,omitempty"`
+	Harness   string         `yaml:"harness,omitempty"`
+	Provider  string         `yaml:"provider,omitempty"`
+	Model     string         `yaml:"model,omitempty"`
+	Incident  string         `yaml:"incident,omitempty"`
+	Evidence  []EvidenceFile `yaml:"evidence,omitempty"`
+	Round     int            `yaml:"round"`
+	Revision  string         `yaml:"revision,omitempty"`
+	Verdict   string         `yaml:"verdict,omitempty"`
+	Response  string         `yaml:"response,omitempty"`
+	Findings  []string       `yaml:"findings,omitempty"`
+	Updated   string         `yaml:"updated"`
+}
+
+// RetiredSession preserves context provenance without duplicating audit findings.
+type RetiredSession struct {
+	SessionID   string `yaml:"session_id"`
+	AgentConfig `yaml:",inline"`
+	Reason      string `yaml:"reason"`
+	Updated     string `yaml:"updated"`
 }
 
 // LatestEvidence belongs to the latest invocation, including an interrupted audit.

@@ -219,9 +219,10 @@ func TestW009SplitIdentityCheckpointsExactlyOnce(t *testing.T) {
 			var identities []string
 			r := matrixRequest(provider, t.TempDir())
 			r.OnSession = func(id string) error { identities = append(identities, id); return nil }
-			out := newSessionOutput(r, false)
-			line := "SESSION_ID: native-session\n"
+			var out io.Writer = &providerDiagnostics{writer: io.Discard, request: r}
+			line := "session_id: native-session\n"
 			if provider == "codex" {
+				out = newSessionOutput(r, false)
 				line = "{\"type\":\"thread.started\",\"thread_id\":\"native-session\"}\n"
 			}
 			mid := len(line) / 2
