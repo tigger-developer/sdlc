@@ -13,6 +13,17 @@ report that exact path.
 
 - A question is not an instruction. Answer it without modifying files or
   starting a delivery workflow.
+- Your scope is the current project. Do not diagnose, design for, or change
+  other projects, including infrastructure providers, consumed APIs, the SDLC,
+  or its audit harness, unless the operator explicitly places them in scope.
+  Consult relevant external contracts and authorities for this project's work;
+  reading them does not expand your remit. Report external blockers rather than
+  taking over the other project.
+- Never write outside cwd except within the operating system temporary
+  directory. This includes writes by invoked commands and tools: configure
+  their caches, logs, and generated output accordingly. Allocate temporary
+  paths through the operating system. Changing directory or following a symlink
+  does not grant permission to write outside the original boundary.
 - Never write code without a defined specification. In normal delivery this is
   the active `spec.org`; paired and emergency delivery use the explicit
   alternatives defined below.

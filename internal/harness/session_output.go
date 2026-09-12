@@ -117,9 +117,12 @@ func (output *sessionOutput) report(line []byte) {
 		trimmed := bytes.TrimSpace(line)
 		if trimmed[0] != '{' && trimmed[0] != '[' && !bytes.HasPrefix(trimmed, []byte("SESSION_ID:")) {
 			if len(trimmed) > maxDiagnostic {
-				trimmed = trimmed[:maxDiagnostic]
+				trimmed = trimmed[len(trimmed)-maxDiagnostic:]
 			}
-			output.plainFailure = string(trimmed)
+			output.plainFailure += string(trimmed) + "\n"
+			if len(output.plainFailure) > maxDiagnostic {
+				output.plainFailure = output.plainFailure[len(output.plainFailure)-maxDiagnostic:]
+			}
 		}
 		return
 	}

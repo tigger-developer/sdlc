@@ -109,6 +109,33 @@ func TestW009ClaudeErrorEnvelopeCannotSucceed(t *testing.T) {
 	}
 }
 
+func TestW009EarlyResultDoesNotOverrideProcessFailure(t *testing.T) {
+	for _, timedOut := range []bool{false, true} {
+		t.Run(map[bool]string{false: "exit", true: "deadline"}[timedOut], func(t *testing.T) {
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			if timedOut {
+				ctx, cancel = context.WithTimeout(ctx, 20*time.Millisecond)
+				defer cancel()
+			}
+			result, err := Execute(ctx, matrixRequest("claude", t.TempDir()), false, nil, func(runCtx context.Context, _ string, _ []string, _ string, _ io.Reader, stdout, _ io.Writer) error {
+				if _, e := io.WriteString(stdout, `{"type":"result","is_error":false,"result":"premature"}`+"\n"); e != nil {
+					return e
+				}
+				if timedOut {
+					<-runCtx.Done()
+					return runCtx.Err()
+				}
+				return errors.New("exit status 1")
+			}, io.Discard)
+			if err == nil || result.Response != "" {
+				t.Fatalf("early result escaped failure: %#v %v", result, err)
+			}
+			assertIncidentKind(t, err, map[bool]string{false: "start-failed", true: "timeout"}[timedOut])
+		})
+	}
+}
+
 func TestW009OutputCaptureIsBounded(t *testing.T) {
 	r := matrixRequest("claude", t.TempDir())
 	_, err := Execute(context.Background(), r, false, nil, func(_ context.Context, _ string, _ []string, _ string, _ io.Reader, stdout, _ io.Writer) error {
@@ -167,5 +194,49 @@ func TestW009StreamAndLegacyClaudeResults(t *testing.T) {
 	}
 	if _, err := ParseResult("claude", []byte("{\"type\":\"result\",\"result\":\"one\"}\n{\"type\":\"result\",\"result\":\"two\"}\n"), nil, "retained"); err == nil {
 		t.Fatal("duplicate final accepted")
+	}
+}
+
+func TestW009MultilineFailurePreservesBoundedTail(t *testing.T) {
+	var log outputLog
+	out := newSessionOutput(matrixRequest("hermes", t.TempDir()), false)
+	out.progress = &log
+	if _, err := io.WriteString(out, strings.Repeat("old output\n", 1000)+"authentication failed\nplease sign in again\n"); err != nil {
+		t.Fatal(err)
+	}
+	out.finish(true)
+	if !strings.Contains(log.String(), "authentication failed") || !strings.Contains(log.String(), "please sign in again") {
+		t.Fatalf("lost multiline failure: %s", log.String())
+	}
+	if len(out.plainFailure) > maxDiagnostic {
+		t.Fatal("failure tail exceeds its bound")
+	}
+}
+
+func TestW009SplitIdentityCheckpointsExactlyOnce(t *testing.T) {
+	for _, provider := range []string{"codex", "hermes"} {
+		t.Run(provider, func(t *testing.T) {
+			var identities []string
+			r := matrixRequest(provider, t.TempDir())
+			r.OnSession = func(id string) error { identities = append(identities, id); return nil }
+			out := newSessionOutput(r, false)
+			line := "SESSION_ID: native-session\n"
+			if provider == "codex" {
+				line = "{\"type\":\"thread.started\",\"thread_id\":\"native-session\"}\n"
+			}
+			mid := len(line) / 2
+			if _, err := io.WriteString(out, line[:mid]); err != nil {
+				t.Fatal(err)
+			}
+			if len(identities) != 0 {
+				t.Fatal("checkpointed incomplete identity")
+			}
+			if _, err := io.WriteString(out, line[mid:]+line); err != nil {
+				t.Fatal(err)
+			}
+			if len(identities) != 1 || identities[0] != "native-session" {
+				t.Fatalf("checkpoints=%v", identities)
+			}
+		})
 	}
 }

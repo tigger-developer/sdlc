@@ -4,9 +4,33 @@ audits:
       gate: implementation
       session_id: 3f4385f9-7203-4993-8d66-676323b1921e
       harness: claude
-      external_round: 1
-      status: incident
-      updated: "2026-09-12T06:30:55Z"
+      external_round: 2
+      status: passed
+      updated: "2026-09-12T06:44:42Z"
+      revision: working tree per this attempt's evidence manifest (runner.go 71a7b709, session_output.go 7fd5f20c, claude_output.go 3e87cff5, output_test.go 67ad683c, validation.org 3818ca95)
+      verdict: PROVISIONAL PASS
+      response: |-
+        GATE: implementation
+        REVISION: working tree per this attempt's evidence manifest (runner.go 71a7b709, session_output.go 7fd5f20c, claude_output.go 3e87cff5, output_test.go 67ad683c, validation.org 3818ca95)
+        VERDICT: PROVISIONAL PASS
+
+        **Evidence read (all manifest files, in full):** spec.org, validation.org, project.yaml, ARCHITECTURE.md, CODING.md, TESTING.md, GO.md, claude_output.go, session_output.go, runner.go, output_test.go, runner_test.go. No files were edited and no commands were run.
+
+        **Assessment against the authorized scope**
+
+        - **AC009.1** — `sessionOutput.Write` splits on newlines and reports each complete record as it arrives; `report` emits only `event.Type`, never `message`, prompts or tool payloads. `TestW009ProgressArrivesBeforeProviderExit` asserts visibility *inside* the executor (before exit), asserts the streaming argument vector, and asserts the payload string never reaches stderr. Behavioural, not structural.
+        - **AC009.2** — `finish(failed)` flushes the unterminated final record, including the timeout and nonzero-exit paths in `Execute`. `TestW009ProviderErrorsSurviveUnsuccessfulExit` covers four providers × exit/timeout with no final newline, and asserts both the surviving diagnostic and the typed incident kind. `parseClaudeResponse` rejects `is_error`, `type:error` and `subtype:error_*`, so a zero-exit error envelope cannot become a response; the other three providers fail closed via `response-empty`/`identity-missing`. `TestW009ProgressIsBoundedWithoutSuppressingErrors` proves errors bypass the 200-notice cap and that `%q` neutralizes terminal escapes.
+        - **AC009.3** — legacy single-object and streamed final-result parsing both covered, duplicate finals rejected, 16 MiB overflow produces an explicit `output-limit` incident rather than a truncated verdict. Goroutine lifecycle is sound: `stopHeartbeat` is closed on every return path after the goroutine starts, and `defer <-heartbeatDone` joins it; `lockedWriter` serializes heartbeat and provider stderr.
+
+        **Findings — bounded, reversible follow-up (none invalidate sign-off)**
+
+        1. **Implemented coverage gap against RT009.3.** The signed-off definition names *split identity* among RT009.3's cases. In the supplied tests, the only split write is a Claude `assistant` event, where identity is pre-assigned. No supplied test writes a `thread.started` or `SESSION_ID:` record split across two `Write` calls, and `Request.OnSession` is `nil` in every supplied fixture, so the incremental checkpoint path is unexercised. This is the behaviour most directly at risk from the move to incremental decoding. **Remediation:** add one test that splits a native identity record across writes and asserts `OnSession` is invoked once with the correct identity. (Scoped to the supplied evidence; I could not enumerate other files in the package.)
+        2. **`plainFailure` retains only the last plain-text line.** `session_output.go:122` overwrites `plainFailure` per line, so a multi-line non-JSON failure on stdout surfaces only its final line on stderr, against AC009.2's "diagnostics remain visible". Impact is limited because provider stderr passes through live and unbuffered. **Remediation:** accumulate a bounded tail (up to the existing 4 KiB `maxDiagnostic`) instead of the last line, and cover it with a two-line plain-text failure case.
+        3. **`validation.org` OT009.1 is incomplete under TESTING.md.** A completed one-off entry must state the tested revision and the requirement it verifies. The entry gives `Build :: Local W009 source binary`, which is not a revision, and names no AC. **Remediation:** record the commit SHA and cite AC009.1/AC009.2. No audit findings, verdicts, round numbers or session IDs appear in `spec.org` or `validation.org` — both only link to `audits.yaml`, so the duplication rule is not triggered.
+
+        **Audit limitation (not a finding).** AC009.3's "final response only on stdout" is enforced where `Execute`'s `errorOutput` is bound, in `cmd/sdlc-harness`, which was not supplied. I verified the library side only: progress and diagnostics go exclusively to the injected `errorOutput`, and on success no captured stdout is echoed there. The cmd-layer wiring is unverified in this attempt.
+
+        **Observation (no remediation required).** `report` runs to about 60 lines with a three-deep error-message fallback chain, past CODING.md's tripwire. The function has one responsibility and the nesting is a linear fallback; decomposition is optional, not a defect.
       history:
         - incident: start-failed
           evidence:
@@ -48,3 +72,155 @@ audits:
               bytes: 7301
           round: 1
           updated: "2026-09-12T06:30:53Z"
+        - evidence:
+            - path: /Users/tigger/code/agents/sdlc/.sdlc/project.yaml
+              sha256: 7435fbc30502a8a150bf976a612f9355ec4fafad508f66042eaeddd0a70de02d
+              bytes: 307
+            - path: /Users/tigger/code/agents/sdlc/docs/ARCHITECTURE.md
+              sha256: 356458b6cc0ee5ad2164c5c7b7c4de310020062fdb59714423afdc0bba054eb2
+              bytes: 11966
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/claude_output.go
+              sha256: 3e87cff5a1f1b11016969cb6a5c39cb92283ebc3dc98822e40e07ca73459a616
+              bytes: 1170
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/output_test.go
+              sha256: 67ad683c1e2a17c6ae77e246c277c54abed3e57038e98ae9d78dcefcd22f4c0e
+              bytes: 5989
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/runner.go
+              sha256: 71a7b709bef13289d34d70796cddb5fcc8eeb81472de73ac5e02125f32a41570
+              bytes: 13931
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/runner_test.go
+              sha256: 13d0a47984987a2bf80d248ee19748ecbc27a5ec716f53dda8179e8a0b6a826b
+              bytes: 12926
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/session_output.go
+              sha256: 7fd5f20c84a5437198ec9a960ac94a08a1321c5053f7c2b906c15761218f3e63
+              bytes: 5854
+            - path: /Users/tigger/code/agents/sdlc/specs/W009-audit-output/spec.org
+              sha256: f773cd1e934f88dc2155ca6964ae4e43e39edfe93647aa2380c81f4fb2b94ca7
+              bytes: 4722
+            - path: /Users/tigger/code/agents/sdlc/specs/W009-audit-output/validation.org
+              sha256: 3818ca95da0a3b9380ab233274e12db2cdc4d1c890dbf45031cc1f5b051dabe0
+              bytes: 1408
+            - path: /Users/tigger/code/agents/sdlc/src/CODING.md
+              sha256: f2a2511d89cbf407f0d96dc3845ee66264eb40eb18d638716475936f1fa9b723
+              bytes: 13368
+            - path: /Users/tigger/code/agents/sdlc/src/TESTING.md
+              sha256: 5ed902d49dbb8321ea093fd60db68d5195e59c95c763c02e4ca0c09f6fa1e932
+              bytes: 13561
+            - path: /Users/tigger/code/agents/sdlc/src/technologies/GO.md
+              sha256: 63a41c24322b2c4144367b69777528b023a30222593c462b0696df98b1967917
+              bytes: 7301
+          round: 2
+          revision: working tree per this attempt's evidence manifest (runner.go 71a7b709, session_output.go 7fd5f20c, claude_output.go 3e87cff5, output_test.go 67ad683c, validation.org 3818ca95)
+          verdict: PROVISIONAL PASS
+          response: |-
+            GATE: implementation
+            REVISION: working tree per this attempt's evidence manifest (runner.go 71a7b709, session_output.go 7fd5f20c, claude_output.go 3e87cff5, output_test.go 67ad683c, validation.org 3818ca95)
+            VERDICT: PROVISIONAL PASS
+
+            **Evidence read (all manifest files, in full):** spec.org, validation.org, project.yaml, ARCHITECTURE.md, CODING.md, TESTING.md, GO.md, claude_output.go, session_output.go, runner.go, output_test.go, runner_test.go. No files were edited and no commands were run.
+
+            **Assessment against the authorized scope**
+
+            - **AC009.1** — `sessionOutput.Write` splits on newlines and reports each complete record as it arrives; `report` emits only `event.Type`, never `message`, prompts or tool payloads. `TestW009ProgressArrivesBeforeProviderExit` asserts visibility *inside* the executor (before exit), asserts the streaming argument vector, and asserts the payload string never reaches stderr. Behavioural, not structural.
+            - **AC009.2** — `finish(failed)` flushes the unterminated final record, including the timeout and nonzero-exit paths in `Execute`. `TestW009ProviderErrorsSurviveUnsuccessfulExit` covers four providers × exit/timeout with no final newline, and asserts both the surviving diagnostic and the typed incident kind. `parseClaudeResponse` rejects `is_error`, `type:error` and `subtype:error_*`, so a zero-exit error envelope cannot become a response; the other three providers fail closed via `response-empty`/`identity-missing`. `TestW009ProgressIsBoundedWithoutSuppressingErrors` proves errors bypass the 200-notice cap and that `%q` neutralizes terminal escapes.
+            - **AC009.3** — legacy single-object and streamed final-result parsing both covered, duplicate finals rejected, 16 MiB overflow produces an explicit `output-limit` incident rather than a truncated verdict. Goroutine lifecycle is sound: `stopHeartbeat` is closed on every return path after the goroutine starts, and `defer <-heartbeatDone` joins it; `lockedWriter` serializes heartbeat and provider stderr.
+
+            **Findings — bounded, reversible follow-up (none invalidate sign-off)**
+
+            1. **Implemented coverage gap against RT009.3.** The signed-off definition names *split identity* among RT009.3's cases. In the supplied tests, the only split write is a Claude `assistant` event, where identity is pre-assigned. No supplied test writes a `thread.started` or `SESSION_ID:` record split across two `Write` calls, and `Request.OnSession` is `nil` in every supplied fixture, so the incremental checkpoint path is unexercised. This is the behaviour most directly at risk from the move to incremental decoding. **Remediation:** add one test that splits a native identity record across writes and asserts `OnSession` is invoked once with the correct identity. (Scoped to the supplied evidence; I could not enumerate other files in the package.)
+            2. **`plainFailure` retains only the last plain-text line.** `session_output.go:122` overwrites `plainFailure` per line, so a multi-line non-JSON failure on stdout surfaces only its final line on stderr, against AC009.2's "diagnostics remain visible". Impact is limited because provider stderr passes through live and unbuffered. **Remediation:** accumulate a bounded tail (up to the existing 4 KiB `maxDiagnostic`) instead of the last line, and cover it with a two-line plain-text failure case.
+            3. **`validation.org` OT009.1 is incomplete under TESTING.md.** A completed one-off entry must state the tested revision and the requirement it verifies. The entry gives `Build :: Local W009 source binary`, which is not a revision, and names no AC. **Remediation:** record the commit SHA and cite AC009.1/AC009.2. No audit findings, verdicts, round numbers or session IDs appear in `spec.org` or `validation.org` — both only link to `audits.yaml`, so the duplication rule is not triggered.
+
+            **Audit limitation (not a finding).** AC009.3's "final response only on stdout" is enforced where `Execute`'s `errorOutput` is bound, in `cmd/sdlc-harness`, which was not supplied. I verified the library side only: progress and diagnostics go exclusively to the injected `errorOutput`, and on success no captured stdout is echoed there. The cmd-layer wiring is unverified in this attempt.
+
+            **Observation (no remediation required).** `report` runs to about 60 lines with a three-deep error-message fallback chain, past CODING.md's tripwire. The function has one responsibility and the nesting is a linear fallback; decomposition is optional, not a defect.
+          updated: "2026-09-12T06:41:30Z"
+    - work_item: W009-audit-output
+      gate: definition
+      session_id: 8c629b3c-df69-468c-b5ef-f5a43d35cc0c
+      harness: claude
+      external_round: 1
+      status: passed
+      updated: "2026-09-12T06:49:13Z"
+      revision: 3775ba2 plus the supplied working-tree evidence
+      verdict: PROVISIONAL PASS
+      response: |-
+        GATE: definition
+        REVISION: 3775ba2 plus the supplied working-tree evidence
+        VERDICT: PROVISIONAL PASS
+
+        **Scope reviewed:** `specs/W009-audit-output/spec.org` and `validation.org` against `src/ISSUES.md`, `src/TESTING.md`, `src/CODING.md`, `docs/ARCHITECTURE.md`, `.sdlc/project.yaml`, with `runner.go`, `session_output.go`, `claude_output.go`, `main.go` and `help.md` read as as-built evidence only. All manifest files read in full.
+
+        **Audit-state check:** No findings, verdicts, statuses, round numbers or session IDs appear in either artefact. `validation.org`'s `Tested revision :: 3775ba2` is the one-off test's revision required by `TESTING.md`, not an audit record, and the `audits.yaml` reference is a link rather than a copy. No FAIL on that ground.
+
+        **Fidelity:** AC009.1/.2/.3 track the recorded operator intent (progress visibility, surviving failure diagnostics, uncontaminated final-response stdout) without inventing scope. Claude `stream-json --verbose`, the 16 MiB capture bound with an explicit `output-limit` incident, the 4 KiB diagnostic cap and error-envelope rejection are consequences of that authorized change, not new behaviour. Security section correctly refuses to widen tools, model or configuration and is honest that provider error text may itself carry data. Design matches the architecture output-contract paragraph and the harness help.
+
+        **Test definitions:** RT009.1–RT009.3 are behavioural, exercised through `Execute` with local executors and fixtures, deterministic, and explicitly excluded from metered regression. No test asserts source text. RT009.3's assertion on Claude's argument vector is accepted: that vector is the external provider contract, not an internal detail.
+
+        Bounded, reversible follow-up (none of it invalidates definition sign-off or requires a behaviour or design decision):
+
+        - **Finding 1 — OT is untraced in the specification.** `spec.org` defines only RTs and its summary says `live provider qualification is separate`, yet `validation.org` records executed OT009.1 - Live failed-provider diagnostic visibility as covering AC009.1 and AC009.2. Either define OT009.1 in the spec's Test Definitions with its bounds and add it to the relevant `Proved by` lines, or downgrade the `validation.org` claim to supporting evidence and correct the stale `Next step`. Documentary correction; pick one and make the two artefacts agree.
+        - **Finding 2 — two stated conditions have no named proof.** AC009.3's clause that streaming retains *existing timeout behaviour*, and the edge case that *progress or a result received before process termination does not cancel the deadline or establish PASS*, are not named in any RT. RT009.2 covers timeout only for diagnostic survival. Extend RT009.3's definition (or add one RT) to name a mid-stream result followed by non-zero exit or deadline expiry yielding no result.
+        - **Finding 3 — diagnostic bound is under-described.** Solution Design says diagnostics are *capped to 4 KiB*; the implemented and documented behaviour retains a 4 KiB **tail** for plain-text failure output, discarding earlier text. `help.md` states this; the spec should, since which end is dropped is the operationally relevant fact.
+        - **Observation, no action required unless inaccurate:** the 30-second liveness heartbeat is documented in `help.md` but is absent from both the Changes and Unchanged boundaries. If it predates this change, listing it under Unchanged would close the ambiguity for a later reader.
+      history:
+        - evidence:
+            - path: /Users/tigger/code/agents/sdlc/.sdlc/project.yaml
+              sha256: 7435fbc30502a8a150bf976a612f9355ec4fafad508f66042eaeddd0a70de02d
+              bytes: 307
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/help.md
+              sha256: b547c787384aed3651af02a5723ada8df31abba18e981b283af8767ebbddd3a1
+              bytes: 7920
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/main.go
+              sha256: db9b5832bcda6066ace5bad2dd81affad93fbcb3feee055f4a8f631087170612
+              bytes: 12358
+            - path: /Users/tigger/code/agents/sdlc/docs/ARCHITECTURE.md
+              sha256: 356458b6cc0ee5ad2164c5c7b7c4de310020062fdb59714423afdc0bba054eb2
+              bytes: 11966
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/claude_output.go
+              sha256: 3e87cff5a1f1b11016969cb6a5c39cb92283ebc3dc98822e40e07ca73459a616
+              bytes: 1170
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/runner.go
+              sha256: 71a7b709bef13289d34d70796cddb5fcc8eeb81472de73ac5e02125f32a41570
+              bytes: 13931
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/session_output.go
+              sha256: 7a0be31c111b9197a3afce539b0928028973496c0934e5b1221ef5d162ed7b93
+              bytes: 6016
+            - path: /Users/tigger/code/agents/sdlc/specs/W009-audit-output/spec.org
+              sha256: f773cd1e934f88dc2155ca6964ae4e43e39edfe93647aa2380c81f4fb2b94ca7
+              bytes: 4722
+            - path: /Users/tigger/code/agents/sdlc/specs/W009-audit-output/validation.org
+              sha256: 1a70d9fc416cebf3e2c097429f064db5fb8547c9a4b9509f321e01fb5c42e6e3
+              bytes: 1624
+            - path: /Users/tigger/code/agents/sdlc/src/CODING.md
+              sha256: f2a2511d89cbf407f0d96dc3845ee66264eb40eb18d638716475936f1fa9b723
+              bytes: 13368
+            - path: /Users/tigger/code/agents/sdlc/src/ISSUES.md
+              sha256: c92a4459092b8536936d9cb539652745cd161ba9030d6283815d6abf57983453
+              bytes: 10702
+            - path: /Users/tigger/code/agents/sdlc/src/TESTING.md
+              sha256: 5ed902d49dbb8321ea093fd60db68d5195e59c95c763c02e4ca0c09f6fa1e932
+              bytes: 13561
+          round: 1
+          revision: 3775ba2 plus the supplied working-tree evidence
+          verdict: PROVISIONAL PASS
+          response: |-
+            GATE: definition
+            REVISION: 3775ba2 plus the supplied working-tree evidence
+            VERDICT: PROVISIONAL PASS
+
+            **Scope reviewed:** `specs/W009-audit-output/spec.org` and `validation.org` against `src/ISSUES.md`, `src/TESTING.md`, `src/CODING.md`, `docs/ARCHITECTURE.md`, `.sdlc/project.yaml`, with `runner.go`, `session_output.go`, `claude_output.go`, `main.go` and `help.md` read as as-built evidence only. All manifest files read in full.
+
+            **Audit-state check:** No findings, verdicts, statuses, round numbers or session IDs appear in either artefact. `validation.org`'s `Tested revision :: 3775ba2` is the one-off test's revision required by `TESTING.md`, not an audit record, and the `audits.yaml` reference is a link rather than a copy. No FAIL on that ground.
+
+            **Fidelity:** AC009.1/.2/.3 track the recorded operator intent (progress visibility, surviving failure diagnostics, uncontaminated final-response stdout) without inventing scope. Claude `stream-json --verbose`, the 16 MiB capture bound with an explicit `output-limit` incident, the 4 KiB diagnostic cap and error-envelope rejection are consequences of that authorized change, not new behaviour. Security section correctly refuses to widen tools, model or configuration and is honest that provider error text may itself carry data. Design matches the architecture output-contract paragraph and the harness help.
+
+            **Test definitions:** RT009.1–RT009.3 are behavioural, exercised through `Execute` with local executors and fixtures, deterministic, and explicitly excluded from metered regression. No test asserts source text. RT009.3's assertion on Claude's argument vector is accepted: that vector is the external provider contract, not an internal detail.
+
+            Bounded, reversible follow-up (none of it invalidates definition sign-off or requires a behaviour or design decision):
+
+            - **Finding 1 — OT is untraced in the specification.** `spec.org` defines only RTs and its summary says `live provider qualification is separate`, yet `validation.org` records executed OT009.1 - Live failed-provider diagnostic visibility as covering AC009.1 and AC009.2. Either define OT009.1 in the spec's Test Definitions with its bounds and add it to the relevant `Proved by` lines, or downgrade the `validation.org` claim to supporting evidence and correct the stale `Next step`. Documentary correction; pick one and make the two artefacts agree.
+            - **Finding 2 — two stated conditions have no named proof.** AC009.3's clause that streaming retains *existing timeout behaviour*, and the edge case that *progress or a result received before process termination does not cancel the deadline or establish PASS*, are not named in any RT. RT009.2 covers timeout only for diagnostic survival. Extend RT009.3's definition (or add one RT) to name a mid-stream result followed by non-zero exit or deadline expiry yielding no result.
+            - **Finding 3 — diagnostic bound is under-described.** Solution Design says diagnostics are *capped to 4 KiB*; the implemented and documented behaviour retains a 4 KiB **tail** for plain-text failure output, discarding earlier text. `help.md` states this; the spec should, since which end is dropped is the operationally relevant fact.
+            - **Observation, no action required unless inaccurate:** the 30-second liveness heartbeat is documented in `help.md` but is absent from both the Changes and Unchanged boundaries. If it predates this change, listing it under Unchanged would close the ambiguity for a later reader.
+          updated: "2026-09-12T06:46:58Z"

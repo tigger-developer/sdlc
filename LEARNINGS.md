@@ -1,5 +1,14 @@
 # SDLC Standards: Design Learnings
 
+## Reading an authority does not expand project scope
+
+An infrastructure contract, consumed API, or SDLC instruction may govern the
+current project without making its owning project part of the task. Report
+external blockers; do not take over their diagnosis or design without explicit
+operator scope. A filesystem sandbox can constrain writes, but cannot replace
+this responsibility boundary. Instruction compliance and enforced isolation are
+separate claims.
+
 ## Distinguish provider buffering from runner buffering
 
 A final-only provider format cannot emit progress before completion; a runner

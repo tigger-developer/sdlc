@@ -17,7 +17,8 @@
 
 ** OT009.1 - Live failed-provider diagnostic visibility
 - Date :: 2026-09-12.
-- Build :: Local W009 source binary, before deployment.
+- Tested revision :: =3775ba2= (the local source binary had the same implementation before that commit was created).
+- Covers :: [[file:spec.org::#ac-009-1][AC009.1 - Progress is observable before exit]] and [[file:spec.org::#ac-009-2][AC009.2 - Errors survive failure]].
 - Scope :: One configured Claude invocation for this work item's change-scoped review; no retry.
 - Observation :: System and assistant event notices appeared, followed by the provider's OAuth-expired diagnostic and unsuccessful exit. No final response was emitted on stdout.
 - Verification result :: PASS for live progress and failure-diagnostic visibility, not evidence of a successful audit or delivery closure.

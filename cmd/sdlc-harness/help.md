@@ -94,7 +94,7 @@ Output
   start and resume; the other adapters retain their existing output modes.
 - Provider error fields are reported even on unsuccessful exits or timeout,
   including a final record without a newline. Error text is bounded to 4 KiB
-  before terminal escaping. Plain-text startup failures retain their last line;
+  before terminal escaping. Plain-text startup failures retain a 4 KiB tail;
   unknown structured payloads are not dumped.
 - Captured provider stdout is limited to 16 MiB. Exceeding it fails explicitly
   with `output-limit`; it never yields a silently truncated verdict.

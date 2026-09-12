@@ -78,7 +78,7 @@ classification; it is provenance, not current state.
 
 * Work items
 
-** BLOCKED W009 - Stream audit progress and preserve provider errors :defect:
+** REVIEW W009 - Stream audit progress and preserve provider errors :defect:
 :PROPERTIES:
 :CUSTOM_ID: w-009
 :PRIORITY: P1

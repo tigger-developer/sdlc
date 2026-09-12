@@ -8,10 +8,10 @@
 - Before :: Provider stdout is buffered; failed exits discard its diagnostics.
 - After :: *Concise events* reach *stderr promptly*; stdout remains *final response only*.
 - Changes :: Claude streaming, incremental event handling, bounded capture, error reporting.
-- Unchanged :: Permissions, configuration, audit criteria, timeout, round limits and session reuse.
+- Unchanged :: Permissions, configuration, audit criteria, timeout, 30-second liveness heartbeat, round limits and session reuse.
 - Edge cases :: Split writes, missing final newline, error envelopes, timeout, excess output.
 - Decisions :: Operator authorized fixing harness buffering; this is separate from the isolation prototype.
-- Next step :: Verify with local provider fixtures; live provider qualification is separate.
+- Next step :: Present local verification and the bounded live diagnostic check for operator closure.
 
 -----
 
@@ -30,7 +30,7 @@ audit session is authorized by this change.
 :CUSTOM_ID: ac-009-1
 :END:
 - Provider events produce *bounded stderr progress before process exit*, without dumping prompts or tool payloads.
-- Proved by :: [[#rt-009-1][RT009.1 - Incremental output]]
+- Proved by :: [[#rt-009-1][RT009.1 - Incremental output]], [[#ot-009-1][OT009.1 - Live failed-provider diagnostics]]
 
 ** AC009.2 - Errors survive failure
 :PROPERTIES:
@@ -38,7 +38,7 @@ audit session is authorized by this change.
 :END:
 - *Provider error diagnostics remain visible* on failure or timeout, including a final unterminated record.
 - Error envelopes cannot become successful audit responses, even with a zero process exit.
-- Proved by :: [[#rt-009-2][RT009.2 - Failure diagnostics]]
+- Proved by :: [[#rt-009-2][RT009.2 - Failure diagnostics]], [[#ot-009-1][OT009.1 - Live failed-provider diagnostics]]
 
 ** AC009.3 - Final response and recovery stay intact
 :PROPERTIES:
@@ -70,7 +70,17 @@ audit session is authorized by this change.
 :END:
 - Covers :: [[#ac-009-3][AC009.3 - Final response and recovery]]
 - Start/resume fixtures verify Claude stream arguments, final-result extraction, legacy JSON compatibility, split identity and excess-output rejection.
+- A result emitted before nonzero exit or deadline expiry must yield an incident, not a successful response; streaming must not cancel the deadline.
 - Retention :: All RTs are local, deterministic tests; no metered provider calls in regression packs.
+
+** OT009.1 - Live failed-provider diagnostics
+:PROPERTIES:
+:CUSTOM_ID: ot-009-1
+:END:
+- Covers :: [[#ac-009-1][AC009.1 - Progress before exit]], [[#ac-009-2][AC009.2 - Errors survive failure]]
+- Scope :: One configured Claude invocation for this work item, bounded by the configured timeout; no automatic retry or deliberate credential changes.
+- Observe :: Event notices before termination and a readable diagnostic on provider failure, with no successful final response on stdout. If no failure occurs, record that failure visibility was not exercised.
+- Retention :: One-off evidence in =validation.org=, never a metered regression test.
 
 * Edge Cases
 
@@ -88,7 +98,9 @@ provider stderr and concise progress share the existing synchronized writer.
 Claude start/resume use =--output-format stream-json --verbose=. Parse its final
 result record, retaining single-object compatibility. Existing providers keep
 their invocation modes. Bound captured stdout to 16 MiB; cap individual displayed
-diagnostics to 4 KiB and progress notices to 200 per invocation. Flush the final
+diagnostics to 4 KiB before escaping and progress notices to 200 per invocation.
+For plain-text failures, retain the final 4 KiB tail, discarding earlier text.
+Flush the final
 partial record after the process exits, including unsuccessful exits.
 
 ** Security impact

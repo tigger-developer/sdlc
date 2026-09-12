@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+## v3.2.13 - 2026-09-12
+
+- Make project scope and the cwd write boundary explicit in MAIN. Consulting an
+  external authority does not authorize work on its owning project. No harness
+  security settings are changed by this documentation rule.
+- Preserve a bounded multiline provider-error tail; verify split native-session
+  records checkpoint exactly once. Add revision and requirement traceability
+  to the one-off output check. Retain the resumed audit evidence in its canonical
+  record after operator-restored authentication.
+
 ## v3.2.12 - 2026-09-12
 
 - Stream Claude audit events and relay bounded provider progress and error
