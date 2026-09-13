@@ -2,35 +2,55 @@ version: 1
 audits:
     - work_item: W014-installer-trash
       gate: implementation
-      session_id: 20260913_001628_1ad53d
+      session_id: 20260913_005910_0831a0
       harness: hermes
       provider: nous
       model: z-ai/glm-5.3
       configured:
-        harness: claude
-        model: claude-opus-5
+        harness: hermes
+        provider: nous
+        model: z-ai/glm-5.3
       previous_sessions:
         - session_id: 61f1fb22-7337-4603-b857-4abf050d1d88
           harness: claude
           model: claude-opus-5
           reason: resume-failed-fallback
           updated: "2026-09-12T23:16:26Z"
-      external_round: 4
+        - session_id: 20260913_001628_1ad53d
+          harness: hermes
+          provider: nous
+          model: z-ai/glm-5.3
+          reason: configuration-changed
+          updated: "2026-09-12T23:59:09Z"
+      external_round: 5
       status: passed
-      updated: "2026-09-12T23:19:47Z"
-      revision: W014 candidate (production-delta.patch cd3e815b plus RT014.5 response-isolation remediation; recovery.go 42048da1)
+      updated: "2026-09-12T23:59:42Z"
+      revision: 'W014 installer follow-up (installer-alias.patch 6c3d8797: sdlc-audit alias and retired command-marker cleanup; retired_commands.go 7f0b9b7)'
       verdict: PASS
       response: |-
         GATE: implementation
-        REVISION: W014 candidate (production-delta.patch cd3e815b plus RT014.5 response-isolation remediation; recovery.go 42048da1)
+        REVISION: W014 installer follow-up (installer-alias.patch 6c3d8797: sdlc-audit alias and retired command-marker cleanup; retired_commands.go 7f0b9b7)
 
         VERDICT: PASS
 
-        Delta since the prior round: recovery.go now truncates the CLI-owned temporary response file before every attempt, help.md documents the clearing, and the new fallback_output_test.go (RT014.5) verifies a failed primary's stale verdict cannot become the fallback's output. The prior verdict-accepting defect is resolved with the correct, minimal mechanism: truncation before each launch, fail-closed via the existing response-empty incident.
+        Reviewed the implemented tests first (retired_commands_test.go, the extended TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards), then the production delta, against the recorded operator-authorized scope in work.org (AC014.6, AC014.7, RT014.6).
 
-        Verified: RT014.5 uses a real process double where the primary writes a plausible PASS then exits nonzero and the fallback writes nothing; the harness must reject the empty response and emit no stdout verdict, which the test asserts. The truncation is unconditional per attempt, so it also covers same-adapter primary/fallback configurations, not just cross-harness ones. Evidence-integrity checks remain before invocation and are not bypassed. work.org's RT014.5 definition and validation.org's RED/GREEN record cover the new test without duplicating audit state.
+        AC014.6 — sdlc-audit alias
+        - The alias is planned through the existing planManagedLink/synchronizeLink mechanism, targeting the deployed ~/.agents/sdlc/bin/sdlc-harness, never the checkout. The integration test asserts the link target, that the linked binary serves the harness bytes, and that the pre-existing "old audit runner" file at that path is recoverable through the trash double rather than deleted in place.
+        - "sdlc-audit" was correctly removed from the plain exact-retirement list so the link replacement path governs it; the trash-before-replace ordering in synchronizeLink preserves old bytes. Idempotence is covered by the no-op second run asserting "All detected SDLC copies are current" and unchanged operator-owned bytes.
+        - The Makefile uninstall target removes the public alias, matching the recorded design; workflow skills keep their absolute harness path.
 
-        Installer Trash replacement, companion deployer coverage, and the fallback-eligibility/budget/provenance behaviour previously reviewed are unchanged and remain conformant to the recorded operator-authorized scope. Pending operator host validation of live Trash recovery remains closure evidence, not a gate condition.
+        AC014.7 — retired command remnants
+        - retired_commands.go recognizes only enumerated historical SDLC command names carrying an .sdlc(-v2/v3)?-retired(-N)? marker, including numbered variants, restricted to regular files and symlinks. Directories, .bak files, unrelated names (personal.*, marker-like non-SDLC names) and symlink targets are excluded; the targeted test asserts each of these preservation cases plus dangling-symlink recovery and an empty repeat plan.
+        - Cleanup is applied to both local bin and deployed bin via the existing bounded trashArtifact (literal exec, Lstat absence check, failure stops the batch), so no new executable, permission or shell evaluation was introduced. The missing-directory case is handled.
+
+        Design conformance and boundaries
+        - The delta reuses the existing managed-link planner, retirement plan type and Trash execution without new configuration knobs, matching the recorded design and the instruction not to redesign installer configuration.
+        - The regex is a compact expression of the exact "known SDLC command names with historical markers" set from the design, not a general sweep; the ABOUTME header and inline comment state its narrow contract. No unauthorized scope or unjustified complexity found.
+        - RT014.6's stated fixtures (recovered files/links, preserved targets and unrelated entries, missing directories, empty second plan) are all present in the implemented tests, using the existing trash command double — no host Trash or metered service.
+        - RED/GREEN evidence for this delta is recorded in validation.org without duplicating audit state; work.org carries only the scope and acceptance criteria.
+
+        No blocking findings. Pending operator host validation of live Trash recovery and the real alias remains closure evidence, not an implementation-gate condition.
       history:
         - cache_key: sha256:f09a411725dbf7396f375691e4bc3122cce9ecc8ced49a613f69ceb21dd05cdd
           session_id: 61f1fb22-7337-4603-b857-4abf050d1d88
@@ -431,6 +451,85 @@ audits:
 
             Installer Trash replacement, companion deployer coverage, and the fallback-eligibility/budget/provenance behaviour previously reviewed are unchanged and remain conformant to the recorded operator-authorized scope. Pending operator host validation of live Trash recovery remains closure evidence, not a gate condition.
           updated: "2026-09-12T23:19:15Z"
+        - cache_key: sha256:6c9049a1b44051e2d23d4e038a3b2940a8eab711e85eb27673bb96fda0c836bc
+          session_id: 20260913_005910_0831a0
+          harness: hermes
+          provider: nous
+          model: z-ai/glm-5.3
+          evidence:
+            - path: /Users/tigger/code/agents/sdlc/Makefile
+              sha256: e4697af639ac2f3a3a797c4aaf73652df3d01705a0d5a0b26c90f233c9295848
+              bytes: 2223
+            - path: /Users/tigger/code/agents/sdlc/docs/ARCHITECTURE.md
+              sha256: 64c44ee3434a59639ee5abb6fdfda0fe20db96c50a49470d96c2689f87d7bead
+              bytes: 15306
+            - path: /Users/tigger/code/agents/sdlc/docs/work.org
+              sha256: deb50f2e70dec03746291573543ed4ae0839db82d1fa06e50c510234e2b24644
+              bytes: 12150
+            - path: /Users/tigger/code/agents/sdlc/internal/installer/installer.go
+              sha256: fa2ebfcee435ee0e748eae4f80ecb7edd5e8fc658686beaa7b283c7a52da7c23
+              bytes: 61169
+            - path: /Users/tigger/code/agents/sdlc/internal/installer/installer_v3_test.go
+              sha256: 3863d49d04354c63524f8519eef1da3ae0981127d45d7f6047c2fe03f417258d
+              bytes: 16319
+            - path: /Users/tigger/code/agents/sdlc/internal/installer/retired_commands.go
+              sha256: 7f0b9b722b75783bb5611fbe039363bdbcc5594aa6f04a026ff05e6e13d716c4
+              bytes: 1177
+            - path: /Users/tigger/code/agents/sdlc/internal/installer/retired_commands_test.go
+              sha256: 93c23963f6497af68b9dd23b5daa0ef922ee490dce0179e9cc03e132c729e7ab
+              bytes: 2016
+            - path: /Users/tigger/code/agents/sdlc/internal/installer/trash.go
+              sha256: 16fc3436f6714fde890fa43377d06fde8b5ec14fd85d719d101f3763ee3e321a
+              bytes: 955
+            - path: /Users/tigger/code/agents/sdlc/internal/installer/trash_test.go
+              sha256: 14d425fe0d52b73439035b21261a06fe17aaac70d86bae89614996529a99a4ab
+              bytes: 4195
+            - path: /Users/tigger/code/agents/sdlc/specs/W014-installer-trash/validation.org
+              sha256: 5d15f6bac84c6aec2344bc20ff1428e789f7d288152b2c626fde888bf81f838f
+              bytes: 3604
+            - path: /Users/tigger/code/agents/sdlc/src/ARCHITECTURE.md
+              sha256: bd7a66ffd967010eefb8dc7abe64b059994c7b0f44ed5f5c30ec73e354f5b7f7
+              bytes: 8154
+            - path: /Users/tigger/code/agents/sdlc/src/CODING.md
+              sha256: a69a5d3b7ce3604b093703d72ab0de1bb6d607f140baab17292d209054fe902f
+              bytes: 13502
+            - path: /Users/tigger/code/agents/sdlc/src/TESTING.md
+              sha256: 5ed902d49dbb8321ea093fd60db68d5195e59c95c763c02e4ca0c09f6fa1e932
+              bytes: 13561
+            - path: /Users/tigger/code/agents/sdlc/src/technologies/GO.md
+              sha256: 63a41c24322b2c4144367b69777528b023a30222593c462b0696df98b1967917
+              bytes: 7301
+            - path: /var/folders/wn/zk3zl2050rd7qkfgkfzn6rwr0000gp/T/sdlc-audit-reset.v82IGjSSJD/installer-alias.patch
+              sha256: 6c3d879760d03b0de91f2ee198e3c1dbec137b940992c248d44447c39fb261bd
+              bytes: 7646
+          round: 5
+          revision: 'W014 installer follow-up (installer-alias.patch 6c3d8797: sdlc-audit alias and retired command-marker cleanup; retired_commands.go 7f0b9b7)'
+          verdict: PASS
+          response: |-
+            GATE: implementation
+            REVISION: W014 installer follow-up (installer-alias.patch 6c3d8797: sdlc-audit alias and retired command-marker cleanup; retired_commands.go 7f0b9b7)
+
+            VERDICT: PASS
+
+            Reviewed the implemented tests first (retired_commands_test.go, the extended TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards), then the production delta, against the recorded operator-authorized scope in work.org (AC014.6, AC014.7, RT014.6).
+
+            AC014.6 — sdlc-audit alias
+            - The alias is planned through the existing planManagedLink/synchronizeLink mechanism, targeting the deployed ~/.agents/sdlc/bin/sdlc-harness, never the checkout. The integration test asserts the link target, that the linked binary serves the harness bytes, and that the pre-existing "old audit runner" file at that path is recoverable through the trash double rather than deleted in place.
+            - "sdlc-audit" was correctly removed from the plain exact-retirement list so the link replacement path governs it; the trash-before-replace ordering in synchronizeLink preserves old bytes. Idempotence is covered by the no-op second run asserting "All detected SDLC copies are current" and unchanged operator-owned bytes.
+            - The Makefile uninstall target removes the public alias, matching the recorded design; workflow skills keep their absolute harness path.
+
+            AC014.7 — retired command remnants
+            - retired_commands.go recognizes only enumerated historical SDLC command names carrying an .sdlc(-v2/v3)?-retired(-N)? marker, including numbered variants, restricted to regular files and symlinks. Directories, .bak files, unrelated names (personal.*, marker-like non-SDLC names) and symlink targets are excluded; the targeted test asserts each of these preservation cases plus dangling-symlink recovery and an empty repeat plan.
+            - Cleanup is applied to both local bin and deployed bin via the existing bounded trashArtifact (literal exec, Lstat absence check, failure stops the batch), so no new executable, permission or shell evaluation was introduced. The missing-directory case is handled.
+
+            Design conformance and boundaries
+            - The delta reuses the existing managed-link planner, retirement plan type and Trash execution without new configuration knobs, matching the recorded design and the instruction not to redesign installer configuration.
+            - The regex is a compact expression of the exact "known SDLC command names with historical markers" set from the design, not a general sweep; the ABOUTME header and inline comment state its narrow contract. No unauthorized scope or unjustified complexity found.
+            - RT014.6's stated fixtures (recovered files/links, preserved targets and unrelated entries, missing directories, empty second plan) are all present in the implemented tests, using the existing trash command double — no host Trash or metered service.
+            - RED/GREEN evidence for this delta is recorded in validation.org without duplicating audit state; work.org carries only the scope and acceptance criteria.
+
+            No blocking findings. Pending operator host validation of live Trash recovery and the real alias remains closure evidence, not an implementation-gate condition.
+          updated: "2026-09-12T23:59:09Z"
     - work_item: W014-installer-trash
       gate: definition
       session_id: 20260913_002014_0e6726
