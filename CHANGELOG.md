@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## v3.2.31 - 2026-09-13
+
+- Require `useful-be` to read the project's Vision and Architecture in full,
+  following configured authorities or locating current documents when paths
+  are absent. Surface missing or ambiguous authorities rather than substituting
+  the README or work-item specification.
+
 ## v3.2.30 - 2026-09-13
 
 - Audit normal delivery as a finished solution and test package, not per code edit.
