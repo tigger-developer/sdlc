@@ -1,5 +1,14 @@
 # SDLC Standards: Design Learnings
 
+## Audit findings require resolution, not unquestioning implementation
+
+Auditing every edit wastes rounds on incomplete packages. Normal delivery should
+reach a coherent solution and test package first, then address the whole finding
+set before rerun. Requiring remediation without allowing a reasoned challenge can
+turn auditor mistakes into unauthorized scope. Every finding needs either a valid
+remediation or an evidence-backed challenge; unresolved disputes belong with the
+operator, and the harness remains the sole audit-result recorder.
+
 ## Retained context must not imply a lifetime retry cap
 
 Reusing an auditor across delivery sessions saves context, but its lifetime

@@ -40,6 +40,9 @@ evidence_instructions: |
   writes or provide an immutable snapshot. Files read beyond this manifest are not covered by those
   checks. The harness alone persists audit results and each attempt's manifest in audits.yaml,
   including interrupted attempts. Supplied does not mean read: finish any unread evidence on resume.
+  Evaluate evidence-backed challenges against the authorized scope and applicable standards.
+  Withdraw unsupported or out-of-scope findings explicitly; for findings retained, explain the
+  concrete violation and why the challenge does not resolve it. A challenge alone is not remediation.
 gates:
   definition:
     prompt: |

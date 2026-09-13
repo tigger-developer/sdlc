@@ -95,10 +95,13 @@ observe GREEN, and keep the specification synchronized if implementation
 reveals an authorized routine detail. Do not change signed-off behaviour without
 operator authority.
 
-Apply the composite implementation gate through the installed audit harness
-with `--phase audit --gate implementation`, using `audits.yaml` for the
-retained session mapping. Remediate **all** findings before resuming that same
-session; never resubmit a known FAIL unchanged or remediate findings piecemeal.
+Finish the authorized solution and its tests before auditing; do not audit each
+file or code edit. Apply the composite implementation gate through the installed
+audit harness with `--phase audit --gate implementation`, using `audits.yaml` for the
+retained session mapping. Before resuming, address **every** finding as a batch:
+remediate valid findings and challenge incorrect or out-of-scope findings with
+evidence under `~/.agents/sdlc/AUDITS.md`. Raise doubtful or unresolved disputes
+to the operator; never silently waive findings or expand scope to obtain a PASS.
 On timeout, follow the harness recovery diagnostic: in HANDS-OFF, resume
 automatically within its limit, using the retained session. Timeout without a
 verdict does not require an artificial edit or justify a handback by itself.

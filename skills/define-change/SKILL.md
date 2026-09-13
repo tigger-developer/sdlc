@@ -53,9 +53,11 @@ change-specific `#+TITLE:`, with its eight level-two categories and short bullet
 Its summary must accurately and completely represent the detail below
 its section break. Invoke the composite definition audit through the installed
 audit harness with `--phase audit --gate definition`, using `audits.yaml` for
-the retained session mapping. Remediate **all** findings before resuming that
-same session; never resubmit a known FAIL unchanged or remediate findings
-piecemeal. On timeout, follow the harness recovery diagnostic: in HANDS-OFF,
+the retained session mapping. Before resuming, address **every** finding as a batch:
+remediate valid findings and challenge incorrect or out-of-scope findings with
+evidence under `~/.agents/sdlc/AUDITS.md`. Raise doubtful or unresolved disputes
+to the operator; never silently waive findings or expand scope to obtain a PASS.
+On timeout, follow the harness recovery diagnostic: in HANDS-OFF,
 resume automatically within its limit, using the retained session. Timeout
 without a verdict does not require an artificial edit. Do not invoke individual audit skills.
 

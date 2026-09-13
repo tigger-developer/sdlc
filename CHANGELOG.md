@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## v3.2.30 - 2026-09-13
+
+- Audit normal delivery as a finished solution and test package, not per code edit.
+  Address every finding before rerun: batch valid remediations, challenge incorrect
+  or out-of-scope findings with evidence, and escalate doubtful or unresolved disputes.
+  Require the auditor to reassess challenges explicitly without expanding scope.
+
 ## v3.2.29 - 2026-09-13
 
 - Make audit help a compact usage-and-switches reference. Retain the detailed

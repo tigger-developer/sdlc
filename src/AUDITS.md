@@ -41,14 +41,26 @@ from a valid paired or emergency route.
 Test definitions and test code are different audit subjects. Definitions belong
 to the definition context; implemented tests share the production-code context.
 Do not add a mandatory external test-code audit between RED and implementation.
+In normal delivery, finish the authorized solution and its tests before invoking
+the implementation gate. Audit the change package, not each file or code edit.
 
 For either gate:
 
 1. Invoke `~/.agents/sdlc/bin/sdlc-harness` with the gate and exact evidence.
-2. On `FAIL`, remediate **all** findings before resuming the recorded session.
-3. Never resubmit a known FAIL unchanged or manually create a replacement session.
+2. On `FAIL`, address **every** finding before resuming: remediate all valid
+   findings together and supply an evidence-backed challenge for each disputed one.
+3. Never split known findings across remediation rounds or manually create a
+   replacement session. Unchanged artefacts may be
+   resubmitted with a substantive challenge, not merely to seek another verdict.
 4. Stop after the configured maximum rounds, or for a decision that cannot be
    made safely from the authorities.
+
+An auditor can be wrong. Challenge incorrect findings or scope overreach in the
+resumed audit's caller context, citing the authorized scope, applicable standard
+or concrete evidence. Do not implement unauthorized expansion to obtain a PASS.
+If unsure, or the dispute remains unresolved, raise it to the operator. A challenge
+does not itself dismiss a finding or change the verdict; only the harness records
+the auditor's reassessment in `audits.yaml`.
 
 The harness stores one session mapping per work item and gate in `audits.yaml`.
 The first invocation starts a session; later invocations resume its recorded
