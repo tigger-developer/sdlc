@@ -78,7 +78,6 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 	flags.Var(&inputs, "input", "exact evidence file to include; repeat as needed")
 	flags.Usage = func() {
 		printTopLevelHelp(errorOutput)
-		flags.PrintDefaults()
 	}
 	if err := flags.Parse(arguments[1:]); err != nil {
 		if errors.Is(err, flag.ErrHelp) {

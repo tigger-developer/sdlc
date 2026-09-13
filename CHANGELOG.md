@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## v3.2.29 - 2026-09-13
+
+- Make audit help a compact usage-and-switches reference. Retain the detailed
+  examples and recovery guide in installed `HARNESS.md`; avoid printing the
+  options twice for subcommand help. Audit behaviour is unchanged.
+
 ## v3.2.28 - 2026-09-13
 
 - Expose `sdlc-audit` on PATH as a symlink to the deployed `sdlc-harness`;
