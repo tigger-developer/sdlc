@@ -35,6 +35,11 @@ mode is not a global default: it is activated only by invoking this delivery
 workflow, and it does not authorize changes to signed-off behaviour or other
 human-only decisions.
 
+Include any required per-ticket live OT budget in that preflight, following
+`TESTING.md`'s **Hands-off OT budget** rule. Record the approved bounds and
+conservative expenditure estimates in the hands-off decision log; no billing
+integration is needed. UTs and configured SDLC audits are outside this budget.
+
 On entering HANDS-OFF, read
 `~/.agents/skills/deliver-change/references/native-goal.md` and resolve its
 budgets before implementation. Activate the current harness's native goal
@@ -95,7 +100,7 @@ observe GREEN, and keep the specification synchronized if implementation
 reveals an authorized routine detail. Do not change signed-off behaviour without
 operator authority.
 
-Finish the authorized solution and its tests before auditing; do not audit each
+Finish the authorized solution and its automated tests before auditing; do not audit each
 file or code edit. Apply the composite implementation gate through the installed
 audit harness with `--phase audit --gate implementation`, using `audits.yaml` for the
 retained session mapping. Before resuming, address **every** finding as a batch:
@@ -106,7 +111,9 @@ On timeout, follow the harness recovery diagnostic: in HANDS-OFF, resume
 automatically within its limit, using the retained session. Timeout without a
 verdict does not require an artificial edit or justify a handback by itself.
 Do not invoke individual audit skills or re-audit the signed-off definition.
-After effective
-PASS, execute final OT and UT checks, record all results in `validation.org`,
-update every affected project document, and return the change for operator
-closure. Do not claim closure yourself.
+After effective PASS, execute final OTs within authorized bounds, record results
+in `validation.org`, and update every affected project document. In HANDS-OFF,
+defer UTs until all other delivery work is delivered: leave them PENDING for the
+operator and list them at handback, alongside any genuinely blocked work. Do not
+pause otherwise executable delivery for UT participation. Return the change for
+operator validation and closure; do not claim closure yourself.

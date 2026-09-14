@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+## v3.2.33 - 2026-09-14
+
+- Establish a per-ticket operator-approved budget for metered hands-off OTs,
+  using conservative estimates rather than billing integrations. Preserve the
+  allowance across resumed delivery and continue unblocked work when an OT
+  cannot run within budget. Defer UTs to the operator after other delivery work;
+  configured audits remain separately authorized and metered RTs prohibited.
+
+## v3.2.32 - 2026-09-14
+
+- Administrative tag only: published against the v3.2.31 commit after a local
+  commit-hook failure. Contains no OT-budget changes; use v3.2.33 for those.
+
 ## v3.2.31 - 2026-09-13
 
 - Require `useful-be` to read the project's Vision and Architecture in full,

@@ -1,5 +1,13 @@
 # SDLC Standards: Design Learnings
 
+## Budget unattended verification without building a billing system
+
+A ticket-level OT allowance permits useful hands-off verification without
+per-call interruptions. Conservative cost estimates and explicit execution
+bounds are enough; account-balance APIs and budget tooling add unrelated scope.
+UTs wait for the operator, while configured audits retain their own authorization.
+Exhausting an OT allowance defers that verification, not other executable work.
+
 ## Audit findings require resolution, not unquestioning implementation
 
 Auditing every edit wastes rounds on incomplete packages. Normal delivery should

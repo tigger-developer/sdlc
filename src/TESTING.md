@@ -239,6 +239,28 @@ One authorization covers only those recorded bounds. Do not poll, broaden the
 operation, or repeat it beyond them. Metered checks remain prohibited from
 persistent regression suites and repeatedly triggered automation.
 
+### Hands-off OT budget
+
+When hands-off delivery needs cost-incurring live OTs, establish one
+**operator-approved total budget for the ticket** during preflight. Reuse an
+existing explicit authorization covering those operations; otherwise ask once,
+not per call. Record the amount, currency, covered operations, retry and resource
+lifetime limits, and estimated expenditure in the spec's hands-off decision log.
+Resuming delivery does not reset the allowance.
+
+**Conservative estimates are sufficient**, using expected unit costs and
+operation counts, including retries and resource lifetime. Do not build billing
+integrations, query account balances, or add budget-management tooling. Never
+start an operation whose cost cannot reasonably be bounded within the remaining
+allowance. If the budget is missing, exhausted or insufficient, defer that OT,
+continue other unblocked work, and report outstanding verification at handback.
+Do not imply a deferred test passed or authorize further spending yourself.
+
+**UTs are outside this budget and hands-off execution**: leave them PENDING for
+operator participation after all other delivery work, or report any genuine
+remaining blockers. Configured SDLC audits remain separately authorized under
+their existing limits. An OT budget never permits metered checks in RT packs.
+
 ## Coverage and quality
 
 Coverage reports locate unexercised code; they do not prove useful assertions.
