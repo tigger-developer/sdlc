@@ -1,5 +1,5 @@
 #+TITLE: WNNN - [Concise change-specific title]
-#+SCHEMA: 7
+#+SCHEMA: 8
 #+SUBTITLE: Unified change specification
 #+STARTUP: overview
 #+OPTIONS: toc:2 num:nil
@@ -20,7 +20,9 @@ Keep the opening section named =Synopsis=; do not repeat the document title
 as its headline. Preserve its =CUSTOM_ID: summary= for stable links.
 
 Apply the ABC presentation contract in =ISSUES.md=. Retain the core level-one
-sections. Use level-two Synopsis categories with short bullets, level-two
+sections. Follow =DOCUMENTATION.md=: state the required behaviour and technical
+rationale, not who requested or approved them. Keep personal names out of the spec.
+Use level-two Synopsis categories with short bullets, level-two
 records elsewhere, and deeper headings only for genuine children. Subordinate
 design/quality sections are optional when irrelevant; security impact is always
 required. Use description lists for labelled facts, not paragraphs disguised
@@ -66,8 +68,9 @@ disposition in =feedback.yaml= before removing its annotation. Unresolved feedba
 stays visible; no annotation records or blocks, even resolved or empty ones, may
 remain at definition audit or sign-off. Use the annotation tool's documented
 semantics, not guessed syntax. Ordinary authoring comments are not annotations.
-Only explicit operator sign-off may replace =OPERATOR_SIGNOFF= with the authority,
-date and approval scope. Design approval does not override an implementation hold.
+Only explicit operator sign-off may replace =OPERATOR_SIGNOFF= with
+=APPROVED YYYY-MM-DD=; add scope only where approval is limited. Do not name or
+paraphrase the approver. Design approval does not override an implementation hold.
 A material specification change requires renewed operator approval and current
 audit evidence: reset operator sign-off to PENDING and move the work item to
 REVIEW, preserving history. Never edit the audit record directly.
@@ -107,7 +110,7 @@ REVIEW, preserving history. Never edit the audit record directly.
 
 ** Decisions
 
-- [Resolved operator decision that constrains delivery.]
+- [Resolved constraint or design choice, stated directly.]
 
 ** Next step
 
@@ -172,7 +175,7 @@ implementation as the requirement.]
 
 ** Decisions
 
-- [Decision already made by the operator, with enough detail to implement.]
+- [Established decision, stated directly with enough detail to implement.]
 
 ** Unresolved blockers
 
@@ -267,7 +270,7 @@ to reformat cases. Optional table layout:
 :END:
 
 - Covers :: [[#ac-nnn-2][ACNNN.2 - Descriptive boundary]]
-- Reviewer :: Operator or named user role.
+- Validation method :: User validation; specify a role only where relevant.
 - Procedure :: [Short human validation procedure.]
 - Expected :: [What the reviewer must observe or decide.]
 - Record :: Write the dated result to =validation.org=.

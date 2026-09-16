@@ -52,6 +52,9 @@ gates:
       authorities and current implementation evidence, but do not expand the scope or rewrite the artefacts.
       If no RT is specified, verify why OT/UT evidence is appropriate; never demand artificial RTs.
       Identify affected documentation in the handoff; do not demand the delivered updates at this gate.
+      Apply the supplied DOCUMENTATION.md to the specification: factual impersonal language,
+      appropriate document purpose and concise approval metadata, not conversation narration or
+      personal attribution. Preserve required feedback provenance in its designated record.
       Apply the supplied SDLC ARCHITECTURE.md and project architecture. Verify proportionate responsibilities,
       component reuse, shared behaviour and variation, boundaries, state ownership and essential mechanisms.
       Reject material ambiguity that leaves significant design decisions for the delivery agent to invent.
@@ -130,7 +133,11 @@ gates:
       Identify concrete additions and their lack of justification; do not use proportionality to reopen
       approved design choices or demand the auditor's preferred refactoring.
       Check affected product documentation against the delivered behaviour, including usage,
-      configuration and architecture where changed. Missing or materially stale required documentation
+      configuration and architecture where changed. Apply the supplied DOCUMENTATION.md to changed
+      documentation: check document-purpose fit, impersonal factual voice and presentation rules.
+      Conversation narration and personal attribution outside required legal notices violate that
+      contract; identify the passage and required correction, not the auditor's stylistic preference.
+      Missing or materially stale required documentation
       blocks the final gate; optional editorial improvements do not. Paired/emergency specifications
       may still await retrospective consolidation; do not mistake that for missing product documentation.
       For paired or emergency work, apply these checks to the recorded operator-authorized design and scope,

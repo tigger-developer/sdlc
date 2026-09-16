@@ -71,7 +71,8 @@ After current audit evidence in `audits.yaml` establishes `PASS` or an effective
 `PROVISIONAL PASS`, move the work item to `REVIEW`. Never copy the verdict into
 spec metadata. Open the specification with the previewer selected by `MAIN.md`
 and return it for operator sign-off. Preview is presentation, not a gate. After
-explicit sign-off, record the authority, date and approval scope in `spec.org`.
+explicit sign-off, record `APPROVED YYYY-MM-DD` in `OPERATOR_SIGNOFF`, adding scope
+only where approval is limited; follow `DOCUMENTATION.md`, not conversation narration.
 Move its work item to `ACTIVE` unless the operator explicitly defers delivery;
 retain `REVIEW` and the hold in that case. Design approval never lifts a hold.
 Do not implement code.

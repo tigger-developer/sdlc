@@ -1,5 +1,15 @@
 # SDLC Standards: Design Learnings
 
+## Product documentation is not a conversation record
+
+An impersonal-voice rule alone leaves room for third-person conversation summaries.
+Restore the explicit distinction and examples from v1: record the system, decisions,
+rationale and outcomes, not who requested, permitted or reported them. Templates
+must demonstrate that distinction, and existing documentation reviews must check it.
+Approval dates and user-test evidence remain necessary; personal attribution does
+not. Keep original feedback provenance in its designated record rather than copying
+it into Vision, Architecture or specifications. No additional audit gate is needed.
+
 ## Name the audit purpose, not its admission check
 
 Definition, test-code and delivery-code are distinct review decisions. Readiness

@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## v3.4.1 - 2026-09-16
+
+- Restore explicit product-focused documentation rules and examples: preserve
+  technical decisions and outcomes, not conversation narration or personal attribution.
+- Clarify Vision, Architecture, specification and validation boundaries; align
+  approval and user-test wording, with spec template schema 8 and validation schema 2.
+- Require definition and final delivery-code reviews to apply DOCUMENTATION.md,
+  including document purpose, impersonal voice and presentation standards.
+
 ## v3.4.0 - 2026-09-16
 
 - Make `definition`, `test-code` and `delivery-code` explicit audit gates. Each

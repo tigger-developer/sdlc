@@ -64,8 +64,10 @@ test heading for machine-readable current evidence:
 ```
 
 RED/GREEN require non-empty `REVISION` and `EVIDENCE`; RTs also require `COMMAND`.
-AMBER requires `REASON`. Record dates, environment and UT reviewer in the supporting
-evidence. Do not use placeholders as results. Never promote states without execution.
+AMBER requires `REASON`. Record dates, environment and validation method in supporting
+evidence; UTs use user validation, with a reviewer role only where relevant, not a
+personal name. Follow DOCUMENTATION.md. Do not use placeholders as results or
+promote states without execution.
 Rerun affected tests after changes; keep unaffected evidence with its rationale.
 
 ## Deterministic checks

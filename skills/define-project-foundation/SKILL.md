@@ -58,6 +58,8 @@ permission and justification; do not smuggle them in as incidental tooling.
 Before requesting approval, review both documents in the current context for:
 
 - clear separation of **purpose**, **requirements**, and **architecture**;
+- compliance with `DOCUMENTATION.md`: product facts and technical rationale,
+  not conversation summaries or personal attribution;
 - consistency between Vision, Architecture, project profile, and selected
   standards;
 - complete ownership boundaries and deployment responsibilities;

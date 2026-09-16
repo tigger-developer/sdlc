@@ -1,5 +1,5 @@
 #+TITLE: WNNN - Validation Evidence
-#+SCHEMA: 1
+#+SCHEMA: 2
 #+STARTUP: content
 #+OPTIONS: toc:2 num:nil
 #+TODO: AMBER RED | GREEN
@@ -11,7 +11,9 @@ AMBER, RED or GREEN immediately after the stars and space, before the ID.
 AMBER requires REASON; RED/GREEN require REVISION and EVIDENCE; RTs also require
 COMMAND. Absence of state is schema-valid but audit-ineligible. Never invent RED
 before running the written test. Keep dated runs beneath the one test node,
-without additional test-ID headings. Record the actual environment and UT reviewer.
+without additional test-ID headings. Record the actual environment and validation
+method; use a reviewer role only where relevant, not a personal name. Follow
+DOCUMENTATION.md: record outcomes, not conversations or who reported them.
 Current states belong only here, not in spec.org or a separate result table.
 Suite output can support multiple RTs, but each ID needs its own current record.
 Remove instructional placeholders; empty properties do not establish evidence.
@@ -42,8 +44,9 @@ Remove instructional placeholders; empty properties do not establish evidence.
 :END:
 
 - *Criterion:* [[file:spec.org::#ac-nnn-1][ACNNN.1 - Descriptive outcome]]
-- *Reviewer:* [Operator or named role]
-- *Evidence:* [What the reviewer observed]
+- Method :: User validation.
+- Date :: [YYYY-MM-DD of verification; no invented dates.]
+- Observed outcome :: [Concise confirmed result, not a paraphrase of feedback.]
 
 * One-off tests
 

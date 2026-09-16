@@ -209,7 +209,10 @@ increment promptly, not every live edit. Emergency work fixes first, records the
 durable ticket, then audits implementation. Both consolidate and retrospectively
 review the definition after the delivery-code gate has an effective PASS.
 For all routes, affected product documentation must be current at the final
-delivery-code verdict under DOCUMENTATION.md. The test-code gate does not demand
+delivery-code verdict. Include `~/.agents/sdlc/DOCUMENTATION.md` in definition and
+delivery-code audit evidence. Review the changed documentation against its voice,
+document-purpose and presentation rules as well as technical accuracy; cite concrete
+violations, not editorial preferences. The test-code gate does not demand
 those updates. A paired/emergency retrospective specification may follow code
 review; this does not defer updates to affected product documentation.
 

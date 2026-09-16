@@ -135,7 +135,9 @@ ineligibility never invoke a model. Test-code requires RTs RED/GREEN and a recor
 state for every OT/UT; delivery-code requires RT/OT GREEN, permitting outstanding UTs only.
 
 Do not infer execution from implementation claims. Record tested revision,
-environment, dated observations and evidence, plus the reviewer for UTs. A broken
+environment, dated observations and evidence. For UTs, record the method as user
+validation and a reviewer role only where relevant, not a personal name or
+conversation summary; follow DOCUMENTATION.md. A broken
 fixture is AMBER; RT RED requires an executed intended assertion failure before
 implementing the target behaviour. Initially GREEN preservation tests need no artificial RED.
 Readiness checks verify recorded structure, not evidence truth or adequate coverage.

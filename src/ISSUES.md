@@ -165,8 +165,9 @@ actually conform to the chosen template revision and preserve history.
 
 - **Audit state:** only the harness creates or updates `audits.yaml`; no
   `DEFINITION_GATE` or other copied audit status belongs in `spec.org`.
-- **Human approval:** `OPERATOR_SIGNOFF` records authority, date and approval
-  scope. It is not an audit verdict and does not override an implementation hold.
+- **Human approval:** only explicit sign-off sets `OPERATOR_SIGNOFF` to
+  `APPROVED YYYY-MM-DD`; add scope only where limited, not personal attribution
+  or conversation narration. It is not an audit verdict or permission to lift a hold.
 - **Lifecycle:** the work item's TODO keyword in `work.org`.
 - **Validation:** actual test results in `validation.org`.
 - **Review feedback:** pending annotations in `spec.org`; processed annotations
