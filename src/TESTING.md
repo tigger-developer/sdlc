@@ -62,8 +62,8 @@ behaviour. A change may require automated regression tests, one-off tests, user
 tests, or a combination of them.
 
 Only automated tests follow test-driven development. When a meaningful
-automated regression test is justified, write or amend it before changing
-production code, observe it fail for the intended reason, implement the smallest
+automated regression test is justified, write or amend it before implementing
+the target production behaviour, observe it fail for the intended reason, implement the smallest
 coherent change, observe it pass, then refactor without losing evidence. When no
 automated regression test is justified, record the specific reason; urgency,
 difficulty, or inconvenience is insufficient. The definition-gate audit harness
@@ -72,13 +72,13 @@ automated test execution.
 
 At the definition gate, audit only the proposed RT, UT, and OT definitions. Do
 not demand test code, execution results, or RED/GREEN evidence before
-implementation. At the implementation gate, the audit harness reviews the
+implementation. At the implementation gates, the audit harness reviews the
 actual test changes and current evidence against those signed-off definitions
 (or the recorded operator-authorized scope in paired and emergency delivery).
 Normal delivery first reviews the complete written RT package at the test-code
-stage, after observing RED (or justified initially GREEN preservation evidence),
-before production implementation. After implementation and RT/OT GREEN, the
-delivery-code stage resumes the same implementation-auditor context, reviewing
+gate, after observing RED (or justified initially GREEN preservation evidence),
+before implementing the target behaviour. After implementation and RT/OT GREEN, the
+delivery-code gate resumes the same implementation-auditor context, reviewing
 production code and changed tests. Both stages use the configured shared round
 allowance. The author must check that RED fails for the intended reason.
 Paired and emergency routes may go directly to delivery-code after their coherent
@@ -87,6 +87,17 @@ Retrospective test-definition review uses the
 separate definition context, not the implementation auditor's session.
 Planned tests are not implementation evidence, and implemented tests do not
 retroactively repair an inadequate definition.
+
+Before test-code review, the agent may add only the minimum declarations,
+interfaces or placeholder bodies needed to compile and execute the specified RTs.
+This scaffolding must not implement the target behaviour and must be included in
+test-code audit evidence. Compilation and setup failures do not qualify as RED.
+
+If the approved specification contains no RTs, skip the test-code gate. The
+definition audit must establish why OT/UT evidence is appropriate. Do not remove
+or reclassify approved RTs merely to bypass the gate. Implement, execute required
+OTs and invoke delivery-code directly; UTs may await the operator. The validator's
+inventory supplies the RT count; it does not authorize changing the test strategy.
 
 Define the expected evidence for one-off and user tests before implementation
 where practical. They do not follow TDD and do not require a pre-change failure.
@@ -120,13 +131,13 @@ but audit-ineligible. Preserve superseded runs below the same test node.
 The deterministic `~/.agents/sdlc/bin/sdlc-validate` reports schema errors, inventory
 and readiness as YAML. Read its `--help` and run it before the corresponding audit.
 The harness repeats the same checks before spending a round. Schema failures and
-ineligibility never invoke a model. Test-code requires a recorded state for every
-test; delivery-code requires RT/OT GREEN, permitting outstanding UTs only.
+ineligibility never invoke a model. Test-code requires RTs RED/GREEN and a recorded
+state for every OT/UT; delivery-code requires RT/OT GREEN, permitting outstanding UTs only.
 
 Do not infer execution from implementation claims. Record tested revision,
 environment, dated observations and evidence, plus the reviewer for UTs. A broken
 fixture is AMBER; RT RED requires an executed intended assertion failure before
-production changes. Initially GREEN preservation tests need no artificial RED.
+implementing the target behaviour. Initially GREEN preservation tests need no artificial RED.
 Readiness checks verify recorded structure, not evidence truth or adequate coverage.
 Closure requires current GREEN for every required test, including operator UTs.
 

@@ -18,8 +18,9 @@ changes do not require a ticket.
 Before audit, structure that scope and evidence under `~/.agents/sdlc/ORG-SCHEMA.md`.
 Run `~/.agents/sdlc/bin/sdlc-validate --help`, then delivery-code readiness: every
 RT/OT GREEN, with outstanding UTs explicitly AMBER. Do not delay the emergency
-fix for a pre-build test-code audit. Audit implemented tests and production code
-together first. Afterwards, reconcile
+fix for a pre-build test-code audit. After the fix, update affected product
+documentation, then audit implemented tests, production code and those docs
+together with `--gate delivery-code`. Afterwards, reconcile
 the requirements, test definitions, solution design, validation, and affected
 documentation, then run the retrospective definition review. Follow
 `~/.agents/sdlc/AUDITS.md` with `Workflow: emergency` for audit-context markers,

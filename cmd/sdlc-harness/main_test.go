@@ -29,7 +29,7 @@ pwd > "$PROBE_DIRECTORY"
 cat > "$PROBE_PROMPT"
 printf '%s' "$output" > "$PROBE_RESULT_PATH"
 if [ "${PROBE_MUTATE:-}" = 1 ]; then printf 'mutated' > "$PROBE_SOURCE"; fi
-printf 'GATE: implementation\nREVISION: candidate\nVERDICT: FAIL\nFix the described defect.\n' > "$output"
+printf 'GATE: delivery-code\nREVISION: candidate\nVERDICT: FAIL\nFix the described defect.\n' > "$output"
 printf '{"type":"thread.started","thread_id":"native-session"}\n'
 `
 	// #nosec G306 -- this local fake is an executable, not a metered provider.
@@ -48,11 +48,11 @@ printf '{"type":"thread.started","thread_id":"native-session"}\n'
 		t.Fatal(err)
 	}
 	registry := filepath.Join(root, "prompts.yaml")
-	if err := os.WriteFile(registry, []byte("version: 1\ngates:\n  implementation:\n    prompt: audit\n"), 0o600); err != nil {
+	if err := os.WriteFile(registry, []byte("version: 1\ngates:\n  delivery-code:\n    prompt: audit\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	record := filepath.Join(root, "audits.yaml")
-	args := []string{"--phase", "audit", "--gate", "implementation", "--harness", "codex", "--model", "fixture", "--project", root, "--global-config", filepath.Join(root, "absent.yaml"), "--audit-prompts", registry, "--audit-record", record, "--work-item", "W005-evidence", "--input", source}
+	args := []string{"--phase", "audit", "--gate", "delivery-code", "--harness", "codex", "--model", "fixture", "--project", root, "--global-config", filepath.Join(root, "absent.yaml"), "--audit-prompts", registry, "--audit-record", record, "--work-item", "W005-evidence", "--input", source}
 	for _, action := range []string{"start", "resume"} {
 		if action == "resume" {
 			if err := os.WriteFile(source, []byte(readySpec+"corrected requirement\n"), 0o600); err != nil {
@@ -159,7 +159,7 @@ for argument in "$@"; do
     if [ "$previous" = "-o" ]; then output="$argument"; fi
     previous="$argument"
 done
-printf 'GATE: implementation\nREVISION: abc123\nVERDICT: PASS\n' > "$output"
+printf 'GATE: delivery-code\nREVISION: abc123\nVERDICT: PASS\n' > "$output"
 printf '{"type":"thread.started","thread_id":"native-session"}\n'
 `
 	command := filepath.Join(bin, "codex")
@@ -174,7 +174,7 @@ printf '{"type":"thread.started","thread_id":"native-session"}\n'
 	}
 	config := "version: 3\ndelivery:\n  audit:\n    harness: codex\n    model: test-model\n    timeout: 5s\n"
 	prompts := filepath.Join(project, "audits.yaml")
-	if err := os.WriteFile(prompts, []byte("version: 1\ngates:\n  implementation:\n    prompt: audit\n"), 0o600); err != nil {
+	if err := os.WriteFile(prompts, []byte("version: 1\ngates:\n  delivery-code:\n    prompt: audit\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(filepath.Join(project, ".sdlc", "project.yaml"), []byte(config), 0o600); err != nil {
@@ -185,8 +185,8 @@ printf '{"type":"thread.started","thread_id":"native-session"}\n'
 		t.Fatal(err)
 	}
 	for _, arguments := range [][]string{
-		{"start", "--phase", "audit", "--gate", "implementation", "--audit-prompts", prompts, "--project", project, "--global-config", filepath.Join(root, "absent.yaml"), "--input", evidence},
-		{"resume", "--phase", "audit", "--gate", "implementation", "--audit-prompts", prompts, "--project", project, "--global-config", filepath.Join(root, "absent.yaml"), "--input", evidence, "--session", "native-session"},
+		{"start", "--phase", "audit", "--gate", "delivery-code", "--audit-prompts", prompts, "--project", project, "--global-config", filepath.Join(root, "absent.yaml"), "--input", evidence},
+		{"resume", "--phase", "audit", "--gate", "delivery-code", "--audit-prompts", prompts, "--project", project, "--global-config", filepath.Join(root, "absent.yaml"), "--input", evidence, "--session", "native-session"},
 	} {
 		writeReadyDocuments(t, project)
 		arguments = append(arguments, "--audit-record", filepath.Join(project, "result.yaml"), "--work-item", "W004")

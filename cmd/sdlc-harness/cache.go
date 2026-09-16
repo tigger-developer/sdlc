@@ -40,7 +40,11 @@ func cachedAudit(entry harness.AuditEntry, key string) (harness.AuditRound, bool
 		if round.CacheKey != key || round.Incident != "" || round.SessionID == "" {
 			continue
 		}
-		if harness.ValidateCompositeVerdict(round.Response) != nil || auditField(round.Response, "GATE") != entry.Gate || auditField(round.Response, "VERDICT") != round.Verdict || auditField(round.Response, "REVISION") != round.Revision {
+		expectedGate := entry.Gate
+		if round.ReadinessCheck != "" {
+			expectedGate = round.ReadinessCheck
+		}
+		if harness.ValidateCompositeVerdict(round.Response) != nil || auditField(round.Response, "GATE") != expectedGate || auditField(round.Response, "VERDICT") != round.Verdict || auditField(round.Response, "REVISION") != round.Revision {
 			continue
 		}
 		return round, true

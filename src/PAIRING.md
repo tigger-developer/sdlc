@@ -17,7 +17,8 @@ Bounded objective
   -> explicit iteration instruction
   -> reviewable implementation slice
   -> objective checks and operator validation
-  -> combined implementation audit of each coherent code increment
+  -> affected product documentation updated for the increment
+  -> delivery-code audit of each coherent code increment
   -> repeat as directed
   -> consolidate the durable specification and validation record
   -> retrospective definition review in its separate retained context
@@ -70,6 +71,8 @@ For each bounded iteration:
    `AUDITS.md`; do not audit every keystroke or deliberately unfinished edit.
    First apply `ORG-SCHEMA.md` and delivery-code readiness to the recorded bounded
    scope: RT/OT GREEN, outstanding UTs AMBER. No pre-build test-code audit is required.
+   Use `--gate delivery-code`; affected product documentation must be current for
+   this increment, although retrospective specification consolidation may follow.
 8. Continue from the operator's next instruction.
 
 The agent must not manufacture automated tests merely to reproduce visual or

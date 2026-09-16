@@ -3,11 +3,12 @@ package main
 import (
 	"bytes"
 	"errors"
-	"github.com/tigger-developer/sdlc/internal/harness"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/tigger-developer/sdlc/internal/harness"
 )
 
 // Local fixtures only; these tests never call metered providers.
@@ -40,10 +41,11 @@ func TestReadinessRefusesBeforeConfigPromptOrAuditWrites(t *testing.T) {
 		}
 		var out, diagnostics bytes.Buffer
 		// Invalid config and unreadable stdin would fail if preflight were too late.
-		args := []string{"start", "--project", root, "--gate", "implementation", "--audit-record", "audits.yaml", "--work-item", "W001", "--global-config", root}
+		gate := "delivery-code"
 		if scenario == "amber RT" {
-			args = append(args, "--readiness-check=test-code")
+			gate = "test-code"
 		}
+		args := []string{"start", "--project", root, "--gate", gate, "--audit-record", "audits.yaml", "--work-item", "W001", "--global-config", root}
 		err := run(args, rejectRead{}, &out, &diagnostics)
 		var refusal *readinessRefusal
 		if !errors.As(err, &refusal) || !strings.Contains(out.String(), "ready: false") {
@@ -73,8 +75,12 @@ for argument in "$@"; do
     if [ "$previous" = "-o" ]; then output="$argument"; fi
     previous="$argument"
 done
-cat >/dev/null
-printf 'GATE: implementation\nREVISION: fixture\nVERDICT: PASS\n' > "$output"
+printf '%s\n' "$*" >> "$PROBE_CALLS"
+gate=
+while IFS= read -r line; do
+    case "$line" in 'Audit gate: '*) gate=${line#Audit gate: };; esac
+done
+printf 'GATE: %s\nREVISION: fixture\nVERDICT: PASS\n' "$gate" > "$output"
 printf '{"type":"thread.started","thread_id":"retained-test-session"}\n'
 `
 	// #nosec G306 -- executable local double, never a metered provider.
@@ -82,8 +88,10 @@ printf '{"type":"thread.started","thread_id":"retained-test-session"}\n'
 		t.Fatal(err)
 	}
 	t.Setenv("PATH", bin+string(os.PathListSeparator)+os.Getenv("PATH"))
+	calls := filepath.Join(root, "calls")
+	t.Setenv("PROBE_CALLS", calls)
 	registry := filepath.Join(root, "prompts.yaml")
-	if err := os.WriteFile(registry, []byte("version: 1\ngates:\n  test-code:\n    prompt: Review written tests.\n  implementation:\n    prompt: Review final package.\n"), 0o600); err != nil {
+	if err := os.WriteFile(registry, []byte("version: 1\ngates:\n  test-code:\n    prompt: Review written tests.\n  delivery-code:\n    prompt: Review final package.\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	record := filepath.Join(root, "audits.yaml")
@@ -92,7 +100,7 @@ printf '{"type":"thread.started","thread_id":"retained-test-session"}\n'
 		if i == 0 {
 			action = "start"
 		}
-		args := []string{action, "--project", root, "--global-config", filepath.Join(root, "absent.yaml"), "--harness", "codex", "--model", "fixture", "--gate", "implementation", "--readiness-check", stage, "--audit-record", record, "--work-item", "W001", "--audit-prompts", registry}
+		args := []string{action, "--project", root, "--global-config", filepath.Join(root, "absent.yaml"), "--harness", "codex", "--model", "fixture", "--gate", stage, "--audit-record", record, "--work-item", "W001", "--audit-prompts", registry}
 		if err := run(args, strings.NewReader("review"), &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
 			t.Fatal(err)
 		}
@@ -105,6 +113,25 @@ printf '{"type":"thread.started","thread_id":"retained-test-session"}\n'
 		}
 		if i > 0 && (len(entry.History) != 2 || entry.History[0].ReadinessCheck != "test-code" || entry.History[1].ReadinessCheck != "delivery-code" || entry.Status != "passed") {
 			t.Fatalf("lost stages, session reuse or cache: %+v", entry)
+		}
+	}
+	invocations, err := os.ReadFile(calls)
+	if err != nil || strings.Count(string(invocations), "\n") != 2 || !strings.Contains(string(invocations), "exec resume") || !strings.Contains(string(invocations), "retained-test-session") {
+		t.Fatalf("expected start then native resume, with cached third call: %s, %v", invocations, err)
+	}
+}
+
+func TestAuditRequiresExplicitGateAndRejectsReadinessSelector(t *testing.T) {
+	for _, args := range [][]string{
+		{"start"},
+		{"start", "--gate", "implementation"},
+		{"start", "--gate", "test-code", "--readiness-check", "delivery-code"},
+		{"start", "--gate", "definition", "--readiness-check", "test-code"},
+	} {
+		var output, diagnostics bytes.Buffer
+		err := run(args, rejectRead{}, &output, &diagnostics)
+		if err == nil || strings.Contains(err.Error(), "stdin must not be read") || output.Len() != 0 {
+			t.Fatalf("expected argument rejection: %v: %v", args, err)
 		}
 	}
 }

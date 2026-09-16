@@ -26,7 +26,7 @@ func TestResetSessionPreservesHistoryAndNativeContext(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	args := []string{"resume", "--reset-session", "--project", root, "--gate", "implementation", "--work-item", entry.WorkItem, "--audit-record", "audits.yaml"}
+	args := []string{"resume", "--reset-session", "--project", root, "--gate", "delivery-code", "--work-item", entry.WorkItem, "--audit-record", "audits.yaml"}
 	var output bytes.Buffer
 	if err := run(args, strings.NewReader(""), &output, &bytes.Buffer{}); err != nil {
 		t.Fatal(err)
@@ -42,6 +42,12 @@ func TestResetSessionPreservesHistoryAndNativeContext(t *testing.T) {
 	before, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatal(err)
+	}
+	// Both public implementation gates address the same allowance.
+	for i, value := range args {
+		if value == "delivery-code" {
+			args[i] = "test-code"
+		}
 	}
 	if err := run(args, strings.NewReader(""), &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
 		t.Fatal(err)

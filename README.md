@@ -21,6 +21,10 @@ sdlc-validate --spec specs/007-example/spec.org --readiness-check=test-code
 
 Normal delivery reviews the written tests before production implementation, then
 reviews the finished solution in the same retained implementation-auditor context.
+The audit command uses `--gate test-code`, then `--gate delivery-code`; each gate
+automatically applies its readiness check. Minimal execution-enabling scaffolding
+is permitted before test review, not implemented behaviour. An approved OT/UT-only
+change skips test-code. Final delivery review includes affected product documentation.
 Use `--readiness-check=delivery-code` before that final review: RTs and OTs must be
 GREEN; UTs may remain outstanding. Output is readable YAML with inventory, source
 locations and errors. Nonzero means not ready or invalid input. The harness repeats
@@ -342,7 +346,8 @@ cleanup details.
 - The exact operator token `BYPASS-GATE-7` invokes `$emergency-change`. It uses
   a bounded temporary specification, preserves TDD where an automated test is
   justified, records the ticket immediately after the fix, and runs the
-  implementation gate before consolidating the specification and documentation.
+  delivery-code gate after updating affected product docs, before retrospective
+  specification consolidation.
 - Both routes audit implemented tests and code together, then retrospectively
   review requirements, design, and test definitions in the separate definition
   session. Proposed behaviour or design changes return to the operator for

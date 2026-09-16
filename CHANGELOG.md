@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+## v3.4.0 - 2026-09-16
+
+- Make `definition`, `test-code` and `delivery-code` explicit audit gates. Each
+  implementation gate selects its readiness preflight automatically; the audit
+  command rejects the old `implementation` gate and `--readiness-check` flag.
+  The standalone validator retains `--readiness-check`.
+- Preserve the shared implementation session, round allowance and audit history;
+  return gate-specific envelopes and keep cached verdicts distinct between gates.
+- Permit minimal execution-enabling test scaffolding, not target behaviour, and
+  skip test-code review for approved changes without RTs. Retain meaningful RED
+  requirements and prohibit reclassifying RTs to evade review.
+- Require affected product documentation at the final delivery-code verdict,
+  while preserving implement-first emergency work and retrospective spec review.
+  Align skills, prompts, help and workflows; advance the spec template to schema 7.
+
 ## v3.3.1 - 2026-09-16
 
 - Refuse test-code audit readiness when any RT is AMBER: every RT must have

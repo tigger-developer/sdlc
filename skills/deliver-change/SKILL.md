@@ -29,8 +29,9 @@ from the operator before implementation can safely start. Ask that one bounded
 set of questions once. If the operator deliberately selects `ATTENDED`, remain
 attended and hand back when a human decision is required. Otherwise delivery
 enters **HANDS-OFF** for this invocation. Declare `DELIVERY MODE: HANDS-OFF` and
-advise the operator that any interruption or resumed interaction changes the
-mode to **ATTENDED** until the operator invokes `HANDS-OFF` again. Hands-off
+advise the operator that pausing delivery or reopening decisions changes the
+mode to **ATTENDED** until the operator invokes `HANDS-OFF` again; routine in-scope
+corrections do not. Hands-off
 mode is not a global default: it is activated only by invoking this delivery
 workflow, and it does not authorize changes to signed-off behaviour or other
 human-only decisions.
@@ -99,20 +100,25 @@ with one `:testdef:` heading per specified test; preserve IDs and existing histo
 Run `~/.agents/sdlc/bin/sdlc-validate --help` before first use. Use it locally to
 check the full inventory and correct schema/readiness errors before calling an auditor.
 
-Write the complete justified RT package before production implementation and
-execute it. Record RED only for the intended observed failure; initially GREEN
+Write and execute the complete justified RT package before implementing the target
+behaviour. Only minimal execution-enabling scaffolding is permitted under
+`TESTING.md`; include it in test-code audit evidence. Record RED only for the intended observed failure; initially GREEN
 preservation tests need their rationale. Mark deferred OT/UT execution AMBER with
 a reason. Run the validator with `--spec <spec.org> --readiness-check=test-code`,
-then the audit harness with `--phase audit --gate implementation
---readiness-check=test-code`, using the work item's `audits.yaml`. Remediate until
+then the audit harness with `--phase audit --gate test-code`, using the work item's
+`audits.yaml`. Remediate until
 PASS or effective PROVISIONAL PASS within the configured allowance before building.
+If the approved spec has no RTs, skip this audit and proceed to implementation;
+do not remove or reclassify approved RTs to bypass it.
 
 Implement the authorized solution, obtain GREEN for every RT and execute bounded
 OTs. Keep the specification synchronized for authorized routine details, without
 changing signed-off behaviour. Finish the solution, tests and affected documentation,
 not merely one file or edit. Run `sdlc-validate --readiness-check=delivery-code`
-with the same spec, then resume the same implementation audit session using
-`--readiness-check=delivery-code`. Both stages share the configured round allowance.
+with the same spec, then invoke `--phase audit --gate delivery-code`: resume the
+same implementation audit session, or start it if test-code was legitimately
+skipped. Both gates share the configured round allowance. Include affected product
+documentation; missing or materially stale required docs block the final gate.
 A test-code PASS is not delivery approval; check `readiness_check` in audit evidence.
 Before resuming either stage, address **every** finding as a batch:
 remediate valid findings and challenge incorrect or out-of-scope findings with

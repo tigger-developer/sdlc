@@ -389,7 +389,7 @@ func ValidateCompositeVerdict(response string) error {
 			return newIncident("response-malformed", "audit", "", fmt.Errorf("composite verdict requires exactly one non-empty %s field", key))
 		}
 	}
-	if fields["GATE"][0] != "definition" && fields["GATE"][0] != "implementation" {
+	if fields["GATE"][0] != "definition" && fields["GATE"][0] != "implementation" && fields["GATE"][0] != "test-code" && fields["GATE"][0] != "delivery-code" {
 		return newIncident("response-malformed", "audit", "", fmt.Errorf("unsupported GATE %q", fields["GATE"][0]))
 	}
 	if fields["VERDICT"][0] != "PASS" && fields["VERDICT"][0] != "PROVISIONAL PASS" && fields["VERDICT"][0] != "FAIL" {

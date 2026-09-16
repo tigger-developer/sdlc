@@ -69,8 +69,7 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 	project := flags.String("project", ".", "project root")
 	globalConfig := flags.String("global-config", "", "global SDLC YAML configuration")
 	phase := flags.String("phase", "audit", "SDLC phase: definition, build, or audit")
-	gate := flags.String("gate", "", "composite audit gate: definition or implementation")
-	readinessCheck := flags.String("readiness-check", "", "implementation stage: test-code or delivery-code (default)")
+	gate := flags.String("gate", "", "audit gate: definition, test-code, or delivery-code")
 	auditPrompts := flags.String("audit-prompts", "", "audit prompt YAML (defaults to the installed prompts/audits.yaml)")
 	auditRecord := flags.String("audit-record", "", "YAML audit session record to update")
 	workItem := flags.String("work-item", "", "stable work-item identifier for the audit record")
@@ -99,8 +98,13 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 	}
 	normalizedPhase := strings.ToLower(strings.TrimSpace(*phase))
 	normalizedGate := strings.ToLower(strings.TrimSpace(*gate))
-	if normalizedPhase == "audit" && normalizedGate != "definition" && normalizedGate != "implementation" {
-		return errors.New("audit phase requires --gate definition or --gate implementation")
+	if normalizedPhase == "audit" && normalizedGate != "definition" && !readiness.ValidMode(normalizedGate) {
+		return errors.New("audit phase requires --gate definition, --gate test-code, or --gate delivery-code")
+	}
+	// Two implementation gates share the existing session, history and budget.
+	sessionGate, readinessCheck := normalizedGate, ""
+	if normalizedPhase == "audit" && readiness.ValidMode(normalizedGate) {
+		sessionGate, readinessCheck = "implementation", normalizedGate
 	}
 	projectRoot, err := filepath.Abs(*project)
 	if err != nil {
@@ -114,19 +118,13 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		if !filepath.IsAbs(path) {
 			path = filepath.Join(projectRoot, path)
 		}
-		if err := harness.ResetAuditBudget(path, *workItem, normalizedGate); err != nil {
+		if err := harness.ResetAuditBudget(path, *workItem, sessionGate); err != nil {
 			return err
 		}
 		fmt.Fprintf(output, "AUDIT BUDGET RESET: %s/%s; attempts used=0; native session and history retained; no provider invoked. Resume the audit without --reset-session.\n", *workItem, normalizedGate)
 		return nil
 	}
-	if normalizedPhase == "audit" && normalizedGate == "implementation" {
-		if *readinessCheck == "" {
-			*readinessCheck = "delivery-code"
-		}
-		if !readiness.ValidMode(*readinessCheck) {
-			return fmt.Errorf("unsupported readiness check %q", *readinessCheck)
-		}
+	if readinessCheck != "" {
 		if *auditRecord == "" {
 			return errors.New("implementation audit requires --audit-record to locate spec.org and validation.org")
 		}
@@ -135,7 +133,7 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		}
 		specPath := filepath.Join(filepath.Dir(*auditRecord), "spec.org")
 		validationPath := filepath.Join(filepath.Dir(*auditRecord), "validation.org")
-		report, checkErr := readiness.Check(specPath, validationPath, *readinessCheck)
+		report, checkErr := readiness.Check(specPath, validationPath, readinessCheck)
 		if checkErr != nil {
 			return fmt.Errorf("implementation readiness: %w", checkErr)
 		}
@@ -162,8 +160,6 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 				inputs = append(inputs, required)
 			}
 		}
-	} else if *readinessCheck != "" {
-		return errors.New("--readiness-check applies only to --phase audit --gate implementation")
 	}
 	config, err := harness.ResolveConfig(harness.ConfigOptions{
 		ProjectRoot: projectRoot, GlobalPath: *globalConfig, Phase: normalizedPhase,
@@ -188,15 +184,11 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		if loadErr != nil {
 			return loadErr
 		}
-		promptKey := normalizedGate
-		if *readinessCheck == "test-code" {
-			promptKey = "test-code"
-		}
-		base, loadErr := registry.prompt(promptKey)
+		base, loadErr := registry.prompt(normalizedGate)
 		if loadErr != nil {
 			return loadErr
 		}
-		prompt = append([]byte(base+"\nAudit readiness stage: "+*readinessCheck+"\n\nOperator-supplied audit context:\n"), prompt...)
+		prompt = append([]byte(base+"\nAudit gate: "+normalizedGate+"\n\nOperator-supplied audit context:\n"), prompt...)
 	}
 	evidence, err := harness.CaptureEvidence(projectRoot, inputs)
 	if err != nil {
@@ -238,7 +230,7 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		}
 		var found bool
 		var recordErr error
-		entry, found, recordErr = harness.ReadAuditEntry(*auditRecord, *workItem, normalizedGate)
+		entry, found, recordErr = harness.ReadAuditEntry(*auditRecord, *workItem, sessionGate)
 		if recordErr != nil {
 			return recordErr
 		}
@@ -290,7 +282,7 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		recordPath = strings.TrimSpace(*auditRecord)
 	}
 	runner := recoveryRun{config: config, request: request, evidence: evidence, registry: registry,
-		path: recordPath, work: *workItem, gate: normalizedGate, cacheKey: cacheKey, readinessCheck: *readinessCheck, audit: normalizedPhase == "audit", diagnostics: errorOutput}
+		path: recordPath, work: *workItem, gate: sessionGate, cacheKey: cacheKey, readinessCheck: readinessCheck, audit: normalizedPhase == "audit", diagnostics: errorOutput}
 	result, err := runner.execute(entry, action == "resume")
 	if err != nil {
 		return err

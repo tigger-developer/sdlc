@@ -43,14 +43,14 @@ evidence-changed) printf 'changed' > "$FALLBACK_SOURCE";;
 esac
 verdict="$FALLBACK_MODE"
 if [ "$verdict" = evidence-changed ]; then verdict=PASS; fi
-printf '{"type":"result","result":"GATE: implementation\\nREVISION: fixture\\nVERDICT: %s"}\n' "$verdict"
+printf '{"type":"result","result":"GATE: delivery-code\\nREVISION: fixture\\nVERDICT: %s"}\n' "$verdict"
 `
 			fallback := `#!/bin/sh
 cat >/dev/null
 printf 'fallback\n' >> "$FALLBACK_CALLS"
 printf 'session_id: fallback-session\n' >&2
 if [ "$FALLBACK_MODE" = fallback-fails ]; then exit 3; fi
-printf 'GATE: implementation\nREVISION: fixture\nVERDICT: PASS\n'
+printf 'GATE: delivery-code\nREVISION: fixture\nVERDICT: PASS\n'
 `
 			for name, body := range map[string]string{"claude": primary, "hermes": fallback} {
 				// #nosec G306 -- local executable command double.
@@ -67,7 +67,7 @@ printf 'GATE: implementation\nREVISION: fixture\nVERDICT: PASS\n'
 			for path, value := range map[string]string{
 				source:   "requirement",
 				config:   fmt.Sprintf("version: 3\ndelivery:\n  audit:\n    harness: claude\n    model: fixture\n    timeout: 1s\n    max_rounds: %d\n    fallback:\n      harness: hermes\n      provider: nous\n      model: fallback-fixture\n", limit),
-				registry: "version: 1\nsession_recovery_instructions: Use full evidence and preserve history.\ngates:\n  implementation:\n    prompt: audit\n",
+				registry: "version: 1\nsession_recovery_instructions: Use full evidence and preserve history.\ngates:\n  delivery-code:\n    prompt: audit\n",
 			} {
 				if err := os.WriteFile(path, []byte(value), 0o600); err != nil {
 					t.Fatal(err)
@@ -75,7 +75,7 @@ printf 'GATE: implementation\nREVISION: fixture\nVERDICT: PASS\n'
 			}
 			record := filepath.Join(root, "audits.yaml")
 			writeReadyDocuments(t, root)
-			args := []string{"start", "--project", root, "--global-config", config, "--audit-prompts", registry, "--gate", "implementation", "--audit-record", record, "--work-item", "W015-fallback", "--input", source}
+			args := []string{"start", "--project", root, "--global-config", config, "--audit-prompts", registry, "--gate", "delivery-code", "--audit-record", record, "--work-item", "W015-fallback", "--input", source}
 			roundBase := 0
 			if mode == "reset-limit" {
 				roundBase = 5
@@ -83,7 +83,7 @@ printf 'GATE: implementation\nREVISION: fixture\nVERDICT: PASS\n'
 				if err := harness.WriteAuditEntry(record, prior); err != nil {
 					t.Fatal(err)
 				}
-				reset := []string{"resume", "--reset-session", "--project", root, "--gate", "implementation", "--audit-record", record, "--work-item", "W015-fallback"}
+				reset := []string{"resume", "--reset-session", "--project", root, "--gate", "delivery-code", "--audit-record", record, "--work-item", "W015-fallback"}
 				if err := run(reset, strings.NewReader(""), &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
 					t.Fatal(err)
 				}

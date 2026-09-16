@@ -63,6 +63,14 @@ specification, plan, architecture record, or reference document.
 
 ## Delivery closure
 
+Definition identifies affected documentation in the handoff. Update it during
+delivery and include it in the final delivery-code audit: verify usage,
+configuration, interfaces and architecture wherever the change affects them.
+Missing or materially stale required documentation blocks that gate; optional
+editorial improvements do not. Test-code review does not require completed product
+documentation. Paired/emergency work updates product docs after the code change
+but before the final delivery verdict; retrospective spec consolidation may follow.
+
 Before closing normal, paired, or `BYPASS-GATE-7` work, reconcile every
 document made inaccurate, incomplete, or misleading by the change. Record the
 documentation outcome as updated or not affected, with the reason when it is

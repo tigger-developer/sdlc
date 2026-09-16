@@ -22,13 +22,20 @@ beside the required `--audit-record`, adding both to hashed evidence automatical
 Schema/readiness rejection precedes cache lookup and provider startup; it returns
 YAML on stdout and consumes no audit round. See `ORG-SCHEMA.md` for the contract.
 
-Use `--gate implementation --readiness-check test-code` to review the written test
-package before normal production implementation. Resume the same work-item/gate
-session with `--readiness-check delivery-code` after RTs and OTs are GREEN. UTs may
-remain AMBER. Omission defaults to delivery-code, not unchecked review. The harness
-records `readiness_check` per attempt and on the entry. Test-code PASS is not
-delivery approval. Both reviews share the configured budget; their prompts and
-cache keys differ. Definition review remains unchanged.
+Use `--gate test-code` to review written tests and minimal execution-enabling
+scaffolding before implementing the target behaviour. Resume that context with
+`--gate delivery-code` after RTs and OTs are GREEN and affected product docs are
+current. UTs may remain AMBER. With no approved RTs, skip test-code and start
+delivery-code directly. Paired/emergency routes also start at delivery-code.
+
+The gate selects the readiness check; the audit command no longer accepts
+`--readiness-check` or `--gate implementation`. Use `--readiness-check` only with
+`sdlc-validate`. Omitting the audit gate is an error. For record compatibility,
+both implementation gates share the existing `gate: implementation` session key
+and store the selected gate in `readiness_check` per attempt and on the entry.
+Response envelopes use `GATE: test-code` or `GATE: delivery-code`. Test-code PASS
+is not delivery approval. Both reviews share the configured budget; their prompts
+and cache keys differ. Existing history and session IDs remain intact.
 
 Goal configuration
 ==================
@@ -58,7 +65,7 @@ Start and resume
 ================
 
 `start` creates a fresh external context. For an audit, pass `--gate definition`
-or `--gate implementation`; the installed YAML prompt registry supplies the
+or `--gate test-code` or `--gate delivery-code`; the installed YAML prompt registry supplies the
 criteria. Do not pass `--session`; the runner creates the identity and prints
 `SESSION_ID: <id>` on stderr. Save that exact ID.
 
@@ -209,6 +216,8 @@ continues to number lifetime attempts. Repeating a reset before another attempt
 does nothing. Missing records and running/interrupted attempts are rejected.
 Reset does not repair a missing native identity. `--session` and `--input` are
 not accepted with the reset flag. Other work items and gates are unchanged.
+Resetting test-code or delivery-code resets their shared implementation allowance;
+it does not reset the separate definition allowance.
 
 Session and fallback recovery
 -----------------------------

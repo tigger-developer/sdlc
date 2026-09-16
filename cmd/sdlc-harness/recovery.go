@@ -205,8 +205,12 @@ func (r recoveryRun) invoke(entry harness.AuditEntry, selected harness.Config, r
 		if err = harness.ValidateCompositeVerdict(result.Response); err != nil {
 			return result, err
 		}
-		if auditField(result.Response, "GATE") != r.gate {
-			return result, &harness.Incident{Kind: "response-malformed", Harness: selected.Harness, SessionID: result.SessionID, Err: fmt.Errorf("audit response gate does not match requested %s gate", r.gate)}
+		expectedGate := r.gate
+		if r.readinessCheck != "" {
+			expectedGate = r.readinessCheck
+		}
+		if auditField(result.Response, "GATE") != expectedGate {
+			return result, &harness.Incident{Kind: "response-malformed", Harness: selected.Harness, SessionID: result.SessionID, Err: fmt.Errorf("audit response gate does not match requested %s gate", expectedGate)}
 		}
 	}
 	if attempt != nil {

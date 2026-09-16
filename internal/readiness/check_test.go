@@ -120,6 +120,19 @@ func TestSchemaAndEligibilityFailures(t *testing.T) {
 	}
 }
 
+func TestDeliveryWithoutRegressionTests(t *testing.T) {
+	spec := "* Acceptance Criteria\n** AC001.1 - Required outcome :ac:\n* Test Definitions\n** OT001.1 - Check integration :testdef:\n** UT001.2 - Confirm presentation :testdef:\n"
+	validation := "#+TODO: AMBER RED | GREEN\n* Results\n** GREEN OT001.1 - Check integration :testdef:\n:PROPERTIES:\n:REVISION: fixture\n:EVIDENCE: Bounded check passed\n:END:\n** AMBER UT001.2 - Confirm presentation :testdef:\n:PROPERTIES:\n:REASON: Awaiting operator\n:END:\n"
+	r := checkFixture(t, spec, validation, "delivery-code")
+	if r.ExitCode() != 0 || r.Audit.Inventory.Counts.Tests != 2 {
+		t.Fatalf("OT/UT-only delivery should be eligible: %+v", r)
+	}
+	validation = strings.Replace(validation, "GREEN OT", "OT", 1)
+	if r := checkFixture(t, spec, validation, "delivery-code"); r.ExitCode() != 1 {
+		t.Fatalf("no-RT delivery still requires OT execution: %+v", r)
+	}
+}
+
 func TestIgnoresExamplesAndHistoryButRejectsBrokenBlocks(t *testing.T) {
 	example := "\n#+begin_src org\n** RT007.1 - Not a record :testdef:\n#+end_src\n"
 	history := "\n*** Run 2026-09-16\nPreviously RED; RT007.1 failed before the change.\n"

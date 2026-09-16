@@ -7,9 +7,7 @@ Usage:
   sdlc-audit goal-config [options]    Print resolved goal limits as JSON.
 
 Audit options:
-  --gate definition|implementation   Required for audits.
-  --readiness-check CHECK            Implementation: test-code or delivery-code
-                                    (default: delivery-code).
+  --gate GATE                       Required: definition, test-code, delivery-code.
   --audit-record FILE                Harness-owned audits.yaml record.
   --work-item ID                     Work item owning that record.
   --input FILE                       Evidence file; repeat for each input.
@@ -38,17 +36,21 @@ Start creates a session; resume loads it from the audit record. Do not pass
 --session, then rerun the audit WITHOUT --reset-session. History is preserved.
 stdout: final result. stderr: progress and diagnostics.
 
-Implementation requires --audit-record. Its sibling spec.org and validation.org
+Test-code and delivery-code require --audit-record. Its sibling spec.org and validation.org
 are schema/readiness-checked before any provider call, then included as evidence.
 Refusal: YAML on stdout; exit 1 ineligible or 2 invalid schema; no round consumed.
 Run sdlc-validate --help for local preflight. Test-code and delivery-code reviews
 share the implementation session and budget. A test-code PASS is not delivery PASS.
 Test-code requires RTs RED/GREEN; OT/UT may be AMBER. Delivery-code requires
 RTs/OTs GREEN; only UTs may remain outstanding. Both require state evidence.
+The gate selects its readiness check automatically. --readiness-check belongs
+to sdlc-validate, not this command. The old --gate implementation is rejected.
+Definition has no execution-readiness check. With no approved RTs, skip test-code
+and start delivery-code directly. Final delivery review includes affected docs.
 
-  sdlc-audit start --gate implementation --readiness-check test-code \
+  sdlc-audit start --gate test-code \
     --audit-record specs/007-example/audits.yaml --work-item W007 --input tests.go
-  sdlc-audit resume --gate implementation --readiness-check delivery-code \
+  sdlc-audit resume --gate delivery-code \
     --audit-record specs/007-example/audits.yaml --work-item W007 \
     --input tests.go --input application.go
 

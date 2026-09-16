@@ -35,7 +35,7 @@ done
 cat > "$PROBE_PROMPT"
 if [ "$PROBE_IDENTITY" = yes ]; then printf '{"type":"thread.started","thread_id":"native-timeout"}\n'; fi
 if [ "$PROBE_SUCCESS" = yes ]; then
-    printf 'GATE: implementation\nREVISION: checked\nVERDICT: PASS\n' > "$output"
+    printf 'GATE: delivery-code\nREVISION: checked\nVERDICT: PASS\n' > "$output"
     exit 0
 fi
 sleep 10
@@ -57,7 +57,7 @@ sleep 10
 	source := filepath.Join(root, "spec.org")
 	for path, value := range map[string]string{
 		config:   "version: 3\ndelivery:\n  audit:\n    harness: codex\n    model: fixture\n    max_rounds: 2\n    timeout: 1s\n",
-		registry: "version: 1\ntimeout_resume_instructions: CONTINUE_INTERRUPTED_FIXTURE\ntimeout_message: RETRY_SAME_SESSION_FIXTURE\ntimeout_blocked_message: STOP_FIXTURE\ngates:\n  implementation:\n    prompt: audit\n",
+		registry: "version: 1\ntimeout_resume_instructions: CONTINUE_INTERRUPTED_FIXTURE\ntimeout_message: RETRY_SAME_SESSION_FIXTURE\ntimeout_blocked_message: STOP_FIXTURE\ngates:\n  delivery-code:\n    prompt: audit\n",
 		source:   "unchanged requirement",
 	} {
 		if err := os.WriteFile(path, []byte(value), 0o600); err != nil {
@@ -66,7 +66,7 @@ sleep 10
 	}
 	record := filepath.Join(root, "audits.yaml")
 	writeReadyDocuments(t, root)
-	args := []string{"--project", root, "--global-config", config, "--audit-prompts", registry, "--gate", "implementation", "--audit-record", record, "--work-item", "W006-recovery", "--input", source}
+	args := []string{"--project", root, "--global-config", config, "--audit-prompts", registry, "--gate", "delivery-code", "--audit-record", record, "--work-item", "W006-recovery", "--input", source}
 	for index, action := range []string{"start", "resume"} {
 		if index == 1 && recovery == "success" {
 			t.Setenv("PROBE_SUCCESS", "yes")
@@ -132,7 +132,7 @@ sleep 10
 		t.Fatalf("blocked invocation called provider: %q -> %q (%v)", before, after, err)
 	}
 	if recovery == "exhausted" {
-		resetArgs := []string{"resume", "--reset-session", "--project", root, "--gate", "implementation", "--audit-record", record, "--work-item", "W006-recovery"}
+		resetArgs := []string{"resume", "--reset-session", "--project", root, "--gate", "delivery-code", "--audit-record", record, "--work-item", "W006-recovery"}
 		if err := run(resetArgs, strings.NewReader(""), &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
 			t.Fatal(err)
 		}

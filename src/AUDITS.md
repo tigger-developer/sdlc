@@ -25,27 +25,30 @@ input invalidates the key; do not alter inputs merely to evade a cached FAIL.
 
 ## Composite gates
 
-Apply `~/.agents/sdlc/ARCHITECTURE.md` at both gates and include it in the
+Apply `~/.agents/sdlc/ARCHITECTURE.md` at all three gates and include it in the
 supplied evidence, alongside the relevant project architecture. Definition
 review resolves significant design decisions and their verification; implementation
 review checks adherence without substituting the auditor's preferred design.
 
 The **definition gate** reviews the specification, solution design, and RT/UT/OT
-test definitions together. The **implementation gate** reviews implemented tests
-and the production delta in one context: assess test quality and evidence, then
-code conformance. Normal delivery uses the signed-off definition; paired and
-emergency delivery use the recorded operator-authorized scope. The implementation
-gate never reopens a signed-off definition or demands advance definition approval
+test definitions together. The **test-code gate** reviews the written tests and
+execution-enabling scaffolding before implementation of the target behaviour.
+The **delivery-code gate** reviews the production delta, affected tests, execution
+evidence and required product documentation. These two gates share one retained
+implementation context. Normal delivery uses the signed-off definition; paired and
+emergency delivery use the recorded operator-authorized scope. Neither implementation
+review reopens a signed-off definition or demands advance definition approval
 from a valid paired or emergency route.
 
 Test definitions belong to the definition context. Normal implementation has two
-reviews in one retained context: `--readiness-check=test-code` after the written
-test package has executed, then `--readiness-check=delivery-code` after the solution,
+reviews in one retained context: `--gate test-code` after the written
+test package has executed, then `--gate delivery-code` after the solution,
 tests and required OTs are GREEN. Review packages, not each file or edit. The test
 review must reach PASS or effective PROVISIONAL PASS before normal production work.
-Paired/emergency routes retain their implement-first sequence and may invoke the
-delivery-code stage directly. Both stages use `--gate implementation` and the same
-work-item session and round allowance; neither starts a separate auditor.
+If the approved spec has no RTs, skip test-code under TESTING.md; do not reclassify
+tests to evade it. Paired/emergency routes retain their implement-first sequence
+and may invoke delivery-code directly. Both implementation gates use the same
+work-item session and round allowance; the second resumes the first's context.
 
 Before invoking either stage, use `~/.agents/sdlc/bin/sdlc-validate --help` and run
 its selected readiness check. `ORG-SCHEMA.md` defines the record contract. The
@@ -53,15 +56,20 @@ harness repeats this deterministic check before config/provider startup, cache
 lookup or audit-record mutation. It locates `spec.org` and `validation.org` beside
 the required `--audit-record` and includes them in hashed evidence. Schema errors
 or missing results return YAML and nonzero without a model call or round consumed.
-Default implementation readiness is delivery-code, never an unchecked audit.
+The explicit gate selects its readiness check automatically. There is no default
+audit gate. `--readiness-check` belongs to the standalone validator, not the audit
+command. Definition review has no deterministic execution-readiness check.
 
-The harness records `readiness_check` on the entry and each attempt. A test-code
+For history compatibility, the harness retains `gate: implementation` as the
+shared session key and `readiness_check` as the selected test-code/delivery-code
+gate on the entry and each attempt. Returned GATE names use the explicit audit
+gate. These are storage details, not additional CLI selectors. A test-code
 PASS approves tests only and does not mark delivery passed. Final delivery requires
 current delivery-code PASS or effective PROVISIONAL PASS; stage-specific prompts
 separate cache keys. Old unlabelled rounds remain history, not current-stage evidence.
 Execution states in validation.org are test evidence, not duplicated audit verdicts.
 
-For either gate:
+For every gate:
 
 1. Invoke `~/.agents/sdlc/bin/sdlc-harness` with the gate and exact evidence.
 2. On `FAIL`, address **every** finding before resuming: remediate all valid
@@ -79,7 +87,8 @@ If unsure, or the dispute remains unresolved, raise it to the operator. A challe
 does not itself dismiss a finding or change the verdict; only the harness records
 the auditor's reassessment in `audits.yaml`.
 
-The harness stores one session mapping per work item and gate in `audits.yaml`.
+The harness stores separate definition and implementation session mappings per
+work item in `audits.yaml`; test-code and delivery-code share the latter.
 The first invocation starts a session; later invocations resume its recorded
 `session_id`. The round limit is `delivery.audit.max_rounds` (default five) and
 applies to the current explicitly bounded audit cycle. Every provider invocation,
@@ -165,7 +174,7 @@ list are not covered by the manifest checks.
 The harness response contains exactly one envelope:
 
 ```text
-GATE: definition | implementation
+GATE: definition | test-code | delivery-code
 REVISION: <audited revision or SHA-256>
 VERDICT: PASS | PROVISIONAL PASS | FAIL
 ```
@@ -183,7 +192,7 @@ reversible assumptions, but must stop for an unsafe or irreversible decision,
 an unremediable mandatory test failure, or the configured round limit.
 
 `BYPASS-GATE-7` skips definition admission for an emergency change. It still
-requires TDD where practicable, the implementation gate, and a wrap-up that
+requires TDD where practicable, the delivery-code gate, and a wrap-up that
 backfills the specification, design, validation, and documentation evidence.
 
 ## Brownfield evidence
@@ -198,7 +207,11 @@ must be reported.
 Paired work creates a skeleton ticket before code and audits each coherent code
 increment promptly, not every live edit. Emergency work fixes first, records the
 durable ticket, then audits implementation. Both consolidate and retrospectively
-review the definition after the implementation gate has an effective PASS.
+review the definition after the delivery-code gate has an effective PASS.
+For all routes, affected product documentation must be current at the final
+delivery-code verdict under DOCUMENTATION.md. The test-code gate does not demand
+those updates. A paired/emergency retrospective specification may follow code
+review; this does not defer updates to affected product documentation.
 
 Run `~/.agents/sdlc/bin/sdlc-harness --help` before first use. In its stdin audit
 context, supply `Workflow: paired` or `Workflow: emergency` for an operator-invoked

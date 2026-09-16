@@ -1,5 +1,23 @@
 # SDLC Standards: Design Learnings
 
+## Name the audit purpose, not its admission check
+
+Definition, test-code and delivery-code are distinct review decisions. Readiness
+is a deterministic prerequisite selected by the audit gate, not a second caller
+choice. The latter two gates share one implementation session and attempt budget;
+their verdicts and caches must still distinguish test approval from delivery approval.
+
+TDD needs executable assertions, not compilation failures. Permit only the minimal
+scaffolding needed to reach meaningful RED, and inspect it with the tests. An
+approved change using only OT/UT evidence has no RT package to review and skips that
+gate. Product docs belong at final delivery review; retrospective specification
+consolidation in paired/emergency work is a different activity.
+
+The extra test review is a cost hypothesis: it should prevent downstream rework,
+not become another per-edit loop. Readiness checks do not eliminate provider
+incidents or repeated evidence transport. Assess the effect through bounded real
+deliveries before introducing further process.
+
 ## Check readiness deterministically; spend audits on judgement
 
 An auditor should not be the first component to discover missing test records or

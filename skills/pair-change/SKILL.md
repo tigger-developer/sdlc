@@ -14,11 +14,13 @@ progresses. Documentation-only changes do not require a ticket.
 Iterate implementation with the operator. Use automated TDD wherever justified,
 and record each explicit visual, ergonomic, editorial, or operational validation
 without replacing it with artificial automation. Audit each coherent code
-increment promptly through the combined implementation gate, not each keystroke.
+increment promptly through `--gate delivery-code`, not each keystroke.
 Before that review, follow `~/.agents/sdlc/ORG-SCHEMA.md` and run
 `~/.agents/sdlc/bin/sdlc-validate --help`, then its delivery-code readiness check.
 Every RT/OT must be GREEN; record outstanding UTs as AMBER. This route does not
 require a pre-build test-code audit.
+Update affected product documentation before that final delivery verdict; do not
+require a polished retrospective specification before reviewing the code increment.
 When the outcome stabilizes, consolidate `spec.org`, `validation.org`, and
 affected documentation, then run the retrospective definition review.
 

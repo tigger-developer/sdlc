@@ -1,5 +1,5 @@
 #+TITLE: WNNN - [Concise change-specific title]
-#+SCHEMA: 6
+#+SCHEMA: 7
 #+SUBTITLE: Unified change specification
 #+STARTUP: overview
 #+OPTIONS: toc:2 num:nil
@@ -231,6 +231,9 @@ Classify each test honestly:
 Automated RTs for new behaviour follow TDD and must fail for the expected reason
 before implementation. An initially GREEN preservation RT is legitimate with
 its purpose recorded; do not manufacture RED by breaking working code.
+TESTING.md permits only minimal execution-enabling scaffolding before test-code
+review, not target behaviour. If no RT is justified, record why OT/UT evidence
+suffices; that approved choice skips test-code, not the delivery-code gate.
 A test must earn its place, exercise the relevant boundary, and
 be defined well enough to reproduce. Do not simulate an undocumented third-party
 system or use source-text greps as behavioural evidence.
@@ -430,12 +433,14 @@ requires additional treatment; do not fill a checklist with repetitive N/A text.
 - Entry conditions :: [Explicit delivery authority and applicable
   [[#constraints-and-dependencies][prerequisites]], with their preflight evidence.
   Read the current definition gate from =audits.yaml=, not copied spec metadata.]
-- First implementation step :: Write [[#rt-nnn-1][RTNNN.1 - Descriptive
-  regression test]] and observe the expected RED result.
+- First implementation step :: [Write the specified RTs and observe meaningful
+  RED, with only permitted scaffolding. For an approved no-RT change, implement
+  against its OT/UT plan instead. Link the applicable definitions.]
 - Definition evidence :: [[file:audits.yaml][=audits.yaml=]]
 - Validation evidence :: [[file:validation.org][=validation.org=]]; one tagged
   result heading per defined test, including RTs. Follow =ORG-SCHEMA.md=.
-- Documentation impact :: [Files to update, or none with reason.]
+- Documentation impact :: [Files to update before final delivery-code review,
+  or none with reason.]
 
 #+begin_comment
 Before definition sign-off, test the handoff: could a new agent deliver this

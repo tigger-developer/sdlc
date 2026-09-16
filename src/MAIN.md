@@ -68,7 +68,7 @@ Read this file first, then only the standards relevant to the work.
 | Specification, acceptance criteria, bugs, or clarification | `~/.agents/sdlc/ISSUES.md` |
 | Test definition or verification | `~/.agents/sdlc/TESTING.md` |
 | Audits or gates | `~/.agents/sdlc/AUDITS.md` |
-| Architecture, solution design, delivery, or either audit gate | `~/.agents/sdlc/ARCHITECTURE.md` |
+| Architecture, solution design, delivery, or any audit gate | `~/.agents/sdlc/ARCHITECTURE.md` |
 | Implementation or code review | `~/.agents/sdlc/CODING.md` |
 | Explicit paired delivery | `~/.agents/sdlc/PAIRING.md` |
 | Exact `BYPASS-GATE-7` emergency delivery | `~/.agents/sdlc/EMERGENCY.md` |
@@ -114,17 +114,19 @@ Normal delivery has two phases and two human gates:
 
 1. **Define:** create one context-independent `spec.org` containing context,
    acceptance criteria, traced test definitions, edge cases, and solution
-   design. The `define-change` workflow audits and remediates it locally, runs
+   design. The `define-change` workflow checks and corrects its own draft, runs
    one retained external definition audit, then obtains operator sign-off.
 2. **Deliver:** write and execute the RT package, validate its records and obtain
    the test-code review. Implement, obtain RT/OT GREEN, then validate and review
    delivery-code in the same retained implementation context. `deliver-change`
    follows `TESTING.md` and `AUDITS.md`; UTs may await the operator. Update affected
-   documentation and obtain operator closure.
+   documentation before the final delivery-code verdict and obtain operator closure.
+   Follow TESTING.md for minimal test scaffolding and the no-RT skip rule.
 
 The definition gate combines specification, design, and test-definition audits.
-The implementation gate combines implemented-test and code audits. Read
-`AUDITS.md` before either gate.
+Test-code audits written tests; delivery-code audits the delivered code, affected
+tests and product documentation. They share one implementation auditor context.
+Read `AUDITS.md` before any gate; ordinary author checks are not extra audit loops.
 
 Audit findings, status, revisions, round numbers, remediation, and session IDs
 are recorded only by the harness-invoked audit workflow in the work item's
@@ -140,15 +142,17 @@ repository. Uncaptured conversation or hidden assumptions fail the gate.
 
 ## Delivery modes
 
-`define-change` is always **ATTENDED**: it may ask the operator for the bounded
+`define-change` defaults to **ATTENDED** unless the operator explicitly invokes
+hands-off definition: it may ask the operator for the bounded
 decisions needed to make the specification safe and context-independent.
 
 `deliver-change` performs one preflight question set before implementation. The
 operator may explicitly select **ATTENDED**; otherwise that invocation proceeds
 in **HANDS-OFF** mode. Hands-off is therefore an invoked delivery mode, not a
 global default. The agent must declare `DELIVERY MODE: HANDS-OFF` when entering
-it and advise the operator that any interruption or resumed interaction changes
-the mode to **ATTENDED** until the operator invokes `HANDS-OFF` again. The cost
+it and advise the operator that pausing delivery or reopening decisions changes
+the mode to **ATTENDED** until the operator invokes `HANDS-OFF` again. Routine
+in-scope corrections leave hands-off delivery active. The cost
 of stopping prematurely is high: a question, uncertainty, or need for routine
 interpretation is not a stopping condition. Make and record a sensible,
 reversible assumption whenever it remains inside the signed-off specification,

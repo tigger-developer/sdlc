@@ -27,7 +27,7 @@ done
 cat >/dev/null
 printf '{"type":"thread.started","thread_id":"%s-session"}\n' "$model"
 if [ "$model" = primary ]; then
-    printf 'GATE: implementation\nREVISION: stale\nVERDICT: PASS\n' > "$output"
+    printf 'GATE: delivery-code\nREVISION: stale\nVERDICT: PASS\n' > "$output"
     exit 1
 fi
 exit 0
@@ -42,7 +42,7 @@ exit 0
 	source := filepath.Join(root, "spec.org")
 	for path, value := range map[string]string{
 		config:   "version: 3\ndelivery:\n  audit:\n    harness: codex\n    model: primary\n    timeout: 5s\n    max_rounds: 5\n    fallback:\n      harness: codex\n      model: fallback\n",
-		registry: "version: 1\nsession_recovery_instructions: Preserve history.\ngates:\n  implementation:\n    prompt: audit\n",
+		registry: "version: 1\nsession_recovery_instructions: Preserve history.\ngates:\n  delivery-code:\n    prompt: audit\n",
 		source:   "requirement",
 	} {
 		if err := os.WriteFile(path, []byte(value), 0o600); err != nil {
@@ -51,7 +51,7 @@ exit 0
 	}
 	var output, diagnostics bytes.Buffer
 	writeReadyDocuments(t, root)
-	err := run([]string{"start", "--project", root, "--global-config", config, "--audit-prompts", registry, "--gate", "implementation", "--audit-record", filepath.Join(root, "audits.yaml"), "--work-item", "W014-fallback-output", "--input", source}, strings.NewReader("audit"), &output, &diagnostics)
+	err := run([]string{"start", "--project", root, "--global-config", config, "--audit-prompts", registry, "--gate", "delivery-code", "--audit-record", filepath.Join(root, "audits.yaml"), "--work-item", "W014-fallback-output", "--input", source}, strings.NewReader("audit"), &output, &diagnostics)
 	if err == nil || !strings.Contains(err.Error(), "response-empty") || output.Len() != 0 {
 		t.Fatalf("stale result accepted: error=%v output=%q diagnostics=%s", err, output.String(), diagnostics.String())
 	}

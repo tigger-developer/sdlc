@@ -13,9 +13,10 @@ Exact token and sufficient temporary specification
   -> implement the bounded fix
   -> observe GREEN and run immediate checks
   -> reuse or create the durable work item and record the bounded change
+  -> update product documentation affected by the fix
   -> record RT/OT GREEN and pass deterministic delivery-code readiness
-  -> pass the combined implementation gate
-  -> reconcile the durable specification, design, and documentation
+  -> pass the delivery-code gate
+  -> reconcile the durable specification and design
   -> retrospective definition review in its separate retained context
   -> complete outstanding user tests
   -> operator closure decision
@@ -62,10 +63,11 @@ need no ticket. Never delay the fix for ticket creation.
 Before audit, structure the bounded AC/test inventory and validation results under
 `ORG-SCHEMA.md`; use delivery-code readiness with RT/OT GREEN and outstanding UTs
 AMBER. This does not require a pre-build test-code audit or advance definition
-approval. Run the combined implemented-test and production-code audit. Remediate all
+approval. After the fix, update affected product documentation and run the
+delivery-code audit of implemented tests, production code and those docs. Remediate all
 blocking findings within the configured limits. After its effective PASS,
-consolidate the actual requirements, test definitions, solution design, and
-affected documentation without inventing advance ceremony. Run the retrospective
+consolidate the actual requirements, test definitions and solution design
+without inventing advance ceremony. Run the retrospective
 definition review under `AUDITS.md`, supplying `Workflow: emergency` in audit
 context. Correct documentary errors; refer behaviour or design changes to the
 operator for normal delivery. Complete outstanding user tests against the audited
@@ -82,7 +84,7 @@ has an effective audit PASS and current passing test evidence.
 The exception skips the normal pre-implementation definition artefact and
 definition gate. It does not override
 safety, the common command prohibitions, test-driven development, the
-implementation gate,
+delivery-code gate,
 verification integrity, preservation of human work, documentation accuracy, or
 evidence requirements. It does not authorize unrelated work or scope expansion.
 The closure handback must identify the temporary specification, reconciled

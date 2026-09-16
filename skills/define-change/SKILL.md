@@ -43,6 +43,10 @@ change-specific title, Org hierarchy, description-list, and semantic-emphasis
 requirements in `ISSUES.md`; generic titles and visually unscannable drafts are
 not ready for audit.
 
+Identify affected documentation in Delivery Handoff. Where no RT is justified,
+record why OT/UT evidence suffices for definition review; this permits delivery
+to skip test-code review, not to omit the final delivery-code gate.
+
 When annotations are present, apply the annotation-review contract in `ISSUES.md`
 before audit or sign-off. Reconcile feedback as a batch, retain unresolved items,
 and move resolved annotations with their dispositions to `feedback.yaml` before
