@@ -157,6 +157,9 @@ func Check(specPath, validationPath, mode string) (Report, error) {
 				check.Errors = append(check.Errors, issue("MISSING_EVIDENCE", result, "State requires a non-empty "+field+" property."))
 			}
 		}
+		if mode == "test-code" && strings.HasPrefix(test.ID, "RT") && result.State == "AMBER" {
+			check.Errors = append(check.Errors, issue("RT_EXECUTION_REQUIRED", result, "RT results must be RED or GREEN before test-code audit; AMBER is not executed test evidence."))
+		}
 		if mode == "delivery-code" && !strings.HasPrefix(test.ID, "UT") && result.State != "GREEN" {
 			check.Errors = append(check.Errors, issue("GREEN_REQUIRED", result, "RT and OT results must be GREEN before delivery-code audit."))
 		}

@@ -75,7 +75,8 @@ outputs YAML under `audit-readiness`, and never runs tests or writes files.
 
 - Schema errors prevent readiness evaluation and force `ready: false`.
 - `test-code`: every specified test must have a validation heading with RED,
-  AMBER or GREEN and the state-specific evidence properties above.
+  AMBER or GREEN and the state-specific evidence properties above. RTs must be
+  RED or GREEN; only OTs and UTs may be AMBER at this stage.
 - `delivery-code`: additionally requires every RT and OT GREEN. UTs may remain
   AMBER for operator participation; missing UT records/states are not permitted.
 - Unknown validation IDs are schema errors. Missing counterparts and states are

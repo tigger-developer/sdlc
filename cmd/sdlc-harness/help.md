@@ -43,6 +43,8 @@ are schema/readiness-checked before any provider call, then included as evidence
 Refusal: YAML on stdout; exit 1 ineligible or 2 invalid schema; no round consumed.
 Run sdlc-validate --help for local preflight. Test-code and delivery-code reviews
 share the implementation session and budget. A test-code PASS is not delivery PASS.
+Test-code requires RTs RED/GREEN; OT/UT may be AMBER. Delivery-code requires
+RTs/OTs GREEN; only UTs may remain outstanding. Both require state evidence.
 
   sdlc-audit start --gate implementation --readiness-check test-code \
     --audit-record specs/007-example/audits.yaml --work-item W007 --input tests.go

@@ -13,7 +13,7 @@ Options:
 
 Checks:
   Both: validate headings, tags, unique IDs and declared execution states.
-  test-code: every specified test has RED, AMBER or GREEN and state evidence.
+  test-code: every RT is RED or GREEN; OT/UT may be AMBER. All need state evidence.
   delivery-code: additionally require every RT and OT GREEN. UTs may be AMBER.
   A missing state is schema-valid but never audit-ready. Schema errors prevent
   readiness evaluation. Unsupported checks (including test-spec) are errors.

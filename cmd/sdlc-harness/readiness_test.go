@@ -24,12 +24,16 @@ func writeReadyDocuments(t *testing.T, root string) {
 }
 
 func TestReadinessRefusesBeforeConfigPromptOrAuditWrites(t *testing.T) {
-	for _, invalid := range []bool{false, true} {
+	for _, scenario := range []string{"missing state", "duplicate", "amber RT"} {
 		root := t.TempDir()
 		writeReadyDocuments(t, root)
 		validation := strings.Replace(readyValidation, "GREEN RT", "RT", 1)
-		if invalid {
+		if scenario == "duplicate" {
 			validation += "** RT001.1 - Duplicate :testdef:\n"
+		}
+		if scenario == "amber RT" {
+			validation = strings.Replace(readyValidation, "GREEN RT", "AMBER RT", 1)
+			validation = strings.Replace(validation, ":COMMAND: make test", ":REASON: Not yet executed", 1)
 		}
 		if err := os.WriteFile(filepath.Join(root, "validation.org"), []byte(validation), 0o600); err != nil {
 			t.Fatal(err)
@@ -37,6 +41,9 @@ func TestReadinessRefusesBeforeConfigPromptOrAuditWrites(t *testing.T) {
 		var out, diagnostics bytes.Buffer
 		// Invalid config and unreadable stdin would fail if preflight were too late.
 		args := []string{"start", "--project", root, "--gate", "implementation", "--audit-record", "audits.yaml", "--work-item", "W001", "--global-config", root}
+		if scenario == "amber RT" {
+			args = append(args, "--readiness-check=test-code")
+		}
 		err := run(args, rejectRead{}, &out, &diagnostics)
 		var refusal *readinessRefusal
 		if !errors.As(err, &refusal) || !strings.Contains(out.String(), "ready: false") {

@@ -69,6 +69,9 @@ func TestReadinessInventoryAndStages(t *testing.T) {
 	}
 	amberOT := strings.Replace(validationFixture, "GREEN OT", "AMBER OT", 1)
 	amberOT = strings.Replace(amberOT, ":EVIDENCE: Bounded", ":REASON: Not yet executed\n:EVIDENCE: Bounded", 1)
+	if r := checkFixture(t, specFixture, amberOT, "test-code"); r.ExitCode() != 0 {
+		t.Fatal("AMBER OT and UT should qualify for test-code with reasons")
+	}
 	if r := checkFixture(t, specFixture, amberOT, "delivery-code"); r.ExitCode() != 1 {
 		t.Fatal("OT must be GREEN")
 	}
@@ -80,6 +83,7 @@ func TestSchemaAndEligibilityFailures(t *testing.T) {
 		exit                         int
 	}{
 		{"no state", specFixture, strings.Replace(validationFixture, "GREEN RT", "RT", 1), "MISSING_STATE", 1},
+		{"amber RT", specFixture, strings.Replace(strings.Replace(validationFixture, "GREEN RT", "AMBER RT", 1), ":COMMAND: make test", ":REASON: Not yet executed", 1), "RT_EXECUTION_REQUIRED", 1},
 		{"missing test", specFixture, strings.Split(validationFixture, "** AMBER UT")[0], "MISSING_TEST", 1},
 		{"untagged", strings.Replace(specFixture, " :testdef:", "", 1), validationFixture, "MISSING_TEST_TAG", 2},
 		{"duplicate", specFixture + "\n** RT007.1 - Duplicate :testdef:\n", validationFixture, "DUPLICATE_ID", 2},
@@ -88,7 +92,7 @@ func TestSchemaAndEligibilityFailures(t *testing.T) {
 		{"no title", strings.Replace(specFixture, "RT007.1 - Reject invalid input", "RT007.1", 1), validationFixture, "MISSING_TITLE", 2},
 		{"bad id", specFixture + "\n** RTwrong - Bad :testdef:\n", validationFixture, "INVALID_ID", 2},
 		{"wrong todo", specFixture, strings.Replace(validationFixture, "AMBER RED | GREEN", "AMBER | RED GREEN", 1), "INVALID_STATES", 2},
-		{"late todo", specFixture, "* Results\n"+validationFixture, "INVALID_STATES", 2},
+		{"late todo", specFixture, "* Results\n" + validationFixture, "INVALID_STATES", 2},
 		{"untagged AC", strings.Replace(specFixture, " :ac:", "", 1), validationFixture, "INVALID_AC_TAG", 2},
 		{"missing evidence", specFixture, strings.ReplaceAll(validationFixture, ":REVISION: abc123\n", ""), "MISSING_EVIDENCE", 1},
 		{"unknown test", specFixture, validationFixture + "\n** AMBER RT008.1 - Unknown :testdef:\n", "UNKNOWN_TEST", 2},

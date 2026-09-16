@@ -150,8 +150,9 @@ gates:
       appropriate boundaries, determinism, credible doubles and no gaming or source greps.
       Inspect observed RT RED evidence: the intended assertion must fail, not compilation
       or setup. Initially GREEN preservation tests are legitimate with an explanation.
-      AMBER is structurally eligible, not proof of test readiness: missing/unexecuted RTs
-      require FAIL. Deferred OT/UT execution is expected before production implementation;
+      Preflight requires RTs RED or GREEN; AMBER is eligible only for OT/UT.
+      Missing/unexecuted RTs still require FAIL if recorded states misrepresent them.
+      Deferred OT/UT execution is expected before production implementation;
       verify their recorded plan without requiring automated substitutes.
       Deterministic preflight verifies the inventory and evidence fields, not their truth.
       Do not reopen approved requirements or invent new scope. Report all defects together;

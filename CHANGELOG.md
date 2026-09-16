@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## v3.3.1 - 2026-09-16
+
+- Refuse test-code audit readiness when any RT is AMBER: every RT must have
+  recorded RED or GREEN execution evidence. Deferred OT/UT records remain eligible
+  with reasons. Apply the same check in the validator and audit harness, before
+  provider invocation or round consumption; align help and the audit prompt.
+
 ## v3.3.0 - 2026-09-16
 
 - Add `sdlc-validate`: read-only Org schema and test-code/delivery-code readiness
