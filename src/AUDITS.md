@@ -38,11 +38,28 @@ emergency delivery use the recorded operator-authorized scope. The implementatio
 gate never reopens a signed-off definition or demands advance definition approval
 from a valid paired or emergency route.
 
-Test definitions and test code are different audit subjects. Definitions belong
-to the definition context; implemented tests share the production-code context.
-Do not add a mandatory external test-code audit between RED and implementation.
-In normal delivery, finish the authorized solution and its tests before invoking
-the implementation gate. Audit the change package, not each file or code edit.
+Test definitions belong to the definition context. Normal implementation has two
+reviews in one retained context: `--readiness-check=test-code` after the written
+test package has executed, then `--readiness-check=delivery-code` after the solution,
+tests and required OTs are GREEN. Review packages, not each file or edit. The test
+review must reach PASS or effective PROVISIONAL PASS before normal production work.
+Paired/emergency routes retain their implement-first sequence and may invoke the
+delivery-code stage directly. Both stages use `--gate implementation` and the same
+work-item session and round allowance; neither starts a separate auditor.
+
+Before invoking either stage, use `~/.agents/sdlc/bin/sdlc-validate --help` and run
+its selected readiness check. `ORG-SCHEMA.md` defines the record contract. The
+harness repeats this deterministic check before config/provider startup, cache
+lookup or audit-record mutation. It locates `spec.org` and `validation.org` beside
+the required `--audit-record` and includes them in hashed evidence. Schema errors
+or missing results return YAML and nonzero without a model call or round consumed.
+Default implementation readiness is delivery-code, never an unchecked audit.
+
+The harness records `readiness_check` on the entry and each attempt. A test-code
+PASS approves tests only and does not mark delivery passed. Final delivery requires
+current delivery-code PASS or effective PROVISIONAL PASS; stage-specific prompts
+separate cache keys. Old unlabelled rounds remain history, not current-stage evidence.
+Execution states in validation.org are test evidence, not duplicated audit verdicts.
 
 For either gate:
 

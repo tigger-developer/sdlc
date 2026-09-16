@@ -68,6 +68,8 @@ For each bounded iteration:
 7. Audit implemented tests and code together once the increment is coherent and
    reviewable, before moving to unrelated work. Remediate findings under
    `AUDITS.md`; do not audit every keystroke or deliberately unfinished edit.
+   First apply `ORG-SCHEMA.md` and delivery-code readiness to the recorded bounded
+   scope: RT/OT GREEN, outstanding UTs AMBER. No pre-build test-code audit is required.
 8. Continue from the operator's next instruction.
 
 The agent must not manufacture automated tests merely to reproduce visual or

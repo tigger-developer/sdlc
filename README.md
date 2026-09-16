@@ -9,6 +9,25 @@ SDLC v3 supports **Codex**, **Claude Code**, **GitHub Copilot CLI**, and
 global skill location; fixed adapters preserve their different model, provider,
 output, and resumable-session contracts.
 
+## Delivery readiness
+
+`sdlc-validate` checks the Org test inventory and execution records locally, without
+a model call. `make install` deploys it alongside `sdlc-init` and `sdlc-audit`.
+Run `sdlc-validate --help`; for example:
+
+```sh
+sdlc-validate --spec specs/007-example/spec.org --readiness-check=test-code
+```
+
+Normal delivery reviews the written tests before production implementation, then
+reviews the finished solution in the same retained implementation-auditor context.
+Use `--readiness-check=delivery-code` before that final review: RTs and OTs must be
+GREEN; UTs may remain outstanding. Output is readable YAML with inventory, source
+locations and errors. Nonzero means not ready or invalid input. The harness repeats
+the checks before spending an audit round. See [Org schema](src/ORG-SCHEMA.md).
+Older sheets need tagged AC/test headings and structured validation records; the
+validator never silently rewrites them or manufactures execution results.
+
 ## Prerequisites
 
 - Go 1.23 or later to build the installer and helper commands.
@@ -288,12 +307,12 @@ The operator reviews and signs off the definition before implementation.
 Invoke `$deliver-change`. It checks operator sign-off in the specification,
 `ACTIVE` lifecycle state in `work.org`, current definition-gate evidence in
 `audits.yaml`, and documented delivery prerequisites or holds; it does not
-rerun the definition audits. Automated regression tests are written first and
-must show the intended RED result. The agent implements the smallest coherent
-change, returns the suite to GREEN, and applies the implemented-test and
-production-code review together through the retained implementation audit context.
-After PASS, required OT and UT evidence is recorded in `validation.org`,
-affected documentation is reconciled, and the operator decides closure.
+rerun the definition audits. Automated regression tests are written and executed
+first, with observed RED or justified initially GREEN preservation results. After
+deterministic readiness, the written tests receive test-code review. The agent then
+implements the solution, records RT/OT GREEN, reconciles affected documentation,
+and resumes the same auditor for delivery-code review. Both stages share the
+configured allowance. UTs can remain AMBER until operator validation and closure.
 
 Audit results live in `audits.yaml`. They are evidence for an exact revision, not
 human approval.

@@ -103,6 +103,7 @@ var retiredGlobalSkillPaths = []string{
 }
 
 var deployedCommandNames = []string{
+	"sdlc-validate",
 	"sdlc-init",
 	"sdlc-merge-legacy-acs",
 }

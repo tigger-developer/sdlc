@@ -43,7 +43,8 @@ printf '{"type":"thread.started","thread_id":"native-session"}\n'
 	t.Setenv("PROBE_MUTATE", "")
 	source := filepath.Join(root, "spec.org")
 	t.Setenv("PROBE_SOURCE", source)
-	if err := os.WriteFile(source, []byte("original requirement"), 0o600); err != nil {
+	writeReadyDocuments(t, root)
+	if err := os.WriteFile(source, []byte(readySpec+"original requirement\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	registry := filepath.Join(root, "prompts.yaml")
@@ -54,7 +55,7 @@ printf '{"type":"thread.started","thread_id":"native-session"}\n'
 	args := []string{"--phase", "audit", "--gate", "implementation", "--harness", "codex", "--model", "fixture", "--project", root, "--global-config", filepath.Join(root, "absent.yaml"), "--audit-prompts", registry, "--audit-record", record, "--work-item", "W005-evidence", "--input", source}
 	for _, action := range []string{"start", "resume"} {
 		if action == "resume" {
-			if err := os.WriteFile(source, []byte("corrected requirement"), 0o600); err != nil {
+			if err := os.WriteFile(source, []byte(readySpec+"corrected requirement\n"), 0o600); err != nil {
 				t.Fatal(err)
 			}
 		}
@@ -79,7 +80,7 @@ printf '{"type":"thread.started","thread_id":"native-session"}\n'
 			t.Fatalf("record = %#v, %v", entry, err)
 		}
 		manifest := entry.LatestEvidence()
-		if len(manifest) != 1 || manifest[0].Path != source || len(manifest[0].SHA256) != 64 {
+		if len(manifest) != 2 || manifest[0].Path != source || len(manifest[0].SHA256) != 64 {
 			t.Fatalf("audit evidence manifest = %#v", manifest)
 		}
 		if action == "resume" && (len(entry.History) != 2 || entry.History[0].Evidence[0].SHA256 == manifest[0].SHA256) {
@@ -187,9 +188,11 @@ printf '{"type":"thread.started","thread_id":"native-session"}\n'
 		{"start", "--phase", "audit", "--gate", "implementation", "--audit-prompts", prompts, "--project", project, "--global-config", filepath.Join(root, "absent.yaml"), "--input", evidence},
 		{"resume", "--phase", "audit", "--gate", "implementation", "--audit-prompts", prompts, "--project", project, "--global-config", filepath.Join(root, "absent.yaml"), "--input", evidence, "--session", "native-session"},
 	} {
+		writeReadyDocuments(t, project)
+		arguments = append(arguments, "--audit-record", filepath.Join(project, "result.yaml"), "--work-item", "W004")
 		var output bytes.Buffer
 		var diagnostics bytes.Buffer
-		if err := run(arguments, strings.NewReader("audit this"), &output, &diagnostics); err != nil {
+		if err := run(arguments, strings.NewReader("audit this "+arguments[0]), &output, &diagnostics); err != nil {
 			t.Fatalf("%v returned %v: %s", arguments, err, diagnostics.String())
 		}
 		if !strings.Contains(output.String(), "VERDICT: PASS") || !strings.Contains(diagnostics.String(), "SESSION_ID: native-session") {

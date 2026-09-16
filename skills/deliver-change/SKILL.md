@@ -94,16 +94,27 @@ one project-convention feature branch for this change, then deliver there. Do
 not create the feature branch during definition or before checking admission.
 Never guess a primary branch, remote, or naming convention.
 
-Write every justified automated regression test before production code and
-observe the expected RED result. Implement the smallest coherent solution,
-observe GREEN, and keep the specification synchronized if implementation
-reveals an authorized routine detail. Do not change signed-off behaviour without
-operator authority.
+Read `~/.agents/sdlc/ORG-SCHEMA.md`. Create `validation.org` from its template
+with one `:testdef:` heading per specified test; preserve IDs and existing history.
+Run `~/.agents/sdlc/bin/sdlc-validate --help` before first use. Use it locally to
+check the full inventory and correct schema/readiness errors before calling an auditor.
 
-Finish the authorized solution and its automated tests before auditing; do not audit each
-file or code edit. Apply the composite implementation gate through the installed
-audit harness with `--phase audit --gate implementation`, using `audits.yaml` for the
-retained session mapping. Before resuming, address **every** finding as a batch:
+Write the complete justified RT package before production implementation and
+execute it. Record RED only for the intended observed failure; initially GREEN
+preservation tests need their rationale. Mark deferred OT/UT execution AMBER with
+a reason. Run the validator with `--spec <spec.org> --readiness-check=test-code`,
+then the audit harness with `--phase audit --gate implementation
+--readiness-check=test-code`, using the work item's `audits.yaml`. Remediate until
+PASS or effective PROVISIONAL PASS within the configured allowance before building.
+
+Implement the authorized solution, obtain GREEN for every RT and execute bounded
+OTs. Keep the specification synchronized for authorized routine details, without
+changing signed-off behaviour. Finish the solution, tests and affected documentation,
+not merely one file or edit. Run `sdlc-validate --readiness-check=delivery-code`
+with the same spec, then resume the same implementation audit session using
+`--readiness-check=delivery-code`. Both stages share the configured round allowance.
+A test-code PASS is not delivery approval; check `readiness_check` in audit evidence.
+Before resuming either stage, address **every** finding as a batch:
 remediate valid findings and challenge incorrect or out-of-scope findings with
 evidence under `~/.agents/sdlc/AUDITS.md`. Raise doubtful or unresolved disputes
 to the operator; never silently waive findings or expand scope to obtain a PASS.
@@ -111,9 +122,8 @@ On timeout, follow the harness recovery diagnostic: in HANDS-OFF, resume
 automatically within its limit, using the retained session. Timeout without a
 verdict does not require an artificial edit or justify a handback by itself.
 Do not invoke individual audit skills or re-audit the signed-off definition.
-After effective PASS, execute final OTs within authorized bounds, record results
-in `validation.org`, and update every affected project document. In HANDS-OFF,
-defer UTs until all other delivery work is delivered: leave them PENDING for the
+After effective delivery-code PASS, return the results for operator validation.
+In HANDS-OFF, defer UTs until all other delivery work is delivered: leave them AMBER for the
 operator and list them at handback, alongside any genuinely blocked work. Do not
 pause otherwise executable delivery for UT participation. Return the change for
 operator validation and closure; do not claim closure yourself.

@@ -65,6 +65,7 @@ sleep 10
 		}
 	}
 	record := filepath.Join(root, "audits.yaml")
+	writeReadyDocuments(t, root)
 	args := []string{"--project", root, "--global-config", config, "--audit-prompts", registry, "--gate", "implementation", "--audit-record", record, "--work-item", "W006-recovery", "--input", source}
 	for index, action := range []string{"start", "resume"} {
 		if index == 1 && recovery == "success" {
@@ -97,7 +98,7 @@ sleep 10
 		if err != nil || !found || entry.SessionID != "native-timeout" || entry.ExternalRound != index+1 || entry.Verdict != wantVerdict {
 			t.Fatalf("timeout record = %#v (%v)", entry, err)
 		}
-		if len(entry.LatestEvidence()) != 1 || (wantVerdict == "" && output.Len() != 0) {
+		if len(entry.LatestEvidence()) != 2 || (wantVerdict == "" && output.Len() != 0) {
 			t.Fatal("lost evidence or emitted verdict")
 		}
 		if index == 0 && !strings.Contains(diagnostics.String(), "RETRY_SAME_SESSION_FIXTURE") {

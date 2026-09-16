@@ -1,5 +1,5 @@
 #+TITLE: WNNN - [Concise change-specific title]
-#+SCHEMA: 5
+#+SCHEMA: 6
 #+SUBTITLE: Unified change specification
 #+STARTUP: overview
 #+OPTIONS: toc:2 num:nil
@@ -7,6 +7,8 @@
 
 #+begin_comment
 This is the canonical SDLC v3 specification template.
+Follow ORG-SCHEMA.md: tag every AC heading :ac: and every test heading
+:testdef:. Keep execution states in validation.org, never on spec headings.
 The SCHEMA value is this template's version, not the SDLC release or an audit
 result. Copy it unchanged into new specifications; follow ISSUES.md for versioning.
 
@@ -195,7 +197,7 @@ Keep delivery prerequisites under Context and link from Handoff. Do not turn
 workflow checkpoints into product ACs. Link exact design contracts where needed.
 #+end_comment
 
-** ACNNN.1 - Descriptive outcome
+** ACNNN.1 - Descriptive outcome :ac:
 :PROPERTIES:
 :CUSTOM_ID: ac-nnn-1
 :END:
@@ -203,7 +205,7 @@ workflow checkpoints into product ACs. Link exact design contracts where needed.
 - Criterion :: Given [context], the system [required observable state].
 - Proven by :: [[#rt-nnn-1][RTNNN.1 - Descriptive regression test]]
 
-** ACNNN.2 - Descriptive boundary
+** ACNNN.2 - Descriptive boundary :ac:
 :PROPERTIES:
 :CUSTOM_ID: ac-nnn-2
 :END:
@@ -226,8 +228,10 @@ Classify each test honestly:
 - UT is a human user test whose result is recorded, with no artificial test file.
 - OT is a bounded one-off check that is not retained in the regression suite.
 
-Automated RTs follow TDD and must fail for the expected reason before
-implementation. A test must earn its place, exercise the relevant boundary, and
+Automated RTs for new behaviour follow TDD and must fail for the expected reason
+before implementation. An initially GREEN preservation RT is legitimate with
+its purpose recorded; do not manufacture RED by breaking working code.
+A test must earn its place, exercise the relevant boundary, and
 be defined well enough to reproduce. Do not simulate an undocumented third-party
 system or use source-text greps as behavioural evidence.
 
@@ -242,7 +246,7 @@ to reformat cases. Optional table layout:
 | [Descriptive case] | [Bounded action] | [Concrete outcome] | [AC link] |
 #+end_comment
 
-** RTNNN.1 - Descriptive regression test
+** RTNNN.1 - Descriptive regression test :testdef:
 :PROPERTIES:
 :CUSTOM_ID: rt-nnn-1
 :END:
@@ -254,7 +258,7 @@ to reformat cases. Optional table layout:
 - Expected :: [Observable result that proves the criterion.]
 - Retention :: Persistent regression suite under the supported test command.
 
-** UTNNN.1 - Descriptive user validation
+** UTNNN.1 - Descriptive user validation :testdef:
 :PROPERTIES:
 :CUSTOM_ID: ut-nnn-1
 :END:
@@ -265,7 +269,7 @@ to reformat cases. Optional table layout:
 - Expected :: [What the reviewer must observe or decide.]
 - Record :: Write the dated result to =validation.org=.
 
-** OTNNN.1 - Descriptive one-off verification
+** OTNNN.1 - Descriptive one-off verification :testdef:
 :PROPERTIES:
 :CUSTOM_ID: ot-nnn-1
 :END:
@@ -429,8 +433,8 @@ requires additional treatment; do not fill a checklist with repetitive N/A text.
 - First implementation step :: Write [[#rt-nnn-1][RTNNN.1 - Descriptive
   regression test]] and observe the expected RED result.
 - Definition evidence :: [[file:audits.yaml][=audits.yaml=]]
-- Validation evidence :: [[file:validation.org][=validation.org=]] when UT or OT
-  execution occurs.
+- Validation evidence :: [[file:validation.org][=validation.org=]]; one tagged
+  result heading per defined test, including RTs. Follow =ORG-SCHEMA.md=.
 - Documentation impact :: [Files to update, or none with reason.]
 
 #+begin_comment

@@ -14,6 +14,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/tigger-developer/sdlc/internal/harness"
+	"github.com/tigger-developer/sdlc/internal/readiness"
 )
 
 var buildRelease string
@@ -32,6 +33,10 @@ func (values *inputList) Set(value string) error {
 func main() {
 	if err := run(os.Args[1:], os.Stdin, os.Stdout, os.Stderr); err != nil {
 		fmt.Fprintf(os.Stderr, "sdlc-harness: %v\n", err)
+		var refusal *readinessRefusal
+		if errors.As(err, &refusal) {
+			os.Exit(refusal.code)
+		}
 		os.Exit(1)
 	}
 }
@@ -65,6 +70,7 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 	globalConfig := flags.String("global-config", "", "global SDLC YAML configuration")
 	phase := flags.String("phase", "audit", "SDLC phase: definition, build, or audit")
 	gate := flags.String("gate", "", "composite audit gate: definition or implementation")
+	readinessCheck := flags.String("readiness-check", "", "implementation stage: test-code or delivery-code (default)")
 	auditPrompts := flags.String("audit-prompts", "", "audit prompt YAML (defaults to the installed prompts/audits.yaml)")
 	auditRecord := flags.String("audit-record", "", "YAML audit session record to update")
 	workItem := flags.String("work-item", "", "stable work-item identifier for the audit record")
@@ -114,6 +120,51 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		fmt.Fprintf(output, "AUDIT BUDGET RESET: %s/%s; attempts used=0; native session and history retained; no provider invoked. Resume the audit without --reset-session.\n", *workItem, normalizedGate)
 		return nil
 	}
+	if normalizedPhase == "audit" && normalizedGate == "implementation" {
+		if *readinessCheck == "" {
+			*readinessCheck = "delivery-code"
+		}
+		if !readiness.ValidMode(*readinessCheck) {
+			return fmt.Errorf("unsupported readiness check %q", *readinessCheck)
+		}
+		if *auditRecord == "" {
+			return errors.New("implementation audit requires --audit-record to locate spec.org and validation.org")
+		}
+		if !filepath.IsAbs(*auditRecord) {
+			*auditRecord = filepath.Join(projectRoot, *auditRecord)
+		}
+		specPath := filepath.Join(filepath.Dir(*auditRecord), "spec.org")
+		validationPath := filepath.Join(filepath.Dir(*auditRecord), "validation.org")
+		report, checkErr := readiness.Check(specPath, validationPath, *readinessCheck)
+		if checkErr != nil {
+			return fmt.Errorf("implementation readiness: %w", checkErr)
+		}
+		if code := report.ExitCode(); code != 0 {
+			encoder := yaml.NewEncoder(output)
+			encoder.SetIndent(2)
+			if err := encoder.Encode(report); err != nil {
+				return err
+			}
+			return &readinessRefusal{code: code}
+		}
+		// The checked documents must also be included in evidence hashes and the audit.
+		for _, required := range []string{specPath, validationPath} {
+			found := false
+			for _, value := range inputs {
+				if !filepath.IsAbs(value) {
+					value = filepath.Join(projectRoot, value)
+				}
+				if filepath.Clean(value) == required {
+					found = true
+				}
+			}
+			if !found {
+				inputs = append(inputs, required)
+			}
+		}
+	} else if *readinessCheck != "" {
+		return errors.New("--readiness-check applies only to --phase audit --gate implementation")
+	}
 	config, err := harness.ResolveConfig(harness.ConfigOptions{
 		ProjectRoot: projectRoot, GlobalPath: *globalConfig, Phase: normalizedPhase,
 		Harness: *harnessName, Provider: *provider, Model: *model, Timeout: *timeout,
@@ -137,11 +188,15 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		if loadErr != nil {
 			return loadErr
 		}
-		base, loadErr := registry.prompt(normalizedGate)
+		promptKey := normalizedGate
+		if *readinessCheck == "test-code" {
+			promptKey = "test-code"
+		}
+		base, loadErr := registry.prompt(promptKey)
 		if loadErr != nil {
 			return loadErr
 		}
-		prompt = append([]byte(base+"\n\nOperator-supplied audit context:\n"), prompt...)
+		prompt = append([]byte(base+"\nAudit readiness stage: "+*readinessCheck+"\n\nOperator-supplied audit context:\n"), prompt...)
 	}
 	evidence, err := harness.CaptureEvidence(projectRoot, inputs)
 	if err != nil {
@@ -235,7 +290,7 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		recordPath = strings.TrimSpace(*auditRecord)
 	}
 	runner := recoveryRun{config: config, request: request, evidence: evidence, registry: registry,
-		path: recordPath, work: *workItem, gate: normalizedGate, cacheKey: cacheKey, audit: normalizedPhase == "audit", diagnostics: errorOutput}
+		path: recordPath, work: *workItem, gate: normalizedGate, cacheKey: cacheKey, readinessCheck: *readinessCheck, audit: normalizedPhase == "audit", diagnostics: errorOutput}
 	result, err := runner.execute(entry, action == "resume")
 	if err != nil {
 		return err
@@ -243,6 +298,12 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 	fmt.Fprintf(errorOutput, "SESSION_ID: %s\n", result.SessionID)
 	_, err = fmt.Fprintln(output, result.Response)
 	return err
+}
+
+type readinessRefusal struct{ code int }
+
+func (e *readinessRefusal) Error() string {
+	return "INELIGIBLE: correct the readiness errors; no provider invoked or audit round consumed"
 }
 
 func auditField(response, name string) string {

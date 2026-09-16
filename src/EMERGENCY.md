@@ -13,10 +13,11 @@ Exact token and sufficient temporary specification
   -> implement the bounded fix
   -> observe GREEN and run immediate checks
   -> reuse or create the durable work item and record the bounded change
+  -> record RT/OT GREEN and pass deterministic delivery-code readiness
   -> pass the combined implementation gate
   -> reconcile the durable specification, design, and documentation
   -> retrospective definition review in its separate retained context
-  -> execute one-off and user tests
+  -> complete outstanding user tests
   -> operator closure decision
 ```
 
@@ -58,20 +59,22 @@ This lean record is sufficient to start the implementation audit; a complete
 definition or prior definition PASS is not required. Documentation-only changes
 need no ticket. Never delay the fix for ticket creation.
 
-Run the combined implemented-test and production-code audit first. Remediate all
+Before audit, structure the bounded AC/test inventory and validation results under
+`ORG-SCHEMA.md`; use delivery-code readiness with RT/OT GREEN and outstanding UTs
+AMBER. This does not require a pre-build test-code audit or advance definition
+approval. Run the combined implemented-test and production-code audit. Remediate all
 blocking findings within the configured limits. After its effective PASS,
 consolidate the actual requirements, test definitions, solution design, and
 affected documentation without inventing advance ceremony. Run the retrospective
 definition review under `AUDITS.md`, supplying `Workflow: emergency` in audit
 context. Correct documentary errors; refer behaviour or design changes to the
-operator for normal delivery. Then execute and record required one-off and user
-tests against the audited candidate. Missing results block closure, not audit
-admission.
+operator for normal delivery. Complete outstanding user tests against the audited
+candidate. Missing RT/OT results block audit admission; outstanding UTs block closure.
 
 If a one-off or user test exposes a defect and remediation changes code, the
 earlier audit remains evidence for its audited revision but is no longer current
-for completion. Rerun affected automated tests, the implementation gate, and affected
-one-off or user tests. Do not report completion until the current implementation
+for completion. Rerun affected automated and one-off tests before the delivery-code
+audit, and affected user tests when the operator is available. Do not report completion until the current implementation
 has an effective audit PASS and current passing test evidence.
 
 ## Boundaries

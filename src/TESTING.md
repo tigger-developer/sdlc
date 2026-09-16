@@ -75,21 +75,25 @@ not demand test code, execution results, or RED/GREEN evidence before
 implementation. At the implementation gate, the audit harness reviews the
 actual test changes and current evidence against those signed-off definitions
 (or the recorded operator-authorized scope in paired and emergency delivery).
-Review test code and production code together in one retained implementation
-context after RED, implementation, and GREEN; no separate external test-code
-gate is required before production code. The author must still check that RED
-fails for the intended reason. Retrospective test-definition review uses the
+Normal delivery first reviews the complete written RT package at the test-code
+stage, after observing RED (or justified initially GREEN preservation evidence),
+before production implementation. After implementation and RT/OT GREEN, the
+delivery-code stage resumes the same implementation-auditor context, reviewing
+production code and changed tests. Both stages use the configured shared round
+allowance. The author must check that RED fails for the intended reason.
+Paired and emergency routes may go directly to delivery-code after their coherent
+change; they do not invent a retrospective pre-build test-code gate.
+Retrospective test-definition review uses the
 separate definition context, not the implementation auditor's session.
 Planned tests are not implementation evidence, and implemented tests do not
 retroactively repair an inadequate definition.
 
 Define the expected evidence for one-off and user tests before implementation
 where practical. They do not follow TDD and do not require a pre-change failure.
-For normal and `BYPASS-GATE-7` work, execute final verification
-after the implementation gate has an effective PASS. Earlier diagnostic executions may
-inform implementation but are not final evidence unless they remain current for
-the audited candidate. Paired development uses the live user-validation contract
-below.
+Execute final OTs before the delivery-code audit; every RT and OT must be GREEN.
+UTs may remain AMBER until operator participation. Earlier diagnostic executions
+count only if their evidence remains current for the candidate. Paired development
+uses the live user-validation contract below.
 
 ## Choose durable evidence
 
@@ -105,34 +109,26 @@ Do not create permanent test code solely to satisfy a test-count rule. Record
 one-off or user-test evidence durably, then remove temporary files from the
 repository.
 
-## Non-automated test results
+## Test execution records and readiness
 
-When a change selects any one-off or user test, its specification directory must
-contain `validation.org`. Create the record before implementation with each
-selected test marked `PENDING` (for an emergency, backfill it with the durable
-ticket immediately after the fix). Replace that status with the observed
-`PASS` or `FAIL` result after execution.
+Every delivery has `validation.org`, with one current heading per RT, OT and UT
+defined in `spec.org`. Follow `~/.agents/sdlc/ORG-SCHEMA.md` and the canonical
+templates: both documents tag tests `:testdef:`, and only validation headings carry
+execution states. Declare `#+TODO: AMBER RED | GREEN`; an absent state is schema-valid
+but audit-ineligible. Preserve superseded runs below the same test node.
 
-Every planned entry must include:
+The deterministic `~/.agents/sdlc/bin/sdlc-validate` reports schema errors, inventory
+and readiness as YAML. Read its `--help` and run it before the corresponding audit.
+The harness repeats the same checks before spending a round. Schema failures and
+ineligibility never invoke a model. Test-code requires a recorded state for every
+test; delivery-code requires RT/OT GREEN, permitting outstanding UTs only.
 
-- a test identifier with an adjacent descriptor and its one-off or user-test
-  category;
-- the requirement or task it verifies;
-- the expected result and procedure or human viewing conditions;
-- `PENDING`, `PASS`, `FAIL`, or `SUPERSEDED` status.
-
-A completed or superseded entry must also include:
-
-- the tested revision and relevant environment;
-- the observed result and supporting evidence;
-- the tester or human authority for a user test; and
-- any later result that supersedes it.
-
-Do not infer PASS from a completed task, an agent report, or an implementation
-claim. Required one-off and user tests remain incomplete until their results are
-recorded in `validation.org`. Closure requires a current PASS
-for every required entry; missing, `PENDING`, `FAIL`, or materially stale results
-block closure, not the audit harness.
+Do not infer execution from implementation claims. Record tested revision,
+environment, dated observations and evidence, plus the reviewer for UTs. A broken
+fixture is AMBER; RT RED requires an executed intended assertion failure before
+production changes. Initially GREEN preservation tests need no artificial RED.
+Readiness checks verify recorded structure, not evidence truth or adequate coverage.
+Closure requires current GREEN for every required test, including operator UTs.
 
 The explicit legacy ticket-migration skill has one historical-record
 exception. It may infer delivery when either its near-complete rule has at least
@@ -146,8 +142,8 @@ evidence. This creates no precedent for active delivery.
 An audit verdict remains historical evidence for the revision and scope it
 assessed. If later remediation changes relevant code, the earlier implementation
 gate PASS is no longer current for completion. Rerun the affected automated tests
-and implementation gate, then repeat only the one-off and user tests materially affected by
-the change. Unaffected results remain current.
+and affected one-off tests before the delivery-code audit; repeat materially affected
+user tests when the operator is available. Unaffected results remain current.
 
 ## Paired user validation
 
@@ -256,7 +252,7 @@ allowance. If the budget is missing, exhausted or insufficient, defer that OT,
 continue other unblocked work, and report outstanding verification at handback.
 Do not imply a deferred test passed or authorize further spending yourself.
 
-**UTs are outside this budget and hands-off execution**: leave them PENDING for
+**UTs are outside this budget and hands-off execution**: leave them AMBER for
 operator participation after all other delivery work, or report any genuine
 remaining blockers. Configured SDLC audits remain separately authorized under
 their existing limits. An OT budget never permits metered checks in RT packs.

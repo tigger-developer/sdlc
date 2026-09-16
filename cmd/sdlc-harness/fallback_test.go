@@ -74,6 +74,7 @@ printf 'GATE: implementation\nREVISION: fixture\nVERDICT: PASS\n'
 				}
 			}
 			record := filepath.Join(root, "audits.yaml")
+			writeReadyDocuments(t, root)
 			args := []string{"start", "--project", root, "--global-config", config, "--audit-prompts", registry, "--gate", "implementation", "--audit-record", record, "--work-item", "W015-fallback", "--input", source}
 			roundBase := 0
 			if mode == "reset-limit" {
@@ -125,7 +126,7 @@ printf 'GATE: implementation\nREVISION: fixture\nVERDICT: PASS\n'
 			// Changed evidence avoids a cache hit; the next request resumes Hermes,
 			// without retrying the primary or consuming a fresh-context slot.
 			if mode == "limit" {
-				if err := os.WriteFile(source, []byte("updated requirement"), 0o600); err != nil {
+				if err := os.WriteFile(source, []byte(readySpec+"updated requirement\n"), 0o600); err != nil {
 					t.Fatal(err)
 				}
 				args[0] = "resume"

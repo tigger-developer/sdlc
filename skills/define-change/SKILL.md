@@ -34,8 +34,10 @@ Allocate the next never-used project work number. Create
 `specs/WNNN-descriptor/spec.org` from
 `~/.agents/sdlc/templates/v3/spec.org`. Include context, falsifiable acceptance
 criteria, traced RT/UT/OT test definitions, edge cases, solution design,
-mandatory security impact, and a context-independent delivery handoff. Create
-`validation.org` only when needed; the harness alone creates and updates
+mandatory security impact, and a context-independent delivery handoff. Apply
+`~/.agents/sdlc/ORG-SCHEMA.md`: every AC carries `:ac:` and every test `:testdef:`.
+Create `validation.org` by delivery admission; do not invent execution states
+in definition. The harness alone creates and updates
 `audits.yaml`. Add or update the descriptive work item in `docs/work.org`. Apply the
 change-specific title, Org hierarchy, description-list, and semantic-emphasis
 requirements in `ISSUES.md`; generic titles and visually unscannable drafts are

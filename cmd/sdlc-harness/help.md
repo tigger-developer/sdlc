@@ -8,6 +8,8 @@ Usage:
 
 Audit options:
   --gate definition|implementation   Required for audits.
+  --readiness-check CHECK            Implementation: test-code or delivery-code
+                                    (default: delivery-code).
   --audit-record FILE                Harness-owned audits.yaml record.
   --work-item ID                     Work item owning that record.
   --input FILE                       Evidence file; repeat for each input.
@@ -35,5 +37,19 @@ Start creates a session; resume loads it from the audit record. Do not pass
 --session to start. Reset requires operator authorization: omit --input and
 --session, then rerun the audit WITHOUT --reset-session. History is preserved.
 stdout: final result. stderr: progress and diagnostics.
+
+Implementation requires --audit-record. Its sibling spec.org and validation.org
+are schema/readiness-checked before any provider call, then included as evidence.
+Refusal: YAML on stdout; exit 1 ineligible or 2 invalid schema; no round consumed.
+Run sdlc-validate --help for local preflight. Test-code and delivery-code reviews
+share the implementation session and budget. A test-code PASS is not delivery PASS.
+
+  sdlc-audit start --gate implementation --readiness-check test-code \
+    --audit-record specs/007-example/audits.yaml --work-item W007 --input tests.go
+  sdlc-audit resume --gate implementation --readiness-check delivery-code \
+    --audit-record specs/007-example/audits.yaml --work-item W007 \
+    --input tests.go --input application.go
+
+Include all relevant source, test and authority files; examples abbreviate inputs.
 
 Examples, caching, fallback and recovery: ~/.agents/sdlc/HARNESS.md

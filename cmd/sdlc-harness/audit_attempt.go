@@ -29,7 +29,7 @@ func beginAuditAttempt(path string, entry harness.AuditEntry, work, gate string,
 	entry.Revision, entry.Verdict, entry.Response = "", "", ""
 	// Existing structured findings/remediation remain available; a timeout does
 	// not resolve them. Prior response bodies remain in their historical rounds.
-	entry.History = append(entry.History, harness.AuditRound{Round: entry.ExternalRound, Evidence: evidence.Files, Incident: "interrupted", Harness: config.Harness, Provider: config.Provider, Model: config.Model})
+	entry.History = append(entry.History, harness.AuditRound{Round: entry.ExternalRound, ReadinessCheck: entry.ReadinessCheck, Evidence: evidence.Files, Incident: "interrupted", Harness: config.Harness, Provider: config.Provider, Model: config.Model})
 	entry.History[len(entry.History)-1].CacheKey = cacheKey
 	attempt := &auditAttempt{path: path, entry: entry, limit: config.MaxRounds}
 	return attempt, harness.WriteAuditEntry(path, entry)

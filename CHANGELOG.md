@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+## v3.3.0 - 2026-09-16
+
+- Add `sdlc-validate`: read-only Org schema and test-code/delivery-code readiness
+  checks with YAML inventory and actionable diagnostics. Invalid or incomplete
+  records return nonzero before the harness invokes a model or spends a round.
+- Version the spec template at schema 6 and validation template at schema 1:
+  explicit `:ac:`/`:testdef:` tags, unique IDs, and canonical AMBER/RED/GREEN
+  execution headings. Older active sheets must adopt the structure without
+  losing history or inventing results; no automatic project rewrite occurs.
+- Split normal implementation review into written test-code review before build
+  and delivery-code review afterwards, retaining one implementation session and
+  allowance. Record the stage in audit history; a test-code PASS is not delivery
+  approval. Require RT/OT GREEN before final audit; only UTs may remain outstanding.
+- Deploy the validator with compact embedded help. Preserve paired/emergency
+  implement-first sequencing and use the same final readiness checks.
+
 ## v3.2.33 - 2026-09-14
 
 - Establish a per-ticket operator-approved budget for metered hands-off OTs,

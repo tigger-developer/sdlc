@@ -3,6 +3,10 @@
 This document governs requirements and acceptance criteria. It does not define
 an issue lifecycle or a delivery workflow.
 
+Follow `~/.agents/sdlc/ORG-SCHEMA.md` for machine-checkable AC/test headings and
+their matching execution records. Keep test definitions here, results in
+`validation.org`, and audit verdicts solely in `audits.yaml`.
+
 ## Defined specifications
 
 Every code or script change requires a work item; documentation-only changes do

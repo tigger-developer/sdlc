@@ -1,5 +1,21 @@
 # SDLC Standards: Design Learnings
 
+## Check readiness deterministically; spend audits on judgement
+
+An auditor should not be the first component to discover missing test records or
+an unfinished delivery package. Org already provides addressable headings, tags
+and declared states: no parallel YAML evidence ledger is needed. Derive the test
+inventory from the spec, keep one execution heading per ID in validation.org,
+and return the validator's inventory and diagnostics as YAML. Schema validity is
+not readiness, and readiness is not proof of good tests or truthful evidence.
+
+Review the complete written test package before normal production implementation,
+then resume the same auditor for the completed code and changed tests. This
+introduces an earlier quality checkpoint without a second context. It does not
+justify auditing each edit. Final RT/OT results must precede delivery review; UTs
+can await the operator. Review-stage provenance prevents test approval from being
+misread as delivery approval. The effect on delivery cost remains to be measured.
+
 ## Budget unattended verification without building a billing system
 
 A ticket-level OT allowance permits useful hands-off verification without

@@ -116,11 +116,11 @@ Normal delivery has two phases and two human gates:
    acceptance criteria, traced test definitions, edge cases, and solution
    design. The `define-change` workflow audits and remediates it locally, runs
    one retained external definition audit, then obtains operator sign-off.
-2. **Deliver:** write justified automated tests first, observe RED, implement,
-   observe GREEN, then let `deliver-change` audit and remediate the implemented
-   tests and code locally before one retained external implementation audit.
-   Execute required one-off and user tests, update affected documentation, and
-   obtain operator closure.
+2. **Deliver:** write and execute the RT package, validate its records and obtain
+   the test-code review. Implement, obtain RT/OT GREEN, then validate and review
+   delivery-code in the same retained implementation context. `deliver-change`
+   follows `TESTING.md` and `AUDITS.md`; UTs may await the operator. Update affected
+   documentation and obtain operator closure.
 
 The definition gate combines specification, design, and test-definition audits.
 The implementation gate combines implemented-test and code audits. Read

@@ -22,6 +22,7 @@ type recoveryRun struct {
 	registry         auditPromptDocument
 	path, work, gate string
 	cacheKey         string
+	readinessCheck   string
 	audit            bool
 	diagnostics      io.Writer
 }
@@ -177,6 +178,7 @@ func (r recoveryRun) invoke(entry harness.AuditEntry, selected harness.Config, r
 	if r.path != "" {
 		primary := r.config.Agent()
 		entry.Configured = &primary
+		entry.ReadinessCheck = r.readinessCheck
 		attempt, err = beginAuditAttempt(r.path, entry, r.work, r.gate, selected, r.evidence, r.cacheKey)
 		if err != nil {
 			return result, err
@@ -211,7 +213,7 @@ func (r recoveryRun) invoke(entry harness.AuditEntry, selected harness.Config, r
 		entry = attempt.entry
 		entry.Status = "active"
 		entry.Revision, entry.Verdict, entry.Response = auditField(result.Response, "REVISION"), auditField(result.Response, "VERDICT"), result.Response
-		if entry.Verdict == "PASS" || entry.Verdict == "PROVISIONAL PASS" {
+		if (entry.Verdict == "PASS" || entry.Verdict == "PROVISIONAL PASS") && r.readinessCheck != "test-code" {
 			entry.Status = "passed"
 		} else if entry.RoundsUsed() >= selected.MaxRounds {
 			entry.Status = "exhausted"

@@ -25,24 +25,25 @@ type LegacyAudit struct {
 }
 
 type AuditEntry struct {
-	WorkItem      string             `yaml:"work_item"`
-	Gate          string             `yaml:"gate"`
-	SessionID     string             `yaml:"session_id"`
-	Harness       string             `yaml:"harness,omitempty"`
-	Provider      string             `yaml:"provider,omitempty"`
-	Model         string             `yaml:"model,omitempty"`
-	Configured    *AgentConfig       `yaml:"configured,omitempty"`
-	Sessions      []RetiredSession   `yaml:"previous_sessions,omitempty"`
-	ExternalRound int                `yaml:"external_round"`
-	BudgetResets  []AuditBudgetReset `yaml:"budget_resets,omitempty"`
-	Status        string             `yaml:"status"`
-	Updated       string             `yaml:"updated"`
-	Revision      string             `yaml:"revision,omitempty"`
-	Verdict       string             `yaml:"verdict,omitempty"`
-	Response      string             `yaml:"response,omitempty"`
-	Findings      []string           `yaml:"findings,omitempty"`
-	Remediation   []string           `yaml:"remediation,omitempty"`
-	History       []AuditRound       `yaml:"history,omitempty"`
+	ReadinessCheck string             `yaml:"readiness_check,omitempty"`
+	WorkItem       string             `yaml:"work_item"`
+	Gate           string             `yaml:"gate"`
+	SessionID      string             `yaml:"session_id"`
+	Harness        string             `yaml:"harness,omitempty"`
+	Provider       string             `yaml:"provider,omitempty"`
+	Model          string             `yaml:"model,omitempty"`
+	Configured     *AgentConfig       `yaml:"configured,omitempty"`
+	Sessions       []RetiredSession   `yaml:"previous_sessions,omitempty"`
+	ExternalRound  int                `yaml:"external_round"`
+	BudgetResets   []AuditBudgetReset `yaml:"budget_resets,omitempty"`
+	Status         string             `yaml:"status"`
+	Updated        string             `yaml:"updated"`
+	Revision       string             `yaml:"revision,omitempty"`
+	Verdict        string             `yaml:"verdict,omitempty"`
+	Response       string             `yaml:"response,omitempty"`
+	Findings       []string           `yaml:"findings,omitempty"`
+	Remediation    []string           `yaml:"remediation,omitempty"`
+	History        []AuditRound       `yaml:"history,omitempty"`
 }
 
 // AuditBudgetReset starts a new bounded cycle without erasing lifetime history.
@@ -85,19 +86,20 @@ func ResetAuditBudget(path, workItem, gate string) error {
 }
 
 type AuditRound struct {
-	CacheKey  string         `yaml:"cache_key,omitempty"`
-	SessionID string         `yaml:"session_id,omitempty"`
-	Harness   string         `yaml:"harness,omitempty"`
-	Provider  string         `yaml:"provider,omitempty"`
-	Model     string         `yaml:"model,omitempty"`
-	Incident  string         `yaml:"incident,omitempty"`
-	Evidence  []EvidenceFile `yaml:"evidence,omitempty"`
-	Round     int            `yaml:"round"`
-	Revision  string         `yaml:"revision,omitempty"`
-	Verdict   string         `yaml:"verdict,omitempty"`
-	Response  string         `yaml:"response,omitempty"`
-	Findings  []string       `yaml:"findings,omitempty"`
-	Updated   string         `yaml:"updated"`
+	ReadinessCheck string         `yaml:"readiness_check,omitempty"`
+	CacheKey       string         `yaml:"cache_key,omitempty"`
+	SessionID      string         `yaml:"session_id,omitempty"`
+	Harness        string         `yaml:"harness,omitempty"`
+	Provider       string         `yaml:"provider,omitempty"`
+	Model          string         `yaml:"model,omitempty"`
+	Incident       string         `yaml:"incident,omitempty"`
+	Evidence       []EvidenceFile `yaml:"evidence,omitempty"`
+	Round          int            `yaml:"round"`
+	Revision       string         `yaml:"revision,omitempty"`
+	Verdict        string         `yaml:"verdict,omitempty"`
+	Response       string         `yaml:"response,omitempty"`
+	Findings       []string       `yaml:"findings,omitempty"`
+	Updated        string         `yaml:"updated"`
 }
 
 // RetiredSession preserves context provenance without duplicating audit findings.

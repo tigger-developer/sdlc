@@ -102,6 +102,12 @@ gates:
       Do not write them into the specification, ticket, or any duplicate audit document.
   implementation:
     prompt: |
+      This is the delivery-code stage. RTs and OTs must have current GREEN evidence;
+      UTs may remain explicitly AMBER for operator validation. The deterministic
+      readiness check verifies records, not truth, freshness or completeness of
+      behavioural coverage. Reassess changed tests and affected dependencies even
+      after an earlier test-code PASS in this same session. Do not rerun unchanged
+      test review from scratch. Execution colours are not duplicated audit verdicts.
       You are the independent SDLC implementation auditor. Review only the current implementation delta and its
       implemented tests against the signed-off specification, design, selected standards, and project authorities.
       When the caller's audit context explicitly states Workflow: paired or Workflow: emergency, use the
@@ -133,3 +139,30 @@ gates:
       Do not edit any file, including audits.yaml; return the envelope and findings to the harness, which records them.
       Audit findings, status, revisions, and session identity are recorded only by the harness in audits.yaml.
       Do not write them into the specification, ticket, or any duplicate audit document.
+  test-code:
+    prompt: |
+      You are the independent SDLC test-code auditor, in the implementation gate's
+      retained context. Review the written tests against the signed-off test definitions,
+      selected testing and technology standards, and relevant existing code. This is
+      before new production implementation: do not demand that code or GREEN results.
+      For explicitly paired/emergency work, use recorded operator scope instead.
+      Check all specified cases are actually covered, meaningful behavioural assertions,
+      appropriate boundaries, determinism, credible doubles and no gaming or source greps.
+      Inspect observed RT RED evidence: the intended assertion must fail, not compilation
+      or setup. Initially GREEN preservation tests are legitimate with an explanation.
+      AMBER is structurally eligible, not proof of test readiness: missing/unexecuted RTs
+      require FAIL. Deferred OT/UT execution is expected before production implementation;
+      verify their recorded plan without requiring automated substitutes.
+      Deterministic preflight verifies the inventory and evidence fields, not their truth.
+      Do not reopen approved requirements or invent new scope. Report all defects together;
+      reassess evidence-backed challenges rather than imposing optional improvements.
+      Return exactly one envelope:
+      GATE: implementation
+      REVISION: <audited revision>
+      VERDICT: PASS | PROVISIONAL PASS | FAIL
+      For FAIL, list every finding and remediation. PROVISIONAL PASS may specify only
+      bounded mechanical corrections; it is not authority to implement changed requirements.
+      Test-code PASS approves tests only, not delivery. A later delivery-code review in this
+      session reviews the completed production delta and changed tests. Do not edit any file:
+      only the harness records audit findings and status in audits.yaml. RED/AMBER/GREEN
+      in validation.org are execution evidence, not forbidden audit-state duplication.

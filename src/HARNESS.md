@@ -13,6 +13,23 @@ Usage
     sdlc-harness start|resume [options] < audit-context.txt
     sdlc-harness goal-config [options]
 
+Implementation readiness
+========================
+
+Before implementation review, use `sdlc-validate --help` and validate the spec's
+records locally. The harness repeats the check using `spec.org` and `validation.org`
+beside the required `--audit-record`, adding both to hashed evidence automatically.
+Schema/readiness rejection precedes cache lookup and provider startup; it returns
+YAML on stdout and consumes no audit round. See `ORG-SCHEMA.md` for the contract.
+
+Use `--gate implementation --readiness-check test-code` to review the written test
+package before normal production implementation. Resume the same work-item/gate
+session with `--readiness-check delivery-code` after RTs and OTs are GREEN. UTs may
+remain AMBER. Omission defaults to delivery-code, not unchecked review. The harness
+records `readiness_check` per attempt and on the entry. Test-code PASS is not
+delivery approval. Both reviews share the configured budget; their prompts and
+cache keys differ. Definition review remains unchanged.
+
 Goal configuration
 ==================
 

@@ -3,6 +3,7 @@ version: 1
 audits:
   - work_item: W001-descriptor
     gate: definition                 # definition or implementation
+    readiness_check: ""              # implementation: test-code or delivery-code
     session_id: ""                   # harness-issued external session
     harness: ""                      # adapter owning the native session
     provider: ""                     # effective provider, only where supported
@@ -20,6 +21,8 @@ audits:
     remediation: []                   # remediation applied before the next round
     response: ""                     # exact composite response, for provenance
     history: []                       # attempts, including incidents, never deleted
+    # Each implementation attempt records readiness_check. A test-code PASS is
+    # test review only, not delivery approval. Both stages retain the same session.
     # A timeout has incident: timeout, no verdict, and the supplied evidence.
     # running + incident: interrupted is checkpointed before provider execution.
     # A missing native ID remains empty; never substitute a generated placeholder.

@@ -50,6 +50,7 @@ exit 0
 		}
 	}
 	var output, diagnostics bytes.Buffer
+	writeReadyDocuments(t, root)
 	err := run([]string{"start", "--project", root, "--global-config", config, "--audit-prompts", registry, "--gate", "implementation", "--audit-record", filepath.Join(root, "audits.yaml"), "--work-item", "W014-fallback-output", "--input", source}, strings.NewReader("audit"), &output, &diagnostics)
 	if err == nil || !strings.Contains(err.Error(), "response-empty") || output.Len() != 0 {
 		t.Fatalf("stale result accepted: error=%v output=%q diagnostics=%s", err, output.String(), diagnostics.String())

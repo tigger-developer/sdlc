@@ -4,6 +4,7 @@ INSTALLER ?= bin/sdlc-install
 PROJECT_INITIALIZER ?= bin/sdlc-init
 LEGACY_AC_MERGER ?= bin/sdlc-merge-legacy-acs
 HARNESS_RUNNER ?= bin/sdlc-harness
+VALIDATOR ?= bin/sdlc-validate
 INSTALL_FLAGS ?=
 COMMIT_MESSAGE ?= chore: sync
 export COMMIT_MESSAGE
@@ -24,6 +25,7 @@ build:
 	go build $(PROJECT_INITIALIZER_BUILD_FLAGS) -o $(PROJECT_INITIALIZER) ./cmd/sdlc-init
 	go build $(LEGACY_AC_MERGER_BUILD_FLAGS) -o $(LEGACY_AC_MERGER) ./cmd/sdlc-merge-legacy-acs
 	go build $(HARNESS_RUNNER_BUILD_FLAGS) -o $(HARNESS_RUNNER) ./cmd/sdlc-harness
+	go build $(HARNESS_RUNNER_BUILD_FLAGS) -o $(VALIDATOR) ./cmd/sdlc-validate
 
 test: lint
 	go test ./...
@@ -62,6 +64,7 @@ sync:
 	git push
 
 uninstall:
+	unlink "$(HOME)/.local/bin/sdlc-validate"
 	unlink "$(HOME)/.local/bin/sdlc-audit"
 	unlink "$(HOME)/.local/bin/sdlc-init"
 	unlink "$(HOME)/.local/bin/sdlc-merge-legacy-acs"

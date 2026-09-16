@@ -15,7 +15,11 @@ request, actual change, and evidence must exist before the implementation audit.
 Do not delay the fix for ticket creation or a definition audit. Documentation-only
 changes do not require a ticket.
 
-Audit implemented tests and production code together first. Afterwards, reconcile
+Before audit, structure that scope and evidence under `~/.agents/sdlc/ORG-SCHEMA.md`.
+Run `~/.agents/sdlc/bin/sdlc-validate --help`, then delivery-code readiness: every
+RT/OT GREEN, with outstanding UTs explicitly AMBER. Do not delay the emergency
+fix for a pre-build test-code audit. Audit implemented tests and production code
+together first. Afterwards, reconcile
 the requirements, test definitions, solution design, validation, and affected
 documentation, then run the retrospective definition review. Follow
 `~/.agents/sdlc/AUDITS.md` with `Workflow: emergency` for audit-context markers,
