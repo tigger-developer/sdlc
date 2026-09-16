@@ -23,8 +23,8 @@ Includes AC/test counts, IDs, titles, states and diagnostics with file/line.
 Exit: 0 ready; 1 ineligible; 2 invalid schema; 3 invocation/read/write error.
 
 Examples:
-  sdlc-validate --spec specs/007-example/spec.org --readiness-check=test-code
-  sdlc-validate --spec specs/007-example/spec.org --readiness-check=delivery-code
+  sdlc-validate --spec specs/WNNN-descriptor/spec.org --readiness-check=test-code
+  sdlc-validate --spec specs/WNNN-descriptor/spec.org --readiness-check=delivery-code
 
 The validator checks recorded evidence, not its truth or behavioural adequacy.
 Org record contract: ~/.agents/sdlc/ORG-SCHEMA.md

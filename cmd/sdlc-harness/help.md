@@ -49,9 +49,9 @@ Definition has no execution-readiness check. With no approved RTs, skip test-cod
 and start delivery-code directly. Final delivery review includes affected docs.
 
   sdlc-audit start --gate test-code \
-    --audit-record specs/007-example/audits.yaml --work-item W007 --input tests.go
+    --audit-record specs/WNNN-descriptor/audits.yaml --work-item WNNN --input tests.go
   sdlc-audit resume --gate delivery-code \
-    --audit-record specs/007-example/audits.yaml --work-item W007 \
+    --audit-record specs/WNNN-descriptor/audits.yaml --work-item WNNN \
     --input tests.go --input application.go
 
 Include all relevant source, test and authority files; examples abbreviate inputs.

@@ -1,3 +1,9 @@
+---
+title: SDLC v3 Quickstart
+version: 1
+last-updated: 2026-09-16
+---
+
 # SDLC v3 Quickstart
 
 ## 1. Install the framework
@@ -90,6 +96,12 @@ Markdown or Org files from the bounded Git inventory. Selected entries use
 Enter to accept. Exact path case is preserved. `docs/work.org` is recorded
 automatically as the sole requirement authority rather than offered as a
 choice. Any canonical legacy AC ledger is folded into it first.
+
+When creating or materially updating Markdown, follow
+[`MARKDOWN.md`](src/MARKDOWN.md), including its YAML frontmatter and supported
+syntax. For Org documents, follow [`ORGMODE.md`](src/ORGMODE.md) and use its
+Org-native metadata syntax. Existing Markdown documents may adopt frontmatter
+when they are next updated.
 
 An SDLC v2 project with archived Spec Kit specifications starts one additional
 headless context through the configured audit harness and model. It classifies those

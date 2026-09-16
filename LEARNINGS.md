@@ -1,3 +1,9 @@
+---
+title: "SDLC Standards: Design Learnings"
+version: 1
+last-updated: 2026-09-16
+---
+
 # SDLC Standards: Design Learnings
 
 ## Product documentation is not a conversation record
@@ -453,11 +459,12 @@ semantic role:
 
 - YAML stores machine configuration in `.sdlc/project.yaml` and
   `~/.agents/sdlc.yaml`;
-- Org stores the canonical work ledger and context-independent specifications;
+- Org stores the canonical work ledger, context-independent specifications, and
+  metadata through its native keywords and property drawers;
 - Markdown with required YAML frontmatter stores explanatory project
   documentation such as README, vision, and architecture documents; and
-- Org stores metadata through its native keywords and property drawers rather
-  than Markdown frontmatter.
+- Markdown frontmatter is adopted when documents are created or materially
+  updated; existing documents do not require a fleet-wide migration.
 
 This division keeps each fact canonical. The TODO keyword in `docs/work.org` is
 the sole current lifecycle state. Org tags classify a work item, properties
@@ -770,16 +777,16 @@ regression test.
 
 ## Test strategy, code audit, and validation are separate concerns
 
-`audit-tests` approves the combination of automated regression, one-off, and
-user tests before implementation. Only automated tests use RED/GREEN. One-off
-and user tests may be the only justified evidence and are recorded in the active
-feature's `validation.md` rather than converted into artificial automation.
+The current delivery route separates the definition, test-code, and delivery-code
+gates. The test-code gate reviews written tests after deterministic readiness;
+the delivery-code gate reviews the implemented tests, solution, affected
+documentation, and current execution evidence in the same retained
+implementation-auditor context.
 
-`audit-code` assesses the implementation after automated verification. Final
-one-off and user tests then exercise the audited candidate. Completion requires
-both a current code-audit PASS and current passing validation results. If final
-validation exposes a defect, the earlier audit and results remain historical;
-only the changed implementation and materially affected tests are reassessed.
+Only automated regression tests use RED/GREEN. One-off and user tests remain
+bounded evidence recorded in `validation.org`; they must not be converted into
+artificial automation. RTs and OTs must be GREEN before the delivery-code gate;
+UTs may remain AMBER for operator validation.
 
 ## Audit decision boundaries, not every intermediate document
 
@@ -791,10 +798,10 @@ contexts, audit loops, and operator handbacks before producing evidence.
 The useful decision boundaries are simpler. One unified specification can carry
 the requirements, traced test definitions, and concise solution design needed
 for an implementation decision. Its author should first challenge the whole
-document using the existing specialist criteria, then pay for one independent
-combined definition audit. After operator approval, TDD implementation and its
-tests receive one combined implementation audit. The specialist audits remain
-available, but their criteria need not force separate workflow stages.
+document using the applicable criteria, then pay for one independent combined
+definition audit. After operator approval, TDD implementation and its tests
+pass through separate test-code and delivery-code gates that share one retained
+implementation-auditor context. Individual audit skills are not the workflow.
 
 Paired and emergency work converge on the same durable authority without
 pretending they followed the normal chronology. Paired work has explicit human

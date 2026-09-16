@@ -1,6 +1,21 @@
+---
+title: Changelog
+version: 1
+last-updated: 2026-09-16
+---
+
 # Changelog
 
 ## Unreleased
+
+## v3.4.3 - 2026-09-16
+
+- Sweep the README, quickstart, standards, embedded help, and design learnings
+  for current v3.4.2 terminology and examples.
+- Add YAML frontmatter to the updated Markdown documentation and document the
+  incremental adoption rule, while exempting verbatim embedded help sources.
+- Replace the stale validator and audit examples and update the configuration
+  example to the v3.4.2 release.
 
 ## v3.4.2 - 2026-09-16
 

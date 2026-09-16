@@ -1,3 +1,9 @@
+---
+title: Lean SDLC for Coding Agents
+version: 1
+last-updated: 2026-09-16
+---
+
 # Lean SDLC for Coding Agents
 
 This public repository provides a standalone, provider-neutral engineering
@@ -16,8 +22,10 @@ a model call. `make install` deploys it alongside `sdlc-init` and `sdlc-audit`.
 Run `sdlc-validate --help`; for example:
 
 ```sh
-sdlc-validate --spec specs/007-example/spec.org --readiness-check=test-code
+sdlc-validate --spec specs/WNNN-descriptor/spec.org --readiness-check=test-code
 ```
+
+Replace `specs/WNNN-descriptor/spec.org` with the active specification path.
 
 Normal delivery reviews the written tests before production implementation, then
 reviews the finished solution in the same retained implementation-auditor context.
@@ -102,7 +110,7 @@ checkout owns `~/.local/bin/htmlpreview`, move that link aside once before
 | Path | Purpose |
 |---|---|
 | `src/MAIN.md` | Universal rules and progressive routing |
-| `src/*.md` | Requirements, testing, auditing, coding, Git, documentation, security, paired, emergency, and Org standards |
+| `src/*.md` | Requirements, testing, auditing, coding, Git, documentation, security, paired, emergency, Org, and Markdown standards |
 | `src/technologies/` | Automatically discoverable technology standards |
 | `src/templates/v3/` | Unified specification, work, audit, and validation templates |
 | `src/prompts/` | Saved prompts used by bounded headless initializer analysis |
@@ -206,7 +214,7 @@ Example global configuration:
 
 ```yaml
 version: 3
-release: v3.0.0
+release: v3.4.2
 delivery:
   branch_strategy: current
   definition:
@@ -364,7 +372,10 @@ specs/WNNN-descriptor/validation.org
 ```
 
 Org provides foldable hierarchy and stable internal links without making Emacs
-a dependency. Read `~/.agents/sdlc/ORGMODE.md` before editing Org artefacts.
+a dependency. Read `~/.agents/sdlc/ORGMODE.md` before editing Org artefacts and
+`~/.agents/sdlc/MARKDOWN.md` before creating or materially updating Markdown
+documents. Existing Markdown documents may adopt the required frontmatter when
+they are next updated.
 
 ## Migration evidence
 

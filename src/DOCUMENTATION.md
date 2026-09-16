@@ -1,3 +1,9 @@
+---
+title: Documentation Standards
+version: 1
+last-updated: 2026-09-16
+---
+
 # Documentation Standards
 
 Technical documentation is part of the product contract. Keep it accurate,
@@ -56,7 +62,9 @@ without turning Vision or Architecture into a session journal.
   implementation planning where relevant, and significant feature areas.
 - Executable help text is documentation. Keep it reviewable beside the other
   project documentation and package it at build time where runtime access is
-  required; do not maintain a large duplicate inline heredoc.
+  required; do not maintain a large duplicate inline heredoc. Markdown sources
+  embedded verbatim in executable help are exempt from frontmatter because their
+  metadata would become user-visible help output.
 - Use descriptive headings and short sections that can be linked directly.
 - Put commands in executable order and explain destructive or environment-
   specific effects before the command.
@@ -68,9 +76,10 @@ Use the native syntax for the document format. For Markdown documents, read and
 follow `MARKDOWN.md`; do not write raw HTML document markup. For Org documents,
 read and follow `ORGMODE.md`; do not write Markdown syntax in an Org document.
 New and materially updated Markdown documents must begin with YAML frontmatter
-containing the fields defined by `MARKDOWN.md`. Existing documents may adopt
-the metadata when they are next updated. Org documents must use the Org-native
-metadata syntax defined by `ORGMODE.md`.
+containing the fields defined by `MARKDOWN.md`, except for Markdown sources
+embedded verbatim in executable help. Existing documents may adopt the metadata
+when they are next updated. Org documents must use the Org-native metadata
+syntax defined by `ORGMODE.md`.
 
 ## Accuracy and maintenance
 
