@@ -454,10 +454,10 @@ semantic role:
 - YAML stores machine configuration in `.sdlc/project.yaml` and
   `~/.agents/sdlc.yaml`;
 - Org stores the canonical work ledger and context-independent specifications;
-- Markdown stores explanatory project documentation such as README, vision,
-  and architecture documents; and
-- Markdown with YAML frontmatter is used only when an external tool requires
-  that interface.
+- Markdown with required YAML frontmatter stores explanatory project
+  documentation such as README, vision, and architecture documents; and
+- Org stores metadata through its native keywords and property drawers rather
+  than Markdown frontmatter.
 
 This division keeps each fact canonical. The TODO keyword in `docs/work.org` is
 the sole current lifecycle state. Org tags classify a work item, properties

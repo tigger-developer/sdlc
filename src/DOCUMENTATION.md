@@ -62,6 +62,16 @@ without turning Vision or Architecture into a session journal.
   specific effects before the command.
 - Keep examples minimal, valid, and free of secrets or private machine paths.
 
+## Format-specific markup
+
+Use the native syntax for the document format. For Markdown documents, read and
+follow `MARKDOWN.md`; do not write raw HTML document markup. For Org documents,
+read and follow `ORGMODE.md`; do not write Markdown syntax in an Org document.
+New and materially updated Markdown documents must begin with YAML frontmatter
+containing the fields defined by `MARKDOWN.md`. Existing documents may adopt
+the metadata when they are next updated. Org documents must use the Org-native
+metadata syntax defined by `ORGMODE.md`.
+
 ## Accuracy and maintenance
 
 - Update affected documentation with behaviour, interface, configuration, and
@@ -73,10 +83,13 @@ without turning Vision or Architecture into a session journal.
 - Report major contradictions that affect the work instead of choosing one
   silently.
 
-Project documents under `docs/` should carry a version and last-updated header
-when the project uses document-level versioning. Significant revisions increment
-that version and retain a concise document changelog. Git-versioned global
-framework documents do not require duplicate version headers.
+New and materially updated Markdown documents must begin with YAML frontmatter
+containing `title`, `version`, and `last-updated`. Include `author` when an
+operator or other author identifier is applicable, and `schema` when the
+document follows a named schema. The version is the document version, not the
+Git, product, or SDLC release version. Significant revisions increment that
+version and retain a concise document changelog. This standard does not require
+a fleet-wide migration of existing documents.
 
 ## Public documentation
 

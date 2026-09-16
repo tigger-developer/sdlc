@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## v3.4.2 - 2026-09-16
+
+- Add a concise Markdown authoring standard with required YAML frontmatter,
+  portable GitHub-compatible basics, and an explicit raw-HTML prohibition.
+- Require Markdown documents to carry title, document version, and last-updated
+  metadata, while allowing projects to adopt the requirement incrementally.
+- Preserve Org-native metadata and syntax through the existing `ORGMODE.md`
+  route.
+
 ## v3.4.1 - 2026-09-16
 
 - Restore explicit product-focused documentation rules and examples: preserve
