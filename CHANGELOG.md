@@ -1,12 +1,21 @@
 ---
 title: Changelog
 version: 1
-last-updated: 2026-09-16
+last-updated: 2026-09-20
 ---
 
 # Changelog
 
 ## Unreleased
+
+## v3.4.4 - 2026-09-20
+
+- Share recognized Claude session-limit reset deadlines across projects, using
+  private runtime state under `~/.agent/sdlc/cooldowns`.
+- Skip the cooled primary in favour of the configured audit fallback, without
+  spending a round on the skip; restore primary eligibility after expiry.
+- Preserve cached verdicts, session history and attempt budgets. Add isolated
+  local regression coverage for routing, expiry and concurrent state updates.
 
 ## v3.4.3 - 2026-09-16
 

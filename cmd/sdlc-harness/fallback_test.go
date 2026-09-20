@@ -17,6 +17,7 @@ func TestFallbackForUnusableAuditResult(t *testing.T) {
 	for _, mode := range []string{"limit", "reset-limit", "launch-error", "timeout", "malformed", "wrong-gate", "empty", "PASS", "FAIL", "PROVISIONAL PASS", "fallback-fails", "exhausted", "evidence-changed"} {
 		t.Run(mode, func(t *testing.T) {
 			root := t.TempDir()
+			t.Setenv("SDLC_HARNESS_STATE_DIR", filepath.Join(root, "state"))
 			bin := filepath.Join(root, "bin")
 			if err := os.Mkdir(bin, 0o700); err != nil {
 				t.Fatal(err)
@@ -136,6 +137,22 @@ printf 'GATE: delivery-code\nREVISION: fixture\nVERDICT: PASS\n'
 				calls, _ = os.ReadFile(filepath.Join(root, "calls"))
 				if string(calls) != "primary\nfallback\nfallback\n" {
 					t.Fatalf("resume calls = %q", calls)
+				}
+				// A different project must share the cooldown, not the audit budget.
+				other := t.TempDir()
+				writeReadyDocuments(t, other)
+				otherArgs := []string{"start", "--project", other, "--global-config", config, "--audit-prompts", registry, "--gate", "delivery-code", "--audit-record", filepath.Join(other, "audits.yaml"), "--work-item", "W017-cooldown"}
+				var nextDiagnostics bytes.Buffer
+				if err := run(otherArgs, strings.NewReader("audit"), &bytes.Buffer{}, &nextDiagnostics); err != nil {
+					t.Fatal(err)
+				}
+				calls, readErr = os.ReadFile(filepath.Join(root, "calls"))
+				if readErr != nil || string(calls) != "primary\nfallback\nfallback\nfallback\n" || !strings.Contains(nextDiagnostics.String(), "AUDIT COOLDOWN") {
+					t.Fatalf("cross-project calls=%q err=%v diagnostics=%s", calls, readErr, nextDiagnostics.String())
+				}
+				otherEntry, _, readErr := harness.ReadAuditEntry(filepath.Join(other, "audits.yaml"), "W017-cooldown", "implementation")
+				if readErr != nil || otherEntry.ExternalRound != 1 {
+					t.Fatalf("skip consumed a round: %#v %v", otherEntry, readErr)
 				}
 			}
 		})

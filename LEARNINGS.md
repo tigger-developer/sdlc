@@ -1,10 +1,19 @@
 ---
 title: "SDLC Standards: Design Learnings"
 version: 1
-last-updated: 2026-09-16
+last-updated: 2026-09-20
 ---
 
 # SDLC Standards: Design Learnings
+
+## Provider availability is shared; audit evidence is project-owned
+
+A provider allowance can affect several projects, so a known reset deadline
+belongs in shared runtime state rather than each work item's audit record.
+Keep that state limited to route and expiry. It may prevent a provider launch,
+but must never create a verdict, reset an audit budget or discard findings.
+Installation and runtime writes are separate operations: source verification
+uses an isolated runtime directory; the installed harness owns normal state.
 
 ## Product documentation is not a conversation record
 

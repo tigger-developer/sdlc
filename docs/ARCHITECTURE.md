@@ -1,3 +1,9 @@
+---
+title: SDLC v3 Architecture
+version: 1
+last-updated: 2026-09-20
+---
+
 # SDLC v3 Architecture
 
 This document explains how the public framework is composed. Normative
@@ -142,9 +148,20 @@ the resumed auditor's continuation instruction. Missing identity or exhausted
 bounds stop timeout recovery. Explicit missing-session diagnostics and configuration
 changes permit a harness-owned replacement, with previous identities/configuration
 retained and all historical findings supplied to the new context. An optional
-phase-local fallback tuple handles explicit authentication failures once per call.
+phase-local fallback tuple handles unusable audit attempts once per call;
+non-audit phases retain authentication-only fallback.
 Missing-session restart is likewise limited to once per call. Every launch consumes
 the existing round budget and retains the configured per-attempt deadline.
+
+Primary Claude session-limit deadlines are shared across projects in
+`~/.agent/sdlc/cooldowns`, separate from the installed `.agents/sdlc` tree.
+One versioned JSON record per exact harness/provider/model tuple holds only its
+route and expiry. Atomic replacement and a process-released per-route file lock
+retain the latest concurrent deadline. Reads do not mutate state; expiry needs
+no timer or deletion. The recovery coordinator skips a cooled primary, uses the
+configured fallback, and makes the primary eligible after expiry. Audit records
+remain the sole authority for findings and budgets; a skip is not an attempt.
+`SDLC_HARNESS_STATE_DIR` isolates runtime state without changing provider profiles.
 
 The work ledger owns lifecycle state, the specification owns requirements and
 operator sign-off, and `audits.yaml` alone owns audit state. Legacy `audits.org`

@@ -1,0 +1,57 @@
+#+TITLE: W017 - Shared audit cooldown validation
+#+SCHEMA: 2
+#+STARTUP: overview
+#+TODO: AMBER RED | GREEN
+
+* Execution evidence
+
+** GREEN RT017.1 - Detection and cross-project routing :testdef:
+:PROPERTIES:
+:CUSTOM_ID: rt017-1
+:REVISION: 28c36ca plus W017 cooldown working-tree changes
+:COMMAND: go test -race ./internal/harness ./cmd/sdlc-harness
+:EVIDENCE: 2026-09-20 macOS local-provider suite passed; no metered calls or global state writes.
+:END:
+
+*** Prior RED evidence
+- Before deadline classification, =TestClaudeUsageLimitIncident= returned
+  =response-malformed= instead of =rate-limited= for the native error envelope.
+- Before global routing, the cross-project assertion observed
+  =primary,fallback,fallback,primary,fallback= instead of
+  =primary,fallback,fallback,fallback=. The second project repeated the primary.
+- Deadline classification and global routing were implemented after those
+  respective failures. Later boundary cases strengthen the same test package.
+
+** GREEN RT017.2 - Routing and state boundaries :testdef:
+:PROPERTIES:
+:CUSTOM_ID: rt017-2
+:REVISION: 28c36ca plus W017 cooldown working-tree changes
+:COMMAND: go test -race ./internal/harness ./cmd/sdlc-harness
+:EVIDENCE: 2026-09-20 route, expiry, state and race assertions passed; all provider processes are local doubles.
+:END:
+
+- An initial fixture omitted required evidence and was corrected before treating
+  its results as behavioural evidence. That setup error was not TDD RED.
+- Full =make test= also passed: go vet, golangci-lint, ShellCheck, shfmt and all
+  Go package tests. These results do not establish external provider availability.
+
+** GREEN OT017.1 - Source and operating-guide review :testdef:
+:PROPERTIES:
+:CUSTOM_ID: ot017-1
+:REVISION: 28c36ca plus W017 cooldown working-tree changes
+:EVIDENCE: 2026-09-20 source review, scratch-built --help and sanitize checks passed; runtime state and installation are separate, and no credential or audit-content fields enter cooldown JSON.
+:END:
+
+- Changed technical documentation passed =sanitize -q= byte-for-byte. The
+  scratch-built CLI help describes the state root, override, skip and expiry.
+- Source review confirmed that cache lookup precedes cooldown routing, actual
+  launches retain the existing attempt writer, and the installer is unchanged.
+
+** AMBER UT017.1 - Installed runtime observation :testdef:
+:PROPERTIES:
+:CUSTOM_ID: ut017-1
+:REASON: Operator installation and live runtime observation remain outstanding; no global installation or runtime-state writes authorized for this agent.
+:END:
+
+- Method :: User validation. No installation or live provider result is inferred
+  from the local regression suite.

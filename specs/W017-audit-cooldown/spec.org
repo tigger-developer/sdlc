@@ -1,0 +1,187 @@
+#+TITLE: W017 - Share primary audit cooldown across projects
+#+SCHEMA: 8
+#+STARTUP: overview
+#+OPTIONS: toc:2 num:nil
+#+OPERATOR_SIGNOFF: PENDING
+
+* Synopsis
+:PROPERTIES:
+:CUSTOM_ID: summary
+:END:
+
+** Outcome
+- Audits *skip a known unavailable primary* and can attempt the configured fallback.
+** Before
+- Each project may *rediscover the same Claude session limit*.
+** After
+- Projects *share the primary reset deadline*; expiry restores primary eligibility.
+** Changes
+- Add *route-scoped runtime state* and explicit cooldown diagnostics.
+** Unchanged
+- Preserve *verdicts, evidence checks, history and round budgets*.
+- Installation remains *operator-run*; no client-project or provider configuration changes.
+** Edge cases
+- *Missing fallback or invalid state stops locally*; no fabricated verdict.
+- *Unknown reset formats* retain existing fallback handling without a guessed cooldown.
+** Decisions
+- Runtime state belongs under =~/.agent/sdlc=, separate from installed standards.
+- Use *local provider doubles* in regression tests; live operation awaits installation.
+** Next step
+- Review the source and evidence; perform *operator installation and user validation*.
+
+* Context
+
+- Emergency authority :: BYPASS-GATE-7, 2026-09-20. The temporary scope is to
+  add a primary audit cooling-off period after a known usage limit, allowing
+  configured fallback attempts. The durable record follows implementation.
+- Runtime boundary :: The harness writes global state in normal operation;
+  development and testing must *not write that global directory or install*.
+- Baseline :: [[file:../../docs/work.org][W014 - Unusable audit result fallback]]
+  and [[file:../W012-audit-session-recovery/spec.org][W012 - Session recovery]]
+  retain fallback sessions and evidence. This change supersedes indefinite
+  fallback retention only when a known primary cooldown has expired.
+- Authorities :: [[file:../../.sdlc/project.yaml][Project profile]],
+  [[file:../../docs/ARCHITECTURE.md][Architecture]],
+  [[file:../../src/HARNESS.md][Harness guide]], [[file:../../src/AUDITS.md][Audit standards]].
+- Excluded :: Credential selection, Nous billing, new providers, background
+  retries, automatic budget resets, installation and client-project edits.
+
+* Acceptance Criteria
+
+** AC017.1 - Share supported primary reset deadlines :ac:
+:PROPERTIES:
+:CUSTOM_ID: ac017-1
+:END:
+- Given a primary Claude *session-limit failure with a supported reset clock
+  and timezone*, subsequent audits in other projects using the same route
+  *skip that primary until expiry*. The configured fallback remains eligible.
+- Proven by :: [[#rt017-1][RT017.1 - Detection and cross-project routing]],
+  [[#ut017-1][UT017.1 - Installed runtime observation]].
+
+** AC017.2 - Preserve audit safeguards and expiry recovery :ac:
+:PROPERTIES:
+:CUSTOM_ID: ac017-2
+:END:
+- A *skip consumes no round*; launches keep existing accounting. A missing
+  distinct fallback or exhausted allowance prevents a launch. Cooldown expiry
+  *restores primary eligibility*, preserving retired context and findings.
+- Valid cached verdicts remain reusable. Successful response prose and unsupported
+  diagnostic formats *do not create cooldowns*. Other route tuples are unaffected.
+- Proven by :: [[#rt017-1][RT017.1 - Detection and cross-project routing]],
+  [[#rt017-2][RT017.2 - Routing and state boundaries]].
+
+** AC017.3 - Bound and isolate shared runtime state :ac:
+:PROPERTIES:
+:CUSTOM_ID: ac017-3
+:END:
+- Runtime state contains *only route and deadline*, never prompts, credentials,
+  project paths or audit verdicts. Concurrent updates preserve the later deadline.
+- Missing state is normal; *invalid or unreadable state stops explicitly*.
+  Tests can redirect state without changing the user's home or provider profile.
+- Proven by :: [[#rt017-2][RT017.2 - Routing and state boundaries]],
+  [[#ot017-1][OT017.1 - Source and operating-guide review]].
+
+* Test Definitions
+
+** RT017.1 - Detection and cross-project routing :testdef:
+:PROPERTIES:
+:CUSTOM_ID: rt017-1
+:END:
+- Covers :: [[#ac017-1][AC017.1 - Shared deadlines]], [[#ac017-2][AC017.2 - Audit safeguards]].
+- Boundary :: Existing Execute API and CLI run coordinator, with local executable doubles.
+- Cases :: Claude error envelopes on zero/nonzero exits produce a rate-limit
+  incident with a deadline. Parse a daylight-saving timezone and next-day clock;
+  reject unknown zones, malformed clocks, unsupported providers and quoted prose.
+  Successful response prose remains a response, not a limit.
+- Cross-project :: First audit calls primary then fallback. A changed-evidence
+  resume calls fallback. A fresh second project sharing state calls *only fallback*
+  and records *one round*. Existing valid-verdict and local-failure tests remain.
+- Retention :: =make test=; no metered calls.
+
+** RT017.2 - Routing and state boundaries :testdef:
+:PROPERTIES:
+:CUSTOM_ID: rt017-2
+:END:
+- Covers :: [[#ac017-2][AC017.2 - Audit safeguards]], [[#ac017-3][AC017.3 - Runtime state]].
+- Cases :: Future deadline skips primary; expired deadline returns a retained
+  fallback to primary with retirement provenance and one additional round.
+  A cooled retained primary switches to fallback with the same accounting.
+  Missing fallback, invalid state and exhausted budgets launch no provider.
+  Different model tuples remain eligible. Identical cached requests do not launch.
+- Store :: Concurrent writes through distinct store instances retain the maximum
+  deadline; exact harness/provider/model keys remain independent. Files have
+  private permissions. Invalid JSON/version/route and relative overrides fail.
+- Retention :: =make test= and race checks; temporary directories only.
+
+** OT017.1 - Source and operating-guide review :testdef:
+:PROPERTIES:
+:CUSTOM_ID: ot017-1
+:END:
+- Covers :: [[#ac017-3][AC017.3 - Runtime state]].
+- Method :: One-off source review, executable help and documentation processing.
+- Expected :: Correct runtime/installation separation; no secret or audit-content
+  serialization; unchanged installer; state override documented; guide agrees
+  with expiry and fallback accounting. Technical text passes =sanitize=.
+- Bounds :: Local reads/builds and temporary output only; no deployment or model calls.
+
+** UT017.1 - Installed runtime observation :testdef:
+:PROPERTIES:
+:CUSTOM_ID: ut017-1
+:END:
+- Covers :: [[#ac017-1][AC017.1 - Shared deadlines]].
+- Method :: User validation after operator-run =make install=.
+- Procedure :: On a naturally occurring supported Claude limit, observe the
+  reset deadline and configured fallback attempt. Start an eligible audit from
+  another project with the same primary and observe its cooldown skip.
+- Expected :: Both use shared runtime state, without another primary call during
+  cooldown. A fallback provider failure remains an incident, never a PASS.
+- Bounds :: Normal required audit calls only; no synthetic paid limit-generation
+  loop. Existing limits are not reconstructed from historical logs.
+
+* Edge Cases
+
+- A *clock without a date* means its next occurrence in the supplied timezone;
+  if today's time has passed, use tomorrow. This interpretation is bounded to
+  the supported daily clock format, not an inferred billing reset.
+- Concurrent audits already in flight are *not cancelled*. New invocations
+  observe completed state updates; no background process polls providers.
+- Changing credentials behind an unchanged route does not change its key.
+  A recorded cooldown expires naturally; no credential fingerprint is stored.
+
+* Solution Design
+
+- Extend the existing provider failure classifier with *RetryAt* for the
+  observed Claude session-limit diagnostic. Never scan successful review prose.
+- Store *version 1 JSON* at =~/.agent/sdlc/cooldowns/<route-sha256>.json=.
+  The key hashes the exact harness, provider and model. Fields are =version=,
+  =harness=, optional =provider=, =model= and UTC RFC3339 =retry_at=.
+- =SDLC_HARNESS_STATE_DIR= provides an absolute runtime-root override. Default
+  resolution uses the OS user-home API; it does not modify configuration.
+- Private directories/files, atomic rename and a *per-route flock* serialize
+  updates. Lock ownership ends on close or process exit. No provider executes
+  under that lock. Readers see one complete record; the later deadline wins.
+- State reads are non-mutating. Expired files remain one small record per route
+  and are replaced on a subsequent limit; installation neither clears nor creates
+  them. There is no migration of historical logs or change to audit record schema.
+- The recovery coordinator consults state *after existing cache/admission checks*.
+  It preserves the existing session-replacement and full-history prompt machinery.
+  A state failure stops locally; fallback never hides state corruption.
+
+** Security impact
+
+- The runtime state directory is shared *within one OS user's projects*, not
+  with other users. It stores no credentials or provider profile information.
+- Provider execution permissions and evidence-integrity checks remain unchanged.
+  Local source verification uses isolated temporary state; installation and the
+  normal global directory remain outside agent-write authority.
+- The existing macOS/Linux platform boundary is retained. No new dependency,
+  service, metered regression test or access grant is introduced.
+
+* Delivery Handoff
+
+- Evidence :: [[file:validation.org][Validation records]]; audit verdicts belong
+  only in harness-owned =audits.yaml= if an audit can run within the write boundary.
+- Documentation :: Harness guide, audit standards, embedded help, README,
+  architecture, changelog and learnings receive the affected operational contract.
+- Installation :: *Operator-run only*. Source tests do not establish live Nous
+  availability, deployment, independent review or human closure.

@@ -1,5 +1,10 @@
-SDLC audit harness guide
-=======================
+---
+title: SDLC Audit Harness Guide
+version: 1
+last-updated: 2026-09-20
+---
+
+# SDLC audit harness guide
 
 Internal SDLC helper for running one bounded provider context against
 original evidence files with SHA-256 integrity checks. It is installed at
@@ -7,14 +12,12 @@ original evidence files with SHA-256 integrity checks. It is installed at
 symlink to this same executable; it accepts the same options and subcommands.
 SDLC skills continue to use the resolved absolute harness path.
 
-Usage
-=====
+## Usage
 
     sdlc-harness start|resume [options] < audit-context.txt
     sdlc-harness goal-config [options]
 
-Implementation readiness
-========================
+## Implementation readiness
 
 Before implementation review, use `sdlc-validate --help` and validate the spec's
 records locally. The harness repeats the check using `spec.org` and `validation.org`
@@ -37,8 +40,7 @@ Response envelopes use `GATE: test-code` or `GATE: delivery-code`. Test-code PAS
 is not delivery approval. Both reviews share the configured budget; their prompts
 and cache keys differ. Existing history and session IDs remain intact.
 
-Goal configuration
-==================
+## Goal configuration
 
 `goal-config` is read-only. It returns JSON integers `max_turns` and
 `max_token_budget` for the delivery skill; it does not invoke a provider,
@@ -61,8 +63,7 @@ activate a goal, write configuration or enforce native continuation itself.
 - stdout contains JSON only on success. Configuration errors produce no budget
   output and exit nonzero. Existing start/resume audit behaviour is unchanged.
 
-Start and resume
-================
+## Start and resume
 
 `start` creates a fresh external context. For an audit, pass `--gate definition`
 or `--gate test-code` or `--gate delivery-code`; the installed YAML prompt registry supplies the
@@ -72,8 +73,7 @@ criteria. Do not pass `--session`; the runner creates the identity and prints
 `resume` continues the same external context. Pass the saved ID as
 `--session <id>`. An agent task ID, path, or newly invented value is invalid.
 
-Evidence and instruction
-========================
+## Evidence and instruction
 
 - Repeat `--input <file>` for every exact evidence file.
 - Paths are resolved against `--project`. Codex and Claude read original absolute
@@ -124,8 +124,7 @@ Evidence and instruction
   supported, model, timeout, and `delivery.audit.max_rounds`; explicit flags
   override them.
 
-Output
-======
+## Output
 
 - **stderr:** provider progress, diagnostics, and `SESSION_ID`.
 - Provider stdout events are decoded as they arrive. Progress shows event types,
@@ -146,8 +145,7 @@ Output
   are rejected even if the provider exits zero. The runner cannot flush output
   that the provider has not emitted; its existing deadline remains in force.
 
-Start example
-=============
+## Start example
 
     /Users/tigger/.agents/sdlc/bin/sdlc-harness start \
       --phase audit --gate definition \
@@ -158,8 +156,7 @@ Start example
       --input .sdlc/project.yaml \
       < audit-context.txt
 
-Resume example
-==============
+## Resume example
 
     /Users/tigger/.agents/sdlc/bin/sdlc-harness resume \
       --phase audit --gate definition \
@@ -170,8 +167,7 @@ Resume example
       --input .sdlc/project.yaml \
       < audit-context.txt
 
-Cached results
-==============
+## Cached results
 
 With `--audit-record`, repeated identical requests return the recorded `PASS`,
 `FAIL` or `PROVISIONAL PASS` and findings without launching a provider, changing
@@ -192,11 +188,9 @@ The lookup precedes round exhaustion and native-session recovery: a recorded
 result needs no live provider session. Execution limits alone do not invalidate
 it, unless their configuration file is itself a supplied, changed input.
 
-Recovery
-========
+## Recovery
 
-Reset the attempt budget
-------------------------
+### Reset the attempt budget
 
 After explicit operator authorization, use `resume --reset-session` to give
 one work item/gate a fresh `max_rounds` allowance. It **only resets the budget
@@ -219,8 +213,7 @@ not accepted with the reset flag. Other work items and gates are unchanged.
 Resetting test-code or delivery-code resets their shared implementation allowance;
 it does not reset the separate definition allowance.
 
-Session and fallback recovery
------------------------------
+### Session and fallback recovery
 
 With `--audit-record`, the harness records the session's harness/provider/model.
 On resume, a changed effective tuple or an explicit missing-session diagnostic
@@ -248,7 +241,8 @@ the configured fallback once: usage limits, authentication, launch failures,
 timeouts, empty/malformed responses or a wrong-gate response qualify.
 PASS, FAIL and PROVISIONAL PASS are usable verdicts and never trigger fallback.
 PENDING/running is not a final verdict: wait for completion or the harness timeout.
-A retained fallback audit resumes it while primary and fallback settings match.
+A retained fallback audit resumes it while primary and fallback settings match,
+unless a recorded primary cooldown has expired.
 Invalid configuration, evidence-integrity failures, record errors and exhausted
 rounds stop locally; fallback does not bypass these checks or widen permissions.
 Non-audit definition/build invocations retain authentication-only fallback.
@@ -262,8 +256,42 @@ command. Each launch consumes a round and gets the configured timeout; replaceme
 do not reset `max_rounds`. Without an audit record, one fallback is still
 available, but missing-session replacement and cross-call tracking are not.
 
-Timeout behaviour
------------------
+## Primary usage-limit cooldown
+
+When Claude reports its native session-limit message with a reset clock and
+timezone, the harness records the deadline under `~/.agent/sdlc/cooldowns/`.
+This singular `.agent` path is runtime state, separate from the `.agents/sdlc`
+installation. State is shared across projects for the exact primary
+harness/provider/model tuple, not across different models or OS users.
+
+Until that deadline, uncached audits skip the primary and use the configured
+fallback. Stderr reports `AUDIT COOLDOWN`, the deadline and the skipped route.
+Skipping consumes no round; each actual fallback invocation consumes one.
+Without a distinct fallback, the command stops without a provider call.
+After expiry the primary becomes eligible again, including for a retained
+fallback context; replacement preserves historical findings and the budget.
+Cached verdicts still return without provider calls.
+
+The store contains only the route and UTC deadline in versioned JSON files.
+Updates are atomic and serialized per route; concurrent observations retain the
+later deadline. Expired records remain small, inert routing history and are
+replaced by later limits. Missing state starts with no cooldown; invalid or
+unreadable state stops the command rather than silently retrying the primary.
+No prompts, credentials, audit verdicts or project paths enter this store.
+
+`SDLC_HARNESS_STATE_DIR` overrides the runtime root with an absolute path, for
+example for isolated tests. Normal use requires no new configuration. The
+installer does not initialize or clear runtime state; the harness creates it
+when a supported limit is observed. Installing this release cannot reconstruct
+limits from earlier failed invocations.
+
+Cooldown is limited to recognized primary Claude session-limit failures. Other
+errors retain existing fallback behaviour; no reset time is invented for billing
+errors, malformed deadlines or ordinary audit prose. A clock without a date is
+interpreted as its next occurrence in the stated timezone, including tomorrow
+when today's clock has passed. No background retry or sleep is introduced.
+
+## Timeout behaviour
 
 A timeout is an incident, not PASS or FAIL. The harness checkpoints each
 attempt's evidence and records the native session ID as soon as it is observed.

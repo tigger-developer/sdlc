@@ -1,3 +1,9 @@
+---
+title: Audit and Gate Standards
+version: 1
+last-updated: 2026-09-20
+---
+
 # Audit and Gate Standards
 
 Audits provide independent findings; they do not replace operator approval,
@@ -113,7 +119,8 @@ verdict, including usage limits, authentication/launch errors, timeout, or an em
 malformed or wrong-gate response. PASS, FAIL and PROVISIONAL PASS never trigger
 fallback. A PENDING/running attempt must finish or time out before recovery.
 A retained fallback audit continues on
-that tuple while the configured primary and fallback remain unchanged. Each CLI
+that tuple while the configured primary and fallback remain unchanged, except
+when a recorded primary cooldown expires. Each CLI
 invocation permits at most one missing-session restart and one configured
 fallback, subject to the remaining audit rounds. Every launched attempt consumes a
 round and has the configured timeout. Invalid configuration, evidence-integrity
@@ -121,6 +128,14 @@ failures, record errors and exhausted rounds still stop locally. No permission
 is widened. Non-audit definition/build retain authentication-only fallback.
 Calling agents do not repair
 or delete mappings themselves.
+
+Recognized Claude session-limit failures record a shared primary-route deadline
+under `~/.agent/sdlc/cooldowns/`. Before that deadline, audits skip the primary
+and use the configured fallback without consuming a round for the skip. Without
+a distinct fallback they stop locally. Expiry makes the primary eligible again;
+cache, history and round limits remain authoritative. The harness reports the
+deadline and selected recovery on stderr. Agents follow that diagnostic, not a
+separate sleep or retry policy. See `HARNESS.md` for state ownership and isolation.
 
 The harness tries an unused configured fallback before returning a timeout.
 On a returned timeout, follow the recovery diagnostic. In HANDS-OFF mode, resume

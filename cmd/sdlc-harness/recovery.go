@@ -25,6 +25,7 @@ type recoveryRun struct {
 	readinessCheck   string
 	audit            bool
 	diagnostics      io.Writer
+	cooldowns        harness.CooldownStore
 }
 
 func (r recoveryRun) execute(entry harness.AuditEntry, resume bool) (harness.Result, error) {
@@ -36,6 +37,25 @@ func (r recoveryRun) execute(entry harness.AuditEntry, resume bool) (harness.Res
 			selected = selected.WithAgent(*r.config.Fallback)
 		} else if !owns(entry, selected.Agent()) || (entry.Configured != nil && *entry.Configured != r.config.Agent()) {
 			reason = "configuration-changed"
+		}
+	}
+	if r.audit {
+		deadline, err := r.cooldowns.Deadline(r.config.Agent())
+		if err != nil {
+			return harness.Result{}, err
+		}
+		if deadline.After(time.Now()) {
+			fmt.Fprintf(r.diagnostics, "AUDIT COOLDOWN: %s/%s unavailable until %s; primary skipped; no round consumed\n", r.config.Harness, r.config.Model, deadline.UTC().Format(time.RFC3339))
+			if r.config.Fallback == nil || *r.config.Fallback == r.config.Agent() {
+				return harness.Result{}, fmt.Errorf("primary audit route cooling down until %s; no distinct fallback configured", deadline.UTC().Format(time.RFC3339))
+			}
+			selected = r.config.WithAgent(*r.config.Fallback)
+			if resume && !owns(entry, selected.Agent()) {
+				reason = "primary-cooldown"
+			}
+		} else if !deadline.IsZero() && selected.Agent() != r.config.Agent() {
+			selected = r.config
+			reason = "primary-cooldown-expired"
 		}
 	}
 	missingRecovered, fallbackUsed := false, selected.Agent() != r.config.Agent()
@@ -66,6 +86,12 @@ func (r recoveryRun) execute(entry harness.AuditEntry, resume bool) (harness.Res
 		var incident *harness.Incident
 		if !errors.As(err, &incident) {
 			return harness.Result{}, err
+		}
+		if r.audit && selected.Agent() == r.config.Agent() && !incident.RetryAt.IsZero() {
+			if saveErr := r.cooldowns.Record(selected.Agent(), incident.RetryAt); saveErr != nil {
+				return harness.Result{}, errors.Join(err, fmt.Errorf("saving primary audit cooldown: %w", saveErr))
+			}
+			fmt.Fprintf(r.diagnostics, "AUDIT COOLDOWN: %s/%s recorded until %s\n", selected.Harness, selected.Model, incident.RetryAt.Format(time.RFC3339))
 		}
 		if r.path != "" {
 			saved, found, readErr := harness.ReadAuditEntry(r.path, r.work, r.gate)

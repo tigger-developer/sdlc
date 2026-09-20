@@ -78,6 +78,17 @@ classification; it is provenance, not current state.
 
 * Work items
 
+** REVIEW W017 - Share primary audit cooldown across projects :defect:
+:PROPERTIES:
+:CUSTOM_ID: w-017
+:PRIORITY: P1
+:SOURCE: operator BYPASS-GATE-7
+:CREATED: 2026-09-20
+:END:
+
+- *Specification:* [[file:../specs/W017-audit-cooldown/spec.org][W017 - Shared primary audit cooldown]]
+- *Validation:* [[file:../specs/W017-audit-cooldown/validation.org][W017 - Cooldown verification]]
+
 ** REVIEW W015 - Reset an exhausted audit allowance :defect:
 :PROPERTIES:
 :CUSTOM_ID: w-015
