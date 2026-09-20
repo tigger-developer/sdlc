@@ -1,7 +1,7 @@
 ---
 title: Lean SDLC for Coding Agents
 version: 1
-last-updated: 2026-09-20
+last-updated: 2026-09-21
 ---
 
 # Lean SDLC for Coding Agents
@@ -40,10 +40,10 @@ the checks before spending an audit round. See [Org schema](src/ORG-SCHEMA.md).
 Older sheets need tagged AC/test headings and structured validation records; the
 validator never silently rewrites them or manufactures execution results.
 
-Audit recovery shares recognized Claude reset deadlines across projects and
-uses the configured fallback during cooldown. Runtime state lives under
-`~/.agent/sdlc`, separately from the installation. See the
-[harness recovery guide](src/HARNESS.md#primary-usage-limit-cooldown).
+Audit recovery records primary cooldowns within each project's `.sdlc/cooldowns/`
+and uses its configured fallback during cooldown. The default period is one hour,
+configurable as `delivery.audit.fallback.cool_off_period`. See the
+[harness recovery guide](src/HARNESS.md#primary-audit-cooldown).
 
 ## Prerequisites
 
@@ -242,6 +242,7 @@ delivery:
     max_rounds: 5
     # Optional: use when an audit attempt ends without a usable verdict.
     # fallback:
+    #   cool_off_period: 1h
     #   harness: hermes
     #   provider: nous
     #   model: z-ai/glm-5.3

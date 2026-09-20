@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/tigger-developer/sdlc/internal/harness"
 )
@@ -14,7 +15,7 @@ import (
 // RT014.4: exercise real process, output validation and audit persistence using
 // local doubles only. No metered provider is part of this regression test.
 func TestFallbackForUnusableAuditResult(t *testing.T) {
-	for _, mode := range []string{"limit", "reset-limit", "launch-error", "timeout", "malformed", "wrong-gate", "empty", "PASS", "FAIL", "PROVISIONAL PASS", "fallback-fails", "exhausted", "evidence-changed"} {
+	for _, mode := range []string{"limit", "reset-limit", "launch-error", "codex-failure", "custom-period", "timeout", "malformed", "wrong-gate", "empty", "PASS", "FAIL", "PROVISIONAL PASS", "fallback-fails", "exhausted", "evidence-changed"} {
 		t.Run(mode, func(t *testing.T) {
 			root := t.TempDir()
 			t.Setenv("SDLC_HARNESS_STATE_DIR", filepath.Join(root, "state"))
@@ -35,7 +36,7 @@ cat >/dev/null
 printf 'primary\n' >> "$FALLBACK_CALLS"
 case "$FALLBACK_MODE" in
 limit|fallback-fails|exhausted) printf '%s\n' "You've hit your session limit · resets 4:40am (Europe/Dublin)" >&2; exit 1;;
-launch-error) exit 2;;
+launch-error|codex-failure|custom-period) exit 2;;
 timeout) sleep 10; exit 1;;
 malformed) printf '{"type":"result","result":"not a verdict"}\n'; exit 0;;
 wrong-gate) printf '%s\n' '{"type":"result","result":"GATE: definition\nREVISION: fixture\nVERDICT: PASS"}'; exit 0;;
@@ -53,7 +54,11 @@ printf 'session_id: fallback-session\n' >&2
 if [ "$FALLBACK_MODE" = fallback-fails ]; then exit 3; fi
 printf 'GATE: delivery-code\nREVISION: fixture\nVERDICT: PASS\n'
 `
-			for name, body := range map[string]string{"claude": primary, "hermes": fallback} {
+			primaryName := "claude"
+			if mode == "codex-failure" {
+				primaryName = "codex"
+			}
+			for name, body := range map[string]string{primaryName: primary, "hermes": fallback} {
 				// #nosec G306 -- local executable command double.
 				if err := os.WriteFile(filepath.Join(bin, name), []byte(body), 0o700); err != nil {
 					t.Fatal(err)
@@ -64,10 +69,16 @@ printf 'GATE: delivery-code\nREVISION: fixture\nVERDICT: PASS\n'
 				limit = 1
 			}
 			config := filepath.Join(root, "config.yaml")
+			period := time.Hour
+			periodConfig := ""
+			if mode == "custom-period" {
+				period = 2 * time.Hour
+				periodConfig = "      cool_off_period: 2h\n"
+			}
 			registry := filepath.Join(root, "prompts.yaml")
 			for path, value := range map[string]string{
 				source:   "requirement",
-				config:   fmt.Sprintf("version: 3\ndelivery:\n  audit:\n    harness: claude\n    model: fixture\n    timeout: 1s\n    max_rounds: %d\n    fallback:\n      harness: hermes\n      provider: nous\n      model: fallback-fixture\n", limit),
+				config:   fmt.Sprintf("version: 3\ndelivery:\n  audit:\n    harness: %s\n    model: fixture\n    timeout: 1s\n    max_rounds: %d\n    fallback:\n      harness: hermes\n      provider: nous\n      model: fallback-fixture\n%s", primaryName, limit, periodConfig),
 				registry: "version: 1\nsession_recovery_instructions: Use full evidence and preserve history.\ngates:\n  delivery-code:\n    prompt: audit\n",
 			} {
 				if err := os.WriteFile(path, []byte(value), 0o600); err != nil {
@@ -91,12 +102,24 @@ printf 'GATE: delivery-code\nREVISION: fixture\nVERDICT: PASS\n'
 				args[0] = "resume"
 			}
 			var output, diagnostics bytes.Buffer
+			started := time.Now()
 			err := run(args, strings.NewReader("audit"), &output, &diagnostics)
 			blocked := mode == "exhausted" || mode == "fallback-fails" || mode == "evidence-changed"
 			if (err != nil) != blocked {
 				t.Fatalf("error = %v\n%s", err, diagnostics.String())
 			}
 			valid := mode == "PASS" || mode == "FAIL" || mode == "PROVISIONAL PASS"
+			deadline, stateErr := (harness.CooldownStore{Directory: filepath.Join(root, ".sdlc")}).Deadline(harness.AgentConfig{Harness: primaryName, Model: "fixture"})
+			if stateErr != nil {
+				t.Fatal(stateErr)
+			}
+			if !valid && mode != "evidence-changed" {
+				if deadline.Before(started.Add(period)) || deadline.After(time.Now().Add(period)) {
+					t.Fatalf("cooldown %s is not %s after the failed attempt", deadline, period)
+				}
+			} else if !deadline.IsZero() {
+				t.Fatal("usable verdict or local failure created cooldown")
+			}
 			wantCalls := "primary\n"
 			if !valid && mode != "exhausted" && mode != "evidence-changed" {
 				wantCalls += "fallback\n"
@@ -138,7 +161,7 @@ printf 'GATE: delivery-code\nREVISION: fixture\nVERDICT: PASS\n'
 				if string(calls) != "primary\nfallback\nfallback\n" {
 					t.Fatalf("resume calls = %q", calls)
 				}
-				// A different project must share the cooldown, not the audit budget.
+				// A different project must have its own cooldown and audit budget.
 				other := t.TempDir()
 				writeReadyDocuments(t, other)
 				otherArgs := []string{"start", "--project", other, "--global-config", config, "--audit-prompts", registry, "--gate", "delivery-code", "--audit-record", filepath.Join(other, "audits.yaml"), "--work-item", "W017-cooldown"}
@@ -147,11 +170,11 @@ printf 'GATE: delivery-code\nREVISION: fixture\nVERDICT: PASS\n'
 					t.Fatal(err)
 				}
 				calls, readErr = os.ReadFile(filepath.Join(root, "calls"))
-				if readErr != nil || string(calls) != "primary\nfallback\nfallback\nfallback\n" || !strings.Contains(nextDiagnostics.String(), "AUDIT COOLDOWN") {
+				if readErr != nil || string(calls) != "primary\nfallback\nfallback\nprimary\nfallback\n" {
 					t.Fatalf("cross-project calls=%q err=%v diagnostics=%s", calls, readErr, nextDiagnostics.String())
 				}
 				otherEntry, _, readErr := harness.ReadAuditEntry(filepath.Join(other, "audits.yaml"), "W017-cooldown", "implementation")
-				if readErr != nil || otherEntry.ExternalRound != 1 {
+				if readErr != nil || otherEntry.ExternalRound != 2 {
 					t.Fatalf("skip consumed a round: %#v %v", otherEntry, readErr)
 				}
 			}

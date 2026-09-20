@@ -1,4 +1,4 @@
-// ABOUTME: Shares provider reset deadlines across projects without storing audit content.
+// ABOUTME: Stores project-local audit cooldown deadlines without audit content.
 // ABOUTME: Serializes atomic per-route JSON updates in a private runtime directory.
 package harness
 
@@ -23,22 +23,6 @@ type cooldownRecord struct {
 	Provider string    `json:"provider,omitempty"`
 	Model    string    `json:"model"`
 	RetryAt  time.Time `json:"retry_at"`
-}
-
-// DefaultCooldownDirectory resolves runtime state separately from the installation.
-// An explicit absolute override supports isolated runs without changing HOME.
-func DefaultCooldownDirectory() (string, error) {
-	if path := os.Getenv("SDLC_HARNESS_STATE_DIR"); path != "" {
-		if !filepath.IsAbs(path) {
-			return "", errors.New("SDLC_HARNESS_STATE_DIR must be absolute")
-		}
-		return path, nil
-	}
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return "", err
-	}
-	return filepath.Join(home, ".agent", "sdlc"), nil
 }
 
 func (s CooldownStore) path(agent AgentConfig) string {
@@ -76,6 +60,15 @@ func (s CooldownStore) Record(agent AgentConfig, retryAt time.Time) (returnErr e
 	}
 	path := s.path(agent)
 	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
+		return err
+	}
+	ignore, err := os.OpenFile(filepath.Join(filepath.Dir(path), ".gitignore"), os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o600)
+	if err == nil {
+		_, writeErr := ignore.WriteString("*\n")
+		if err := errors.Join(writeErr, ignore.Close()); err != nil {
+			return err
+		}
+	} else if !errors.Is(err, os.ErrExist) {
 		return err
 	}
 	lock, err := os.OpenFile(path+".lock", os.O_CREATE|os.O_RDWR|syscall.O_NOFOLLOW, 0o600)

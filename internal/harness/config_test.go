@@ -111,3 +111,54 @@ func writeHarnessConfig(t *testing.T, path, harnessName, provider, model, timeou
 }
 
 func noEnvironment(string) (string, bool) { return "", false }
+
+func TestAuditCoolOffPeriod(t *testing.T) {
+	for _, tc := range []struct {
+		value   string
+		want    time.Duration
+		invalid bool
+	}{
+		{"", time.Hour, false}, {"30m", 30 * time.Minute, false}, {"1h", time.Hour, false},
+		{"0s", 0, true}, {"-1h", 0, true}, {"tomorrow", 0, true},
+	} {
+		t.Run(tc.value, func(t *testing.T) {
+			root := t.TempDir()
+			configPath := filepath.Join(root, "global.yaml")
+			body := "delivery:\n  audit:\n    harness: claude\n    model: fixture\n    fallback:\n      harness: hermes\n      provider: nous\n      model: fallback\n"
+			if tc.value != "" {
+				body += "      cool_off_period: " + tc.value + "\n"
+			}
+			if err := os.WriteFile(configPath, []byte(body), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			config, err := ResolveConfig(ConfigOptions{Phase: "audit", GlobalPath: configPath, LookupEnv: noEnvironment})
+			if tc.invalid {
+				if err == nil {
+					t.Fatal("accepted invalid period")
+				}
+				return
+			}
+			if err != nil || config.CoolOffPeriod != tc.want {
+				t.Fatalf("period=%s want=%s error=%v", config.CoolOffPeriod, tc.want, err)
+			}
+		})
+	}
+}
+
+func TestProjectCoolOffOverrideRetainsInheritedFallback(t *testing.T) {
+	root := t.TempDir()
+	global := filepath.Join(root, "global.yaml")
+	if err := os.Mkdir(filepath.Join(root, ".sdlc"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(global, []byte("delivery:\n  audit:\n    harness: claude\n    model: primary\n    fallback:\n      harness: hermes\n      provider: nous\n      model: fallback\n      cool_off_period: 2h\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, ".sdlc", "project.yaml"), []byte("delivery:\n  audit:\n    fallback:\n      cool_off_period: 20m\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	config, err := ResolveConfig(ConfigOptions{ProjectRoot: root, GlobalPath: global, Phase: "audit", LookupEnv: noEnvironment})
+	if err != nil || config.Fallback == nil || config.Fallback.Harness != "hermes" || config.CoolOffPeriod != 20*time.Minute {
+		t.Fatalf("config=%#v err=%v", config, err)
+	}
+}

@@ -1,7 +1,7 @@
 ---
 title: Audit and Gate Standards
 version: 1
-last-updated: 2026-09-20
+last-updated: 2026-09-21
 ---
 
 # Audit and Gate Standards
@@ -129,13 +129,14 @@ is widened. Non-audit definition/build retain authentication-only fallback.
 Calling agents do not repair
 or delete mappings themselves.
 
-Recognized Claude session-limit failures record a shared primary-route deadline
-under `~/.agent/sdlc/cooldowns/`. Before that deadline, audits skip the primary
-and use the configured fallback without consuming a round for the skip. Without
-a distinct fallback they stop locally. Expiry makes the primary eligible again;
-cache, history and round limits remain authoritative. The harness reports the
-deadline and selected recovery on stderr. Agents follow that diagnostic, not a
-separate sleep or retry policy. See `HARNESS.md` for state ownership and isolation.
+An unusable primary audit attempt with a distinct configured fallback records
+a project-local deadline under `.sdlc/cooldowns/`. The period defaults to one hour
+and is configurable as `delivery.audit.fallback.cool_off_period`; no provider
+message timestamp is parsed. During cooldown, audits use the fallback without
+spending a round on the primary skip. Expiry makes the primary eligible again;
+cache, history and round limits remain authoritative. The harness reports its
+deadline and recovery on stderr. Agents follow that diagnostic, not a separate
+sleep policy. See `HARNESS.md` for configuration, state and recovery boundaries.
 
 The harness tries an unused configured fallback before returning a timeout.
 On a returned timeout, follow the recovery diagnostic. In HANDS-OFF mode, resume

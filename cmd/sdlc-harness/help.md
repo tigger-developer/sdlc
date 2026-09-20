@@ -56,9 +56,9 @@ and start delivery-code directly. Final delivery review includes affected docs.
 
 Include all relevant source, test and authority files; examples abbreviate inputs.
 
-Recognized Claude usage limits cool the primary route until its reset deadline.
-Audits share runtime state under ~/.agent/sdlc/cooldowns and select the configured
-fallback while cooling. Skips consume no rounds. Expiry makes the primary eligible
-again. SDLC_HARNESS_STATE_DIR overrides the runtime root with an absolute path.
+Unusable primary audit attempts cool the route when a distinct fallback exists.
+delivery.audit.fallback.cool_off_period defaults to 1h (positive durations only).
+State stays in the selected project's .sdlc/cooldowns; provider messages supply
+no timestamps. Skips consume no rounds. Expiry makes the primary eligible again.
 
 Examples, caching, fallback and recovery: ~/.agents/sdlc/HARNESS.md

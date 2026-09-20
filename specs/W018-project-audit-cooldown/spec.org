@@ -1,0 +1,162 @@
+#+TITLE: W018 - Keep audit cooldown project-local and configurable
+#+SCHEMA: 8
+#+STARTUP: overview
+#+OPTIONS: toc:2 num:nil
+#+OPERATOR_SIGNOFF: PENDING
+
+* Synopsis
+:PROPERTIES:
+:CUSTOM_ID: summary
+:END:
+** Outcome
+- A project's *primary audit cooldown follows its own configuration*.
+** Before
+- Global state and *Claude message parsing* determine cooldown.
+** After
+- Project-local state records *failure time plus a configured duration*.
+** Changes
+- Default =delivery.audit.fallback.cool_off_period= to *one hour*.
+- Apply the same policy to *all supported primary harnesses*.
+** Unchanged
+- Preserve *audit history, verdicts, evidence checks and attempt budgets*.
+- Installation remains *operator-run*; no other projects or global files are edited.
+** Edge cases
+- Invalid periods *fail configuration*. Missing or expired local state permits
+  the primary; *corrupt state stops locally*.
+** Decisions
+- Use ignored =.sdlc/cooldowns/= metadata keyed by the *effective primary tuple*.
+** Next step
+- Review local evidence, then perform *operator installation and runtime validation*.
+
+* Context
+- Authority :: Emergency cooldown follow-up, 2026-09-21: project-local metadata,
+  a one-hour default and the =fallback.cool_off_period= configuration key.
+  This record follows the requested implementation revision.
+- Supersedes :: [[file:../W017-audit-cooldown/spec.org][W017 - Shared audit cooldown]]
+  global-state and message-parsing policy. The earlier record and its execution
+  evidence remain historical, not the current routing contract.
+- Authorities :: [[file:../../.sdlc/project.yaml][Project profile]],
+  [[file:../../docs/ARCHITECTURE.md][Architecture]], [[file:../../src/HARNESS.md][Harness guide]].
+- Scope :: Configuration resolution, primary cooldown routing and persistence,
+  local regression evidence and affected documentation.
+- Excluded :: Provider billing/authentication repair, installation, external
+  project writes, automatic budget resets and background provider probes.
+
+* Acceptance Criteria
+** AC018.1 - Isolate project and route cooldowns :ac:
+:PROPERTIES:
+:CUSTOM_ID: ac018-1
+:END:
+- Cooldown metadata stays inside the *selected project's .sdlc directory*,
+  keyed by its effective primary harness/provider/model. Other projects and
+  route tuples are unaffected. Runtime records and locks *remain ignored by Git*.
+- Proven by :: [[#rt018-1][RT018.1 - Configuration and persistence]],
+  [[#rt018-2][RT018.2 - Runtime routing]], [[#ut018-1][UT018.1 - Installed operation]].
+** AC018.2 - Use a configurable duration rather than provider prose :ac:
+:PROPERTIES:
+:CUSTOM_ID: ac018-2
+:END:
+- With a distinct configured fallback, unusable primary audit attempts record
+  *local failure time plus the configured positive duration*, defaulting to one
+  hour. No reset timestamp is extracted from provider prose.
+- Zero, negative or malformed periods *fail configuration*. Project configuration
+  may override global defaults without changing another project's state.
+- Proven by :: [[#rt018-1][RT018.1 - Configuration and persistence]],
+  [[#rt018-2][RT018.2 - Runtime routing]].
+** AC018.3 - Preserve audit safeguards and primary eligibility :ac:
+:PROPERTIES:
+:CUSTOM_ID: ac018-3
+:END:
+- Before expiry, *skip the primary without spending a round*. After expiry or
+  when no local deadline exists, the primary is eligible on the next uncached
+  request, including when the retained session belongs to fallback.
+- Keep existing *verdict cache, evidence checks, historical findings and budgets*.
+  Usable verdicts and local errors do not trigger cooldown. A failed fallback
+  does not extend the primary deadline. No fallback means no new cooldown.
+- Proven by :: [[#rt018-2][RT018.2 - Runtime routing]], [[#ot018-1][OT018.1 - Contract review]].
+
+* Test Definitions
+** RT018.1 - Configuration and persistence :testdef:
+:PROPERTIES:
+:CUSTOM_ID: rt018-1
+:END:
+- Covers :: [[#ac018-1][AC018.1 - Project isolation]], [[#ac018-2][AC018.2 - Duration policy]].
+- Execute configuration API tests for omitted period, =1h=, =30m=, invalid
+  strings, zero and negatives. Override only the project period and expect the
+  inherited fallback tuple to remain intact. Existing empty-fallback disable
+  and tuple-replacement semantics remain in force.
+- Exercise real temporary file storage: independent route keys, concurrent
+  latest-deadline retention, corrupt record rejection, and =git check-ignore=.
+- Retention :: =make test=, using temporary fixtures and no metered calls.
+** RT018.2 - Runtime routing :testdef:
+:PROPERTIES:
+:CUSTOM_ID: rt018-2
+:END:
+- Covers :: [[#ac018-1][AC018.1 - Project isolation]], [[#ac018-2][AC018.2 - Duration policy]],
+  [[#ac018-3][AC018.3 - Audit safeguards]].
+- CLI coordinator with local executable doubles: primary failures without a
+  reset message, including Claude and Codex, create deadlines bounded between
+  invocation start plus the configured period and observation time plus period.
+  Check the default hour and a two-hour override.
+- First project calls primary then fallback; its cooled resume uses fallback.
+  A second project *still calls its own primary*, even for the same model.
+- Preserve future/expired/corrupt-state, missing-fallback, different-model,
+  exhausted-budget, cached-verdict and recordless-resume cases. A retained
+  fallback with no local state returns to primary. Native response prose is
+  never interpreted as a reset deadline.
+- Retention :: =make test= and race checks. No external provider calls.
+** OT018.1 - Contract review :testdef:
+:PROPERTIES:
+:CUSTOM_ID: ot018-1
+:END:
+- Covers :: [[#ac018-3][AC018.3 - Audit safeguards]].
+- One-off local source, embedded help and documentation review: no global
+  cooldown access, unchanged installer, state/config contract aligned with
+  tests, and technical text processed with =sanitize=.
+** UT018.1 - Installed operation :testdef:
+:PROPERTIES:
+:CUSTOM_ID: ut018-1
+:END:
+- Covers :: [[#ac018-1][AC018.1 - Project isolation]].
+- User validation after operator-run =make install=: observe an ordinary failed
+  primary audit creating ignored project metadata and selecting fallback.
+  An unrelated project must not inherit the cooldown. Record the configured
+  duration and visible deadline; provider availability is not presumed.
+- Bounds :: Existing required audit calls only; no paid test loop.
+
+* Edge Cases
+- Removing fallback during an already recorded cooldown causes local refusal
+  until expiry. Changing the period affects *future failures*, not an existing deadline.
+- Older global files and the former environment override are *unused*, not
+  migrated or deleted. Missing local state makes primary eligible.
+- Concurrent in-flight requests are not cancelled. Successful cached results
+  remain valid without accessing provider availability.
+
+* Solution Design
+- =Config.CoolOffPeriod= is separate from =AgentConfig=: duration is policy,
+  not session identity or a verdict cache-key component. Parse Go durations.
+- A full replacement fallback mapping replaces the tuple and defaults its
+  omitted duration to one hour. A period-only mapping retains an inherited
+  tuple; absent fallback is an error for a standalone period override. An empty
+  mapping still disables fallback. Non-audit recovery remains unchanged.
+- Route store root is =<project>/.sdlc=; retain the existing atomic JSON writer,
+  per-route lock and UTC deadline format. Create a runtime =cooldowns/.gitignore=
+  containing =*= without overwriting an existing file.
+- Reuse the existing unusable-attempt classification; configuration and local
+  evidence/record failures remain excluded. Remove the Claude clock parser and
+  global-root resolver rather than maintaining competing policies.
+- Restore primary eligibility when local state is absent or expired, using
+  existing session retirement and history transfer. Every launch keeps normal
+  round accounting. No timers, daemon, credentials or new dependencies.
+** Security impact
+- All new runtime writes are project-local. Keep private permissions and bounded
+  JSON reads. Ignore runtime state in Git. Provider permissions, credential
+  handling and audit-owned evidence remain unchanged.
+
+* Delivery Handoff
+- Local evidence :: [[file:validation.org][Validation records]]. Independent
+  verdicts, if obtained, belong only in harness-owned =audits.yaml=.
+- Documentation :: Harness guide, embedded help, README, audit standard,
+  architecture, changelog and learnings reflect the superseding policy.
+- Deployment :: Operator-run installation and user validation remain separate
+  from source verification. No global cleanup or client-project edits are authorized.

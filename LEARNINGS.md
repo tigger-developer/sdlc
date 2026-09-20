@@ -1,19 +1,20 @@
 ---
 title: "SDLC Standards: Design Learnings"
 version: 1
-last-updated: 2026-09-20
+last-updated: 2026-09-21
 ---
 
 # SDLC Standards: Design Learnings
 
-## Provider availability is shared; audit evidence is project-owned
+## Cooldown policy follows project configuration
 
-A provider allowance can affect several projects, so a known reset deadline
-belongs in shared runtime state rather than each work item's audit record.
-Keep that state limited to route and expiry. It may prevent a provider launch,
-but must never create a verdict, reset an audit budget or discard findings.
-Installation and runtime writes are separate operations: source verification
-uses an isolated runtime directory; the installed harness owns normal state.
+The v3.4.4 shared-state design assumed provider availability should be shared
+across projects. It is superseded: projects own their effective audit settings
+and cooldown state. A configurable duration measured from local failure is
+predictable across harnesses; parsing human-readable reset messages is not a
+portable interface. Keep state limited to route and expiry, separate from audit
+verdicts and budgets. Source verification uses temporary project fixtures;
+installation remains an independent operator action.
 
 ## Product documentation is not a conversation record
 

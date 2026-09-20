@@ -53,9 +53,12 @@ func (r recoveryRun) execute(entry harness.AuditEntry, resume bool) (harness.Res
 			if resume && (r.path == "" || !owns(entry, selected.Agent())) {
 				reason = "primary-cooldown"
 			}
-		} else if !deadline.IsZero() && selected.Agent() != r.config.Agent() {
+		} else if selected.Agent() != r.config.Agent() {
 			selected = r.config
 			reason = "primary-cooldown-expired"
+			if deadline.IsZero() {
+				reason = "primary-cooldown-absent"
+			}
 		}
 	}
 	missingRecovered, fallbackUsed := false, selected.Agent() != r.config.Agent()
@@ -87,11 +90,12 @@ func (r recoveryRun) execute(entry harness.AuditEntry, resume bool) (harness.Res
 		if !errors.As(err, &incident) {
 			return harness.Result{}, err
 		}
-		if r.audit && selected.Agent() == r.config.Agent() && !incident.RetryAt.IsZero() {
-			if saveErr := r.cooldowns.Record(selected.Agent(), incident.RetryAt); saveErr != nil {
+		if r.audit && selected.Agent() == r.config.Agent() && r.config.Fallback != nil && *r.config.Fallback != selected.Agent() && fallbackEligible(incident, true) {
+			retryAt := time.Now().Add(r.config.CoolOffPeriod)
+			if saveErr := r.cooldowns.Record(selected.Agent(), retryAt); saveErr != nil {
 				return harness.Result{}, errors.Join(err, fmt.Errorf("saving primary audit cooldown: %w", saveErr))
 			}
-			fmt.Fprintf(r.diagnostics, "AUDIT COOLDOWN: %s/%s recorded until %s\n", selected.Harness, selected.Model, incident.RetryAt.Format(time.RFC3339))
+			fmt.Fprintf(r.diagnostics, "AUDIT COOLDOWN: %s/%s recorded until %s\n", selected.Harness, selected.Model, retryAt.Format(time.RFC3339))
 		}
 		if r.path != "" {
 			saved, found, readErr := harness.ReadAuditEntry(r.path, r.work, r.gate)

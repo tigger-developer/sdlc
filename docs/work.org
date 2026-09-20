@@ -78,6 +78,19 @@ classification; it is provenance, not current state.
 
 * Work items
 
+** REVIEW W018 - Keep audit cooldown project-local and configurable :defect:
+:PROPERTIES:
+:CUSTOM_ID: w-018
+:PRIORITY: P1
+:SOURCE: operator emergency follow-up
+:CREATED: 2026-09-21
+:END:
+
+- *Specification:* [[file:../specs/W018-project-audit-cooldown/spec.org][W018 - Project-local audit cooldown]]
+- *Validation:* [[file:../specs/W018-project-audit-cooldown/validation.org][W018 - Cooldown policy verification]]
+- Supersedes :: The global-state and message-parsing policy in
+  [[file:../specs/W017-audit-cooldown/spec.org][W017 - Shared primary audit cooldown]].
+
 ** REVIEW W017 - Share primary audit cooldown across projects :defect:
 :PROPERTIES:
 :CUSTOM_ID: w-017

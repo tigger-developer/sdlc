@@ -53,7 +53,6 @@ type Incident struct {
 	Kind      string
 	Harness   string
 	SessionID string
-	RetryAt   time.Time
 	Err       error
 }
 
@@ -147,17 +146,11 @@ func Execute(ctx context.Context, request Request, resume bool, evidence *Eviden
 		if recovery := providerFailure(diagnostics.tail+"\n"+stdout.failureText+"\n"+stdout.plainFailure, request, resume); recovery != "" {
 			kind = recovery
 		}
-		if retryAt := claudeReset(diagnostics.tail+"\n"+stdout.failureText+"\n"+stdout.plainFailure, request.Harness, time.Now()); !retryAt.IsZero() {
-			return Result{}, &Incident{Kind: "rate-limited", Harness: request.Harness, SessionID: stdout.identity, RetryAt: retryAt, Err: err}
-		}
 		return Result{}, newIncident(kind, request.Harness, stdout.identity, err)
 	}
 	close(stopHeartbeat)
 	if stdout.err != nil {
 		return Result{}, stdout.err
-	}
-	if retryAt := claudeReset(stdout.failureText, request.Harness, time.Now()); !retryAt.IsZero() {
-		return Result{}, &Incident{Kind: "rate-limited", Harness: request.Harness, SessionID: stdout.identity, RetryAt: retryAt, Err: errors.New("provider usage limit; see reset deadline")}
 	}
 	if recovery := providerFailure(stdout.failureText, request, resume); recovery != "" {
 		return Result{}, newIncident(recovery, request.Harness, stdout.identity, errors.New("provider rejected the invocation; see stderr"))

@@ -1,7 +1,7 @@
 ---
 title: SDLC Audit Harness Guide
 version: 1
-last-updated: 2026-09-20
+last-updated: 2026-09-21
 ---
 
 # SDLC audit harness guide
@@ -256,40 +256,63 @@ command. Each launch consumes a round and gets the configured timeout; replaceme
 do not reset `max_rounds`. Without an audit record, one fallback is still
 available, but missing-session replacement and cross-call tracking are not.
 
-## Primary usage-limit cooldown
+## Primary audit cooldown
 
-When Claude reports its native session-limit message with a reset clock and
-timezone, the harness records the deadline under `~/.agent/sdlc/cooldowns/`.
-This singular `.agent` path is runtime state, separate from the `.agents/sdlc`
-installation. State is shared across projects for the exact primary
-harness/provider/model tuple, not across different models or OS users.
+After an unusable primary audit attempt, a configured distinct fallback enables
+a project-local cooldown. The deadline is the local failure time plus
+`delivery.audit.fallback.cool_off_period`, defaulting to `1h`. It does not
+parse provider messages or infer reset dates. The policy applies to every
+supported primary harness, including launch/authentication failures, timeouts
+and unusable responses. PASS, FAIL and PROVISIONAL PASS do not trigger it.
+Local configuration, evidence-integrity and record failures remain blockers.
 
-Until that deadline, uncached audits skip the primary and use the configured
-fallback. Stderr reports `AUDIT COOLDOWN`, the deadline and the skipped route.
-Skipping consumes no round; each actual fallback invocation consumes one.
-Without a distinct fallback, the command stops without a provider call.
-After expiry the primary becomes eligible again, including for a retained
-fallback context; replacement preserves historical findings and the budget.
-Cached verdicts still return without provider calls.
+```yaml
+delivery:
+  audit:
+    harness: claude
+    provider: claude
+    model: claude-opus-5
+    timeout: 15m
+    max_rounds: 5
+    fallback:
+      cool_off_period: 1h
+      harness: hermes
+      provider: nous
+      model: z-ai/glm-5.3
+```
 
-The store contains only the route and UTC deadline in versioned JSON files.
-Updates are atomic and serialized per route; concurrent observations retain the
-later deadline. Expired records remain small, inert routing history and are
-replaced by later limits. Missing state starts with no cooldown; invalid or
-unreadable state stops the command rather than silently retrying the primary.
-No prompts, credentials, audit verdicts or project paths enter this store.
+The period must be a positive Go duration, such as `30m`, `1h` or `2h`;
+zero, negative and malformed values are rejected. A project may override only
+`cool_off_period` while retaining an inherited fallback. A replacement fallback
+tuple defaults to one hour unless it declares its own period; `fallback: {}`
+still disables fallback. Non-audit phases retain their existing recovery policy.
 
-`SDLC_HARNESS_STATE_DIR` overrides the runtime root with an absolute path, for
-example for isolated tests. Normal use requires no new configuration. The
-installer does not initialize or clear runtime state; the harness creates it
-when a supported limit is observed. Installing this release cannot reconstruct
-limits from earlier failed invocations.
+The harness writes versioned JSON state under the selected project's
+`.sdlc/cooldowns/`, keyed by the effective primary harness/provider/model.
+Other projects and different primary tuples are unaffected. The directory
+contains its own `.gitignore`, so timestamps and locks remain runtime metadata.
+Only the route and UTC deadline are stored, never credentials, prompts or verdicts.
+Atomic updates and a per-route lock preserve the later concurrent deadline.
 
-Cooldown is limited to recognized primary Claude session-limit failures. Other
-errors retain existing fallback behaviour; no reset time is invented for billing
-errors, malformed deadlines or ordinary audit prose. A clock without a date is
-interpreted as its next occurrence in the stated timezone, including tomorrow
-when today's clock has passed. No background retry or sleep is introduced.
+Before expiry, uncached audits skip the primary and use the configured fallback.
+Stderr reports `AUDIT COOLDOWN` and the deadline. A skip consumes no round;
+each provider call consumes its normal round. Expiry makes the primary eligible
+on the next requested audit, not guaranteed healthy. There is no background
+retry or sleep. Replacements retain audit history and budgets; cached verdicts
+remain reusable. A failed fallback does not extend the primary's deadline.
+
+Without a configured distinct fallback, new failures do not create cooldowns.
+If fallback is removed during an existing cooldown, invocation stops until
+expiry rather than calling the cooled primary. Invalid or unreadable state stops
+explicitly; missing state means no cooldown. Expired records remain small and
+are replaced on later failures. Changing the period affects future failures,
+not an already recorded deadline.
+
+This supersedes v3.4.4's global Claude-message-based policy. The old global store
+and `SDLC_HARNESS_STATE_DIR` override are no longer used. Existing global files
+are neither migrated nor deleted. A retained fallback with no project-local
+cooldown returns to the primary on its next uncached request. Installation remains operator-run and does
+not initialize cooldown state.
 
 ## Timeout behaviour
 

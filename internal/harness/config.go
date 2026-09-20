@@ -13,12 +13,13 @@ import (
 
 // Config is the resolved harness configuration for one SDLC phase.
 type Config struct {
-	Harness   string
-	Provider  string
-	Model     string
-	Timeout   time.Duration
-	MaxRounds int
-	Fallback  *AgentConfig
+	Harness       string
+	Provider      string
+	Model         string
+	Timeout       time.Duration
+	MaxRounds     int
+	Fallback      *AgentConfig
+	CoolOffPeriod time.Duration
 }
 
 // AgentConfig identifies a provider context, independently of its execution limits.
@@ -50,12 +51,17 @@ type ConfigOptions struct {
 }
 
 type phaseDocument struct {
-	Harness   string       `yaml:"harness"`
-	Provider  string       `yaml:"provider"`
-	Model     string       `yaml:"model"`
-	Timeout   string       `yaml:"timeout"`
-	MaxRounds int          `yaml:"max_rounds"`
-	Fallback  *AgentConfig `yaml:"fallback"`
+	Harness   string            `yaml:"harness"`
+	Provider  string            `yaml:"provider"`
+	Model     string            `yaml:"model"`
+	Timeout   string            `yaml:"timeout"`
+	MaxRounds int               `yaml:"max_rounds"`
+	Fallback  *fallbackDocument `yaml:"fallback"`
+}
+
+type fallbackDocument struct {
+	AgentConfig   `yaml:",inline"`
+	CoolOffPeriod *string `yaml:"cool_off_period"`
 }
 
 type configDocument struct {
@@ -72,7 +78,7 @@ func ResolveConfig(options ConfigOptions) (Config, error) {
 	if phase != "definition" && phase != "build" && phase != "audit" {
 		return Config{}, fmt.Errorf("unsupported SDLC phase %q", options.Phase)
 	}
-	config := Config{}
+	config := Config{CoolOffPeriod: time.Hour}
 	explicitProvider := false
 	applyDocument := func(path string) error {
 		if path == "" {
@@ -110,7 +116,21 @@ func ResolveConfig(options ConfigOptions) (Config, error) {
 		// A project fallback replaces the whole tuple, never mixes providers/models.
 		// An explicit empty mapping disables an inherited fallback.
 		if value.Fallback != nil {
-			config.Fallback = value.Fallback
+			agent := value.Fallback.AgentConfig
+			if agent != (AgentConfig{}) || value.Fallback.CoolOffPeriod == nil {
+				config.Fallback = &agent
+				config.CoolOffPeriod = time.Hour
+			}
+			if value.Fallback.CoolOffPeriod != nil {
+				if config.Fallback == nil || *config.Fallback == (AgentConfig{}) {
+					return fmt.Errorf("delivery.%s.fallback.cool_off_period requires a configured fallback in %s", phase, path)
+				}
+				period, err := time.ParseDuration(*value.Fallback.CoolOffPeriod)
+				if err != nil || period <= 0 {
+					return fmt.Errorf("delivery.%s.fallback.cool_off_period must be a positive duration in %s", phase, path)
+				}
+				config.CoolOffPeriod = period
+			}
 		}
 		if value.Timeout != "" {
 			parsed, err := time.ParseDuration(value.Timeout)

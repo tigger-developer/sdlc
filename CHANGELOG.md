@@ -1,12 +1,23 @@
 ---
 title: Changelog
 version: 1
-last-updated: 2026-09-20
+last-updated: 2026-09-21
 ---
 
 # Changelog
 
 ## Unreleased
+
+## v3.4.5 - 2026-09-21
+
+- Replace global cooldown state with project-local `.sdlc/cooldowns/` metadata,
+  ignored by Git and keyed by the effective primary audit route.
+- Default `delivery.audit.fallback.cool_off_period` to `1h`, with positive
+  duration overrides in global or project configuration.
+- Apply cooldown after unusable primary attempts across supported harnesses,
+  without parsing provider reset messages. Preserve verdicts, history and budgets.
+- Stop reading the v3.4.4 global store and its environment override; leave
+  historical global files untouched. State is created on demand after installation.
 
 ## v3.4.4 - 2026-09-20
 

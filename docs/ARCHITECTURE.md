@@ -1,7 +1,7 @@
 ---
 title: SDLC v3 Architecture
 version: 1
-last-updated: 2026-09-20
+last-updated: 2026-09-21
 ---
 
 # SDLC v3 Architecture
@@ -153,15 +153,18 @@ non-audit phases retain authentication-only fallback.
 Missing-session restart is likewise limited to once per call. Every launch consumes
 the existing round budget and retains the configured per-attempt deadline.
 
-Primary Claude session-limit deadlines are shared across projects in
-`~/.agent/sdlc/cooldowns`, separate from the installed `.agents/sdlc` tree.
+Primary audit cooldown deadlines belong to each project's `.sdlc/cooldowns`,
+not the installed SDLC or a shared home-directory store. The deadline is local
+failure time plus `delivery.audit.fallback.cool_off_period` (default `1h`),
+independent of provider message formats. A distinct fallback enables this policy.
 One versioned JSON record per exact harness/provider/model tuple holds only its
 route and expiry. Atomic replacement and a process-released per-route file lock
 retain the latest concurrent deadline. Reads do not mutate state; expiry needs
 no timer or deletion. The recovery coordinator skips a cooled primary, uses the
 configured fallback, and makes the primary eligible after expiry. Audit records
 remain the sole authority for findings and budgets; a skip is not an attempt.
-`SDLC_HARNESS_STATE_DIR` isolates runtime state without changing provider profiles.
+The runtime directory ignores its own files in Git. The v3.4.4 global store and
+environment override are superseded; existing global files remain untouched.
 
 The work ledger owns lifecycle state, the specification owns requirements and
 operator sign-off, and `audits.yaml` alone owns audit state. Legacy `audits.org`

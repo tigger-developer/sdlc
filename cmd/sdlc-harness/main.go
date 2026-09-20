@@ -284,11 +284,7 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 	runner := recoveryRun{config: config, request: request, evidence: evidence, registry: registry,
 		path: recordPath, work: *workItem, gate: sessionGate, cacheKey: cacheKey, readinessCheck: readinessCheck, audit: normalizedPhase == "audit", diagnostics: errorOutput}
 	if runner.audit {
-		directory, err := harness.DefaultCooldownDirectory()
-		if err != nil {
-			return err
-		}
-		runner.cooldowns = harness.CooldownStore{Directory: directory}
+		runner.cooldowns = harness.CooldownStore{Directory: filepath.Join(projectRoot, ".sdlc")}
 	}
 	result, err := runner.execute(entry, action == "resume")
 	if err != nil {

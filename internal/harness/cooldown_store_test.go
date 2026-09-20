@@ -4,11 +4,31 @@ package harness
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sync"
 	"testing"
 	"time"
 )
+
+func TestCooldownRuntimeIsIgnoredByGit(t *testing.T) {
+	root := t.TempDir()
+	init := exec.Command("git", "init", root)
+	if out, err := init.CombinedOutput(); err != nil {
+		t.Fatalf("init: %s %v", out, err)
+	}
+	store := CooldownStore{Directory: filepath.Join(root, ".sdlc")}
+	agent := AgentConfig{Harness: "codex", Model: "fixture"}
+	if err := store.Record(agent, time.Now().Add(time.Hour)); err != nil {
+		t.Fatal(err)
+	}
+	// #nosec G204 -- fixed Git operation on a hashed fixture path under t.TempDir; no shell.
+	check := exec.Command("git", "check-ignore", "--quiet", store.path(agent))
+	check.Dir = root
+	if out, err := check.CombinedOutput(); err != nil {
+		t.Fatalf("runtime state not ignored: %s %v", out, err)
+	}
+}
 
 func TestCooldownStoreRetainsLatestDeadlineAcrossInstances(t *testing.T) {
 	store := CooldownStore{Directory: t.TempDir()}
@@ -61,18 +81,5 @@ func TestCooldownStoreRejectsInvalidState(t *testing.T) {
 		if err := store.Record(agent, time.Now()); err == nil {
 			t.Fatal("overwrote corrupt state")
 		}
-	}
-}
-
-func TestCooldownDirectoryOverride(t *testing.T) {
-	root := t.TempDir()
-	t.Setenv("SDLC_HARNESS_STATE_DIR", root)
-	got, err := DefaultCooldownDirectory()
-	if err != nil || got != root {
-		t.Fatalf("directory=%q err=%v", got, err)
-	}
-	t.Setenv("SDLC_HARNESS_STATE_DIR", "relative")
-	if _, err := DefaultCooldownDirectory(); err == nil {
-		t.Fatal("accepted relative global state directory")
 	}
 }

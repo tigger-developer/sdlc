@@ -1,0 +1,50 @@
+#+TITLE: W018 - Project-local cooldown validation
+#+SCHEMA: 2
+#+STARTUP: overview
+#+TODO: AMBER RED | GREEN
+
+* Execution evidence
+** GREEN RT018.1 - Configuration and persistence :testdef:
+:PROPERTIES:
+:CUSTOM_ID: rt018-1
+:REVISION: 51949ad plus W018 project-local cooldown changes
+:COMMAND: go test -race ./internal/harness ./cmd/sdlc-harness
+:EVIDENCE: 2026-09-21 macOS regression suite passed: defaults, overrides, invalid durations, inherited fallback, state concurrency and Git ignore behaviour.
+:END:
+- RED before implementation: omitted and explicit periods resolved to zero;
+  invalid periods were accepted. A project period-only override disabled the
+  inherited fallback. Git reported that runtime state was not ignored.
+- GREEN after implementation: the same assertions passed. All files and Git
+  fixtures are inside test-owned temporary projects; no metered calls.
+
+** GREEN RT018.2 - Runtime routing :testdef:
+:PROPERTIES:
+:CUSTOM_ID: rt018-2
+:REVISION: 51949ad plus W018 project-local cooldown changes
+:COMMAND: go test -race ./internal/harness ./cmd/sdlc-harness
+:EVIDENCE: 2026-09-21 CLI routing suite passed, including separate projects, one-hour default, two-hour override, Claude/Codex failures, retained contexts and budget/cache safeguards.
+:END:
+- RED before implementation: the second project skipped its primary because
+  the first project's global deadline affected it.
+- Additional RED: a retained fallback without local state still called Hermes
+  rather than the eligible primary. Absence now restores primary eligibility.
+- Existing timeout tests exposed an over-broad cooldown when no fallback was
+  configured. Cooldown creation now requires a distinct configured fallback;
+  the timeout regression pack passes unchanged.
+- Full =make test= passed: go vet, golangci-lint, ShellCheck, shfmt and all Go
+  package tests. Race checks passed for both changed harness packages.
+
+** GREEN OT018.1 - Contract review :testdef:
+:PROPERTIES:
+:CUSTOM_ID: ot018-1
+:REVISION: 51949ad plus W018 project-local cooldown changes
+:EVIDENCE: 2026-09-21 scratch-built help, source review and sanitize checks passed. Runtime root is project-local, parser/global resolver are removed, installer is unchanged, and documentation describes the configured duration and recovery boundaries.
+:END:
+
+** AMBER UT018.1 - Installed operation :testdef:
+:PROPERTIES:
+:CUSTOM_ID: ut018-1
+:REASON: Operator installation and live project-local runtime observation remain outstanding. No installation or global runtime writes were performed.
+:END:
+- Method :: User validation after installation. Local tests do not establish
+  provider availability or a current independent audit verdict.

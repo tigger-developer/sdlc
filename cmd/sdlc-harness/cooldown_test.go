@@ -1,4 +1,4 @@
-// ABOUTME: Isolates shared harness state from the operator's runtime directory.
+// ABOUTME: Verifies project-local cooldown routing and retained audit safeguards.
 // ABOUTME: All providers in this regression package remain local command doubles.
 package main
 
@@ -14,26 +14,8 @@ import (
 	"github.com/tigger-developer/sdlc/internal/harness"
 )
 
-func TestMain(m *testing.M) {
-	root, err := os.MkdirTemp("", "sdlc-harness-state-test-")
-	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-	if err := os.Setenv("SDLC_HARNESS_STATE_DIR", root); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
-	code := m.Run()
-	if err := os.RemoveAll(root); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		code = 1
-	}
-	os.Exit(code)
-}
-
 func TestCooldownRouting(t *testing.T) {
-	for _, mode := range []string{"active", "resume-primary", "resume-no-record", "expired", "no-fallback", "corrupt", "exhausted", "other-model", "cache"} {
+	for _, mode := range []string{"active", "resume-primary", "resume-no-record", "no-state-retained", "expired", "no-fallback", "corrupt", "exhausted", "other-model", "cache"} {
 		t.Run(mode, func(t *testing.T) {
 			root := t.TempDir()
 			t.Setenv("SDLC_HARNESS_STATE_DIR", filepath.Join(root, "state"))
@@ -59,7 +41,7 @@ func TestCooldownRouting(t *testing.T) {
 				}
 			}
 			agent := harness.AgentConfig{Harness: "claude", Model: "fixture"}
-			store := harness.CooldownStore{Directory: filepath.Join(root, "state")}
+			store := harness.CooldownStore{Directory: filepath.Join(root, ".sdlc")}
 			deadline := time.Now().Add(time.Hour)
 			if mode == "expired" {
 				deadline = time.Now().Add(-time.Hour)
@@ -68,8 +50,10 @@ func TestCooldownRouting(t *testing.T) {
 			if mode == "other-model" {
 				cooled.Model = "other"
 			}
-			if err := store.Record(cooled, deadline); err != nil {
-				t.Fatal(err)
+			if mode != "no-state-retained" {
+				if err := store.Record(cooled, deadline); err != nil {
+					t.Fatal(err)
+				}
 			}
 			if mode == "corrupt" {
 				paths, err := filepath.Glob(filepath.Join(store.Directory, "cooldowns", "*.json"))
@@ -86,7 +70,7 @@ func TestCooldownRouting(t *testing.T) {
 			if mode == "resume-no-record" {
 				args = []string{"resume", "--project", root, "--global-config", filepath.Join(root, "config.yaml"), "--audit-prompts", filepath.Join(root, "prompts.yaml"), "--gate", "definition", "--session", "primary-session", "--input", filepath.Join(root, "prompts.yaml")}
 			}
-			if mode == "expired" || mode == "exhausted" || mode == "resume-primary" {
+			if mode == "expired" || mode == "exhausted" || mode == "resume-primary" || mode == "no-state-retained" {
 				entry := harness.AuditEntry{WorkItem: "W017-cooldown", Gate: "definition", SessionID: "fallback-session", Harness: "hermes", Provider: "nous", Model: "fallback-fixture", Configured: &agent, Status: "incident", ExternalRound: 2}
 				if mode == "resume-primary" {
 					entry.Harness, entry.Provider, entry.Model, entry.SessionID = "claude", "", "fixture", "primary-session"
@@ -113,7 +97,7 @@ func TestCooldownRouting(t *testing.T) {
 				return
 			}
 			want := "hermes\n"
-			if mode == "expired" || mode == "other-model" {
+			if mode == "expired" || mode == "other-model" || mode == "no-state-retained" {
 				want = "claude\n"
 			}
 			if readErr != nil || string(calls) != want {
