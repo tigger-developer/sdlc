@@ -32,6 +32,9 @@
 
 - An initial fixture omitted required evidence and was corrected before treating
   its results as behavioural evidence. That setup error was not TDD RED.
+- A subsequent RED boundary test showed recordless resume sending the primary
+  session to Hermes and producing =identity-mismatch=. Cooldown switching now
+  starts a fresh fallback context when no record can establish session ownership.
 - Full =make test= also passed: go vet, golangci-lint, ShellCheck, shfmt and all
   Go package tests. These results do not establish external provider availability.
 

@@ -50,7 +50,7 @@ func (r recoveryRun) execute(entry harness.AuditEntry, resume bool) (harness.Res
 				return harness.Result{}, fmt.Errorf("primary audit route cooling down until %s; no distinct fallback configured", deadline.UTC().Format(time.RFC3339))
 			}
 			selected = r.config.WithAgent(*r.config.Fallback)
-			if resume && !owns(entry, selected.Agent()) {
+			if resume && (r.path == "" || !owns(entry, selected.Agent())) {
 				reason = "primary-cooldown"
 			}
 		} else if !deadline.IsZero() && selected.Agent() != r.config.Agent() {

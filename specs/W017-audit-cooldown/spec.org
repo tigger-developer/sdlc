@@ -106,6 +106,8 @@
 - Cases :: Future deadline skips primary; expired deadline returns a retained
   fallback to primary with retirement provenance and one additional round.
   A cooled retained primary switches to fallback with the same accounting.
+  A resume without a record starts the fallback fresh rather than supplying
+  a primary-owned session ID to a different provider.
   Missing fallback, invalid state and exhausted budgets launch no provider.
   Different model tuples remain eligible. Identical cached requests do not launch.
 - Store :: Concurrent writes through distinct store instances retain the maximum
