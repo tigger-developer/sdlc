@@ -1,0 +1,285 @@
+version: 1
+audits:
+    - readiness_check: delivery-code
+      work_item: W019
+      gate: implementation
+      session_id: 6b7ccf60-dabb-4304-a336-ab95b9ac6dab
+      harness: claude
+      model: claude-opus-5
+      configured:
+        harness: claude
+        model: claude-opus-5
+      external_round: 1
+      status: active
+      updated: "2026-09-23T01:38:30Z"
+      revision: 1475f2e plus the W019 implementation, tests and documentation supplied in this evidence manifest
+      verdict: FAIL
+      response: |-
+        GATE: delivery-code
+        REVISION: 1475f2e plus the W019 implementation, tests and documentation supplied in this evidence manifest
+        VERDICT: FAIL
+
+        ## Scope confirmation
+
+        Emergency workflow accepted. The reconciled `spec.org` plus `validation.org` supply the operator-authorized scope; no advance definition gate applied. No audit state is duplicated in the specification, validation record or work ledger. RT019.1/RT019.2/OT019.1 are GREEN with recorded RED history; UT019.1 is explicitly AMBER with a reason, which is permitted here. Every regression provider is a local executable double; no metered service is embedded.
+
+        The authorized contract is implemented and evidenced: automatic context selection, removal of public `--session`, gate-local verdict accounting, configurable consecutive-failure bound with persistent internal stop, format clarification in the retained context, immediate authentication fallback with terminal failure, authorized `--reset` clearing both counters while retaining history, and bounded private diagnostics. The findings below are the remaining defects.
+
+        ## Findings and required remediation
+
+        **1. `AUDITS.md` misstates delivered audit liveness output (blocking, stale required documentation)**
+
+        `src/AUDITS.md:147-149` states: "While waiting, the harness emits a start message and 30-second liveness heartbeats to stderr." For audits this is no longer true. `cmd/sdlc-harness/main.go:289-300` routes the runner's diagnostics to `auditDiagnostics`, so `reportHeartbeat` (`internal/harness/runner.go:226-239`) writes both the start message and every 30-second tick to the private log. `cmd/sdlc-harness/diagnostics.go:60-64` echoes only the start line, as a single `Audit in progress.` The periodic ticks ("external context still running…") never reach the caller.
+
+        Required: either correct the `AUDITS.md` passage (and align `HARNESS.md:124-126`) to describe the delivered contract — one `Audit in progress.` notice per attempt, with periodic liveness retained privately — or restore caller-visible periodic liveness without session identifiers. Do not leave the two in conflict.
+
+        **2. Unlabelled legacy history is charged to an explicit gate (blocking, contradicts an approved decision)**
+
+        `internal/harness/audit_record.go:66-68`: when `History` is empty, a usable top-level `Verdict` counts one round for whichever gate is selected, without any gate labelling. A legacy `gate: implementation` record with no history therefore consumes one of the five `delivery-code` (or `test-code`) verdicts. This contradicts the specification edge case ("Legacy unlabelled implementation rounds remain historical evidence, not invented test-code/delivery-code verdicts") and `HARNESS.md:174-175`. It is also internally inconsistent: once `beginAuditAttempt` migrates that entry into `History`, `roundGate` resolves it to `implementation` and the same evidence stops counting.
+
+        Required: apply the same gate resolution to the no-history branch so unlabelled legacy evidence is not charged to an explicit gate, and cover the case in `internal/harness`.
+
+        **3. Two regression cases no longer exercise their stated behaviour (blocking, delivered test package)**
+
+        - `cmd/sdlc-harness/cooldown_test.go:70-72` passes `--session primary-session`. That flag no longer exists, so `run` fails during flag parsing; `blocked` is true for `resume-no-record`, the test returns at line 100, and the assertions at lines 109-114 ("passed primary session to fallback") are unreachable. The mode now proves only that an unknown flag is rejected. Since `main.go:113-115` makes `--audit-record` mandatory for every audit, the recordless-resume scenario is unreachable by design.
+        - `cmd/sdlc-harness/reset_test.go:62` includes `"--session", "native"` in `TestResetSessionRejectsAmbiguousInvocation`. It now passes because of the undefined flag, not the reset-ambiguity rule it names. `TestW004StartRejectsSuppliedSession` already covers flag removal.
+
+        Required: remove or re-express both cases against the current interface so each retains a single, reachable behavioural reason for failure.
+
+        **4. Named edge case and acceptance-criterion output lack implemented coverage**
+
+        - No test covers "Raised configuration limits do not clear a recorded internal stop" (`spec.org` Edge Cases). `FailureBlocked` implements it, but `automatic_test.go` only exercises a limit configured before the lockout. Add a case that locks out at the default, raises `max_failures`, and asserts the next audit is still refused without a provider call.
+        - No test asserts the caller-facing `Diagnostic reference:` line required by AC019.5 ("returns human intervention required *and* a diagnostic reference"). `main.go:249-256` and `main.go:301-305` emit it; `automatic_test.go` verifies only the log contents and the absence of internal state. Add the positive assertion.
+
+        **5. Two caller-facing statements do not match delivered behaviour (correct with the above)**
+
+        - `src/HARNESS.md:192-193`: "Further **uncached** audits are refused until an authorized `--reset`." An internal stop refuses cached requests too: `main.go:249-257` returns before the cache lookup, and `cache.go:35` declines while `FailureBlocked()`. Remove "uncached" or state that the lockout precedes cache lookup.
+        - `cmd/sdlc-harness/main.go:69`: `unknown operation %q; use start, resume or goal-config` advertises only the transitional words and omits the normal no-operation form that `help.md` and `HARNESS.md:66-71` document. Help text is documentation under `DOCUMENTATION.md`; state the normal invocation and keep `start`/`resume` as accepted legacy words.
+        - Related, lower materiality: `HARNESS.md:124` says stdout contains only a validated audit response or readiness report, while `main.go:130` writes the `AUDIT BUDGET RESET:` confirmation to stdout. Reconcile the sentence with the reset operation.
+
+        ## Advisory, not blocking
+
+        - `run` (`main.go:44-313`, ~270 lines) and `recoveryRun.execute` (`recovery.go:32-154`, ~120 lines with a four-level nest) both exceed `CODING.md`'s 50-line and three-level review tripwires with no recorded justification. The specification approves a single recovery coordinator, so this is decomposition within the approved structure, not a redesign.
+        - `diagnostics.go:48-66` returns the full input length after truncating at the 16 MiB cap. The behaviour is intentional and bounded, but the deviation from the `io.Writer` contract deserves an adjacent comment.
+        - `fallback_test.go:21` still sets `SDLC_HARNESS_STATE_DIR`, which `HARNESS.md:294-296` records as no longer used. Harmless isolation; remove when convenient.
+        - `src/config/project-init.schema.yaml` defines `SDLC_AUDIT_MAX_ROUNDS` but no `max_failures` field. The specification does not require an initializer question for it, and resolution works from global or project YAML, so this is an option, not a defect.
+        - `docs/work.org:16` still names `audits.org` as the evidence authority. Pre-existing staleness, not introduced by this delta.
+
+        Re-audit after remediating findings 1 through 5; address them as one batch and challenge any finding you consider out of scope with evidence.
+      history:
+        - diagnostic: /Users/tigger/code/agents/sdlc/.sdlc/audit-diagnostics/audit-3409384922.log
+          readiness_check: delivery-code
+          cache_key: sha256:099f8ac25a69b931f3b4c690769bddd2c37d9777ce13257849fad6dc93b887d1
+          session_id: 6b7ccf60-dabb-4304-a336-ab95b9ac6dab
+          harness: claude
+          model: claude-opus-5
+          evidence:
+            - path: /Users/tigger/code/agents/sdlc/.sdlc/project.yaml
+              sha256: 7435fbc30502a8a150bf976a612f9355ec4fafad508f66042eaeddd0a70de02d
+              bytes: 307
+            - path: /Users/tigger/code/agents/sdlc/CHANGELOG.md
+              sha256: 9d7640d19ad5bdb12eefa654e3fa580b6ebb8fa5bcc8c6d81a2e407b53fc5b6b
+              bytes: 78418
+            - path: /Users/tigger/code/agents/sdlc/LEARNINGS.md
+              sha256: b631d993b8b4c1eb12eb16bf7a9ac469a845c2f896cc487623f1fff970147d8d
+              bytes: 58616
+            - path: /Users/tigger/code/agents/sdlc/QUICKSTART.md
+              sha256: 721bae29ef3f21a3d5f37b1fffa434ead811dedbd643addb8ac87a5fbf63a5a1
+              bytes: 10581
+            - path: /Users/tigger/code/agents/sdlc/README.md
+              sha256: a73e1dc0eb7828ba451bf7c4b9db251bed9a910d39eec41bb5ee417d8c3edcf4
+              bytes: 22426
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/audit_attempt.go
+              sha256: 49e42f88c074971d8b2c29d0c0e3cf461c41c228f28ccde7bbc5d8415d5b0459
+              bytes: 4035
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/authentication_test.go
+              sha256: 79bac371255c9d774516a70945adbd486d101db1dcee9e7ebb248cf155b55cfd
+              bytes: 2647
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/automatic_test.go
+              sha256: db2ee7f8b629e8b8ace8d2225868f212f398fcbd96fb1ec5a103c061ea3ea05f
+              bytes: 5024
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/cache.go
+              sha256: b2b3b4807bb233ac90fe065c09d67407a46577527c84d7be8baeb99c3a9d7e4f
+              bytes: 1944
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/cooldown_test.go
+              sha256: 57094898ddb95b394e3fa0532958c9d87e2346a0d8c7640e96d5fb55a2d07edc
+              bytes: 6180
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/diagnostics.go
+              sha256: d609d391fe362d3d3b5c000325dd8231d9e34d9e313a081613f9fbb921531033
+              bytes: 2120
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/fallback_output_test.go
+              sha256: 110335d2634484c266966bff40ecf3f7443f8601561d9b55a1dde1315b982071
+              bytes: 2234
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/fallback_test.go
+              sha256: 76de4c5451ae371c75cce128b8af5ac12d814b22473bb669fc19f80fcfe84b38
+              bytes: 8542
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/help.md
+              sha256: 9d8ce96b6a7b80e3cb43c3188644accdb30466f8bc2414de8ff2ef27333fa4a0
+              bytes: 2636
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/main.go
+              sha256: 3f7940c5781a6081488dbb2d16ff3136b70416156a04cf86b56f8df51acbeadf
+              bytes: 13069
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/main_test.go
+              sha256: ebdee9abca87f1308b48bccce3918794f0416de7136a1c98aa2bb0def3c56e35
+              bytes: 10862
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/recovery.go
+              sha256: d51120cd8910458f214953d423b3514db0ed63a0f9a58695092a25e70d969411
+              bytes: 12923
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/reset_test.go
+              sha256: ff005a75c6bf7b342c74a2133c7a73a17405451a37c9c704749ec14a9d836810
+              bytes: 3807
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/timeout_test.go
+              sha256: 79ef44212dec61bfb6cde8f29ec0e7dbd72fc5bdab8d6540da61887a5292e564
+              bytes: 4116
+            - path: /Users/tigger/code/agents/sdlc/docs/ARCHITECTURE.md
+              sha256: 14710b849d4dd0cd3ff66a2d6ae875beae3b663ca158066de5b133de20e3f06c
+              bytes: 17279
+            - path: /Users/tigger/code/agents/sdlc/docs/work.org
+              sha256: 6156f1aca7068456ba0b0dfbbfe6b62546567439189f0e2139c09d0ef0469fb2
+              bytes: 13560
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/audit_record.go
+              sha256: 5a1e2916c294437ba7338e69623829aa75976183982ab6cba17f8ab6fe671aa7
+              bytes: 11229
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/claude_output.go
+              sha256: 3e87cff5a1f1b11016969cb6a5c39cb92283ebc3dc98822e40e07ca73459a616
+              bytes: 1170
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/config.go
+              sha256: 187758d8af28f38c461f83041647cff56b5e3354caffe98a6850d75d6218fcef
+              bytes: 7814
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/cooldown_store.go
+              sha256: 49edcf81989b9c0b1be6022489451d96dfddbc05eaf0f930256bb74986362cc1
+              bytes: 3547
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/evidence.go
+              sha256: 3d894f44faa31165ce5432e3c59274a05894bcf8a1a09e285b441b1cc4ee541c
+              bytes: 6120
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/failure_config_test.go
+              sha256: d00a1317f115ca7a49699383730b1ec6a0def47febdce3b51d6750653972f2e9
+              bytes: 1639
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/provider_failure.go
+              sha256: 6f6c1574a15d3d5f41bd0e6becac7b611b597449c74e8179d82c5bd8ecc2780e
+              bytes: 2541
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/runner.go
+              sha256: 254c7bba6205218bf52f67abdc4d43ae2b504d882a3562b12762149c55588348
+              bytes: 15638
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/session_output.go
+              sha256: d5ed303294a79d5206ef11231fc12b9722cd7bd0f9d6b6ad4929d88e640aad3e
+              bytes: 5924
+            - path: /Users/tigger/code/agents/sdlc/internal/harness/verdict_budget_test.go
+              sha256: 3e12ab77cf4aad39eafb2ff43640fc273c77bb13ddd0de37e824eef275e63c1c
+              bytes: 2465
+            - path: /Users/tigger/code/agents/sdlc/skills/define-change/SKILL.md
+              sha256: 06a81c330382d5de287b19a7277042bf2eb845387db17e05a3f9afdf0803440f
+              bytes: 5426
+            - path: /Users/tigger/code/agents/sdlc/skills/deliver-change/SKILL.md
+              sha256: 46ea394de00acc09099f29fbf5d9b76c4e5af75d60a1273e5f363d0f4e543e93
+              bytes: 9242
+            - path: /Users/tigger/code/agents/sdlc/skills/emergency-change/SKILL.md
+              sha256: 4a87f450e6b83f56833b46aa344628ebed2e79f0554c02e1f365e2e3b38d2e0d
+              bytes: 2570
+            - path: /Users/tigger/code/agents/sdlc/skills/pair-change/SKILL.md
+              sha256: 897f6d4fbf3e33ed88d89534269ba61a19c26ebd5b9d709c2a5902fdaf9b4a2d
+              bytes: 2554
+            - path: /Users/tigger/code/agents/sdlc/specs/W019-automatic-audit-recovery/spec.org
+              sha256: 6010ec7437a7649d35cec454ed9df8305dd695a3005018da34ebaa146e9bd6f2
+              bytes: 10939
+            - path: /Users/tigger/code/agents/sdlc/specs/W019-automatic-audit-recovery/validation.org
+              sha256: b973eb6df378575e160f1618b4a3703e6fbe290d739979395e09029e911988eb
+              bytes: 2185
+            - path: /Users/tigger/code/agents/sdlc/src/ARCHITECTURE.md
+              sha256: bd7a66ffd967010eefb8dc7abe64b059994c7b0f44ed5f5c30ec73e354f5b7f7
+              bytes: 8154
+            - path: /Users/tigger/code/agents/sdlc/src/AUDITS.md
+              sha256: 6870963b7a204f7acb000e8bc91d8c0a0de4c4ac7533875949a014bda877338a
+              bytes: 14197
+            - path: /Users/tigger/code/agents/sdlc/src/CODING.md
+              sha256: a69a5d3b7ce3604b093703d72ab0de1bb6d607f140baab17292d209054fe902f
+              bytes: 13502
+            - path: /Users/tigger/code/agents/sdlc/src/DOCUMENTATION.md
+              sha256: d8696dca9f4ed75cc8487e064a8c6756a418bbe623e55bcde0bc58996b011c9c
+              bytes: 7652
+            - path: /Users/tigger/code/agents/sdlc/src/HARNESS.md
+              sha256: dc4e0d4631bbdf77ef0c762cc1914d2b66278a3b06fa3346adb8248f533a2e2e
+              bytes: 17457
+            - path: /Users/tigger/code/agents/sdlc/src/MAIN.md
+              sha256: 6560e15ae577d79ba0fa565eaba53f1a94c57f00e9b1c3b3278291e19bf22dd8
+              bytes: 11718
+            - path: /Users/tigger/code/agents/sdlc/src/MARKDOWN.md
+              sha256: 2fce6c8ecbcb0f9710e22b1b7ff6587542d9fd390f3fa06dff0e53cd6d90cf68
+              bytes: 1342
+            - path: /Users/tigger/code/agents/sdlc/src/ORG-SCHEMA.md
+              sha256: 4c93e9ebfd051a1caa3a3a456ef20228c4403f3ca00726ed1ac4c93676ac26cc
+              bytes: 4915
+            - path: /Users/tigger/code/agents/sdlc/src/ORGMODE.md
+              sha256: baffdd38fac0c2dd24d2be5389edb2a0b88ea19e8d67e1bc2f6f65d55601b7b3
+              bytes: 2974
+            - path: /Users/tigger/code/agents/sdlc/src/SECURITY.md
+              sha256: fbceb4dffd2ab69a3edcd1dd924873bdbe5298cffa4c2e65548e04541fb78f73
+              bytes: 5027
+            - path: /Users/tigger/code/agents/sdlc/src/TESTING.md
+              sha256: 1a0d1296b6ec080c7c86b24713c4976a7eb6f9fab7071e2369ce2038baaad4f9
+              bytes: 16346
+            - path: /Users/tigger/code/agents/sdlc/src/config/project-init.schema.yaml
+              sha256: 0220e51e0ebeb0a2448f64bdbb93d38726605047dc3be4aa91028a9675d3169f
+              bytes: 7608
+            - path: /Users/tigger/code/agents/sdlc/src/prompts/audits.yaml
+              sha256: 6eecd2cdd3c7f80dbcc9eaa40025f55948fce5e81401052f31b6daf85c3b7740
+              bytes: 15899
+            - path: /Users/tigger/code/agents/sdlc/src/technologies/GO.md
+              sha256: 63a41c24322b2c4144367b69777528b023a30222593c462b0696df98b1967917
+              bytes: 7301
+          round: 1
+          revision: 1475f2e plus the W019 implementation, tests and documentation supplied in this evidence manifest
+          verdict: FAIL
+          response: |-
+            GATE: delivery-code
+            REVISION: 1475f2e plus the W019 implementation, tests and documentation supplied in this evidence manifest
+            VERDICT: FAIL
+
+            ## Scope confirmation
+
+            Emergency workflow accepted. The reconciled `spec.org` plus `validation.org` supply the operator-authorized scope; no advance definition gate applied. No audit state is duplicated in the specification, validation record or work ledger. RT019.1/RT019.2/OT019.1 are GREEN with recorded RED history; UT019.1 is explicitly AMBER with a reason, which is permitted here. Every regression provider is a local executable double; no metered service is embedded.
+
+            The authorized contract is implemented and evidenced: automatic context selection, removal of public `--session`, gate-local verdict accounting, configurable consecutive-failure bound with persistent internal stop, format clarification in the retained context, immediate authentication fallback with terminal failure, authorized `--reset` clearing both counters while retaining history, and bounded private diagnostics. The findings below are the remaining defects.
+
+            ## Findings and required remediation
+
+            **1. `AUDITS.md` misstates delivered audit liveness output (blocking, stale required documentation)**
+
+            `src/AUDITS.md:147-149` states: "While waiting, the harness emits a start message and 30-second liveness heartbeats to stderr." For audits this is no longer true. `cmd/sdlc-harness/main.go:289-300` routes the runner's diagnostics to `auditDiagnostics`, so `reportHeartbeat` (`internal/harness/runner.go:226-239`) writes both the start message and every 30-second tick to the private log. `cmd/sdlc-harness/diagnostics.go:60-64` echoes only the start line, as a single `Audit in progress.` The periodic ticks ("external context still running…") never reach the caller.
+
+            Required: either correct the `AUDITS.md` passage (and align `HARNESS.md:124-126`) to describe the delivered contract — one `Audit in progress.` notice per attempt, with periodic liveness retained privately — or restore caller-visible periodic liveness without session identifiers. Do not leave the two in conflict.
+
+            **2. Unlabelled legacy history is charged to an explicit gate (blocking, contradicts an approved decision)**
+
+            `internal/harness/audit_record.go:66-68`: when `History` is empty, a usable top-level `Verdict` counts one round for whichever gate is selected, without any gate labelling. A legacy `gate: implementation` record with no history therefore consumes one of the five `delivery-code` (or `test-code`) verdicts. This contradicts the specification edge case ("Legacy unlabelled implementation rounds remain historical evidence, not invented test-code/delivery-code verdicts") and `HARNESS.md:174-175`. It is also internally inconsistent: once `beginAuditAttempt` migrates that entry into `History`, `roundGate` resolves it to `implementation` and the same evidence stops counting.
+
+            Required: apply the same gate resolution to the no-history branch so unlabelled legacy evidence is not charged to an explicit gate, and cover the case in `internal/harness`.
+
+            **3. Two regression cases no longer exercise their stated behaviour (blocking, delivered test package)**
+
+            - `cmd/sdlc-harness/cooldown_test.go:70-72` passes `--session primary-session`. That flag no longer exists, so `run` fails during flag parsing; `blocked` is true for `resume-no-record`, the test returns at line 100, and the assertions at lines 109-114 ("passed primary session to fallback") are unreachable. The mode now proves only that an unknown flag is rejected. Since `main.go:113-115` makes `--audit-record` mandatory for every audit, the recordless-resume scenario is unreachable by design.
+            - `cmd/sdlc-harness/reset_test.go:62` includes `"--session", "native"` in `TestResetSessionRejectsAmbiguousInvocation`. It now passes because of the undefined flag, not the reset-ambiguity rule it names. `TestW004StartRejectsSuppliedSession` already covers flag removal.
+
+            Required: remove or re-express both cases against the current interface so each retains a single, reachable behavioural reason for failure.
+
+            **4. Named edge case and acceptance-criterion output lack implemented coverage**
+
+            - No test covers "Raised configuration limits do not clear a recorded internal stop" (`spec.org` Edge Cases). `FailureBlocked` implements it, but `automatic_test.go` only exercises a limit configured before the lockout. Add a case that locks out at the default, raises `max_failures`, and asserts the next audit is still refused without a provider call.
+            - No test asserts the caller-facing `Diagnostic reference:` line required by AC019.5 ("returns human intervention required *and* a diagnostic reference"). `main.go:249-256` and `main.go:301-305` emit it; `automatic_test.go` verifies only the log contents and the absence of internal state. Add the positive assertion.
+
+            **5. Two caller-facing statements do not match delivered behaviour (correct with the above)**
+
+            - `src/HARNESS.md:192-193`: "Further **uncached** audits are refused until an authorized `--reset`." An internal stop refuses cached requests too: `main.go:249-257` returns before the cache lookup, and `cache.go:35` declines while `FailureBlocked()`. Remove "uncached" or state that the lockout precedes cache lookup.
+            - `cmd/sdlc-harness/main.go:69`: `unknown operation %q; use start, resume or goal-config` advertises only the transitional words and omits the normal no-operation form that `help.md` and `HARNESS.md:66-71` document. Help text is documentation under `DOCUMENTATION.md`; state the normal invocation and keep `start`/`resume` as accepted legacy words.
+            - Related, lower materiality: `HARNESS.md:124` says stdout contains only a validated audit response or readiness report, while `main.go:130` writes the `AUDIT BUDGET RESET:` confirmation to stdout. Reconcile the sentence with the reset operation.
+
+            ## Advisory, not blocking
+
+            - `run` (`main.go:44-313`, ~270 lines) and `recoveryRun.execute` (`recovery.go:32-154`, ~120 lines with a four-level nest) both exceed `CODING.md`'s 50-line and three-level review tripwires with no recorded justification. The specification approves a single recovery coordinator, so this is decomposition within the approved structure, not a redesign.
+            - `diagnostics.go:48-66` returns the full input length after truncating at the 16 MiB cap. The behaviour is intentional and bounded, but the deviation from the `io.Writer` contract deserves an adjacent comment.
+            - `fallback_test.go:21` still sets `SDLC_HARNESS_STATE_DIR`, which `HARNESS.md:294-296` records as no longer used. Harmless isolation; remove when convenient.
+            - `src/config/project-init.schema.yaml` defines `SDLC_AUDIT_MAX_ROUNDS` but no `max_failures` field. The specification does not require an initializer question for it, and resolution works from global or project YAML, so this is an option, not a defect.
+            - `docs/work.org:16` still names `audits.org` as the evidence authority. Pre-existing staleness, not introduced by this delta.
+
+            Re-audit after remediating findings 1 through 5; address them as one batch and challenge any finding you consider out of scope with evidence.
+          updated: "2026-09-23T01:30:53Z"
