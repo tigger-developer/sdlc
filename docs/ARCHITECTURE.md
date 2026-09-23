@@ -1,7 +1,7 @@
 ---
 title: SDLC v3 Architecture
-version: 1
-last-updated: 2026-09-21
+version: 2
+last-updated: 2026-09-23
 ---
 
 # SDLC v3 Architecture
@@ -114,9 +114,9 @@ harness owns session identity, timeout, round limits, and persistence. Authoring
 agents remediate all findings before resuming the same gate session.
 
 Lifetime audit numbering is separate from the current bounded allowance.
-Operator-authorized `resume --reset-session` appends a timestamped budget
-boundary and exits without invoking a provider. It preserves native context,
-findings and cached results; subsequent launches consume the fresh allowance.
+Operator-authorized `--reset` appends a timestamped budget
+boundary and exits without invoking a provider. It retires native context and preserves findings and history; pre-reset cache entries
+are not reused. Subsequent valid verdicts consume the fresh gate-specific allowance.
 Spec changes and provider recovery do not reset it automatically.
 
 Codex and Claude receive original absolute paths and a metadata-only evidence
@@ -142,16 +142,17 @@ Read-only built-in tools and plan mode; existing permission denials still apply.
 This is evidence-access plumbing, not a complete filesystem sandbox.
 
 Native session identity is checkpointed as soon as the adapter observes it.
-Timeouts retain the attempt manifest and consume the same recorded round budget
-without producing a verdict. YAML supplies the caller recovery diagnostic and
+Timeouts retain the attempt manifest without consuming the verdict budget. YAML supplies the caller recovery diagnostic and
 the resumed auditor's continuation instruction. Missing identity or exhausted
 bounds stop timeout recovery. Explicit missing-session diagnostics and configuration
 changes permit a harness-owned replacement, with previous identities/configuration
 retained and all historical findings supplied to the new context. An optional
 phase-local fallback tuple handles unusable audit attempts once per call;
 non-audit phases retain authentication-only fallback.
-Missing-session restart is likewise limited to once per call. Every launch consumes
-the existing round budget and retains the configured per-attempt deadline.
+Missing-session restart is likewise limited to once per call. Every launch retains the configured per-attempt deadline. Valid verdicts alone consume
+the gate-local allowance; a configurable consecutive-unusable-response limit (default three) trips an independent
+internal circuit breaker. A valid verdict clears the failure streak. Operator resets
+clear both gate counters and retire context without erasing incident history.
 
 Primary audit cooldown deadlines belong to each project's `.sdlc/cooldowns`,
 not the installed SDLC or a shared home-directory store. The deadline is local
@@ -175,7 +176,7 @@ Provider stdout is decoded incrementally for bounded progress metadata and error
 diagnostics on stderr. Claude uses native streaming JSON; its final result alone
 becomes the returned response. Failed exits and timeouts flush the final partial
 record instead of discarding it. Capture is limited to 16 MiB, with an explicit
-overflow incident; provider stderr remains live. Event metadata is not a verdict
+overflow incident; provider stderr is captured privately. Event metadata is not a verdict
 or proof that the provider has finished. Tool payloads and prompts are not
 replayed as progress, and existing process deadlines still govern termination.
 
@@ -292,3 +293,15 @@ The entire unfinished v2 implementation is preserved on
 into `master` before the annotated release tag. The release candidate requires
 the local regression suite, installer fixtures, Org rendering, and a watched
 project migration to pass.
+
+## Automatic audit boundary
+
+The CLI selects start or resume from the retained record. Public `--session` is
+removed. Normal output contains only validated results, plain liveness and an
+operator diagnostic reference on failure. Private bounded logs under
+`.sdlc/audit-diagnostics/` retain unvalidated output and provider diagnostics, with
+0600 files, a 0700 directory and Git exclusion. They are never audit verdicts.
+
+Version 2 supersedes the earlier agent-managed session and shared attempt-budget
+contract. Existing attempt history remains intact; only labelled valid verdicts
+are charged to an explicit gate.

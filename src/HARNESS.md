@@ -1,7 +1,7 @@
 ---
 title: SDLC Audit Harness Guide
-version: 1
-last-updated: 2026-09-21
+version: 2
+last-updated: 2026-09-23
 ---
 
 # SDLC audit harness guide
@@ -14,7 +14,7 @@ SDLC skills continue to use the resolved absolute harness path.
 
 ## Usage
 
-    sdlc-harness start|resume [options] < audit-context.txt
+    sdlc-harness --gate GATE --audit-record FILE --work-item ID [options] < audit-context.txt
     sdlc-harness goal-config [options]
 
 ## Implementation readiness
@@ -37,7 +37,7 @@ The gate selects the readiness check; the audit command no longer accepts
 both implementation gates share the existing `gate: implementation` session key
 and store the selected gate in `readiness_check` per attempt and on the entry.
 Response envelopes use `GATE: test-code` or `GATE: delivery-code`. Test-code PASS
-is not delivery approval. Both reviews share the configured budget; their prompts
+is not delivery approval. Each review has a separate configured verdict budget; their prompts
 and cache keys differ. Existing history and session IDs remain intact.
 
 ## Goal configuration
@@ -61,17 +61,14 @@ activate a goal, write configuration or enforce native continuation itself.
   malformed groups, signs, zero, leading zeroes, scientific notation and values
   above 9,007,199,254,740,991, the exact JSON integer limit. Do not infer locale.
 - stdout contains JSON only on success. Configuration errors produce no budget
-  output and exit nonzero. Existing start/resume audit behaviour is unchanged.
+  output and exit nonzero. Audit invocation is independent of goal configuration.
 
-## Start and resume
+## Normal invocation
 
-`start` creates a fresh external context. For an audit, pass `--gate definition`
-or `--gate test-code` or `--gate delivery-code`; the installed YAML prompt registry supplies the
-criteria. Do not pass `--session`; the runner creates the identity and prints
-`SESSION_ID: <id>` on stderr. Save that exact ID.
-
-`resume` continues the same external context. Pass the saved ID as
-`--session <id>`. An agent task ID, path, or newly invented value is invalid.
+Supply the work item, audit record, gate and evidence. The harness starts or resumes
+the appropriate provider context automatically. There is no public session-ID option.
+Legacy start/resume operation words remain accepted for transition, but both select
+the same automatic audit behaviour. The old reset-session flag is replaced by reset.
 
 ## Evidence and instruction
 
@@ -101,7 +98,7 @@ criteria. Do not pass `--session`; the runner creates the identity and prints
   execution rejects the response; hashes detect changes, not prevent writes.
 - Per-attempt paths and hashes live only in `audits.yaml` under `history[].evidence`.
   Older records without hashes retain their session and receive a full evidence
-  pass. Without `--audit-record`, no cross-invocation hash comparison is possible.
+  pass. Every audit requires an audit record.
 - No document cache is created. The small final-response temporary file is
   cleared before each attempt so fallback cannot reuse failed-provider output,
   then
@@ -110,11 +107,9 @@ criteria. Do not pass `--session`; the runner creates the identity and prints
 - For audits, stdin is additional bounded context; the gate prompt is loaded
   from `prompts/audits.yaml`.
 - `--audit-record <file> --work-item <id> --gate <gate>` makes the harness own
-  the retained session mapping and attempt budget in `audits.yaml`. Use this
+  the retained session mapping and verdict budgets in `audits.yaml`. Use this
   combination for recoverable audits. The record is output, not an `--input`.
-- With a record, either operation first checks for an identical cached result.
-  On a cache miss, `start` refuses an existing mapping and `resume` loads its
-  recorded session ID. A supplied resume ID must match it.
+- An identical request returns its cached verdict; otherwise context selection is automatic.
 - Audit status, findings, revisions, round numbers, and session IDs belong only
   in that `audits.yaml` record; do not copy them into a specification or ticket.
 - If supplied artefacts duplicate audit state, the audit must return `FAIL` and
@@ -124,48 +119,28 @@ criteria. Do not pass `--session`; the runner creates the identity and prints
   supported, model, timeout, and `delivery.audit.max_rounds`; explicit flags
   override them.
 
-## Output
+## Output and private diagnostics
 
-- **stderr:** provider progress, diagnostics, and `SESSION_ID`.
-- Provider stdout events are decoded as they arrive. Progress shows event types,
-  not prompts, reasoning or tool payloads; at most 200 event notices are shown.
-  Provider stderr remains live. Claude uses `stream-json --verbose` for both
-  start and resume; the other adapters retain their existing output modes.
-- Provider error fields are reported even on unsuccessful exits or timeout,
-  including a final record without a newline. Error text is bounded to 4 KiB
-  before terminal escaping. Plain-text startup failures retain a 4 KiB tail;
-  unknown structured payloads are not dumped.
-- Captured provider stdout is limited to 16 MiB. Exceeding it fails explicitly
-  with `output-limit`; it never yields a silently truncated verdict.
-- The harness also emits a liveness line at start and every 30 seconds while
-  waiting; this is not provider progress or a verdict.
-- **stdout:** the provider's final response, or that exact response from cache.
-- A progress event or final-result record is not success until the provider exits
-  successfully and evidence and response validation pass. Claude error envelopes
-  are rejected even if the provider exits zero. The runner cannot flush output
-  that the provider has not emitted; its existing deadline remains in force.
+Stdout contains only a validated audit response or readiness report. Stderr carries
+plain liveness notices and, on failure, a diagnostic reference. Provider names,
+session IDs and internal retry counts are not part of the calling-agent contract.
 
-## Start example
+Private files under `.sdlc/audit-diagnostics/` retain provider diagnostics and
+unvalidated output, including malformed responses. Files are created with mode
+0600 in a 0700 directory with its own Git ignore rule. Each invocation log is
+bounded to 16 MiB. Logs may contain reviewed material; they are for operator
+investigation, never automatic upload or audit verdicts. Operators control retention.
+No request prompts or input-file copies are deliberately logged.
 
-    /Users/tigger/.agents/sdlc/bin/sdlc-harness start \
-      --phase audit --gate definition \
-      --project . \
-      --audit-record specs/W001-change/audits.yaml \
-      --work-item W001-change \
-      --input specs/W001-change/spec.org \
-      --input .sdlc/project.yaml \
-      < audit-context.txt
+## Audit example
 
-## Resume example
+```sh
+/absolute/path/to/.agents/sdlc/bin/sdlc-harness --gate definition \\
+  --project . --audit-record specs/W001-change/audits.yaml --work-item W001-change \\
+  --input specs/W001-change/spec.org --input .sdlc/project.yaml < audit-context.txt
+```
 
-    /Users/tigger/.agents/sdlc/bin/sdlc-harness resume \
-      --phase audit --gate definition \
-      --project . \
-      --audit-record specs/W001-change/audits.yaml \
-      --work-item W001-change \
-      --input specs/W001-change/spec.org \
-      --input .sdlc/project.yaml \
-      < audit-context.txt
+Repeat the same command after remediating findings, with the full current evidence.
 
 ## Cached results
 
@@ -190,28 +165,36 @@ it, unless their configuration file is itself a supplied, changed input.
 
 ## Recovery
 
-### Reset the attempt budget
+### Verdict budget and internal failures
 
-After explicit operator authorization, use `resume --reset-session` to give
-one work item/gate a fresh `max_rounds` allowance. It **only resets the budget
-and exits**: no prompt, evidence files, provider call or model configuration is
-required. It retains the native session, findings, cached results and lifetime
-history. It does not create a new provider session or approve the work.
+Each ticket and explicit gate has its own `delivery.audit.max_rounds` allowance,
+default five. Only validated PASS, PROVISIONAL PASS and FAIL results count.
+Cached results, malformed output and failed provider calls consume none.
+Lifetime `external_round` numbers still identify attempts for historical traceability.
+Historical labelled verdicts count for their gate; unlabelled implementation
+history remains preserved but does not invent test-code or delivery-code verdicts.
 
-    /absolute/path/to/.agents/sdlc/bin/sdlc-harness resume \
-      --reset-session --phase audit --gate definition --project . \
-      --audit-record specs/W001-change/audits.yaml --work-item W001-change
+After explicit operator authorization, invoke `--reset` with the project, gate,
+audit record and work item, without inputs. It records a gate-specific boundary
+and exits without a provider call. Repeat the normal audit without the flag.
+The selected gate's verdict allowance and failure streak reset, its provider context
+is retired, and pre-reset verdicts are not reused from cache. Findings, history and
+logs remain intact. Other gates' counters are unchanged.
 
-Then repeat the normal Resume example **without `--reset-session`**, supplying
-the full evidence and context. Never leave the reset flag in a retry loop.
-Changing a specification or recovering a provider does not reset the budget.
-The reset records a timestamped `budget_resets` boundary; `external_round`
-continues to number lifetime attempts. Repeating a reset before another attempt
-does nothing. Missing records and running/interrupted attempts are rejected.
-Reset does not repair a missing native identity. `--session` and `--input` are
-not accepted with the reset flag. Other work items and gates are unchanged.
-Resetting test-code or delivery-code resets their shared implementation allowance;
-it does not reset the separate definition allowance.
+Three consecutive unusable provider responses for a gate trigger internal lockout
+by default. Configure a positive integer as `delivery.audit.max_failures` in global
+or project YAML; project configuration overrides the global value.
+A valid verdict clears the streak; other gates do not. The harness owns bounded
+retries and envelope correction, not the calling agent. For an unusable response,
+it first sends a correction prompt in the retained context when available before
+trying fallback; a valid corrected verdict consumes one verdict allowance. It returns only
+"Audit unavailable: unable to obtain a valid result. Human intervention required"
+with a diagnostic reference. Further uncached audits are refused until an authorized
+`--reset`. Operators inspect the private log before authorizing recovery.
+Authentication failure immediately selects the configured fallback, without format
+correction. If that fallback fails, or no fallback is configured, the harness locks
+out immediately. An authorized reset is required after operator investigation.
+Local configuration, readiness, evidence and record failures stop without recovery.
 
 ### Session and fallback recovery
 
@@ -252,9 +235,8 @@ session ID: <requested ID>` diagnostic. Unknown provider messages fail closed.
 Authentication recovery recognizes explicit login, expired-OAuth and invalid-key
 diagnostics. Other failed audit invocations do not need a diagnostic allowlist.
 At most one missing-session restart and one configured fallback occur per
-command. Each launch consumes a round and gets the configured timeout; replacements
-do not reset `max_rounds`. Without an audit record, one fallback is still
-available, but missing-session replacement and cross-call tracking are not.
+command. Each launch gets the configured timeout and is subject to the internal
+failure bound; replacements do not reset the verdict allowance.
 
 ## Primary audit cooldown
 
@@ -274,6 +256,7 @@ delivery:
     model: claude-opus-5
     timeout: 15m
     max_rounds: 5
+    max_failures: 3
     fallback:
       cool_off_period: 1h
       harness: hermes
@@ -295,8 +278,8 @@ Only the route and UTC deadline are stored, never credentials, prompts or verdic
 Atomic updates and a per-route lock preserve the later concurrent deadline.
 
 Before expiry, uncached audits skip the primary and use the configured fallback.
-Stderr reports `AUDIT COOLDOWN` and the deadline. A skip consumes no round;
-each provider call consumes its normal round. Expiry makes the primary eligible
+The private log records the cooldown and deadline. Skips and failed calls consume
+no verdict allowance. Expiry makes the primary eligible
 on the next requested audit, not guaranteed healthy. There is no background
 retry or sleep. Replacements retain audit history and budgets; cached verdicts
 remain reusable. A failed fallback does not extend the primary's deadline.
@@ -316,23 +299,13 @@ not initialize cooldown state.
 
 ## Timeout behaviour
 
-A timeout is an incident, not PASS or FAIL. The harness checkpoints each
-attempt's evidence and records the native session ID as soon as it is observed.
-Timeouts count towards `delivery.audit.max_rounds`. Prior verdicts remain in
-history; a timed-out attempt has an `incident`, not a fabricated verdict.
+Timeouts preserve the attempt manifest and native identity when available, but
+consume no verdict allowance. The harness performs bounded continuation and
+fallback internally. Calling agents must not build a second retry loop around an
+infrastructure failure. Known FAIL findings remain unresolved until reassessed.
 
-The harness first tries an unused configured fallback when budget remains.
-If it returns a timeout instead, in HANDS-OFF mode follow that diagnostic and
-repeat the invocation with
-`resume`, the same configuration, inputs and context. With `--audit-record`, no
-manual session argument is needed: the Resume example above loads it. The
-harness adds continuation instructions from YAML and compares evidence against
-the interrupted attempt so unchanged files can be reused from retained context.
-Known FAIL findings must still be remediated; timeout alone needs no artificial edit.
+## Document history
 
-Stop if the native ID is unavailable or the attempt limit is exhausted. Never
-invent an ID, switch harness/model, increase bounds, or start a replacement to
-evade that stop. The harness reports whether native identity is recorded and
-how many attempts remain. It does not spawn a retry itself; the calling agent
-executes the next bounded invocation. Without a record, automatic recovery and
-attempt accounting are unavailable.
+Version 2 replaces agent-managed sessions and attempt-based budgets with automatic
+invocation, gate-local verdict limits and private bounded failure diagnostics.
+Version 1 remains available in Git history.

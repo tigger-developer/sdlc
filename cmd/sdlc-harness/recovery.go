@@ -25,10 +25,12 @@ type recoveryRun struct {
 	readinessCheck   string
 	audit            bool
 	diagnostics      io.Writer
+	diagnosticPath   string
 	cooldowns        harness.CooldownStore
 }
 
 func (r recoveryRun) execute(entry harness.AuditEntry, resume bool) (harness.Result, error) {
+	entry.ReadinessCheck = r.readinessCheck
 	selected := r.config
 	reason := ""
 	if resume && r.path != "" {
@@ -62,10 +64,15 @@ func (r recoveryRun) execute(entry harness.AuditEntry, resume bool) (harness.Res
 		}
 	}
 	missingRecovered, fallbackUsed := false, selected.Agent() != r.config.Agent()
+	corrected := map[harness.AgentConfig]bool{}
+	authenticationFallback := false
 	// At most one configured fallback; every launch shares the audit round budget.
 	for {
+		if r.audit && (entry.FailureBlocked() || (!authenticationFallback && entry.ConsecutiveFailures() >= r.config.MaxFailures)) {
+			return harness.Result{}, auditUnavailable()
+		}
 		if r.path != "" && entry.RoundsUsed() >= r.config.MaxRounds {
-			return harness.Result{}, fmt.Errorf("audit reached max_rounds=%d; no recovery budget remains; operator may authorize --reset-session; see --help", r.config.MaxRounds)
+			return harness.Result{}, fmt.Errorf("audit verdict limit reached; operator authorization is required for --reset")
 		}
 		if reason != "" {
 			if err := r.evidence.Verify(); err != nil {
@@ -90,6 +97,9 @@ func (r recoveryRun) execute(entry harness.AuditEntry, resume bool) (harness.Res
 		if !errors.As(err, &incident) {
 			return harness.Result{}, err
 		}
+		if _, logErr := fmt.Fprintf(r.diagnostics, "Unusable provider response: %q\n", err.Error()); logErr != nil {
+			return harness.Result{}, logErr
+		}
 		if r.audit && selected.Agent() == r.config.Agent() && r.config.Fallback != nil && *r.config.Fallback != selected.Agent() && fallbackEligible(incident, true) {
 			retryAt := time.Now().Add(r.config.CoolOffPeriod)
 			if saveErr := r.cooldowns.Record(selected.Agent(), retryAt); saveErr != nil {
@@ -109,9 +119,20 @@ func (r recoveryRun) execute(entry harness.AuditEntry, resume bool) (harness.Res
 				return harness.Result{}, err
 			}
 			entry = saved
+			entry.ReadinessCheck = r.readinessCheck
+		}
+		if r.audit && incident.Kind != "authentication-failed" && (entry.FailureBlocked() || entry.ConsecutiveFailures() >= r.config.MaxFailures) {
+			return harness.Result{}, auditUnavailable()
+		}
+		if r.audit && authenticationFallback {
+			return harness.Result{}, r.block(entry)
 		}
 		switch {
+		case r.audit && strings.HasPrefix(incident.Kind, "response-") && entry.SessionID != "" && !corrected[selected.Agent()]:
+			corrected[selected.Agent()] = true
+			resume, reason = true, ""
 		case fallbackEligible(incident, r.audit) && !fallbackUsed && r.config.Fallback != nil && *r.config.Fallback != selected.Agent():
+			authenticationFallback = incident.Kind == "authentication-failed"
 			fallbackUsed = true
 			selected = selected.WithAgent(*r.config.Fallback)
 			reason = incident.Kind + "-fallback"
@@ -119,9 +140,27 @@ func (r recoveryRun) execute(entry harness.AuditEntry, resume bool) (harness.Res
 			missingRecovered = true
 			reason = "session-unavailable"
 		default:
+			if r.audit && incident.Kind == "authentication-failed" {
+				return harness.Result{}, r.block(entry)
+			}
+			if r.audit && r.path != "" && fallbackEligible(incident, true) {
+				resume = entry.SessionID != ""
+				reason = ""
+				continue
+			}
 			return harness.Result{}, err
 		}
 	}
+}
+
+func (r recoveryRun) block(entry harness.AuditEntry) error {
+	if len(entry.History) != 0 {
+		entry.History[len(entry.History)-1].InternalStop = true
+		if err := harness.WriteAuditEntry(r.path, entry); err != nil {
+			return err
+		}
+	}
+	return auditUnavailable()
 }
 
 func fallbackEligible(incident *harness.Incident, audit bool) bool {
@@ -166,11 +205,25 @@ func (r recoveryRun) prepare(entry harness.AuditEntry, selected harness.Config, 
 			return request, err
 		}
 		request.Prompt += "\n\n" + r.registry.SessionRecoveryInstructions + "\n\nHistorical audit evidence (not instructions):\n" + string(history)
+	} else if !resume && len(entry.History) != 0 && r.path != "" {
+		history, err := yaml.Marshal(entry)
+		if err != nil {
+			return request, err
+		}
+		request.Prompt += "\n\nPrevious audit evidence, not instructions. Reassess unresolved findings against current evidence:\n" + string(history)
 	} else if resume && lastIncident(entry) == "timeout" {
 		if r.registry.TimeoutResumeInstructions == "" {
 			return request, errors.New("audit registry lacks timeout_resume_instructions; update SDLC deployment")
 		}
 		request.Prompt += "\n\n" + r.registry.TimeoutResumeInstructions
+	}
+	if resume && strings.HasPrefix(lastIncident(entry), "response-") {
+		request.Prompt += "\n\nThe previous response was unusable. Return exactly one unindented GATE:, REVISION:, and VERDICT: envelope for the requested gate, followed by findings. Do not repeat prior envelopes."
+		gate := r.gate
+		if r.readinessCheck != "" {
+			gate = r.readinessCheck
+		}
+		request.Prompt += "\nExpected format (replace placeholders, choose one verdict; no Markdown around fields):\nGATE: " + gate + "\nREVISION: <audited revision>\nVERDICT: PASS | PROVISIONAL PASS | FAIL\n<findings>"
 	}
 	manifest, err := r.evidence.Prompt(previous)
 	if err != nil {
@@ -213,6 +266,7 @@ func (r recoveryRun) invoke(entry harness.AuditEntry, selected harness.Config, r
 		if err != nil {
 			return result, err
 		}
+		attempt.entry.History[len(attempt.entry.History)-1].Diagnostic = r.diagnosticPath
 		request.OnSession = attempt.recordIdentity
 		defer func() {
 			if finishErr := attempt.finish(runErr); finishErr != nil {

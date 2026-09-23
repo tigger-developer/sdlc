@@ -1,12 +1,27 @@
 ---
 title: Changelog
 version: 1
-last-updated: 2026-09-21
+last-updated: 2026-09-23
 ---
 
 # Changelog
 
 ## Unreleased
+
+## v3.5.0 - 2026-09-23
+
+- Select audit contexts automatically from work item, gate and record; remove
+  public `--session` and replace `--reset-session` with authorized `--reset`.
+- Count only valid verdicts against separate ticket-and-gate allowances. Internal
+  failures default to three consecutive unusable responses, configurable through
+  `delivery.audit.max_failures`; cache hits consume neither allowance.
+- Clarify malformed responses inside the auditor context. Authentication failures
+  immediately try fallback; failure there requires operator intervention.
+- Retain bounded private response diagnostics under `.sdlc/audit-diagnostics/`,
+  without exposing provider identities or internal retry counts to calling agents.
+- Reset both gate counters and retire provider context while preserving history
+  and logs; pre-reset verdicts do not satisfy the fresh audit from cache.
+- Refresh audit help, standards, product documentation and four workflow skills.
 
 ## v3.4.5 - 2026-09-21
 

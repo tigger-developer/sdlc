@@ -14,7 +14,7 @@ import (
 func TestResetSessionPreservesHistoryAndNativeContext(t *testing.T) {
 	root := t.TempDir()
 	path := filepath.Join(root, "audits.yaml")
-	entry := harness.AuditEntry{WorkItem: "W015-reset", Gate: "implementation", SessionID: "native-existing", Harness: "codex", ExternalRound: 5, Status: "exhausted", Findings: []string{"retained finding"}, History: []harness.AuditRound{{Round: 5, Incident: "resume-failed", Updated: "2026-09-13T00:00:00Z"}}}
+	entry := harness.AuditEntry{WorkItem: "W015-reset", Gate: "implementation", SessionID: "native-existing", Harness: "codex", ExternalRound: 5, Status: "exhausted", Findings: []string{"retained finding"}, History: []harness.AuditRound{{Round: 5, ReadinessCheck: "delivery-code", Verdict: "FAIL", Updated: "2026-09-13T00:00:00Z"}}}
 	if err := harness.WriteAuditEntry(path, entry); err != nil {
 		t.Fatal(err)
 	}
@@ -26,13 +26,13 @@ func TestResetSessionPreservesHistoryAndNativeContext(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	args := []string{"resume", "--reset-session", "--project", root, "--gate", "delivery-code", "--work-item", entry.WorkItem, "--audit-record", "audits.yaml"}
+	args := []string{"resume", "--reset", "--project", root, "--gate", "delivery-code", "--work-item", entry.WorkItem, "--audit-record", "audits.yaml"}
 	var output bytes.Buffer
 	if err := run(args, strings.NewReader(""), &output, &bytes.Buffer{}); err != nil {
 		t.Fatal(err)
 	}
 	got, found, err := harness.ReadAuditEntry(path, entry.WorkItem, entry.Gate)
-	if err != nil || !found || got.RoundsUsed() != 0 || len(got.BudgetResets) != 1 || got.SessionID != entry.SessionID || got.ExternalRound != 5 || !reflect.DeepEqual(got.History, entry.History) || !reflect.DeepEqual(got.Findings, entry.Findings) {
+	if err != nil || !found || got.RoundsUsed() != 0 || len(got.BudgetResets) != 1 || got.SessionID != "" || got.ExternalRound != 5 || !reflect.DeepEqual(got.History, entry.History) || !reflect.DeepEqual(got.Findings, entry.Findings) {
 		t.Fatalf("reset lost history: %#v (%v)", got, err)
 	}
 	otherAfter, _, err := harness.ReadAuditEntry(path, other.WorkItem, other.Gate)
@@ -43,12 +43,8 @@ func TestResetSessionPreservesHistoryAndNativeContext(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	// Both public implementation gates address the same allowance.
-	for i, value := range args {
-		if value == "delivery-code" {
-			args[i] = "test-code"
-		}
-	}
+	// Repeating the same reset before another invocation is a no-op.
+
 	if err := run(args, strings.NewReader(""), &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
 		t.Fatal(err)
 	}
@@ -60,10 +56,10 @@ func TestResetSessionPreservesHistoryAndNativeContext(t *testing.T) {
 
 func TestResetSessionRejectsAmbiguousInvocation(t *testing.T) {
 	for _, args := range [][]string{
-		{"start", "--reset-session", "--gate", "definition"},
-		{"resume", "--reset-session", "--phase", "build"},
-		{"resume", "--reset-session", "--gate", "definition", "--audit-record", "absent", "--work-item", "W015-reset", "--input", "spec.org"},
-		{"resume", "--reset-session", "--gate", "definition", "--audit-record", "absent", "--work-item", "W015-reset", "--session", "native"},
+		{"start", "--reset", "--gate", "definition"},
+		{"resume", "--reset", "--phase", "build"},
+		{"resume", "--reset", "--gate", "definition", "--audit-record", "absent", "--work-item", "W015-reset", "--input", "spec.org"},
+		{"resume", "--reset", "--gate", "definition", "--audit-record", "absent", "--work-item", "W015-reset", "--session", "native"},
 	} {
 		if err := run(args, strings.NewReader(""), &bytes.Buffer{}, &bytes.Buffer{}); err == nil {
 			t.Fatalf("accepted %v", args)
@@ -88,7 +84,7 @@ func TestResetSessionRejectsRunningOrMissingEntry(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			err = run([]string{"resume", "--reset-session", "--project", root, "--gate", "definition", "--work-item", work, "--audit-record", path}, strings.NewReader(""), &bytes.Buffer{}, &bytes.Buffer{})
+			err = run([]string{"resume", "--reset", "--project", root, "--gate", "definition", "--work-item", work, "--audit-record", path}, strings.NewReader(""), &bytes.Buffer{}, &bytes.Buffer{})
 			if err == nil {
 				t.Fatal("unsafe reset accepted")
 			}

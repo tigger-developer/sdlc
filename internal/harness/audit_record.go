@@ -48,20 +48,105 @@ type AuditEntry struct {
 
 // AuditBudgetReset starts a new bounded cycle without erasing lifetime history.
 type AuditBudgetReset struct {
+	Gate       string `yaml:"gate,omitempty"`
 	AfterRound int    `yaml:"after_round"`
 	Updated    string `yaml:"updated"`
 }
 
-// RoundsUsed counts provider launches since the last explicit operator reset.
+// RoundsUsed counts usable verdicts for the selected gate, not provider launches.
 func (entry AuditEntry) RoundsUsed() int {
-	if len(entry.BudgetResets) == 0 {
-		return entry.ExternalRound
+	boundary := entry.ResetBoundary()
+	gate := entry.SelectedGate()
+	count := 0
+	for _, round := range entry.History {
+		if round.Round > boundary && round.Incident == "" && usableVerdict(round.Verdict) && entry.roundGate(round) == gate {
+			count++
+		}
 	}
-	return entry.ExternalRound - entry.BudgetResets[len(entry.BudgetResets)-1].AfterRound
+	if len(entry.History) == 0 && entry.ExternalRound > boundary && usableVerdict(entry.Verdict) {
+		count = 1
+	}
+	return count
 }
 
-// ResetAuditBudget preserves native context, findings, cache entries and history.
-func ResetAuditBudget(path, workItem, gate string) error {
+// ResetBoundary identifies the latest operator reset for the selected gate.
+func (entry AuditEntry) ResetBoundary() int {
+	boundary := 0
+	for _, reset := range entry.BudgetResets {
+		if reset.Gate == "" || reset.Gate == entry.SelectedGate() {
+			boundary = reset.AfterRound
+		}
+	}
+	return boundary
+}
+
+func usableVerdict(verdict string) bool {
+	return verdict == "PASS" || verdict == "FAIL" || verdict == "PROVISIONAL PASS"
+}
+
+// SelectedGate separates budgets while retaining the shared implementation context.
+func (entry AuditEntry) SelectedGate() string {
+	if entry.ReadinessCheck != "" {
+		return entry.ReadinessCheck
+	}
+	return entry.Gate
+}
+
+func (entry AuditEntry) roundGate(round AuditRound) string {
+	if round.ReadinessCheck != "" {
+		return round.ReadinessCheck
+	}
+	for _, line := range strings.Split(round.Response, "\n") {
+		if strings.HasPrefix(line, "GATE:") {
+			return strings.TrimSpace(strings.TrimPrefix(line, "GATE:"))
+		}
+	}
+	return entry.Gate
+}
+
+// ConsecutiveFailures is the internal gate-local circuit breaker since reset.
+func (entry AuditEntry) ConsecutiveFailures() int {
+	count := 0
+	for i := len(entry.History) - 1; i >= 0; i-- {
+		round := entry.History[i]
+		if round.Round <= entry.ResetBoundary() {
+			break
+		}
+		if entry.roundGate(round) != entry.SelectedGate() {
+			continue
+		}
+		if round.Incident == "" && usableVerdict(round.Verdict) {
+			break
+		}
+		if round.Incident != "" {
+			count++
+		}
+	}
+	return count
+}
+
+// FailureBlocked survives configuration changes until an explicit gate reset.
+func (entry AuditEntry) FailureBlocked() bool {
+	for i := len(entry.History) - 1; i >= 0; i-- {
+		round := entry.History[i]
+		if round.Round <= entry.ResetBoundary() {
+			break
+		}
+		if entry.roundGate(round) != entry.SelectedGate() {
+			continue
+		}
+		if round.InternalStop {
+			return true
+		}
+		if round.Incident == "" && usableVerdict(round.Verdict) {
+			return false
+		}
+	}
+	return false
+}
+
+// ResetAuditBudget retires the context and resets both gate counters, preserving history.
+func ResetAuditBudget(path, workItem, gate string, selected ...string) error {
 	entry, found, err := ReadAuditEntry(path, workItem, gate)
 	if err != nil {
 		return err
@@ -69,23 +154,28 @@ func ResetAuditBudget(path, workItem, gate string) error {
 	if !found {
 		return fmt.Errorf("no audit record for %s/%s", workItem, gate)
 	}
+	if len(selected) != 0 {
+		entry.ReadinessCheck = selected[0]
+	}
 	if entry.Status == "running" {
 		return errors.New("cannot reset a running or interrupted audit; establish that it has stopped first")
 	}
-	if entry.RoundsUsed() == 0 {
+	if entry.RoundsUsed() == 0 && entry.ConsecutiveFailures() == 0 && entry.SessionID == "" {
 		return nil
 	}
-	entry.BudgetResets = append(entry.BudgetResets, AuditBudgetReset{AfterRound: entry.ExternalRound, Updated: time.Now().UTC().Format(time.RFC3339)})
-	if entry.Status == "exhausted" {
-		entry.Status = "active"
-		if entry.SessionID == "" {
-			entry.Status = "identity-missing"
-		}
+	entry.BudgetResets = append(entry.BudgetResets, AuditBudgetReset{Gate: entry.SelectedGate(), AfterRound: entry.ExternalRound, Updated: time.Now().UTC().Format(time.RFC3339)})
+	if entry.SessionID != "" {
+		entry.Sessions = append(entry.Sessions, RetiredSession{SessionID: entry.SessionID, AgentConfig: AgentConfig{Harness: entry.Harness, Provider: entry.Provider, Model: entry.Model}, Reason: "operator-reset", Updated: time.Now().UTC().Format(time.RFC3339)})
 	}
+	entry.SessionID = ""
+	entry.Status = "identity-missing"
+	entry.Revision, entry.Verdict, entry.Response = "", "", ""
 	return WriteAuditEntry(path, entry)
 }
 
 type AuditRound struct {
+	InternalStop   bool           `yaml:"internal_stop,omitempty"`
+	Diagnostic     string         `yaml:"diagnostic,omitempty"`
 	ReadinessCheck string         `yaml:"readiness_check,omitempty"`
 	CacheKey       string         `yaml:"cache_key,omitempty"`
 	SessionID      string         `yaml:"session_id,omitempty"`

@@ -1,0 +1,199 @@
+#+TITLE: W019 - Automatic audit recovery and separate verdict budgets
+#+SCHEMA: 8
+#+STARTUP: overview
+#+OPTIONS: toc:2 num:nil
+#+OPERATOR_SIGNOFF: PENDING
+
+* Synopsis
+:PROPERTIES:
+:CUSTOM_ID: summary
+:END:
+** Outcome
+- Calling agents request *audits*, without managing provider sessions or failures.
+** Before
+- Every provider attempt consumed the audit allowance; malformed output was unavailable for investigation.
+** After
+- *Valid verdicts alone* consume a ticket-and-gate allowance.
+- The harness *clarifies malformed output*, logs diagnostics and stops within an internal bound.
+** Changes
+- Use *one normal invocation* and operator-authorized =--reset=.
+- Default internal failure limit to *three*, configurable separately from verdicts.
+** Unchanged
+- Preserve *findings, history, evidence integrity, readiness and operator authority*.
+- Installation remains *operator-run*; other projects and provider configuration are unchanged.
+** Edge cases
+- Authentication failure *immediately tries fallback*; failure there stops for intervention.
+- Internal lockout *survives subsequent invocations* until authorized reset.
+** Decisions
+- Retain *private project-local logs* and gate-specific reset boundaries.
+** Next step
+- Review verification evidence, install through the existing release path and validate operation.
+
+* Context
+- Authority :: Emergency implementation authorized 2026-09-23; bounded temporary specification reconciled after implementation.
+- Product :: [[file:../../README.md][Framework overview]] and [[file:../../QUICKSTART.md][Quickstart]].
+- Architecture :: [[file:../../docs/ARCHITECTURE.md][Audit architecture]].
+- Baseline :: [[file:../W015-audit-budget-reset/request.md][W015 - Audit budget reset]],
+  [[file:../W018-project-audit-cooldown/spec.org][W018 - Project-local cooldown]],
+  the retained harness regression pack and =cmd/sdlc-harness=.
+- Changes :: Supersede attempt-charged budgets and caller-controlled session IDs.
+- Exclusions :: No installation, billing repair, provider credential changes, or writes to other projects.
+
+* Acceptance Criteria
+** AC019.1 - Automatic invocation :ac:
+:PROPERTIES:
+:CUSTOM_ID: ac019-1
+:END:
+- Criterion :: A caller supplies project, work item, gate, audit record and evidence;
+  the harness *selects or creates its context*. Public =--session= is rejected and
+  session identifiers are not exposed in normal diagnostics.
+- Proven by :: [[#rt019-1][RT019.1 - Automatic recovery]] and [[#ot019-1][OT019.1 - Documentation and packaging]].
+
+** AC019.2 - Independent verdict and failure limits :ac:
+:PROPERTIES:
+:CUSTOM_ID: ac019-2
+:END:
+- Criterion :: *Only valid PASS, PROVISIONAL PASS and FAIL* consume the selected
+  ticket-and-gate allowance, default five. Cached results consume none.
+  An unusable response consumes only the internal consecutive-failure allowance,
+  default three. A valid response clears its failure streak. Reaching the internal
+  bound *locks that gate until reset*, without disclosing an internal count.
+- Proven by :: [[#rt019-1][RT019.1 - Automatic recovery]], [[#rt019-2][RT019.2 - Gate budgets and configuration]].
+
+** AC019.3 - Bounded remediation and authentication fallback :ac:
+:PROPERTIES:
+:CUSTOM_ID: ac019-3
+:END:
+- Criterion :: A malformed response receives a *format clarification in the retained
+  context* when available. Recovery remains bounded across primary and fallback.
+  Authentication failure *tries the configured fallback immediately*; failure there,
+  or no configured fallback, causes immediate intervention rather than repeated login attempts.
+- Proven by :: [[#rt019-1][RT019.1 - Automatic recovery]] and [[#ut019-1][UT019.1 - Installed use]].
+
+** AC019.4 - Authorized reset :ac:
+:PROPERTIES:
+:CUSTOM_ID: ac019-4
+:END:
+- Criterion :: Authorized =--reset= *clears both selected-gate counters*, retires its
+  provider context and exits without a model call. The next audit uses fresh context
+  and does not reuse pre-reset cached verdicts. *History, logs and other gates' counts
+  remain intact*. Repeating reset before another audit changes nothing.
+- Proven by :: [[#rt019-1][RT019.1 - Automatic recovery]], [[#rt019-2][RT019.2 - Gate budgets and configuration]].
+
+** AC019.5 - Investigable failure without agent troubleshooting :ac:
+:PROPERTIES:
+:CUSTOM_ID: ac019-5
+:END:
+- Criterion :: Received output and provider errors remain in *bounded private logs*,
+  distinct from validated verdicts. An internal failure returns *human intervention
+  required* and a diagnostic reference, not provider repair instructions or retry counts.
+- Proven by :: [[#rt019-1][RT019.1 - Automatic recovery]], [[#ot019-1][OT019.1 - Documentation and packaging]], [[#ut019-1][UT019.1 - Installed use]].
+
+* Test Definitions
+** RT019.1 - Automatic recovery :testdef:
+:PROPERTIES:
+:CUSTOM_ID: rt019-1
+:END:
+- Covers :: [[#ac019-1][AC019.1 - Automatic invocation]], [[#ac019-2][AC019.2 - Separate limits]],
+  [[#ac019-3][AC019.3 - Recovery]], [[#ac019-4][AC019.4 - Reset]], [[#ac019-5][AC019.5 - Diagnostics]].
+- Boundary :: CLI entry point with local executable doubles for existing provider protocols; no metered service.
+- Action :: Exercise malformed-then-valid, repeated malformed, configured limit two,
+  timeout, authentication fallback success/failure, stale fallback output, cached replay
+  and reset following lockout.
+- Expected :: Corrected results count once; malformed results never consume verdicts;
+  default exhaustion makes three calls, configured exhaustion two; dual authentication
+  failure makes only primary and fallback calls; clarification names the expected
+  fields; rejected bytes are logged, IDs/counters withheld; reset starts fresh and
+  preserves evidence and history.
+- Retention :: =go test ./cmd/sdlc-harness= under =make test=.
+
+** RT019.2 - Gate budgets and configuration :testdef:
+:PROPERTIES:
+:CUSTOM_ID: rt019-2
+:END:
+- Covers :: [[#ac019-2][AC019.2 - Separate limits]] and [[#ac019-4][AC019.4 - Reset]].
+- Action :: Use mixed test-code/delivery-code histories, incidents, valid verdicts,
+  historical resets and new gate resets. Resolve missing, positive, invalid and
+  project-overridden =max_failures= configuration.
+- Expected :: *Independent gate counts*, incident exclusion, default three, project
+  override precedence, positive-integer validation and reset isolation.
+- Retention :: =go test ./internal/harness= under =make test=.
+
+** OT019.1 - Documentation and packaging :testdef:
+:PROPERTIES:
+:CUSTOM_ID: ot019-1
+:END:
+- Covers :: [[#ac019-1][AC019.1 - Invocation]] and [[#ac019-5][AC019.5 - Diagnostics]].
+- Procedure :: Build locally; inspect help and the four workflow skills against the
+  implemented contract. Process changed prose with =sanitize=, validate Org records
+  and check the diff for contradictory recovery instructions.
+- Expected :: *One normal invocation*, no public session-ID control, authorized
+  reset, no agent troubleshooting loop and accurate operator diagnostic guidance.
+- Bounds :: Local inspection/build only; no installation or external API calls.
+
+** UT019.1 - Installed use :testdef:
+:PROPERTIES:
+:CUSTOM_ID: ut019-1
+:END:
+- Covers :: [[#ac019-3][AC019.3 - Recovery]] and [[#ac019-5][AC019.5 - Diagnostics]].
+- Method :: User validation after operator installation.
+- Procedure :: Request one real project audit, inspect concise output and any
+  diagnostic reference, and review the private log when intervention occurs.
+- Expected :: *Usable verdict or clear intervention*, with investigateable logged
+  response and no manual provider/session management by the calling agent.
+- Bounds :: Existing configured audit and recovery limits; no persistent metered regression.
+
+* Edge Cases
+- Legacy unlabelled implementation rounds remain *historical evidence*, not invented
+  test-code/delivery-code verdicts. Existing reset boundaries remain meaningful.
+- Cached results never erase a lockout. Raised configuration limits do not clear
+  a recorded internal stop. Only authorized reset clears it.
+- Missing identity permits a bounded fresh context, not an invented native ID.
+- Readiness, configuration, evidence mutation and record-write failures stop locally;
+  recovery does not suppress them or widen provider permissions.
+
+* Solution Design
+** Responsibilities and state
+- =main.go= coordinates invocation and selects the recorded context automatically.
+- =recovery.go= owns bounded retry, format clarification, authentication fallback and
+  cooldown routing; native adapters remain unchanged except diagnostic capture.
+- =audit_record.go= derives gate-specific counts from retained history and reset
+  boundaries. =external_round= remains *lifetime attempt provenance*, not the verdict budget.
+- =diagnostics.go= owns *private capped logs*; unvalidated output never becomes a verdict.
+
+** Interface and configuration
+#+begin_src sh
+sdlc-harness --gate delivery-code --project . \
+  --audit-record specs/WNNN-change/audits.yaml --work-item WNNN --input source.go
+sdlc-harness --reset --gate delivery-code --project . \
+  --audit-record specs/WNNN-change/audits.yaml --work-item WNNN
+#+end_src
+- Default verdict allowance :: =delivery.audit.max_rounds: 5=.
+- Internal failure bound :: =delivery.audit.max_failures: 3=, positive integer;
+  project YAML overrides global YAML.
+- Compatibility :: Legacy =start= and =resume= operation words select automatic audit
+  behaviour during transition; omit them in new instructions. =--session= and
+  =--reset-session= are removed. No existing audit history is deleted.
+- Reset scope :: The selected ticket/gate's counters reset; its shared provider
+  context is retired. Other gates retain their budget history.
+
+** Security and design verification
+- Logs :: =.sdlc/audit-diagnostics/= contains 0600 files in a created 0700 directory,
+  with its own ignore rule. Each invocation retains at most 16 MiB. Logs may contain
+  reviewed material and remain operator-controlled; no upload or deliberate prompt copies.
+- Recovery :: All calls retain configured deadlines and read-only adapter controls.
+  Tests use temporary local fixtures; live provider state is not part of regression.
+- Structural check :: One recovery coordinator and one gate-counter implementation;
+  no new provider framework, global state, billing logic or credential management.
+
+* Delivery Handoff
+:PROPERTIES:
+:CUSTOM_ID: delivery-handoff
+:END:
+- Workflow :: Emergency delivery; this specification is reconciled after the bounded implementation.
+- Required reading :: Project profile, [[file:../../src/HARNESS.md][Harness guide]],
+  [[file:../../src/AUDITS.md][Audit standards]] and named architecture.
+- Evidence :: [[file:validation.org][Execution records]] and [[file:audits.yaml][Harness-owned audits]].
+- Documentation :: Refresh help, README, quickstart, architecture, standards,
+  learnings and definition/delivery/paired/emergency skills.
+- Release :: Versioned repository release; *installation and closure remain operator actions*.

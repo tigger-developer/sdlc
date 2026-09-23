@@ -1,3 +1,9 @@
+---
+title: Testing Standards
+version: 1
+last-updated: 2026-09-23
+---
+
 # Testing Standards
 
 Tests provide evidence that specified behaviour holds. They do not replace the
@@ -79,8 +85,8 @@ Normal delivery first reviews the complete written RT package at the test-code
 gate, after observing RED (or justified initially GREEN preservation evidence),
 before implementing the target behaviour. After implementation and RT/OT GREEN, the
 delivery-code gate resumes the same implementation-auditor context, reviewing
-production code and changed tests. Both stages use the configured shared round
-allowance. The author must check that RED fails for the intended reason.
+production code and changed tests. Each stage has a separate configured verdict
+allowance; unusable responses do not consume it. The author must check that RED fails for the intended reason.
 Paired and emergency routes may go directly to delivery-code after their coherent
 change; they do not invent a retrospective pre-build test-code gate.
 Retrospective test-definition review uses the

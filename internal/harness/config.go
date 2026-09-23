@@ -18,6 +18,7 @@ type Config struct {
 	Model         string
 	Timeout       time.Duration
 	MaxRounds     int
+	MaxFailures   int
 	Fallback      *AgentConfig
 	CoolOffPeriod time.Duration
 }
@@ -51,12 +52,13 @@ type ConfigOptions struct {
 }
 
 type phaseDocument struct {
-	Harness   string            `yaml:"harness"`
-	Provider  string            `yaml:"provider"`
-	Model     string            `yaml:"model"`
-	Timeout   string            `yaml:"timeout"`
-	MaxRounds int               `yaml:"max_rounds"`
-	Fallback  *fallbackDocument `yaml:"fallback"`
+	Harness     string            `yaml:"harness"`
+	Provider    string            `yaml:"provider"`
+	Model       string            `yaml:"model"`
+	Timeout     string            `yaml:"timeout"`
+	MaxRounds   int               `yaml:"max_rounds"`
+	MaxFailures *int              `yaml:"max_failures"`
+	Fallback    *fallbackDocument `yaml:"fallback"`
 }
 
 type fallbackDocument struct {
@@ -78,7 +80,7 @@ func ResolveConfig(options ConfigOptions) (Config, error) {
 	if phase != "definition" && phase != "build" && phase != "audit" {
 		return Config{}, fmt.Errorf("unsupported SDLC phase %q", options.Phase)
 	}
-	config := Config{CoolOffPeriod: time.Hour}
+	config := Config{CoolOffPeriod: time.Hour, MaxFailures: 3}
 	explicitProvider := false
 	applyDocument := func(path string) error {
 		if path == "" {
@@ -141,6 +143,12 @@ func ResolveConfig(options ConfigOptions) (Config, error) {
 		}
 		if value.MaxRounds != 0 {
 			config.MaxRounds = value.MaxRounds
+		}
+		if value.MaxFailures != nil {
+			if *value.MaxFailures < 1 {
+				return fmt.Errorf("delivery.%s.max_failures must be a positive integer", phase)
+			}
+			config.MaxFailures = *value.MaxFailures
 		}
 		return nil
 	}

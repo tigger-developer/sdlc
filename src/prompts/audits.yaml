@@ -11,16 +11,12 @@ timeout_resume_instructions: |
   Do not restart the review from scratch. The previous invocation timed out without a verdict;
   unchanged evidence may be resubmitted for that reason. Earlier FAIL findings still require resolution.
 timeout_message: |
-  Resume using the same command, inputs, context and configuration, replacing start with resume
-  if necessary. With --audit-record, omit --session: the harness loads its recorded native ID.
-  In HANDS-OFF mode, continue automatically; this timeout alone is not a blocker.
-  Do not create a replacement session, change harness/model, or increase the timeout or round limit.
+  The harness continues the interrupted review within its internal recovery bounds.
+  Calling agents do not manage provider sessions or timeout retries.
 timeout_blocked_message: |
-  Stop: no safe automatic continuation remains. The native session identity is unavailable or
-  max_rounds is exhausted. Report the incident for operator recovery; do not invent a session,
-  start a replacement audit, or change the configured bounds. Timeout is not PASS or FAIL.
-  For an exhausted budget, the operator may authorize resume --reset-session as documented
-  in --help. Run reset once, then resume without that flag. Never reset autonomously.
+  Audit unavailable: unable to obtain a valid result. Human intervention required.
+  Report the diagnostic reference. Only explicit operator authorization permits --reset.
+  Reset once, then submit the normal audit without the flag. Never reset autonomously.
 evidence_instructions: |
   The harness owns native session IDs, recovery and cache lookup. Return only the requested audit
   envelope and findings; do not invent session IDs, invoke another auditor or troubleshoot the harness.

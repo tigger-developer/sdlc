@@ -1,7 +1,7 @@
 ---
 title: Audit and Gate Standards
-version: 1
-last-updated: 2026-09-21
+version: 2
+last-updated: 2026-09-23
 ---
 
 # Audit and Gate Standards
@@ -12,8 +12,7 @@ provider invocation, timeout, round limit, and retained session. No individual
 audit skill is required or deployed.
 
 For a client-project agent, the harness is an **external tool**, not part of
-the work. Use its help, supply the required evidence, and follow its documented
-recovery instructions. Do not inspect or troubleshoot its internals, provider
+the work. Use its help, supply the required evidence, and report its intervention diagnostic. Do not inspect or troubleshoot its internals, provider
 authentication or model behaviour, or ask the operator to choose replacements.
 Model selection, fallback and session recovery belong to the harness and its
 configuration. If documented recovery cannot proceed, report the exact command
@@ -53,8 +52,8 @@ tests and required OTs are GREEN. Review packages, not each file or edit. The te
 review must reach PASS or effective PROVISIONAL PASS before normal production work.
 If the approved spec has no RTs, skip test-code under TESTING.md; do not reclassify
 tests to evade it. Paired/emergency routes retain their implement-first sequence
-and may invoke delivery-code directly. Both implementation gates use the same
-work-item session and round allowance; the second resumes the first's context.
+and may invoke delivery-code directly. Both implementation gates may reuse context internally but have separate
+work-item/gate verdict allowances. Calling agents do not manage that context.
 
 Before invoking either stage, use `~/.agents/sdlc/bin/sdlc-validate --help` and run
 its selected readiness check. `ORG-SCHEMA.md` defines the record contract. The
@@ -93,59 +92,37 @@ If unsure, or the dispute remains unresolved, raise it to the operator. A challe
 does not itself dismiss a finding or change the verdict; only the harness records
 the auditor's reassessment in `audits.yaml`.
 
-The harness stores separate definition and implementation session mappings per
-work item in `audits.yaml`; test-code and delivery-code share the latter.
-The first invocation starts a session; later invocations resume its recorded
-`session_id`. The round limit is `delivery.audit.max_rounds` (default five) and
-applies to the current explicitly bounded audit cycle. Every provider invocation,
-including a timeout, consumes one round. To start a new allowance, the operator
-must authorize `resume --reset-session`; this resets only the selected work
-item/gate's budget and exits without an audit. Run it once, then resume normally
-without the flag. Never reset autonomously to evade the limit. The harness retains
-native context, findings, cached results and lifetime history, recording a reset
-boundary in `audits.yaml`. Spec changes and provider recovery never reset the
-budget. Earlier unrecorded timeouts cannot be reconstructed automatically.
+Invoke the resolved absolute harness path with `--gate`, `--audit-record`,
+`--work-item`, and the complete `--input` list. Supply extra review context on
+stdin. Use the same command after remediation. Do not select start/resume, pass
+session IDs, or override providers. The harness owns context selection, cooldown,
+fallback, bounded retries and response-envelope correction.
 
-Session reuse is an optimization, not a delivery prerequisite. The harness records
-the native ID, owning harness/provider/model and effective primary configuration.
-Changed configuration or an explicit provider report that the session is missing
-causes a fresh context automatically. It preserves old session provenance and all
-findings/history, supplies the full evidence and historical findings, and keeps
-the existing round budget. It never claims that an unavailable session expired.
+Each work item and explicit gate has a separate `delivery.audit.max_rounds`
+allowance, default five. Only validated PASS, PROVISIONAL PASS and FAIL results
+consume it. Cached results, timeouts, malformed output and failed provider calls
+do not. Consecutive unusable responses trigger a separate internal lockout at the configured
+`delivery.audit.max_failures` bound (default three);
+a valid response clears that streak. Internal retry counts are not agent-facing.
+Malformed responses receive a format-clarification prompt inside the retained auditor
+context when available. Authentication failure selects fallback immediately; if
+that fallback fails, the harness stops and requires an authorized reset.
 
-An optional `delivery.<phase>.fallback` supplies one alternate harness/provider/model
-tuple. For audits, use it once when an attempted provider run ends without a usable
-verdict, including usage limits, authentication/launch errors, timeout, or an empty,
-malformed or wrong-gate response. PASS, FAIL and PROVISIONAL PASS never trigger
-fallback. A PENDING/running attempt must finish or time out before recovery.
-A retained fallback audit continues on
-that tuple while the configured primary and fallback remain unchanged, except
-when a recorded primary cooldown expires. Each CLI
-invocation permits at most one missing-session restart and one configured
-fallback, subject to the remaining audit rounds. Every launched attempt consumes a
-round and has the configured timeout. Invalid configuration, evidence-integrity
-failures, record errors and exhausted rounds still stop locally. No permission
-is widened. Non-audit definition/build retain authentication-only fallback.
-Calling agents do not repair
-or delete mappings themselves.
+On a verdict-limit stop, obtain operator authorization before invoking `--reset`
+with the same gate, record and work item, without inputs. Reset runs no audit;
+then submit the normal audit without the flag. It preserves history, findings,
+logs and other gates' allowances; the selected context is retired and its old
+cached verdicts do not satisfy the fresh audit. Never reset autonomously or in a loop.
+Reset clears both counters and the infrastructure lockout for the selected gate.
 
-An unusable primary audit attempt with a distinct configured fallback records
-a project-local deadline under `.sdlc/cooldowns/`. The period defaults to one hour
-and is configurable as `delivery.audit.fallback.cool_off_period`; no provider
-message timestamp is parsed. During cooldown, audits use the fallback without
-spending a round on the primary skip. Expiry makes the primary eligible again;
-cache, history and round limits remain authoritative. The harness reports its
-deadline and recovery on stderr. Agents follow that diagnostic, not a separate
-sleep policy. See `HARNESS.md` for configuration, state and recovery boundaries.
+On "Audit unavailable: unable to obtain a valid result. Human intervention required", report the diagnostic
+reference and continue unrelated authorized work. Do not retry, inspect provider
+state or diagnose the harness. Rejected output remains in private project-local
+logs for operator investigation. See `HARNESS.md` for operator details.
 
-The harness tries an unused configured fallback before returning a timeout.
-On a returned timeout, follow the recovery diagnostic. In HANDS-OFF mode, resume
-automatically while a native session is recorded and the limit permits it.
-Resubmitting unchanged evidence after timeout is allowed, but does not waive
-earlier FAIL findings. The resumed prompt continues unfinished review and reuses
-unchanged evidence still understood. Do not change harness, model, timeout, or
-limits to evade a stop. Missing native identity or an exhausted limit requires
-operator recovery, not a replacement context.
+Project-local primary cooldown remains configurable through
+`delivery.audit.fallback.cool_off_period`, default one hour. The harness handles
+it internally; agents do not sleep or choose a replacement provider.
 
 Audit findings, status, revisions, round numbers, and session IDs MUST be
 recorded only in `audits.yaml`. Specifications and tickets may link to that
@@ -259,3 +236,8 @@ remain solely in `audits.yaml`, and operator closure remains separate.
 # Canary
 
 Suffix the canary string with "AUDIT "
+
+## Document history
+
+Version 2 replaces caller-managed recovery and shared attempt budgets with automatic
+audits, separate verdict allowances and private internal-failure handling.

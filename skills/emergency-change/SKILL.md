@@ -24,6 +24,18 @@ together with `--gate delivery-code`. Afterwards, reconcile
 the requirements, test definitions, solution design, validation, and affected
 documentation, then run the retrospective definition review. Follow
 `~/.agents/sdlc/AUDITS.md` with `Workflow: emergency` for audit-context markers,
-separate retained gate sessions, and remediation limits. Refer behaviour or
+gate-specific verdict limits and harness-owned recovery. Refer behaviour or
 design changes to the operator for normal delivery; correct documentary errors
 without inventing advance approval. Present the evidence for operator closure.
+
+## Audit invocation boundary
+
+Invoke the resolved absolute `~/.agents/sdlc/bin/sdlc-harness` path with
+`--gate`, `--audit-record`, `--work-item`, and the complete `--input` list.
+Use that same command for each review; do not select start/resume, pass session
+IDs, override providers, or troubleshoot the auditor. The harness manages recovery.
+Remediate every FAIL finding together. If it reports human intervention required,
+report the diagnostic reference and continue other authorized project work; do not
+inspect provider state or retry the infrastructure failure. Only after explicit
+operator authorization, invoke `--reset` once for the selected gate without inputs,
+then submit the normal audit without that flag. Never put resets in a retry loop.

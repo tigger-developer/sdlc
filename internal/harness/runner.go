@@ -32,6 +32,8 @@ type Request struct {
 	Evidence   []EvidenceFile
 	// OnSession checkpoints a native identity as soon as the adapter observes it.
 	OnSession func(string) error
+	// OnResponse retains unvalidated provider output for private diagnostics.
+	OnResponse func([]byte) error
 }
 
 // Invocation is a fixed executable invocation. Args are never shell-evaluated.
@@ -120,6 +122,12 @@ func Execute(ctx context.Context, request Request, resume bool, evidence *Eviden
 	diagnostics := &providerDiagnostics{writer: errorOutput, request: request}
 	executionErr := executor(ctx, invocation.Command, invocation.Args, invocation.Dir, strings.NewReader(invocation.Stdin), stdout, diagnostics)
 	stdout.finish(executionErr != nil)
+	if request.OnResponse != nil {
+		if err := request.OnResponse(stdout.Bytes()); err != nil {
+			close(stopHeartbeat)
+			return Result{}, err
+		}
+	}
 	if request.Harness == "hermes" {
 		if diagnostics.identity != "" {
 			stdout.identity = diagnostics.identity
@@ -165,6 +173,11 @@ func Execute(ctx context.Context, request Request, resume bool, evidence *Eviden
 		resultFile, err = os.ReadFile(request.ResultFile)
 		if err != nil {
 			return Result{}, newIncident("response-missing", request.Harness, stdout.identity, fmt.Errorf("reading final response: %w", err))
+		}
+		if request.OnResponse != nil && len(resultFile) != 0 {
+			if err := request.OnResponse(resultFile); err != nil {
+				return Result{}, err
+			}
 		}
 	}
 	var result Result

@@ -95,7 +95,7 @@ printf 'GATE: delivery-code\nREVISION: fixture\nVERDICT: PASS\n'
 				if err := harness.WriteAuditEntry(record, prior); err != nil {
 					t.Fatal(err)
 				}
-				reset := []string{"resume", "--reset-session", "--project", root, "--gate", "delivery-code", "--audit-record", record, "--work-item", "W015-fallback"}
+				reset := []string{"resume", "--reset", "--project", root, "--gate", "delivery-code", "--audit-record", record, "--work-item", "W015-fallback"}
 				if err := run(reset, strings.NewReader(""), &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
 					t.Fatal(err)
 				}
@@ -104,7 +104,7 @@ printf 'GATE: delivery-code\nREVISION: fixture\nVERDICT: PASS\n'
 			var output, diagnostics bytes.Buffer
 			started := time.Now()
 			err := run(args, strings.NewReader("audit"), &output, &diagnostics)
-			blocked := mode == "exhausted" || mode == "fallback-fails" || mode == "evidence-changed"
+			blocked := mode == "fallback-fails" || mode == "evidence-changed"
 			if (err != nil) != blocked {
 				t.Fatalf("error = %v\n%s", err, diagnostics.String())
 			}
@@ -121,15 +121,21 @@ printf 'GATE: delivery-code\nREVISION: fixture\nVERDICT: PASS\n'
 				t.Fatal("usable verdict or local failure created cooldown")
 			}
 			wantCalls := "primary\n"
-			if !valid && mode != "exhausted" && mode != "evidence-changed" {
+			if mode == "malformed" || mode == "wrong-gate" || mode == "empty" {
+				wantCalls += "primary\n"
+			}
+			if !valid && mode != "evidence-changed" {
 				wantCalls += "fallback\n"
+			}
+			if mode == "fallback-fails" {
+				wantCalls = "primary\nfallback\nfallback\n"
 			}
 			calls, readErr := os.ReadFile(filepath.Join(root, "calls"))
 			if readErr != nil || string(calls) != wantCalls {
 				t.Fatalf("calls = %q (%v), want %q", calls, readErr, wantCalls)
 			}
 			entry, found, readErr := harness.ReadAuditEntry(record, "W015-fallback", "implementation")
-			if readErr != nil || !found || entry.ExternalRound != roundBase+strings.Count(wantCalls, "\n") || entry.RoundsUsed() != strings.Count(wantCalls, "\n") {
+			if readErr != nil || !found || entry.ExternalRound != roundBase+strings.Count(wantCalls, "\n") || entry.RoundsUsed() != map[bool]int{true: 0, false: 1}[blocked] {
 				t.Fatalf("record = %#v (%v)", entry, readErr)
 			}
 			if valid && entry.Verdict != mode {
@@ -138,7 +144,7 @@ printf 'GATE: delivery-code\nREVISION: fixture\nVERDICT: PASS\n'
 			if !valid && entry.History[0].Incident == "" {
 				t.Fatal("lost primary incident")
 			}
-			if strings.Contains(wantCalls, "fallback") && (entry.Harness != "hermes" || entry.Provider != "nous" || entry.SessionID != "fallback-session" || len(entry.Sessions) != 1) {
+			if strings.Contains(wantCalls, "fallback") && (entry.Harness != "hermes" || entry.Provider != "nous" || entry.SessionID != "fallback-session" || len(entry.Sessions) != map[bool]int{true: 2, false: 1}[mode == "reset-limit"]) {
 				t.Fatalf("fallback provenance = %#v", entry)
 			}
 			if !valid && !blocked && entry.Verdict != "PASS" {

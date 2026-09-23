@@ -58,14 +58,11 @@ Copy the template's `#+SCHEMA:` version. Keep `Synopsis` distinct from the
 change-specific `#+TITLE:`, with its eight level-two categories and short bullets.
 Its summary must accurately and completely represent the detail below
 its section break. Invoke the composite definition audit through the installed
-audit harness with `--phase audit --gate definition`, using `audits.yaml` for
-the retained session mapping. Before resuming, address **every** finding as a batch:
+audit harness with `--gate definition`, using the work item's `audits.yaml` record. Before requesting another audit, address **every** finding as a batch:
 remediate valid findings and challenge incorrect or out-of-scope findings with
 evidence under `~/.agents/sdlc/AUDITS.md`. Raise doubtful or unresolved disputes
 to the operator; never silently waive findings or expand scope to obtain a PASS.
-On timeout, follow the harness recovery diagnostic: in HANDS-OFF,
-resume automatically within its limit, using the retained session. Timeout
-without a verdict does not require an artificial edit. Do not invoke individual audit skills.
+Do not invoke individual audit skills.
 
 After current audit evidence in `audits.yaml` establishes `PASS` or an effective
 `PROVISIONAL PASS`, move the work item to `REVIEW`. Never copy the verdict into
@@ -76,3 +73,15 @@ only where approval is limited; follow `DOCUMENTATION.md`, not conversation narr
 Move its work item to `ACTIVE` unless the operator explicitly defers delivery;
 retain `REVIEW` and the hold in that case. Design approval never lifts a hold.
 Do not implement code.
+
+## Audit invocation boundary
+
+Invoke the resolved absolute `~/.agents/sdlc/bin/sdlc-harness` path with
+`--gate`, `--audit-record`, `--work-item`, and the complete `--input` list.
+Use that same command for each review; do not select start/resume, pass session
+IDs, override providers, or troubleshoot the auditor. The harness manages recovery.
+Remediate every FAIL finding together. If it reports human intervention required,
+report the diagnostic reference and continue other authorized project work; do not
+inspect provider state or retry the infrastructure failure. Only after explicit
+operator authorization, invoke `--reset` once for the selected gate without inputs,
+then submit the normal audit without that flag. Never put resets in a retry loop.

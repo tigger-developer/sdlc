@@ -77,6 +77,9 @@ func TestCooldownRouting(t *testing.T) {
 				}
 				if mode == "exhausted" {
 					entry.ExternalRound = 5
+					for i := 1; i <= 5; i++ {
+						entry.History = append(entry.History, harness.AuditRound{Round: i, Verdict: "FAIL"})
+					}
 				}
 				if err := harness.WriteAuditEntry(record, entry); err != nil {
 					t.Fatal(err)
@@ -85,7 +88,7 @@ func TestCooldownRouting(t *testing.T) {
 			}
 			var diagnostics bytes.Buffer
 			err := run(args, strings.NewReader("audit"), &bytes.Buffer{}, &diagnostics)
-			blocked := mode == "no-fallback" || mode == "corrupt" || mode == "exhausted"
+			blocked := mode == "no-fallback" || mode == "corrupt" || mode == "exhausted" || mode == "resume-no-record"
 			if (err != nil) != blocked {
 				t.Fatalf("error=%v diagnostics=%s", err, diagnostics.String())
 			}

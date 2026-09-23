@@ -1,64 +1,50 @@
-sdlc-audit: run or resume an independent SDLC audit.
+sdlc-audit: request an independent SDLC audit.
 Alias of sdlc-harness; both use the same interface.
 
 Usage:
-  sdlc-audit start|resume [options] < context.txt
-  sdlc-audit resume --reset-session --gate GATE --audit-record FILE --work-item ID
-  sdlc-audit goal-config [options]    Print resolved goal limits as JSON.
+  sdlc-audit --gate GATE --audit-record FILE --work-item ID [options] < context.txt
+  sdlc-audit --reset --gate GATE --audit-record FILE --work-item ID
+  sdlc-audit goal-config [options]
 
 Audit options:
-  --gate GATE                       Required: definition, test-code, delivery-code.
-  --audit-record FILE                Harness-owned audits.yaml record.
-  --work-item ID                     Work item owning that record.
-  --input FILE                       Evidence file; repeat for each input.
-  --project DIR                      Project root (default: current directory).
-  --phase audit|definition|build     Configuration phase (default: audit).
-  --global-config FILE               Override ~/.agents/sdlc.yaml.
-  --harness NAME                     Override configured harness.
-  --provider NAME                    Override provider where supported.
-  --model NAME                       Override configured model.
-  --timeout DURATION                 Override timeout, e.g. 8m.
-  --audit-prompts FILE               Override installed audit-prompt YAML.
-  --session ID                       Resume native ID; normally read from record.
-  --reset-session                    Reset selected budget only, then exit.
+  --gate GATE          Required: definition, test-code, delivery-code.
+  --audit-record FILE  Harness-owned audits.yaml beside the specification.
+  --work-item ID       Work item owning that record.
+  --input FILE         Evidence file; repeat for every relevant input.
+  --project DIR        Project root (default: current directory).
+  --reset              Operator-authorized reset of gate counters and context; then exit.
+  -h, --help           Show this reference.
+  --version            Show installed version.
 
-Goal-config options:
-  --project DIR  --global-config FILE Same meanings as above.
-  --sdlc-root DIR                    Root containing the config schema.
-  --goal-max-turns N                 Override continuation limit.
-  --goal-max-token-budget N          Override token budget (e.g. "100,000").
+Use the same normal command for the first audit and every remediation.
+The harness owns provider selection, context, fallback and bounded recovery.
+On FAIL, address all findings before submitting the next audit.
+On 'Human intervention required', stop auditing and report the diagnostic reference.
+Do not troubleshoot the provider, inspect private diagnostics, or reset without authority.
+After authorization, run --reset once without --input, then audit without --reset.
+History and logs are preserved; the next audit uses a fresh context.
 
-  -h, --help                        Show this reference.
-  --version                         Show installed version (top-level only).
+Each work item and gate has its own verdict allowance (default five).
+Unusable responses and cached results do not consume that allowance.
+Provider failures have a separate internal bound; no verdict is fabricated.
 
-Start creates a session; resume loads it from the audit record. Do not pass
---session to start. Reset requires operator authorization: omit --input and
---session, then rerun the audit WITHOUT --reset-session. History is preserved.
-stdout: final result. stderr: progress and diagnostics.
+Test-code and delivery-code locate spec.org and validation.org beside --audit-record.
+Schema/readiness rejection returns YAML without invoking a provider.
+Test-code requires RTs RED/GREEN; delivery-code requires RTs/OTs GREEN.
+UTs may remain AMBER. Test-code PASS is not delivery approval.
+Definition has no execution-readiness check. With no approved RTs, skip test-code.
+Final delivery review includes affected product documentation.
 
-Test-code and delivery-code require --audit-record. Its sibling spec.org and validation.org
-are schema/readiness-checked before any provider call, then included as evidence.
-Refusal: YAML on stdout; exit 1 ineligible or 2 invalid schema; no round consumed.
-Run sdlc-validate --help for local preflight. Test-code and delivery-code reviews
-share the implementation session and budget. A test-code PASS is not delivery PASS.
-Test-code requires RTs RED/GREEN; OT/UT may be AMBER. Delivery-code requires
-RTs/OTs GREEN; only UTs may remain outstanding. Both require state evidence.
-The gate selects its readiness check automatically. --readiness-check belongs
-to sdlc-validate, not this command. The old --gate implementation is rejected.
-Definition has no execution-readiness check. With no approved RTs, skip test-code
-and start delivery-code directly. Final delivery review includes affected docs.
-
-  sdlc-audit start --gate test-code \
-    --audit-record specs/WNNN-descriptor/audits.yaml --work-item WNNN --input tests.go
-  sdlc-audit resume --gate delivery-code \
+Example:
+  sdlc-audit --gate delivery-code \
     --audit-record specs/WNNN-descriptor/audits.yaml --work-item WNNN \
     --input tests.go --input application.go
+Include all relevant source, test and authority files; this example abbreviates inputs.
 
-Include all relevant source, test and authority files; examples abbreviate inputs.
+Goal-config options:
+  --project DIR  --global-config FILE  Project and global configuration.
+  --sdlc-root DIR                      Configuration schema root.
+  --goal-max-turns N                   Continuation limit override.
+  --goal-max-token-budget N            Token budget override.
 
-Unusable primary audit attempts cool the route when a distinct fallback exists.
-delivery.audit.fallback.cool_off_period defaults to 1h (positive durations only).
-State stays in the selected project's .sdlc/cooldowns; provider messages supply
-no timestamps. Skips consume no rounds. Expiry makes the primary eligible again.
-
-Examples, caching, fallback and recovery: ~/.agents/sdlc/HARNESS.md
+Operator configuration and diagnostic details: ~/.agents/sdlc/HARNESS.md

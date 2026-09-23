@@ -1,7 +1,7 @@
 ---
 title: Lean SDLC for Coding Agents
 version: 1
-last-updated: 2026-09-21
+last-updated: 2026-09-23
 ---
 
 # Lean SDLC for Coding Agents
@@ -44,6 +44,15 @@ Audit recovery records primary cooldowns within each project's `.sdlc/cooldowns/
 and uses its configured fallback during cooldown. The default period is one hour,
 configurable as `delivery.audit.fallback.cool_off_period`. See the
 [harness recovery guide](src/HARNESS.md#primary-audit-cooldown).
+
+## Audit invocation
+
+Run the harness with the work item, audit record, explicit gate and complete evidence
+list. No session ID or start/resume selection is needed. Only valid verdicts consume
+the gate's allowance. Infrastructure failures are logged privately and recovered
+within an internal bound. An authorized `--reset` clears both counters and retires the selected provider context.
+Authentication failure tries fallback immediately; failure there stops for intervention.
+See [audit usage and diagnostics](src/HARNESS.md).
 
 ## Prerequisites
 
@@ -240,6 +249,7 @@ delivery:
     model: gpt-5.6-luna
     timeout: 5m
     max_rounds: 5
+    max_failures: 3
     # Optional: use when an audit attempt ends without a usable verdict.
     # fallback:
     #   cool_off_period: 1h
@@ -263,8 +273,8 @@ it. Omission inherits it. Audit fallback handles attempts ending without a usabl
 verdict, including usage limits, launch/authentication errors, timeout and malformed
 output. PASS, FAIL and PROVISIONAL PASS never trigger it; running attempts must finish
 or time out. Local configuration, evidence and record errors remain blockers.
-Non-audit definition/build retain authentication-only fallback. It has no separate timeout or round
-budget. Session recovery is harness-owned: configuration changes and recognized
+Non-audit definition/build retain authentication-only fallback. It retains the configured per-call timeout; unusable responses count only
+towards the separate internal failure bound. Session recovery is harness-owned: configuration changes and recognized
 missing-session errors create a replacement with full evidence and preserved
 audit history. Run the installed harness's `--help` for diagnostic boundaries.
 
@@ -329,8 +339,8 @@ rerun the definition audits. Automated regression tests are written and executed
 first, with observed RED or justified initially GREEN preservation results. After
 deterministic readiness, the written tests receive test-code review. The agent then
 implements the solution, records RT/OT GREEN, reconciles affected documentation,
-and resumes the same auditor for delivery-code review. Both stages share the
-configured allowance. UTs can remain AMBER until operator validation and closure.
+and resumes the same auditor for delivery-code review. Each stage has its own
+configured verdict allowance. UTs can remain AMBER until operator validation and closure.
 
 Audit results live in `audits.yaml`. They are evidence for an exact revision, not
 human approval.
@@ -343,9 +353,9 @@ gate failure.
 The harness refers to original evidence paths without copying documents. Each
 recorded round retains only file paths, sizes, and SHA-256 hashes alongside its
 result or incident. Attempts and native session IDs are checkpointed before a
-verdict; timeouts retain that evidence and consume the configured round budget.
-In hands-off mode, callers follow the timeout diagnostic to resume within bounds,
-not start another auditor. Resuming the same work-item/gate session highlights changed inputs;
+verdict; timeouts retain that evidence without consuming the verdict budget.
+The harness owns bounded failure recovery. Calling agents invoke the same command
+for each review and report an intervention diagnostic without troubleshooting. Resuming the same work-item/gate session highlights changed inputs;
 unchanged material can be reused when still understood in context. Changes
 during the run reject the response. See the harness `--help` for evidence and
 cleanup details.

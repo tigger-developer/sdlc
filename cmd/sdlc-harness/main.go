@@ -55,13 +55,17 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		return nil
 	}
 	if len(arguments) == 0 {
-		return errors.New("usage: sdlc-harness start|resume|goal-config [options]")
+		return errors.New("usage: sdlc-harness --gate GATE --audit-record FILE --work-item ID [options]")
 	}
-	action := arguments[0]
+	action := "audit"
+	flagArguments := arguments
+	if !strings.HasPrefix(arguments[0], "-") {
+		action, flagArguments = arguments[0], arguments[1:]
+	}
 	if action == "goal-config" {
 		return runGoalConfig(arguments[1:], output, errorOutput)
 	}
-	if action != "start" && action != "resume" {
+	if action != "audit" && action != "start" && action != "resume" {
 		return fmt.Errorf("unknown operation %q; use start, resume or goal-config", action)
 	}
 	flags := flag.NewFlagSet("sdlc-harness "+action, flag.ContinueOnError)
@@ -77,14 +81,13 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 	provider := flags.String("provider", "", "provider override where supported")
 	model := flags.String("model", "", "model override")
 	timeout := flags.Duration("timeout", 0, "execution timeout")
-	session := flags.String("session", "", "stable session identity for resume")
-	resetSession := flags.Bool("reset-session", false, "operator-authorized audit budget reset only; preserve context and history, then exit")
+	resetSession := flags.Bool("reset", false, "operator-authorized reset of gate counters and provider context, then exit")
 	var inputs inputList
 	flags.Var(&inputs, "input", "exact evidence file to include; repeat as needed")
 	flags.Usage = func() {
 		printTopLevelHelp(errorOutput)
 	}
-	if err := flags.Parse(arguments[1:]); err != nil {
+	if err := flags.Parse(flagArguments); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
 			return nil
 		}
@@ -93,15 +96,12 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 	if flags.NArg() != 0 {
 		return fmt.Errorf("unexpected positional arguments: %v", flags.Args())
 	}
-	if action == "start" && strings.TrimSpace(*session) != "" {
-		return errors.New("start must not receive --session; start creates a fresh external session identity")
-	}
 	normalizedPhase := strings.ToLower(strings.TrimSpace(*phase))
 	normalizedGate := strings.ToLower(strings.TrimSpace(*gate))
 	if normalizedPhase == "audit" && normalizedGate != "definition" && !readiness.ValidMode(normalizedGate) {
 		return errors.New("audit phase requires --gate definition, --gate test-code, or --gate delivery-code")
 	}
-	// Two implementation gates share the existing session, history and budget.
+	// Implementation gates share context and history, but not verdict budgets.
 	sessionGate, readinessCheck := normalizedGate, ""
 	if normalizedPhase == "audit" && readiness.ValidMode(normalizedGate) {
 		sessionGate, readinessCheck = "implementation", normalizedGate
@@ -110,18 +110,24 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 	if err != nil {
 		return err
 	}
+	if normalizedPhase == "audit" && (strings.TrimSpace(*auditRecord) == "" || strings.TrimSpace(*workItem) == "") {
+		return errors.New("audit requires --audit-record and --work-item")
+	}
+	if *auditRecord != "" && !filepath.IsAbs(*auditRecord) {
+		*auditRecord = filepath.Join(projectRoot, *auditRecord)
+	}
 	if *resetSession {
-		if action != "resume" || normalizedPhase != "audit" || strings.TrimSpace(*auditRecord) == "" || strings.TrimSpace(*workItem) == "" || *session != "" || len(inputs) != 0 {
-			return errors.New("--reset-session requires resume --phase audit --gate --audit-record --work-item, without --session or --input; resets the budget only")
+		if normalizedPhase != "audit" || len(inputs) != 0 {
+			return errors.New("--reset requires --gate --audit-record --work-item, without --input")
 		}
 		path := *auditRecord
 		if !filepath.IsAbs(path) {
 			path = filepath.Join(projectRoot, path)
 		}
-		if err := harness.ResetAuditBudget(path, *workItem, sessionGate); err != nil {
+		if err := harness.ResetAuditBudget(path, *workItem, sessionGate, readinessCheck); err != nil {
 			return err
 		}
-		fmt.Fprintf(output, "AUDIT BUDGET RESET: %s/%s; attempts used=0; native session and history retained; no provider invoked. Resume the audit without --reset-session.\n", *workItem, normalizedGate)
+		fmt.Fprintf(output, "AUDIT BUDGET RESET: %s/%s; history retained; no audit invoked. Run the audit without --reset.\n", *workItem, normalizedGate)
 		return nil
 	}
 	if readinessCheck != "" {
@@ -218,7 +224,8 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 			returnErr = fmt.Errorf("removing harness result file: %w", err)
 		}
 	}()
-	identity := *session
+	identity := ""
+	resume := action == "resume"
 	var entry harness.AuditEntry
 	cacheKey := ""
 	if normalizedPhase == "audit" && strings.TrimSpace(*auditRecord) != "" {
@@ -238,8 +245,15 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		if err != nil {
 			return err
 		}
-		if identity != "" && identity != entry.SessionID {
-			return fmt.Errorf("supplied session does not match recorded audit session %s", entry.SessionID)
+		entry.ReadinessCheck = readinessCheck
+		if entry.FailureBlocked() || entry.ConsecutiveFailures() >= config.MaxFailures {
+			for i := len(entry.History) - 1; i >= 0; i-- {
+				if entry.History[i].Diagnostic != "" {
+					fmt.Fprintf(errorOutput, "Diagnostic reference: %s\n", entry.History[i].Diagnostic)
+					break
+				}
+			}
+			return auditUnavailable()
 		}
 		if cached, ok := cachedAudit(entry, cacheKey); ok {
 			if err := evidence.Verify(); err != nil {
@@ -249,28 +263,15 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 			_, err = fmt.Fprintln(output, cached.Response)
 			return err
 		}
-		if action == "start" && found && (entry.SessionID != "" || entry.ExternalRound > 0) {
-			if entry.SessionID == "" {
-				return errors.New("prior audit attempt has no native session identity; operator recovery required, not a replacement session")
-			}
-			return fmt.Errorf("audit session already exists for %s/%s; resume session %s", *workItem, normalizedGate, entry.SessionID)
-		}
-		if action == "resume" {
+		if found {
 			if entry.Status == "running" {
 				return errors.New("recorded audit is running or was interrupted before recording its outcome; inspect it before resuming")
 			}
-			if !found || entry.SessionID == "" {
-				return fmt.Errorf("no resumable native audit session for %s/%s; inspect the record before starting or recovering an audit", *workItem, normalizedGate)
-			}
 			if entry.RoundsUsed() >= config.MaxRounds {
-				return fmt.Errorf("audit session for %s/%s has reached max_rounds=%d; operator may authorize --reset-session; see --help", *workItem, normalizedGate, config.MaxRounds)
-			}
-			if identity == "" {
-				identity = entry.SessionID
-			} else if identity != entry.SessionID {
-				return fmt.Errorf("supplied session does not match recorded audit session %s", entry.SessionID)
+				return fmt.Errorf("audit verdict limit reached for %s/%s; operator authorization is required for --reset", *workItem, normalizedGate)
 			}
 		}
+		identity, resume = entry.SessionID, entry.SessionID != ""
 	}
 	request := harness.Request{
 		Harness: config.Harness, Provider: config.Provider, Model: config.Model,
@@ -285,12 +286,28 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		path: recordPath, work: *workItem, gate: sessionGate, cacheKey: cacheKey, readinessCheck: readinessCheck, audit: normalizedPhase == "audit", diagnostics: errorOutput}
 	if runner.audit {
 		runner.cooldowns = harness.CooldownStore{Directory: filepath.Join(projectRoot, ".sdlc")}
+		log, logErr := openAuditDiagnostics(projectRoot, errorOutput)
+		if logErr != nil {
+			return fmt.Errorf("opening audit diagnostics: %w", logErr)
+		}
+		defer func() {
+			if closeErr := log.file.Close(); closeErr != nil && returnErr == nil {
+				returnErr = closeErr
+			}
+		}()
+		runner.diagnostics = log
+		runner.diagnosticPath = log.file.Name()
+		runner.request.OnResponse = log.capture
+		defer func() {
+			if returnErr != nil {
+				fmt.Fprintf(errorOutput, "Diagnostic reference: %s\n", log.file.Name())
+			}
+		}()
 	}
-	result, err := runner.execute(entry, action == "resume")
+	result, err := runner.execute(entry, resume)
 	if err != nil {
 		return err
 	}
-	fmt.Fprintf(errorOutput, "SESSION_ID: %s\n", result.SessionID)
 	_, err = fmt.Fprintln(output, result.Response)
 	return err
 }

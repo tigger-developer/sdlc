@@ -32,11 +32,14 @@ func auditCacheKey(work, gate, prompt string, registry auditPromptDocument, evid
 }
 
 func cachedAudit(entry harness.AuditEntry, key string) (harness.AuditRound, bool) {
-	if key == "" || entry.Status == "running" {
+	if key == "" || entry.Status == "running" || entry.FailureBlocked() {
 		return harness.AuditRound{}, false
 	}
 	for index := len(entry.History) - 1; index >= 0; index-- {
 		round := entry.History[index]
+		if round.Round <= entry.ResetBoundary() {
+			continue
+		}
 		if round.CacheKey != key || round.Incident != "" || round.SessionID == "" {
 			continue
 		}

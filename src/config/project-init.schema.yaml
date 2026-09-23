@@ -237,9 +237,9 @@ fields:
   - key: SDLC_AUDIT_MAX_ROUNDS
     path: delivery.audit.max_rounds
     flag: audit-max-rounds
-    help: Maximum external audit rounds for the current session
+    help: Maximum valid audit verdicts per work item and gate
     type: integer
-    prompt: "Maximum external audit rounds:"
+    prompt: "Maximum valid audit verdicts per gate:"
     default: "5"
     allow_global: true
 

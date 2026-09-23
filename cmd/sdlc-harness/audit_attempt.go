@@ -12,10 +12,11 @@ import (
 )
 
 type auditAttempt struct {
-	path      string
-	entry     harness.AuditEntry
-	limit     int
-	finalized bool
+	path         string
+	entry        harness.AuditEntry
+	limit        int
+	failureLimit int
+	finalized    bool
 }
 
 func beginAuditAttempt(path string, entry harness.AuditEntry, work, gate string, config harness.Config, evidence harness.Evidence, cacheKey string) (*auditAttempt, error) {
@@ -31,7 +32,7 @@ func beginAuditAttempt(path string, entry harness.AuditEntry, work, gate string,
 	// not resolve them. Prior response bodies remain in their historical rounds.
 	entry.History = append(entry.History, harness.AuditRound{Round: entry.ExternalRound, ReadinessCheck: entry.ReadinessCheck, Evidence: evidence.Files, Incident: "interrupted", Harness: config.Harness, Provider: config.Provider, Model: config.Model})
 	entry.History[len(entry.History)-1].CacheKey = cacheKey
-	attempt := &auditAttempt{path: path, entry: entry, limit: config.MaxRounds}
+	attempt := &auditAttempt{path: path, entry: entry, limit: config.MaxRounds, failureLimit: config.MaxFailures}
 	return attempt, harness.WriteAuditEntry(path, entry)
 }
 
@@ -66,6 +67,9 @@ func (attempt *auditAttempt) finish(runErr error) error {
 	}
 	round := &attempt.entry.History[len(attempt.entry.History)-1]
 	round.Incident = kind
+	if kind != "authentication-failed" && attempt.entry.ConsecutiveFailures() >= attempt.failureLimit {
+		round.InternalStop = true
+	}
 	return harness.WriteAuditEntry(attempt.path, attempt.entry)
 }
 

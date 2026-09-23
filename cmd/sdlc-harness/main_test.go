@@ -186,7 +186,7 @@ printf '{"type":"thread.started","thread_id":"native-session"}\n'
 	}
 	for _, arguments := range [][]string{
 		{"start", "--phase", "audit", "--gate", "delivery-code", "--audit-prompts", prompts, "--project", project, "--global-config", filepath.Join(root, "absent.yaml"), "--input", evidence},
-		{"resume", "--phase", "audit", "--gate", "delivery-code", "--audit-prompts", prompts, "--project", project, "--global-config", filepath.Join(root, "absent.yaml"), "--input", evidence, "--session", "native-session"},
+		{"resume", "--phase", "audit", "--gate", "delivery-code", "--audit-prompts", prompts, "--project", project, "--global-config", filepath.Join(root, "absent.yaml"), "--input", evidence},
 	} {
 		writeReadyDocuments(t, project)
 		arguments = append(arguments, "--audit-record", filepath.Join(project, "result.yaml"), "--work-item", "W004")
@@ -195,7 +195,7 @@ printf '{"type":"thread.started","thread_id":"native-session"}\n'
 		if err := run(arguments, strings.NewReader("audit this "+arguments[0]), &output, &diagnostics); err != nil {
 			t.Fatalf("%v returned %v: %s", arguments, err, diagnostics.String())
 		}
-		if !strings.Contains(output.String(), "VERDICT: PASS") || !strings.Contains(diagnostics.String(), "SESSION_ID: native-session") {
+		if !strings.Contains(output.String(), "VERDICT: PASS") || strings.Contains(diagnostics.String(), "SESSION_ID:") {
 			t.Fatalf("%v output = %q; diagnostics = %q", arguments, output.String(), diagnostics.String())
 		}
 	}
@@ -211,7 +211,7 @@ func TestW004InternalCLIRejectsIncompleteRequests(t *testing.T) {
 
 func TestW004StartRejectsSuppliedSession(t *testing.T) {
 	err := run([]string{"start", "--session", "agent-owned-id"}, strings.NewReader("prompt"), &bytes.Buffer{}, &bytes.Buffer{})
-	if err == nil || !strings.Contains(err.Error(), "start must not receive --session") {
+	if err == nil || !strings.Contains(err.Error(), "flag provided but not defined: -session") {
 		t.Fatalf("start with supplied session error = %v", err)
 	}
 }
@@ -255,7 +255,8 @@ printf '{"type":"thread.started","thread_id":"native-session"}\n'
 		t.Fatal(err)
 	}
 	arguments := []string{"start", "--phase", "AUDIT", "--gate", "definition", "--audit-prompts", prompts, "--project", project, "--global-config", filepath.Join(root, "absent.yaml"), "--input", evidence}
-	if err := run(arguments, strings.NewReader("audit this"), &bytes.Buffer{}, &bytes.Buffer{}); err == nil || !strings.Contains(err.Error(), "composite verdict") {
+	arguments = append(arguments, "--audit-record", filepath.Join(project, "result.yaml"), "--work-item", "W004")
+	if err := run(arguments, strings.NewReader("audit this"), &bytes.Buffer{}, &bytes.Buffer{}); err == nil || !strings.Contains(err.Error(), "Human intervention required") {
 		t.Fatalf("uppercase audit phase verdict validation = %v", err)
 	}
 }

@@ -1,10 +1,23 @@
 ---
 title: "SDLC Standards: Design Learnings"
 version: 1
-last-updated: 2026-09-21
+last-updated: 2026-09-23
 ---
 
 # SDLC Standards: Design Learnings
+
+## Audit recovery belongs behind the tool boundary
+
+Verdict limits measure review iterations, not provider availability. Charging
+malformed output or failed calls to the same allowance obscures that distinction
+and spends the project's remediation budget without obtaining findings. Keep a
+separate bounded failure streak, clarify malformed responses internally, and route
+authentication failures directly to fallback. A reset is an explicit operator
+decision that retires context and clears both counters without erasing evidence.
+
+Calling agents need verdicts or an actionable intervention diagnostic, not native
+session IDs and provider retry instructions. Private bounded logs preserve the
+rejected response needed for investigation without making it an audit verdict.
 
 ## Cooldown policy follows project configuration
 

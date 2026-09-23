@@ -1,0 +1,41 @@
+#+TITLE: W019 - Automatic audit recovery validation
+#+SCHEMA: 2
+#+STARTUP: overview
+#+TODO: AMBER RED | GREEN
+
+* Execution evidence
+** GREEN RT019.1 - Automatic recovery :testdef:
+:PROPERTIES:
+:REVISION: 1475f2e plus W019 implementation and tests
+:COMMAND: make test
+:EVIDENCE: 2026-09-23 full suite and lint passed using inherited PATH with Bash 5.3.9. Local provider doubles only.
+:END:
+- Initial RED: normal invocation rejected as unknown operation before implementation.
+- Limit amendment RED: default and configured failure bounds both made five calls
+  instead of three and two. Authentication amendment RED: malformed fallback after
+  primary authentication failure received an extra call rather than stopping.
+- GREEN: automatic recovery, format clarification, private raw logs, no session
+  leakage, configured limits, persistent stop, reset and authentication fallback passed.
+- Initial full-suite execution selected Bash 3.2 through login-shell PATH rewriting;
+  existing environment-loader tests failed on unsupported =[[ -v ]]=. The inherited
+  PATH selected installed Bash 5.3.9 and the full suite passed without loader edits.
+
+** GREEN RT019.2 - Gate budgets and configuration :testdef:
+:PROPERTIES:
+:REVISION: 1475f2e plus W019 implementation and tests
+:COMMAND: go test ./internal/harness ./cmd/sdlc-harness
+:EVIDENCE: 2026-09-23 full regression and race suites passed, including gate-local counters, resets, positive-integer validation and global/project configuration precedence.
+:END:
+- RED before implementation: mixed history returned six charged rounds instead of
+  two delivery-code verdicts. Historical reset boundary and gate isolation now pass.
+
+** GREEN OT019.1 - Documentation and packaging :testdef:
+:PROPERTIES:
+:REVISION: 1475f2e plus W019 code, documentation and skill changes
+:EVIDENCE: 2026-09-23 local v3.5.0 build and help inspection passed; one-command invocation, authorized reset and private diagnostics are documented. No installation performed.
+:END:
+
+** AMBER UT019.1 - Installed use :testdef:
+:PROPERTIES:
+:REASON: Requires operator installation and user validation; no global installation or other-project writes are authorized here.
+:END:

@@ -105,7 +105,7 @@ behaviour. Only minimal execution-enabling scaffolding is permitted under
 `TESTING.md`; include it in test-code audit evidence. Record RED only for the intended observed failure; initially GREEN
 preservation tests need their rationale. Mark deferred OT/UT execution AMBER with
 a reason. Run the validator with `--spec <spec.org> --readiness-check=test-code`,
-then the audit harness with `--phase audit --gate test-code`, using the work item's
+then the audit harness with `--gate test-code`, using the work item's
 `audits.yaml`. Remediate until
 PASS or effective PROVISIONAL PASS within the configured allowance before building.
 If the approved spec has no RTs, skip this audit and proceed to implementation;
@@ -115,21 +115,30 @@ Implement the authorized solution, obtain GREEN for every RT and execute bounded
 OTs. Keep the specification synchronized for authorized routine details, without
 changing signed-off behaviour. Finish the solution, tests and affected documentation,
 not merely one file or edit. Run `sdlc-validate --readiness-check=delivery-code`
-with the same spec, then invoke `--phase audit --gate delivery-code`: resume the
-same implementation audit session, or start it if test-code was legitimately
-skipped. Both gates share the configured round allowance. Include affected product
+with the same spec, then invoke `--phase audit --gate delivery-code`: use the same normal command whether or not test-code was required. Each gate has its own verdict allowance. Include affected product
 documentation; missing or materially stale required docs block the final gate.
 A test-code PASS is not delivery approval; check `readiness_check` in audit evidence.
-Before resuming either stage, address **every** finding as a batch:
+Before requesting another audit either stage, address **every** finding as a batch:
 remediate valid findings and challenge incorrect or out-of-scope findings with
 evidence under `~/.agents/sdlc/AUDITS.md`. Raise doubtful or unresolved disputes
 to the operator; never silently waive findings or expand scope to obtain a PASS.
-On timeout, follow the harness recovery diagnostic: in HANDS-OFF, resume
-automatically within its limit, using the retained session. Timeout without a
-verdict does not require an artificial edit or justify a handback by itself.
+The harness handles timeouts and malformed-response recovery internally. An
+intervention diagnostic requires operator recovery, not another agent retry loop.
 Do not invoke individual audit skills or re-audit the signed-off definition.
 After effective delivery-code PASS, return the results for operator validation.
 In HANDS-OFF, defer UTs until all other delivery work is delivered: leave them AMBER for the
 operator and list them at handback, alongside any genuinely blocked work. Do not
 pause otherwise executable delivery for UT participation. Return the change for
 operator validation and closure; do not claim closure yourself.
+
+## Audit invocation boundary
+
+Invoke the resolved absolute `~/.agents/sdlc/bin/sdlc-harness` path with
+`--gate`, `--audit-record`, `--work-item`, and the complete `--input` list.
+Use that same command for each review; do not select start/resume, pass session
+IDs, override providers, or troubleshoot the auditor. The harness manages recovery.
+Remediate every FAIL finding together. If it reports human intervention required,
+report the diagnostic reference and continue other authorized project work; do not
+inspect provider state or retry the infrastructure failure. Only after explicit
+operator authorization, invoke `--reset` once for the selected gate without inputs,
+then submit the normal audit without that flag. Never put resets in a retry loop.

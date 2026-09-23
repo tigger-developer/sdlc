@@ -1,7 +1,7 @@
 ---
 title: SDLC v3 Quickstart
 version: 1
-last-updated: 2026-09-16
+last-updated: 2026-09-23
 ---
 
 # SDLC v3 Quickstart
@@ -186,7 +186,7 @@ $define-change
 Review the generated `spec.org` in the browser. It must be sufficient for a new
 agent with no drafting-conversation context. The same skill runs the combined
 specification, design, and test-definition gate locally, then in one retained
-context through the configured audit harness. Sign off only after `spec.org` records the resulting
+context through the configured audit harness. Sign off only after `audits.yaml` records the resulting
 PASS and `docs/work.org` places the item in `REVIEW`.
 
 ## 5. Deliver the signed-off change
@@ -198,11 +198,16 @@ $deliver-change
 ```
 
 Delivery requires an `ACTIVE` work item whose specification records a current
-definition PASS and operator sign-off. It does not rerun definition audits. The
-sequence is automated test, RED, implementation, GREEN, then the combined
-implemented-test and code gate. Test definitions classified as OT or UT are
-recorded but do not pretend to be TDD. After PASS, execute them, record results
-in `validation.org`, reconcile documentation, and decide closure.
+operator sign-off and whose `audits.yaml` records a current definition PASS.
+It does not rerun definition audits. The sequence is written tests, observed RED,
+test-code review, implementation, RT/OT GREEN, documentation update, then delivery-code
+review. UTs may remain AMBER for operator participation and closure.
+
+The skill calls one normal audit command with the work item, record, gate and
+evidence. Session selection and bounded recovery belong to the harness. Each gate
+has its own verdict allowance; failed provider responses do not consume it. Only
+explicit operator authority permits `--reset`. An infrastructure-intervention
+response is a blocker to report, not an invitation to diagnose the auditor.
 
 For a separate review, use the audit harness described in
 [AUDITS.md](src/AUDITS.md), not retired individual audit skills.

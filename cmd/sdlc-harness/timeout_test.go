@@ -34,10 +34,11 @@ for argument in "$@"; do
 done
 cat > "$PROBE_PROMPT"
 if [ "$PROBE_IDENTITY" = yes ]; then printf '{"type":"thread.started","thread_id":"native-timeout"}\n'; fi
-if [ "$PROBE_SUCCESS" = yes ]; then
+if [ "$PROBE_SUCCESS" = success ] && [ -f "$PROBE_PROMPT.tried" ]; then
     printf 'GATE: delivery-code\nREVISION: checked\nVERDICT: PASS\n' > "$output"
     exit 0
 fi
+touch "$PROBE_PROMPT.tried"
 sleep 10
 `
 	// #nosec G306 -- executable local provider double; never a metered test.
@@ -48,7 +49,7 @@ sleep 10
 	t.Setenv("PROBE_PROMPT", filepath.Join(root, "prompt"))
 	t.Setenv("PROBE_CALLS", filepath.Join(root, "calls"))
 	t.Setenv("PROBE_IDENTITY", "yes")
-	t.Setenv("PROBE_SUCCESS", "no")
+	t.Setenv("PROBE_SUCCESS", recovery)
 	if recovery == "identity-missing" {
 		t.Setenv("PROBE_IDENTITY", "no")
 	}
@@ -67,92 +68,44 @@ sleep 10
 	record := filepath.Join(root, "audits.yaml")
 	writeReadyDocuments(t, root)
 	args := []string{"--project", root, "--global-config", config, "--audit-prompts", registry, "--gate", "delivery-code", "--audit-record", record, "--work-item", "W006-recovery", "--input", source}
-	for index, action := range []string{"start", "resume"} {
-		if index == 1 && recovery == "success" {
-			t.Setenv("PROBE_SUCCESS", "yes")
+
+	var output, diagnostics bytes.Buffer
+	err := run(args, strings.NewReader("review"), &output, &diagnostics)
+	var incident *harness.Incident
+	wantAttempts, wantVerdicts := 3, 0
+	if recovery == "success" {
+		wantAttempts, wantVerdicts = 2, 1
+		if err != nil {
+			t.Fatal(err)
 		}
-		var output, diagnostics bytes.Buffer
-		err := run(append([]string{action}, args...), strings.NewReader("review"), &output, &diagnostics)
-		var incident *harness.Incident
-		if recovery == "success" && index == 1 {
-			if err != nil {
-				t.Fatal(err)
-			}
-		} else if !errors.As(err, &incident) || incident.Kind != "timeout" {
-			t.Fatalf("timeout = %v", err)
+	} else if !errors.As(err, &incident) || incident.Kind != "human-intervention" {
+		t.Fatalf("timeout recovery = %v", err)
+	}
+	entry, found, err := harness.ReadAuditEntry(record, "W006-recovery", "implementation")
+	if err != nil || !found || len(entry.History) != wantAttempts || entry.RoundsUsed() != wantVerdicts || entry.History[0].Incident != "timeout" || entry.History[0].Verdict != "" {
+		t.Fatalf("timeout accounting = %#v (%v)", entry, err)
+	}
+	if len(entry.LatestEvidence()) != 2 {
+		t.Fatal("lost evidence")
+	}
+	if recovery == "identity-missing" && entry.SessionID != "" {
+		t.Fatal("invented native identity")
+	}
+	if recovery == "success" {
+		prompt, err := os.ReadFile(filepath.Join(root, "prompt"))
+		if err != nil || !bytes.Contains(prompt, []byte("CONTINUE_INTERRUPTED_FIXTURE")) || !bytes.Contains(prompt, []byte(`"change": "unchanged"`)) {
+			t.Fatalf("resume prompt = %s (%v)", prompt, err)
 		}
-		entry, found, err := harness.ReadAuditEntry(record, "W006-recovery", "implementation")
-		if err != nil || !found || len(entry.History) != index+1 || entry.History[0].Incident != "timeout" || entry.History[0].Verdict != "" {
-			t.Fatalf("timeout incident/history = %#v (%v)", entry, err)
-		}
-		if recovery == "identity-missing" {
-			if err != nil || !found || entry.SessionID != "" || entry.Status != "identity-missing" || !strings.Contains(diagnostics.String(), "STOP_FIXTURE") {
-				t.Fatalf("missing identity record: %#v (%v)", entry, err)
-			}
-			break
-		}
-		wantVerdict := ""
-		if recovery == "success" && index == 1 {
-			wantVerdict = "PASS"
-		}
-		if err != nil || !found || entry.SessionID != "native-timeout" || entry.ExternalRound != index+1 || entry.Verdict != wantVerdict {
-			t.Fatalf("timeout record = %#v (%v)", entry, err)
-		}
-		if len(entry.LatestEvidence()) != 2 || (wantVerdict == "" && output.Len() != 0) {
-			t.Fatal("lost evidence or emitted verdict")
-		}
-		if index == 0 && !strings.Contains(diagnostics.String(), "RETRY_SAME_SESSION_FIXTURE") {
-			t.Fatal(diagnostics.String())
-		}
-		if index == 1 {
-			prompt, err := os.ReadFile(filepath.Join(root, "prompt"))
-			if err != nil || !bytes.Contains(prompt, []byte("CONTINUE_INTERRUPTED_FIXTURE")) || !bytes.Contains(prompt, []byte(`"change": "unchanged"`)) {
-				t.Fatalf("resume prompt = %s (%v)", prompt, err)
-			}
-			if recovery == "exhausted" && !strings.Contains(diagnostics.String(), "STOP_FIXTURE") {
-				t.Fatal(diagnostics.String())
-			}
-		}
+	} else if output.Len() != 0 {
+		t.Fatal("incident emitted verdict")
 	}
 	before, err := os.ReadFile(filepath.Join(root, "calls"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, action := range []string{"start", "resume"} {
-		err := run(append([]string{action}, args...), strings.NewReader("review"), &bytes.Buffer{}, &bytes.Buffer{})
-		if err == nil && recovery != "success" {
-			t.Fatalf("%s evaded exhausted attempt limit", action)
-		}
-		if err != nil && recovery == "success" {
-			t.Fatalf("%s rejected identical cached PASS: %v", action, err)
-		}
-	}
+	_ = run(args, strings.NewReader("review"), &bytes.Buffer{}, &bytes.Buffer{})
 	after, err := os.ReadFile(filepath.Join(root, "calls"))
 	if err != nil || !bytes.Equal(before, after) {
-		t.Fatalf("blocked invocation called provider: %q -> %q (%v)", before, after, err)
-	}
-	if recovery == "exhausted" {
-		resetArgs := []string{"resume", "--reset-session", "--project", root, "--gate", "delivery-code", "--audit-record", record, "--work-item", "W006-recovery"}
-		if err := run(resetArgs, strings.NewReader(""), &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
-			t.Fatal(err)
-		}
-		for round := 3; round <= 4; round++ {
-			err := run(append([]string{"resume"}, args...), strings.NewReader("review"), &bytes.Buffer{}, &bytes.Buffer{})
-			var incident *harness.Incident
-			if !errors.As(err, &incident) || incident.Kind != "timeout" {
-				t.Fatalf("post-reset timeout %d: %v", round, err)
-			}
-			entry, _, err := harness.ReadAuditEntry(record, "W006-recovery", "implementation")
-			if err != nil || entry.RoundsUsed() != round-2 || len(entry.History) != round || entry.SessionID != "native-timeout" {
-				t.Fatalf("post-reset accounting: %#v (%v)", entry, err)
-			}
-		}
-		if err := run(append([]string{"resume"}, args...), strings.NewReader("review"), &bytes.Buffer{}, &bytes.Buffer{}); err == nil || !strings.Contains(err.Error(), "max_rounds") {
-			t.Fatalf("reset allowed unbounded retries: %v", err)
-		}
-		calls, err := os.ReadFile(filepath.Join(root, "calls"))
-		if err != nil || string(calls) != "xxxx" {
-			t.Fatalf("post-reset calls: %q (%v)", calls, err)
-		}
+		t.Fatal("cache or lockout relaunched provider")
 	}
 }
