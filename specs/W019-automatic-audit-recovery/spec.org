@@ -99,7 +99,8 @@
 - Boundary :: CLI entry point with local executable doubles for existing provider protocols; no metered service.
 - Action :: Exercise malformed-then-valid, repeated malformed, configured limit two,
   timeout, authentication fallback success/failure, stale fallback output, cached replay
-  and reset following lockout.
+  and reset following lockout. Check lockout after raising configuration limits,
+  diagnostic references, anonymous liveness after the log cap and final-verdict status.
 - Expected :: Corrected results count once; malformed results never consume verdicts;
   default exhaustion makes three calls, configured exhaustion two; dual authentication
   failure makes only primary and fallback calls; clarification names the expected
@@ -113,7 +114,7 @@
 :END:
 - Covers :: [[#ac019-2][AC019.2 - Separate limits]] and [[#ac019-4][AC019.4 - Reset]].
 - Action :: Use mixed test-code/delivery-code histories, incidents, valid verdicts,
-  historical resets and new gate resets. Resolve missing, positive, invalid and
+  historical resets, unlabelled legacy entries before and after migration, and new gate resets. Resolve missing, positive, invalid and
   project-overridden =max_failures= configuration.
 - Expected :: *Independent gate counts*, incident exclusion, default three, project
   override precedence, positive-integer validation and reset isolation.
@@ -129,7 +130,8 @@
   and check the diff for contradictory recovery instructions.
 - Expected :: *One normal invocation*, no public session-ID control, authorized
   reset, no agent troubleshooting loop and accurate operator diagnostic guidance.
-- Bounds :: Local inspection/build only; no installation or external API calls.
+- Bounds :: Local inspection/build and compiled-CLI smoke with local provider doubles;
+  no installation or external API calls.
 
 ** UT019.1 - Installed use :testdef:
 :PROPERTIES:
@@ -197,3 +199,23 @@ sdlc-harness --reset --gate delivery-code --project . \
 - Documentation :: Refresh help, README, quickstart, architecture, standards,
   learnings and definition/delivery/paired/emergency skills.
 - Release :: Versioned repository release; *installation and closure remain operator actions*.
+
+* Hands-off mode decision log
+** 2026-09-23T01:51:15Z :hands-off:review:
+*** Emergency verification exception
+- Authority :: Operator instruction to continue hands-off and self-audit this emergency harness release.
+- Rule affected :: Independent delivery-code and retrospective definition review for this release.
+- Replacement :: Author self-review of implementation, tests, documentation and reconciled specification,
+  with local regression, race, readiness and compiled-CLI evidence. No fabricated external verdict.
+- Risk :: Author review lacks independent challenge of the revised candidate.
+- Owner :: Operator; installation and closure remain separate decisions.
+- Removal condition :: Obtain independent review of the deployed candidate when the operator resumes that route.
+- Scope :: This release only; no shared workflow standards are weakened.
+*** Bounded implementation choices
+- Liveness :: Keep anonymous 30-second notices, including after the private log reaches its cap.
+- Traceability :: Keep lifetime attempt numbers in private records, not cache messages.
+- Structure :: Retain the existing CLI orchestration and recovery coordinator for this emergency change.
+  They exceed the function-size review guideline; moving admission, checkpoint and cleanup ordering
+  into a broader refactor would enlarge the change. Behavioural regression tests cover those boundaries.
+*** Review evidence
+- Record :: [[file:self-review.md][Author self-review and remaining verification boundary]].

@@ -43,7 +43,7 @@ it into Vision, Architecture or specifications. No additional audit gate is need
 
 Definition, test-code and delivery-code are distinct review decisions. Readiness
 is a deterministic prerequisite selected by the audit gate, not a second caller
-choice. The latter two gates share one implementation session and attempt budget;
+choice. The latter two gates share one implementation session, with separate verdict budgets;
 their verdicts and caches must still distinguish test approval from delivery approval.
 
 TDD needs executable assertions, not compilation failures. Permit only the minimal

@@ -6,7 +6,7 @@
 * Execution evidence
 ** GREEN RT019.1 - Automatic recovery :testdef:
 :PROPERTIES:
-:REVISION: 1475f2e plus W019 implementation and tests
+:REVISION: 24ca097 plus W019 emergency self-review corrections
 :COMMAND: make test
 :EVIDENCE: 2026-09-23 full suite and lint passed using inherited PATH with Bash 5.3.9. Local provider doubles only.
 :END:
@@ -19,21 +19,33 @@
 - Initial full-suite execution selected Bash 3.2 through login-shell PATH rewriting;
   existing environment-loader tests failed on unsupported =[[ -v ]]=. The inherited
   PATH selected installed Bash 5.3.9 and the full suite passed without loader edits.
+- Additional RED: final allowed FAIL retained active status; cache diagnostics
+  disclosed lifetime attempts; capped logs suppressed caller liveness.
+- GREEN after correction: verdict exhaustion status, anonymous cache/liveness output,
+  raised-limit lockout and diagnostic references. Authentication fallback also
+  passes with an internal limit of one; absent fallback stops immediately.
 
 ** GREEN RT019.2 - Gate budgets and configuration :testdef:
 :PROPERTIES:
-:REVISION: 1475f2e plus W019 implementation and tests
+:REVISION: 24ca097 plus W019 emergency self-review corrections
 :COMMAND: go test ./internal/harness ./cmd/sdlc-harness
 :EVIDENCE: 2026-09-23 full regression and race suites passed, including gate-local counters, resets, positive-integer validation and global/project configuration precedence.
 :END:
 - RED before implementation: mixed history returned six charged rounds instead of
   two delivery-code verdicts. Historical reset boundary and gate isolation now pass.
+- Additional RED: six mismatched/unlabelled legacy gate combinations charged a verdict.
+  GREEN: only matching gate evidence counts, consistently before and after migration.
 
 ** GREEN OT019.1 - Documentation and packaging :testdef:
 :PROPERTIES:
-:REVISION: 1475f2e plus W019 code, documentation and skill changes
+:REVISION: 24ca097 plus W019 emergency self-review corrections
 :EVIDENCE: 2026-09-23 local v3.5.0 build and help inspection passed; one-command invocation, authorized reset and private diagnostics are documented. No installation performed.
 :END:
+- Compiled v3.5.0 CLI smoke: malformed response followed by valid response, cache
+  without a call, three-response lockout, refusal without a call, reset without
+  a call and subsequent fresh context all passed. Caller output withheld IDs/counts.
+- Provider doubles and all generated smoke artefacts remained in an allocated OS
+  temporary directory. No installed auditor or live provider was used for these checks.
 
 ** AMBER UT019.1 - Installed use :testdef:
 :PROPERTIES:

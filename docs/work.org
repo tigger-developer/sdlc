@@ -12,7 +12,7 @@ authoritative representation:
 - *Classification* :: One or more tags on that headline.
 - *Stable metadata* :: The work item's property drawer.
 - *Current definition* :: The linked =spec.org= file.
-- *Evidence* :: The linked =audits.org= and =validation.org= files.
+- *Evidence* :: The linked =audits.yaml= and =validation.org= files; legacy entries may retain =audits.org=.
 - *History* :: Git history and explicitly linked archived sources.
 
 Do not repeat lifecycle state in a property, section, specification, or evidence
@@ -86,6 +86,7 @@ classification; it is provenance, not current state.
 - *Specification:* [[file:../specs/W019-automatic-audit-recovery/spec.org][W019 - Automatic audit recovery]]
 - *Validation:* [[file:../specs/W019-automatic-audit-recovery/validation.org][W019 - Verification evidence]]
 - *Audit evidence:* [[file:../specs/W019-automatic-audit-recovery/audits.yaml][W019 - Harness-owned audits]]
+- *Author verification:* [[file:../specs/W019-automatic-audit-recovery/self-review.md][W019 - Emergency self-review]]
 
 ** REVIEW W018 - Keep audit cooldown project-local and configurable :defect:
 :PROPERTIES:

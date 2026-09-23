@@ -108,7 +108,8 @@ until round-trip preservation of the supported subset is demonstrated.
 The definition gate applies specification, design, and test-definition criteria.
 The implementation gate applies implemented-test and code criteria.
 
-Each gate retains one external session per work item. Composite prompts live in
+Definition retains its own context; test-code and delivery-code share an
+implementation context but have separate verdict allowances. Composite prompts live in
 `src/prompts/audits.yaml`; separate audit skills are no longer deployed. The
 harness owns session identity, timeout, round limits, and persistence. Authoring
 agents remediate all findings before resuming the same gate session.
@@ -134,6 +135,7 @@ over the full supplied manifest, prompt registry, caller context and effective
 primary/fallback model settings. The newest matching incident-free response is
 returned before session recovery and round admission, without any record mutation.
 Unkeyed legacy records and incomplete attempts cannot produce cache hits.
+Internal lockout is checked before cache lookup and survives configuration changes.
 
 For Claude, the captured manifest also supplies exact invocation-local Read
 permissions, including resolved path aliases. JSON settings preserve literal
@@ -142,9 +144,9 @@ Read-only built-in tools and plan mode; existing permission denials still apply.
 This is evidence-access plumbing, not a complete filesystem sandbox.
 
 Native session identity is checkpointed as soon as the adapter observes it.
-Timeouts retain the attempt manifest without consuming the verdict budget. YAML supplies the caller recovery diagnostic and
-the resumed auditor's continuation instruction. Missing identity or exhausted
-bounds stop timeout recovery. Explicit missing-session diagnostics and configuration
+Timeouts retain the attempt manifest without consuming the verdict budget. YAML supplies private timeout diagnostics and
+the resumed auditor's continuation instruction. Missing identity permits a bounded
+fresh context; exhausted internal limits stop recovery. Explicit missing-session diagnostics and configuration
 changes permit a harness-owned replacement, with previous identities/configuration
 retained and all historical findings supplied to the new context. An optional
 phase-local fallback tuple handles unusable audit attempts once per call;
@@ -173,7 +175,8 @@ records are preserved in YAML through the existing migration. Delivery does not
 repeat the definition gate when entering a new context.
 
 Provider stdout is decoded incrementally for bounded progress metadata and error
-diagnostics on stderr. Claude uses native streaming JSON; its final result alone
+diagnostics, retained privately for audits. Callers receive anonymous liveness notices.
+Claude uses native streaming JSON; its final result alone
 becomes the returned response. Failed exits and timeouts flush the final partial
 record instead of discarding it. Capture is limited to 16 MiB, with an explicit
 overflow incident; provider stderr is captured privately. Event metadata is not a verdict

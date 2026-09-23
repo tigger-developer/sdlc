@@ -121,22 +121,24 @@ the same automatic audit behaviour. The old reset-session flag is replaced by re
 
 ## Output and private diagnostics
 
-Stdout contains only a validated audit response or readiness report. Stderr carries
-plain liveness notices and, on failure, a diagnostic reference. Provider names,
+An audit writes only its validated response or readiness report to stdout;
+`--reset` instead writes a reset confirmation and exits. Stderr carries
+anonymous start and 30-second liveness notices and, on failure, a diagnostic reference. Provider names,
 session IDs and internal retry counts are not part of the calling-agent contract.
 
 Private files under `.sdlc/audit-diagnostics/` retain provider diagnostics and
 unvalidated output, including malformed responses. Files are created with mode
 0600 in a 0700 directory with its own Git ignore rule. Each invocation log is
-bounded to 16 MiB. Logs may contain reviewed material; they are for operator
+bounded to 16 MiB; excess bytes are discarded without stopping liveness notices.
+Logs may contain reviewed material; they are for operator
 investigation, never automatic upload or audit verdicts. Operators control retention.
 No request prompts or input-file copies are deliberately logged.
 
 ## Audit example
 
 ```sh
-/absolute/path/to/.agents/sdlc/bin/sdlc-harness --gate definition \\
-  --project . --audit-record specs/W001-change/audits.yaml --work-item W001-change \\
+/absolute/path/to/.agents/sdlc/bin/sdlc-harness --gate definition \
+  --project . --audit-record specs/W001-change/audits.yaml --work-item W001-change \
   --input specs/W001-change/spec.org --input .sdlc/project.yaml < audit-context.txt
 ```
 
@@ -147,7 +149,7 @@ Repeat the same command after remediating findings, with the full current eviden
 With `--audit-record`, repeated identical requests return the recorded `PASS`,
 `FAIL` or `PROVISIONAL PASS` and findings without launching a provider, changing
 the record or consuming a round. Stderr says `AUDIT CACHE HIT` and names the
-source round. No new session ID is emitted. A cached FAIL still requires
+work item, gate and record, without exposing provider attempt numbers or session IDs. A cached FAIL still requires
 remediation; a cached provisional pass retains its conditions.
 
 The versioned SHA-256 key covers work item, gate, every supplied path and content
@@ -189,7 +191,7 @@ retries and envelope correction, not the calling agent. For an unusable response
 it first sends a correction prompt in the retained context when available before
 trying fallback; a valid corrected verdict consumes one verdict allowance. It returns only
 "Audit unavailable: unable to obtain a valid result. Human intervention required"
-with a diagnostic reference. Further uncached audits are refused until an authorized
+with a diagnostic reference. Further audits, including cached requests, are refused until an authorized
 `--reset`. Operators inspect the private log before authorizing recovery.
 Authentication failure immediately selects the configured fallback, without format
 correction. If that fallback fails, or no fallback is configured, the harness locks

@@ -11,14 +11,15 @@ import (
 )
 
 func TestAuthenticationFallbackIsImmediateAndBounded(t *testing.T) {
-	for _, mode := range []string{"success", "authentication", "malformed"} {
+	for _, mode := range []string{"success", "authentication", "malformed", "success-limit-one", "malformed-limit-one", "no-fallback"} {
 		t.Run(mode, func(t *testing.T) {
+			outcome := strings.TrimSuffix(mode, "-limit-one")
 			root := t.TempDir()
 			t.Setenv("PATH", root+string(os.PathListSeparator)+os.Getenv("PATH"))
 			t.Setenv("AUTH_ROOT", root)
 			primary := "#!/bin/sh\ncat >/dev/null\nprintf 'primary\\n' >> \"$AUTH_ROOT/calls\"\nprintf 'Not logged in\\n' >&2\nexit 1\n"
 			fallback := "#!/bin/sh\ncat >/dev/null\nprintf 'fallback\\n' >> \"$AUTH_ROOT/calls\"\nprintf 'session_id: fixture\\n' >&2\n"
-			switch mode {
+			switch outcome {
 			case "success":
 				fallback += "printf 'GATE: definition\\nREVISION: fixture\\nVERDICT: PASS\\n'\n"
 			case "authentication":
@@ -34,18 +35,29 @@ func TestAuthenticationFallbackIsImmediateAndBounded(t *testing.T) {
 			}
 			config := filepath.Join(root, "config.yaml")
 			registry := filepath.Join(root, "prompts.yaml")
-			for path, body := range map[string]string{config: "delivery:\n  audit:\n    harness: claude\n    model: fixture\n    fallback:\n      harness: hermes\n      provider: fixture\n      model: fixture\n", registry: "version: 1\nsession_recovery_instructions: Preserve findings.\ngates:\n  definition:\n    prompt: audit\n"} {
+			configuration := "delivery:\n  audit:\n    harness: claude\n    model: fixture\n"
+			if strings.HasSuffix(mode, "-limit-one") {
+				configuration += "    max_failures: 1\n"
+			}
+			if outcome != "no-fallback" {
+				configuration += "    fallback:\n      harness: hermes\n      provider: fixture\n      model: fixture\n"
+			}
+			for path, body := range map[string]string{config: configuration, registry: "version: 1\nsession_recovery_instructions: Preserve findings.\ngates:\n  definition:\n    prompt: audit\n"} {
 				if err := os.WriteFile(path, []byte(body), 0o600); err != nil {
 					t.Fatal(err)
 				}
 			}
 			args := []string{"--gate", "definition", "--project", root, "--global-config", config, "--audit-prompts", registry, "--audit-record", filepath.Join(root, "audits.yaml"), "--work-item", "W019", "--input", registry}
 			err := run(args, strings.NewReader("audit"), &bytes.Buffer{}, &bytes.Buffer{})
-			if (err != nil) != (mode != "success") {
+			if (err != nil) != (outcome != "success") {
 				t.Fatalf("result=%v", err)
 			}
 			calls, err := os.ReadFile(filepath.Join(root, "calls"))
-			if err != nil || string(calls) != "primary\nfallback\n" {
+			want := "primary\nfallback\n"
+			if outcome == "no-fallback" {
+				want = "primary\n"
+			}
+			if err != nil || string(calls) != want {
 				t.Fatalf("calls=%q %v", calls, err)
 			}
 			_ = run(args, strings.NewReader("audit"), &bytes.Buffer{}, &bytes.Buffer{})

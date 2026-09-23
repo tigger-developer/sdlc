@@ -18,7 +18,6 @@ func TestFallbackForUnusableAuditResult(t *testing.T) {
 	for _, mode := range []string{"limit", "reset-limit", "launch-error", "codex-failure", "custom-period", "timeout", "malformed", "wrong-gate", "empty", "PASS", "FAIL", "PROVISIONAL PASS", "fallback-fails", "exhausted", "evidence-changed"} {
 		t.Run(mode, func(t *testing.T) {
 			root := t.TempDir()
-			t.Setenv("SDLC_HARNESS_STATE_DIR", filepath.Join(root, "state"))
 			bin := filepath.Join(root, "bin")
 			if err := os.Mkdir(bin, 0o700); err != nil {
 				t.Fatal(err)

@@ -144,8 +144,8 @@ also applies to retrospective definition reviews.
 The external auditor returns its envelope and findings only; it does not edit
 files. The harness persists that response in `audits.yaml`.
 
-While waiting, the harness emits a start message and 30-second liveness
-heartbeats to stderr. A heartbeat is not provider progress, a verdict, or
+While waiting, the harness emits anonymous start and 30-second liveness
+notices to stderr: `Audit in progress.` A heartbeat is not provider progress, a verdict, or
 evidence that the audit has completed.
 
 Codex and Claude receive original absolute evidence paths, not document copies.

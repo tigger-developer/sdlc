@@ -26,6 +26,28 @@ func TestVerdictBudgetExcludesIncidentsAndOtherGates(t *testing.T) {
 	}
 }
 
+func TestLegacyVerdictRequiresMatchingGateEvidence(t *testing.T) {
+	for _, selected := range []string{"test-code", "delivery-code"} {
+		for _, recorded := range []string{"", "implementation", "test-code", "delivery-code"} {
+			entry := AuditEntry{Gate: "implementation", ReadinessCheck: selected, ExternalRound: 1, Verdict: "FAIL"}
+			if recorded != "" {
+				entry.Response = "GATE: " + recorded + "\nREVISION: old\nVERDICT: FAIL"
+			}
+			want := 0
+			if recorded == selected {
+				want = 1
+			}
+			if got := entry.RoundsUsed(); got != want {
+				t.Errorf("selected=%s recorded=%q: got %d, want %d", selected, recorded, got, want)
+			}
+			entry.History = []AuditRound{{Round: 1, Verdict: entry.Verdict, Response: entry.Response}}
+			if got := entry.RoundsUsed(); got != want {
+				t.Errorf("migration changed count: selected=%s recorded=%q got=%d want=%d", selected, recorded, got, want)
+			}
+		}
+	}
+}
+
 func TestGateResetAndFailureStreakAreIndependent(t *testing.T) {
 	entry := AuditEntry{WorkItem: "W019", Gate: "implementation", ReadinessCheck: "delivery-code", SessionID: "native", Status: "incident", ExternalRound: 7,
 		History: []AuditRound{

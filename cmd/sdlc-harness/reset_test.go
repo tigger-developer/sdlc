@@ -11,7 +11,7 @@ import (
 	"github.com/tigger-developer/sdlc/internal/harness"
 )
 
-func TestResetSessionPreservesHistoryAndNativeContext(t *testing.T) {
+func TestResetPreservesHistoryAndRetiresNativeContext(t *testing.T) {
 	root := t.TempDir()
 	path := filepath.Join(root, "audits.yaml")
 	entry := harness.AuditEntry{WorkItem: "W015-reset", Gate: "implementation", SessionID: "native-existing", Harness: "codex", ExternalRound: 5, Status: "exhausted", Findings: []string{"retained finding"}, History: []harness.AuditRound{{Round: 5, ReadinessCheck: "delivery-code", Verdict: "FAIL", Updated: "2026-09-13T00:00:00Z"}}}
@@ -55,14 +55,16 @@ func TestResetSessionPreservesHistoryAndNativeContext(t *testing.T) {
 }
 
 func TestResetSessionRejectsAmbiguousInvocation(t *testing.T) {
-	for _, args := range [][]string{
-		{"start", "--reset", "--gate", "definition"},
-		{"resume", "--reset", "--phase", "build"},
-		{"resume", "--reset", "--gate", "definition", "--audit-record", "absent", "--work-item", "W015-reset", "--input", "spec.org"},
-		{"resume", "--reset", "--gate", "definition", "--audit-record", "absent", "--work-item", "W015-reset", "--session", "native"},
+	for _, tc := range []struct {
+		args []string
+		want string
+	}{
+		{[]string{"--reset", "--gate", "definition"}, "audit requires --audit-record and --work-item"},
+		{[]string{"--reset", "--phase", "build"}, "--reset requires --gate --audit-record --work-item, without --input"},
+		{[]string{"--reset", "--gate", "definition", "--audit-record", "absent", "--work-item", "W015-reset", "--input", "spec.org"}, "--reset requires --gate --audit-record --work-item, without --input"},
 	} {
-		if err := run(args, strings.NewReader(""), &bytes.Buffer{}, &bytes.Buffer{}); err == nil {
-			t.Fatalf("accepted %v", args)
+		if err := run(tc.args, strings.NewReader(""), &bytes.Buffer{}, &bytes.Buffer{}); err == nil || err.Error() != tc.want {
+			t.Fatalf("args=%v error=%v, want %q", tc.args, err, tc.want)
 		}
 	}
 }

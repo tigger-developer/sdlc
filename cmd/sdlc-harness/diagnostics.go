@@ -49,6 +49,7 @@ func (d *auditDiagnostics) Write(data []byte) (int, error) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	n := len(data)
+	liveness := strings.HasPrefix(string(data), "sdlc-harness: external context started (") || strings.HasPrefix(string(data), "sdlc-harness: external context still running (")
 	if len(data) > d.remaining {
 		data = data[:d.remaining]
 	}
@@ -57,11 +58,13 @@ func (d *auditDiagnostics) Write(data []byte) (int, error) {
 	if err != nil {
 		return written, err
 	}
-	if strings.Contains(string(data), "waiting for final response") {
+	if liveness {
 		if _, err := fmt.Fprintln(d.output, "Audit in progress."); err != nil {
 			return written, err
 		}
 	}
+	// This bounded sink accepts excess bytes into a discard sink, like io.Discard;
+	// reaching the retention cap must not interrupt a running provider or heartbeat.
 	return n, nil
 }
 

@@ -46,6 +46,11 @@ fi
 				}
 			}
 			record := filepath.Join(root, "audits.yaml")
+			if mode == "recover" {
+				if err := os.WriteFile(config, []byte("delivery:\n  audit:\n    harness: hermes\n    provider: fixture\n    model: fixture\n    max_rounds: 1\n"), 0o600); err != nil {
+					t.Fatal(err)
+				}
+			}
 			if mode == "configured" {
 				if err := os.WriteFile(config, []byte("delivery:\n  audit:\n    harness: hermes\n    provider: fixture\n    model: fixture\n    max_failures: 2\n"), 0o600); err != nil {
 					t.Fatal(err)
@@ -60,9 +65,15 @@ fi
 			if mode != "recover" && (err == nil || !strings.Contains(err.Error(), "Human intervention required")) {
 				t.Fatalf("error = %v", err)
 			}
+			if mode != "recover" && !strings.Contains(diagnostics.String(), "Diagnostic reference: ") {
+				t.Fatalf("missing operator diagnostic reference: %s", &diagnostics)
+			}
 			entry, found, readErr := harness.ReadAuditEntry(record, "W019", "definition")
 			if readErr != nil || !found {
 				t.Fatalf("record missing: %v", readErr)
+			}
+			if mode == "recover" && entry.Status != "exhausted" {
+				t.Fatalf("final allowed FAIL status=%s, want exhausted", entry.Status)
 			}
 			wantCalls, wantVerdicts := 2, 1
 			if mode != "recover" {
@@ -87,10 +98,26 @@ fi
 				t.Fatalf("rejected response missing: %s %v", body, readErr)
 			}
 			out.Reset()
+			diagnostics.Reset()
+			if mode == "broken" {
+				body, err := os.ReadFile(config)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if err := os.WriteFile(config, append(body, []byte("    max_failures: 9\n")...), 0o600); err != nil {
+					t.Fatal(err)
+				}
+			}
 			_ = run(args, strings.NewReader("audit"), &out, &diagnostics)
 			after, readErr := os.ReadFile(filepath.Join(root, "calls"))
 			if readErr != nil || !bytes.Equal(calls, after) {
 				t.Fatal("cached verdict or lockout invoked provider")
+			}
+			if mode != "recover" && !strings.Contains(diagnostics.String(), "Diagnostic reference: ") {
+				t.Fatal("locked-out invocation omitted diagnostic reference")
+			}
+			if strings.Contains(diagnostics.String(), "round=") {
+				t.Fatal("caller saw lifetime provider attempt count")
 			}
 			if mode == "recover" {
 				prompt, err := os.ReadFile(filepath.Join(root, "prompt"))

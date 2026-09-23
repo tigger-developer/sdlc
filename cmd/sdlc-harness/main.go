@@ -66,7 +66,7 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		return runGoalConfig(arguments[1:], output, errorOutput)
 	}
 	if action != "audit" && action != "start" && action != "resume" {
-		return fmt.Errorf("unknown operation %q; use start, resume or goal-config", action)
+		return fmt.Errorf("unknown operation %q; invoke with --gate GATE --audit-record FILE --work-item ID, or use goal-config; start/resume are accepted legacy words", action)
 	}
 	flags := flag.NewFlagSet("sdlc-harness "+action, flag.ContinueOnError)
 	flags.SetOutput(errorOutput)
@@ -259,7 +259,7 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 			if err := evidence.Verify(); err != nil {
 				return err
 			}
-			fmt.Fprintf(errorOutput, "AUDIT CACHE HIT: %s/%s round=%d; no provider invoked; no round consumed; record=%s\n", *workItem, normalizedGate, cached.Round, *auditRecord)
+			fmt.Fprintf(errorOutput, "AUDIT CACHE HIT: %s/%s; no provider invoked; no verdict consumed; record=%s\n", *workItem, normalizedGate, *auditRecord)
 			_, err = fmt.Fprintln(output, cached.Response)
 			return err
 		}

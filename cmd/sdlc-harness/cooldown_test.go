@@ -15,10 +15,9 @@ import (
 )
 
 func TestCooldownRouting(t *testing.T) {
-	for _, mode := range []string{"active", "resume-primary", "resume-no-record", "no-state-retained", "expired", "no-fallback", "corrupt", "exhausted", "other-model", "cache"} {
+	for _, mode := range []string{"active", "resume-primary", "no-state-retained", "expired", "no-fallback", "corrupt", "exhausted", "other-model", "cache"} {
 		t.Run(mode, func(t *testing.T) {
 			root := t.TempDir()
-			t.Setenv("SDLC_HARNESS_STATE_DIR", filepath.Join(root, "state"))
 			t.Setenv("PATH", root+string(os.PathListSeparator)+os.Getenv("PATH"))
 			for name, output := range map[string]string{
 				"claude": `printf '%s\n' '{"type":"result","result":"GATE: definition\nREVISION: fixture\nVERDICT: PASS"}'`,
@@ -67,9 +66,6 @@ func TestCooldownRouting(t *testing.T) {
 			record := filepath.Join(root, "audits.yaml")
 			args := []string{"start", "--project", root, "--global-config", filepath.Join(root, "config.yaml"), "--audit-prompts", filepath.Join(root, "prompts.yaml"), "--gate", "definition", "--audit-record", record, "--work-item", "W017-cooldown"}
 			args = append(args, "--input", filepath.Join(root, "prompts.yaml"))
-			if mode == "resume-no-record" {
-				args = []string{"resume", "--project", root, "--global-config", filepath.Join(root, "config.yaml"), "--audit-prompts", filepath.Join(root, "prompts.yaml"), "--gate", "definition", "--session", "primary-session", "--input", filepath.Join(root, "prompts.yaml")}
-			}
 			if mode == "expired" || mode == "exhausted" || mode == "resume-primary" || mode == "no-state-retained" {
 				entry := harness.AuditEntry{WorkItem: "W017-cooldown", Gate: "definition", SessionID: "fallback-session", Harness: "hermes", Provider: "nous", Model: "fallback-fixture", Configured: &agent, Status: "incident", ExternalRound: 2}
 				if mode == "resume-primary" {
@@ -88,7 +84,7 @@ func TestCooldownRouting(t *testing.T) {
 			}
 			var diagnostics bytes.Buffer
 			err := run(args, strings.NewReader("audit"), &bytes.Buffer{}, &diagnostics)
-			blocked := mode == "no-fallback" || mode == "corrupt" || mode == "exhausted" || mode == "resume-no-record"
+			blocked := mode == "no-fallback" || mode == "corrupt" || mode == "exhausted"
 			if (err != nil) != blocked {
 				t.Fatalf("error=%v diagnostics=%s", err, diagnostics.String())
 			}
@@ -106,11 +102,10 @@ func TestCooldownRouting(t *testing.T) {
 			if readErr != nil || string(calls) != want {
 				t.Fatalf("calls=%q want=%q err=%v", calls, want, readErr)
 			}
-			if mode == "resume-no-record" {
+			if mode == "resume-primary" {
 				if _, err := os.Stat(filepath.Join(root, "resumed")); !os.IsNotExist(err) {
 					t.Fatalf("passed primary session to fallback: %v", err)
 				}
-				return
 			}
 			entry, _, err := harness.ReadAuditEntry(record, "W017-cooldown", "definition")
 			if err != nil {

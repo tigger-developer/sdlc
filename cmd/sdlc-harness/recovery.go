@@ -66,7 +66,7 @@ func (r recoveryRun) execute(entry harness.AuditEntry, resume bool) (harness.Res
 	missingRecovered, fallbackUsed := false, selected.Agent() != r.config.Agent()
 	corrected := map[harness.AgentConfig]bool{}
 	authenticationFallback := false
-	// At most one configured fallback; every launch shares the audit round budget.
+	// At most one configured fallback; unusable launches share the internal bound.
 	for {
 		if r.audit && (entry.FailureBlocked() || (!authenticationFallback && entry.ConsecutiveFailures() >= r.config.MaxFailures)) {
 			return harness.Result{}, auditUnavailable()
@@ -301,13 +301,13 @@ func (r recoveryRun) invoke(entry harness.AuditEntry, selected harness.Config, r
 		entry = attempt.entry
 		entry.Status = "active"
 		entry.Revision, entry.Verdict, entry.Response = auditField(result.Response, "REVISION"), auditField(result.Response, "VERDICT"), result.Response
+		round := &entry.History[len(entry.History)-1]
+		round.Revision, round.Verdict, round.Response, round.Incident = entry.Revision, entry.Verdict, entry.Response, ""
 		if (entry.Verdict == "PASS" || entry.Verdict == "PROVISIONAL PASS") && r.readinessCheck != "test-code" {
 			entry.Status = "passed"
 		} else if entry.RoundsUsed() >= selected.MaxRounds {
 			entry.Status = "exhausted"
 		}
-		round := &entry.History[len(entry.History)-1]
-		round.Revision, round.Verdict, round.Response, round.Incident = entry.Revision, entry.Verdict, entry.Response, ""
 		if err = harness.WriteAuditEntry(r.path, entry); err != nil {
 			return result, err
 		}

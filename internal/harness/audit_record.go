@@ -63,7 +63,7 @@ func (entry AuditEntry) RoundsUsed() int {
 			count++
 		}
 	}
-	if len(entry.History) == 0 && entry.ExternalRound > boundary && usableVerdict(entry.Verdict) {
+	if len(entry.History) == 0 && entry.ExternalRound > boundary && usableVerdict(entry.Verdict) && entry.roundGate(AuditRound{Response: entry.Response}) == gate {
 		count = 1
 	}
 	return count
