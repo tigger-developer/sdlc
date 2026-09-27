@@ -1,10 +1,18 @@
 ---
 title: "SDLC Standards: Design Learnings"
 version: 1
-last-updated: 2026-09-23
+last-updated: 2026-09-28
 ---
 
 # SDLC Standards: Design Learnings
+
+## Reset invalidates ownership rather than guessing liveness
+
+A persisted running flag is not evidence of a live process. Operator reset must
+invalidate the selected context even when its last invocation was interrupted.
+Generation checks prevent late writers from undoing that decision. Checking and
+writing require one short record transaction; atomic rename alone does not
+prevent lost updates. Process-name searches cannot identify project ownership.
 
 ## Audit recovery belongs behind the tool boundary
 

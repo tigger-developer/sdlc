@@ -1,7 +1,7 @@
 ---
 title: SDLC Audit Harness Guide
 version: 2
-last-updated: 2026-09-23
+last-updated: 2026-09-28
 ---
 
 # SDLC audit harness guide
@@ -182,6 +182,22 @@ and exits without a provider call. Repeat the normal audit without the flag.
 The selected gate's verdict allowance and failure streak reset, its provider context
 is retired, and pre-reset verdicts are not reused from cache. Findings, history and
 logs remain intact. Other gates' counters are unchanged.
+
+Reset accepts every recorded status, including stale or active `running` state;
+no process-name search or proof of termination is required. It advances the
+selected context's generation. Earlier invocations cannot write identity,
+failure, or verdict checkpoints after that boundary, or retry by adopting the
+new generation. They may finish their provider request but return no verdict.
+Repeated reset before another attempt remains a no-op.
+
+Short read-modify-write transactions use a process-released file lock; provider
+execution never holds it. Locks live in a self-ignored `.audit-locks/` directory
+beside the resolved record. Other records and projects have independent locks.
+Test-code and delivery-code retain their existing shared implementation context;
+reset retires that shared context but resets only the selected gate's counters.
+Legacy records without a generation begin at zero. Late-write protection applies
+to invocations of this release; an already-running older binary must exit before
+concurrent use because it does not implement the generation check.
 
 Three consecutive unusable provider responses for a gate trigger internal lockout
 by default. Configure a positive integer as `delivery.audit.max_failures` in global

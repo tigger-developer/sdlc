@@ -1,0 +1,42 @@
+#+TITLE: W020 - Audit reset verification
+#+SCHEMA: 2
+#+STARTUP: overview
+#+TODO: AMBER RED | GREEN
+
+* Execution evidence
+** GREEN RT020.1 - Reset and stale writers :testdef:
+:PROPERTIES:
+:REVISION: 2b089bd plus W020 reset-generation working-tree changes
+:COMMAND: go test ./cmd/sdlc-harness
+:EVIDENCE: 2026-09-28 CLI reset tests pass with and without native identity; obsolete identity, failure and verdict writes are rejected and cannot change reset or fresh-attempt bytes. Existing invalid-invocation, preservation and idempotence tests pass.
+:END:
+- Initial RED before implementation: both running-state fixtures were rejected
+  with the existing cannot-reset-running diagnostic.
+- GREEN: package suite, full make test and race suite passed.
+- Retained checks cover history/findings, new attempt admission and other gate counters.
+
+** GREEN RT020.2 - Concurrent record persistence :testdef:
+:PROPERTIES:
+:REVISION: 2b089bd plus W020 reset-generation working-tree changes
+:COMMAND: go test -race ./internal/harness ./cmd/sdlc-harness
+:EVIDENCE: 2026-09-28 race suites passed; 32 goroutine writers and 16 independent processes retain every entry, alias reset fences original writers, and another project remains unchanged and writable.
+:END:
+- Initial RED before implementation: stale snapshots were accepted and concurrent
+  goroutine writes lost entries.
+- Additional process and alias checks were added during implementation. A clean
+  baseline archive with the new tests reproduced process-entry loss and alias
+  running-reset refusal; this is a retrospective baseline check, not pre-code TDD.
+- Full make test passed: go vet, golangci-lint, shellcheck, shfmt and all packages.
+- Caches and fixtures used an OS-allocated temporary directory; no live models.
+
+** GREEN OT020.1 - Packaging and contract review :testdef:
+:PROPERTIES:
+:REVISION: 2b089bd plus W020 reset-generation working-tree changes
+:EVIDENCE: 2026-09-28 temporary v3.5.1 binary reset a synthetic running record to generation 1, identity-missing with retained finding/history and retired session. Version and help matched the release contract. Documentation and recovery/lock control flow reviewed.
+:END:
+- Processed changed Markdown and Org through sanitize; reviewed output differences.
+- No provider calls, other-project mutation or global installation in this smoke.
+- Locks are held only during record transactions, never provider execution.
+- Obsolete-generation errors bypass recovery, and failure reloads compare generations.
+- Upgrade boundary: already-running older binaries lack fencing; exit them before
+  concurrent upgraded use. Reset itself does not inspect or terminate processes.

@@ -1,12 +1,19 @@
 ---
 title: Changelog
 version: 1
-last-updated: 2026-09-23
+last-updated: 2026-09-28
 ---
 
 # Changelog
 
-## Unreleased
+## v3.5.1 - 2026-09-28
+
+- Allow authorized audit reset from running or interrupted state without process
+  discovery. Retain history, findings and unrelated gate allowances.
+- Reject obsolete checkpoints and results using context generations, with short
+  file-scoped locks protecting reset and record updates across processes.
+- Preserve other entries during concurrent writes and resolve record aliases to
+  the same lock. Old provider requests may finish without publishing a verdict.
 
 ## v3.5.0 - 2026-09-23
 

@@ -1,7 +1,7 @@
 ---
 title: SDLC v3 Architecture
 version: 2
-last-updated: 2026-09-23
+last-updated: 2026-09-28
 ---
 
 # SDLC v3 Architecture
@@ -119,6 +119,21 @@ Operator-authorized `--reset` appends a timestamped budget
 boundary and exits without invoking a provider. It retires native context and preserves findings and history; pre-reset cache entries
 are not reused. Subsequent valid verdicts consume the fresh gate-specific allowance.
 Spec changes and provider recovery do not reset it automatically.
+
+Reset advances a persisted context generation, including for `running` records.
+Missing legacy generations mean zero. Every identity, failure and verdict write
+compares its generation with the current entry under the same short file lock
+that protects the read-modify-write transaction. Recovery stops on obsolete
+ownership rather than adopting a freshly reset generation. The lock also
+serializes updates to different entries in the same YAML file, preserving them
+across atomic replacement. Legacy migration shares that lock. Provider execution
+runs outside it, so a long-running audit cannot prevent reset.
+
+Canonical record paths share one persistent lock inode under a self-ignored
+sibling `.audit-locks/` directory. Closing or process exit releases ownership;
+lock files are not removed while other processes may be waiting. No process
+search or termination is performed. Existing processes from older releases do
+not participate in this protocol and must exit before concurrent use.
 
 Codex and Claude receive original absolute paths and a metadata-only evidence
 manifest. Hermes runs without filesystem tools and receives the verified UTF-8

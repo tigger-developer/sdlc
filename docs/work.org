@@ -78,6 +78,15 @@ classification; it is provenance, not current state.
 
 * Work items
 
+** ACTIVE W020 - Reset running audit contexts safely :defect:
+:PROPERTIES:
+:CUSTOM_ID: w020
+:CREATED: 2026-09-28
+:END:
+- *Specification:* [[file:../specs/W020-audit-reset-generation/spec.org][W020 - Reset ownership contract]]
+- *Validation:* [[file:../specs/W020-audit-reset-generation/validation.org][W020 - Reset verification]]
+- *Audit evidence:* [[file:../specs/W020-audit-reset-generation/audits.yaml][W020 - Harness-owned reviews]]
+
 ** REVIEW W019 - Automatic audit recovery and separate verdict budgets :defect:
 :PROPERTIES:
 :CUSTOM_ID: w019

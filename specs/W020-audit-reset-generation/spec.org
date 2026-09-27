@@ -1,0 +1,118 @@
+#+TITLE: W020 - Reset running audit contexts safely
+#+SCHEMA: 8
+#+STARTUP: overview
+#+OPTIONS: toc:2 num:nil
+
+* Emergency authority and scope
+- Authority :: Approved 2026-09-28 through =BYPASS-GATE-7=; the bounded temporary
+  specification is reconciled here after implementation, without advance gate claims.
+- Outcome :: *Reset invalidates the selected audit regardless of recorded status*.
+  Prior invocations lose write authority; unrelated audits continue.
+- Scope :: Audit record persistence, reset, recovery coordination, local tests and documentation.
+- Exclusions :: No provider termination, global process searches, installation,
+  other-project changes or permission changes. Filesystem and invalid-input errors
+  remain errors; reset does not manufacture a missing record.
+- Baseline :: [[file:../W019-automatic-audit-recovery/spec.org][W019 - Automatic audit recovery]],
+  [[file:../../docs/ARCHITECTURE.md][Audit architecture]], =reset_test.go= and
+  =verdict_budget_test.go=. The old running-refusal test is superseded by AC020.1.
+
+* Acceptance criteria
+** AC020.1 - Reset every recorded status :ac:
+:PROPERTIES:
+:CUSTOM_ID: ac020-1
+:END:
+Authorized =--reset= accepts running records with or without a session identity,
+clears the selected allowance and lockout, retires context and preserves history
+and findings. Repetition before another attempt is a no-op. Missing or malformed
+records and invalid invocation still fail explicitly.
+- Proven by :: [[#rt020-1][RT020.1 - Reset and stale writers]].
+
+** AC020.2 - Old runs cannot undo reset :ac:
+:PROPERTIES:
+:CUSTOM_ID: ac020-2
+:END:
+After reset, an earlier invocation cannot persist identity, failure or verdict,
+overwrite a new attempt, or adopt the new generation for provider retries.
+A new normal invocation can start from the reset context. No process detection
+or termination is required; an old provider request may finish without a verdict.
+- Proven by :: [[#rt020-1][RT020.1 - Reset and stale writers]].
+
+** AC020.3 - Serialize record updates and isolate projects :ac:
+:PROPERTIES:
+:CUSTOM_ID: ac020-3
+:END:
+Generation comparison and writes form one short process-safe transaction.
+Concurrent updates to distinct entries in one record preserve all entries.
+Resolved aliases share protection. Another project's record remains unchanged
+and writable. Provider execution never holds the record lock.
+- Proven by :: [[#rt020-2][RT020.2 - Concurrent record persistence]].
+
+* Test definitions
+** RT020.1 - Reset and stale writers :testdef:
+:PROPERTIES:
+:CUSTOM_ID: rt020-1
+:END:
+- Covers :: [[#ac020-1][AC020.1 - Reset every status]], [[#ac020-2][AC020.2 - Old runs lose authority]].
+- Method :: CLI dispatcher with temporary YAML fixtures; reset running attempts
+  with and without native IDs; submit old identity, failure and verdict writes,
+  then start a fresh attempt and resubmit the old verdict.
+- Expected :: Reset succeeds, stale writes fail without changing bytes, history
+  and findings survive, fresh attempt succeeds. Existing reset tests protect
+  no-op repetition, other gate budgets and missing/invalid invocation errors.
+- Recovery check :: Verify obsolete-generation errors bypass retry and that
+  refreshed failure state is rejected when its generation differs.
+- Retention :: =go test ./cmd/sdlc-harness=; no metered calls.
+
+** RT020.2 - Concurrent record persistence :testdef:
+:PROPERTIES:
+:CUSTOM_ID: rt020-2
+:END:
+- Covers :: [[#ac020-2][AC020.2 - Old runs lose authority]], [[#ac020-3][AC020.3 - Record isolation]].
+- Method :: Public persistence API with stale snapshots, two project roots,
+  symlink aliases, 32 concurrent goroutines and 16 independent test processes.
+- Expected :: Obsolete snapshots rejected, other project unchanged and writable,
+  alias reset fences original path, every concurrent entry retained.
+- Retention :: =go test ./internal/harness= and race verification; local fixtures only.
+
+** OT020.1 - Packaging and contract review :testdef:
+:PROPERTIES:
+:CUSTOM_ID: ot020-1
+:END:
+- Covers :: [[#ac020-1][AC020.1 - Reset every status]], [[#ac020-2][AC020.2 - Old runs lose authority]],
+  [[#ac020-3][AC020.3 - Record isolation]].
+- Method :: Build v3.5.1 CLI into OS temporary storage, run reset against synthetic
+  running YAML, inspect help, recovery branches and lock lifetime; sanitize changed
+  documentation and validate durable evidence. No live provider or installation.
+- Expected :: Reset confirmation, retained history and fresh generation; help and
+  documentation describe ownership, shared implementation context and upgrade limits.
+
+* Solution design
+- State :: Optional unsigned =generation= on each context; missing means zero.
+  Reset increments it, clears identity and current verdict, appends the existing
+  selected-gate budget boundary and preserves findings/history. A subsequent
+  empty reset is a no-op. Counter overflow is an explicit failure.
+- Persistence :: The existing YAML writer remains the sole checkpoint path.
+  Every normal update compares generations under a record-file lock. Reset and
+  legacy migration use the same lock. Atomic replacement preserves reader consistency.
+- Lock :: Existing Unix =flock= mechanism, already used by cooldown storage.
+  Resolved file/parent paths identify a persistent lock in a private, self-ignored
+  sibling =.audit-locks/= directory. No provider execution or process search occurs
+  under the lock; close or process exit releases it.
+- Recovery :: Obsolete writes return a distinct error. Retry coordination stops
+  before handling it as a provider incident; rereading after a provider failure
+  checks generation before adopting the saved state.
+- Compatibility :: Test-code and delivery-code still share implementation context;
+  resetting either retires that context while preserving the other's counters.
+  Older running binaries do not implement fencing and must exit before concurrent
+  use of the upgraded tool. Local macOS and Linux retain the existing Unix boundary.
+- Security :: No new dependencies, external calls, process signals or widened
+  access. Locks use 0600 files, 0700 directories and no-follow opens. History and
+  logs remain retained; generation does not authenticate untrusted manual writers.
+- Verification :: RTs cover persistence outcomes; OT reviews lock lifetime and
+  recovery control flow. Existing regression pack covers provider and gate contracts.
+
+* Delivery evidence
+- Validation :: [[file:validation.org][W020 - Reset verification]].
+- Independent reviews :: [[file:audits.yaml][W020 - Harness-owned audits]].
+- Closure :: Operator decision after verification; no separate subjective UT is
+  required for the deterministic reset contract. Installation remains operator-run.

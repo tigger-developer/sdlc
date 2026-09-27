@@ -69,8 +69,8 @@ func TestResetSessionRejectsAmbiguousInvocation(t *testing.T) {
 	}
 }
 
-func TestResetSessionRejectsRunningOrMissingEntry(t *testing.T) {
-	for _, status := range []string{"running", "missing"} {
+func TestResetSessionRejectsMissingEntry(t *testing.T) {
+	for _, status := range []string{"missing"} {
 		t.Run(status, func(t *testing.T) {
 			root := t.TempDir()
 			path := filepath.Join(root, "audits.yaml")

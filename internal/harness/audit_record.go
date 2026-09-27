@@ -25,6 +25,7 @@ type LegacyAudit struct {
 }
 
 type AuditEntry struct {
+	Generation     uint64             `yaml:"generation,omitempty"`
 	ReadinessCheck string             `yaml:"readiness_check,omitempty"`
 	WorkItem       string             `yaml:"work_item"`
 	Gate           string             `yaml:"gate"`
@@ -147,6 +148,12 @@ func (entry AuditEntry) FailureBlocked() bool {
 
 // ResetAuditBudget retires the context and resets both gate counters, preserving history.
 func ResetAuditBudget(path, workItem, gate string, selected ...string) error {
+	return withAuditRecordLock(path, func(resolved string) error {
+		return resetAuditBudget(resolved, workItem, gate, selected...)
+	})
+}
+
+func resetAuditBudget(path, workItem, gate string, selected ...string) error {
 	entry, found, err := ReadAuditEntry(path, workItem, gate)
 	if err != nil {
 		return err
@@ -157,20 +164,21 @@ func ResetAuditBudget(path, workItem, gate string, selected ...string) error {
 	if len(selected) != 0 {
 		entry.ReadinessCheck = selected[0]
 	}
-	if entry.Status == "running" {
-		return errors.New("cannot reset a running or interrupted audit; establish that it has stopped first")
-	}
-	if entry.RoundsUsed() == 0 && entry.ConsecutiveFailures() == 0 && entry.SessionID == "" {
+	if entry.Status == "identity-missing" && entry.Generation > 0 && entry.RoundsUsed() == 0 && entry.ConsecutiveFailures() == 0 && entry.SessionID == "" {
 		return nil
 	}
 	entry.BudgetResets = append(entry.BudgetResets, AuditBudgetReset{Gate: entry.SelectedGate(), AfterRound: entry.ExternalRound, Updated: time.Now().UTC().Format(time.RFC3339)})
 	if entry.SessionID != "" {
 		entry.Sessions = append(entry.Sessions, RetiredSession{SessionID: entry.SessionID, AgentConfig: AgentConfig{Harness: entry.Harness, Provider: entry.Provider, Model: entry.Model}, Reason: "operator-reset", Updated: time.Now().UTC().Format(time.RFC3339)})
 	}
+	if entry.Generation == ^uint64(0) {
+		return errors.New("audit generation exhausted")
+	}
+	entry.Generation++
 	entry.SessionID = ""
 	entry.Status = "identity-missing"
 	entry.Revision, entry.Verdict, entry.Response = "", "", ""
-	return WriteAuditEntry(path, entry)
+	return writeAuditEntry(path, entry, false)
 }
 
 type AuditRound struct {
@@ -232,6 +240,10 @@ func ReadAuditEntry(path, workItem, gate string) (AuditEntry, bool, error) {
 // MigrateLegacyAudit preserves a sibling audits.org verbatim in audits.yaml.
 // The legacy file is removed only after the YAML record has been written.
 func MigrateLegacyAudit(path string) error {
+	return withAuditRecordLock(path, migrateLegacyAudit)
+}
+
+func migrateLegacyAudit(path string) error {
 	legacyPath := filepath.Join(filepath.Dir(path), "audits.org")
 	content, err := os.ReadFile(legacyPath)
 	if errors.Is(err, os.ErrNotExist) {
@@ -268,7 +280,16 @@ func MigrateLegacyAudit(path string) error {
 	return nil
 }
 
+// ErrAuditReset indicates that an obsolete invocation no longer owns the context.
+var ErrAuditReset = errors.New("audit context was reset; obsolete invocation cannot update the record")
+
 func WriteAuditEntry(path string, entry AuditEntry) error {
+	return withAuditRecordLock(path, func(resolved string) error {
+		return writeAuditEntry(resolved, entry, true)
+	})
+}
+
+func writeAuditEntry(path string, entry AuditEntry, checkGeneration bool) error {
 	if strings.TrimSpace(entry.WorkItem) == "" || strings.TrimSpace(entry.Gate) == "" || (strings.TrimSpace(entry.SessionID) == "" && entry.Status != "running" && entry.Status != "identity-missing" && entry.Status != "exhausted") {
 		return errors.New("audit record requires work item, gate, and session ID")
 	}
@@ -290,6 +311,9 @@ func WriteAuditEntry(path string, entry AuditEntry) error {
 	updated := false
 	for index := range record.Audits {
 		if record.Audits[index].WorkItem == entry.WorkItem && record.Audits[index].Gate == entry.Gate {
+			if checkGeneration && record.Audits[index].Generation != entry.Generation {
+				return ErrAuditReset
+			}
 			record.Audits[index] = entry
 			updated = true
 			break

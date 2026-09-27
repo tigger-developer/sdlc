@@ -1,7 +1,7 @@
 ---
 title: Audit and Gate Standards
 version: 2
-last-updated: 2026-09-23
+last-updated: 2026-09-28
 ---
 
 # Audit and Gate Standards
@@ -114,6 +114,10 @@ then submit the normal audit without the flag. It preserves history, findings,
 logs and other gates' allowances; the selected context is retired and its old
 cached verdicts do not satisfy the fresh audit. Never reset autonomously or in a loop.
 Reset clears both counters and the infrastructure lockout for the selected gate.
+It accepts `running` state without caller investigation. Reset invalidates the
+old context's write authority; late checkpoints and results cannot overwrite the
+reset or a subsequent audit. Other projects remain independent. Test-code and
+delivery-code retain their shared context, with separate counter boundaries.
 
 On "Audit unavailable: unable to obtain a valid result. Human intervention required", report the diagnostic
 reference and continue unrelated authorized work. Do not retry, inspect provider

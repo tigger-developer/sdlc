@@ -93,6 +93,9 @@ func (r recoveryRun) execute(entry harness.AuditEntry, resume bool) (harness.Res
 		if err == nil {
 			return result, nil
 		}
+		if errors.Is(err, harness.ErrAuditReset) {
+			return harness.Result{}, err
+		}
 		var incident *harness.Incident
 		if !errors.As(err, &incident) {
 			return harness.Result{}, err
@@ -114,6 +117,9 @@ func (r recoveryRun) execute(entry harness.AuditEntry, resume bool) (harness.Res
 			}
 			if !found {
 				return harness.Result{}, errors.Join(err, errors.New("audit record disappeared"))
+			}
+			if saved.Generation != entry.Generation {
+				return harness.Result{}, harness.ErrAuditReset
 			}
 			if saved.Status == "running" {
 				return harness.Result{}, err

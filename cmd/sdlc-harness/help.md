@@ -23,6 +23,9 @@ On 'Human intervention required', stop auditing and report the diagnostic refere
 Do not troubleshoot the provider, inspect private diagnostics, or reset without authority.
 After authorization, run --reset once without --input, then audit without --reset.
 History and logs are preserved; the next audit uses a fresh context.
+Reset accepts running state; no process check is required. Old invocations lose
+write authority and cannot overwrite the reset or a new audit with late results.
+Other projects are unaffected; the selected gate retains its existing context scope.
 
 Each work item and gate has its own verdict allowance (default five).
 Unusable responses and cached results do not consume that allowance.
