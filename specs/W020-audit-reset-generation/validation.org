@@ -14,6 +14,17 @@
   with the existing cannot-reset-running diagnostic.
 - GREEN: package suite, full make test and race suite passed.
 - Retained checks cover history/findings, new attempt admission and other gate counters.
+- Recovery-boundary extension: local provider doubles reset at response return
+  and after failure finalization, before coordinator reload. Both return the
+  obsolete-generation error with exactly one provider call, no published verdict,
+  unchanged reset bytes and no adoption of the new context. Obsolete errors skip
+  provider incident handling. No production test interface was added.
+- Sensitivity check: a temporary candidate copy using the prior recovery
+  coordinator failed both cases, with an extra provider request and internal
+  lockout respectively. The current coordinator passed both and the race check.
+- Full make test passed again after adding the recovery tests. A reset-count bound
+  was then added to prevent repeated fixture resets in a defective coordinator;
+  the focused race check passed after that test-only bound.
 
 ** GREEN RT020.2 - Concurrent record persistence :testdef:
 :PROPERTIES:
