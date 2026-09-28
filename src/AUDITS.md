@@ -148,7 +148,21 @@ also applies to retrospective definition reviews.
 The external auditor returns its envelope and findings only; it does not edit
 files. The harness persists that response in `audits.yaml`.
 
-While waiting, the harness emits anonymous start and 30-second liveness
+Before delivery-code invocation, all code, tests and required documentation must
+be written, every required automated and one-off check (including applicable lint
+and vulnerability checks) must have finished and passed, and RT/OT evidence must
+be settled and GREEN. Checks must not run in parallel with the audit or be marked
+GREEN before they finish. Outstanding UTs may remain AMBER under the existing gate.
+
+Reviewed inputs are frozen at invocation. Any change to reviewed code, tests,
+documentation or validation records during or after review immediately invalidates
+the audit for the changed candidate. A previous verdict remains historical evidence
+for its unchanged candidate only. Affected checks must be rerun and the evidence
+settled before the changed candidate is submitted again. The harness detects
+changed inputs after provider execution; it does not immediately cancel the provider.
+
+At each provider start, the harness emits the input-freeze and delivery-readiness
+reminder to stderr. While waiting, it emits anonymous start and 30-second liveness
 notices to stderr: `Audit in progress.` A heartbeat is not provider progress, a verdict, or
 evidence that the audit has completed.
 

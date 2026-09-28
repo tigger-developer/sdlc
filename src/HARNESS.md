@@ -123,7 +123,12 @@ the same automatic audit behaviour. The old reset-session flag is replaced by re
 
 An audit writes only its validated response or readiness report to stdout;
 `--reset` instead writes a reset confirmation and exits. Stderr carries
-anonymous start and 30-second liveness notices and, on failure, a diagnostic reference. Provider names,
+an input-freeze and delivery-readiness reminder at each provider start, anonymous
+start and 30-second liveness notices and, on failure, a diagnostic reference. The
+reminder requires completed checks and settled GREEN RT/OT evidence before
+delivery-code review, and warns that edits to reviewed inputs during or after
+review invalidate the audit for the changed candidate. Mutation detection occurs
+after provider execution, without immediate cancellation. Provider names,
 session IDs and internal retry counts are not part of the calling-agent contract.
 
 Private files under `.sdlc/audit-diagnostics/` retain provider diagnostics and

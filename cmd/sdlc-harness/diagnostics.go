@@ -3,6 +3,7 @@
 package main
 
 import (
+	_ "embed"
 	"fmt"
 	"io"
 	"os"
@@ -12,6 +13,9 @@ import (
 
 	"github.com/tigger-developer/sdlc/internal/harness"
 )
+
+//go:embed audit-start.md
+var auditStartNotice string
 
 type auditDiagnostics struct {
 	mu        sync.Mutex
@@ -49,7 +53,8 @@ func (d *auditDiagnostics) Write(data []byte) (int, error) {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	n := len(data)
-	liveness := strings.HasPrefix(string(data), "sdlc-harness: external context started (") || strings.HasPrefix(string(data), "sdlc-harness: external context still running (")
+	started := strings.HasPrefix(string(data), "sdlc-harness: external context started (")
+	liveness := started || strings.HasPrefix(string(data), "sdlc-harness: external context still running (")
 	if len(data) > d.remaining {
 		data = data[:d.remaining]
 	}
@@ -57,6 +62,11 @@ func (d *auditDiagnostics) Write(data []byte) (int, error) {
 	d.remaining -= written
 	if err != nil {
 		return written, err
+	}
+	if started {
+		if _, err := io.WriteString(d.output, auditStartNotice); err != nil {
+			return written, err
+		}
 	}
 	if liveness {
 		if _, err := fmt.Fprintln(d.output, "Audit in progress."); err != nil {

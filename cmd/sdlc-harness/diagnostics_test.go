@@ -25,8 +25,11 @@ func TestAuditDiagnosticsKeepsHeartbeatAfterLogCap(t *testing.T) {
 			t.Fatalf("write=%d, %v", n, err)
 		}
 	}
-	if output.String() != "Audit in progress.\nAudit in progress.\n" {
+	if strings.Count(output.String(), "Audit in progress.\n") != 2 {
 		t.Fatalf("missing anonymous liveness: %q", &output)
+	}
+	if strings.Count(output.String(), "AUDIT INPUTS FROZEN:") != 1 || !strings.HasPrefix(output.String(), "AUDIT INPUTS FROZEN:") {
+		t.Fatalf("startup must warn once before liveness, even after log cap: %q", &output)
 	}
 	info, err := os.Stat(log.file.Name())
 	if err != nil || info.Size() != 4 || info.Mode().Perm() != 0o600 {

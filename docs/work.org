@@ -78,6 +78,15 @@ classification; it is provenance, not current state.
 
 * Work items
 
+** ACTIVE W021 - Warn before reviewing frozen audit inputs :defect:
+:PROPERTIES:
+:CUSTOM_ID: w021
+:CREATED: 2026-09-28
+:END:
+- *Specification:* [[file:../specs/W021-audit-start-warning/spec.org][W021 - Audit startup obligations]]
+- *Validation:* [[file:../specs/W021-audit-start-warning/validation.org][W021 - Warning verification]]
+- *Audit evidence:* [[file:../specs/W021-audit-start-warning/audits.yaml][W021 - Harness-owned reviews]]
+
 ** REVIEW W020 - Reset running audit contexts safely :defect:
 :PROPERTIES:
 :CUSTOM_ID: w020

@@ -6,6 +6,14 @@ last-updated: 2026-09-28
 
 # Changelog
 
+## v3.5.2 - 2026-09-28
+
+- Explain delivery readiness and frozen audit inputs in help and at each provider
+  start. Changes during or after review invalidate the audit for the changed
+  candidate; checks and evidence must be settled before review starts.
+- Distinguish immediate loss of audit applicability from mutation detection after
+  provider execution; preserve brief heartbeat output and existing gate prerequisites.
+
 ## v3.5.1 - 2026-09-28
 
 - Allow authorized audit reset from running or interrupted state without process

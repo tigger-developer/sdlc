@@ -38,6 +38,20 @@ UTs may remain AMBER. Test-code PASS is not delivery approval.
 Definition has no execution-readiness check. With no approved RTs, skip test-code.
 Final delivery review includes affected product documentation.
 
+Do not start delivery-code review until all code, tests and documentation are
+written, all required automated and one-off checks (including applicable lint
+and vulnerability checks) have finished and passed, and validation.org records
+settled GREEN RT/OT evidence. Do not run those checks in parallel with the audit
+or record GREEN while checks are still running. Outstanding UTs may remain AMBER.
+
+Audit inputs are frozen when review starts. Any change to reviewed code, tests,
+documentation or validation records during or after review immediately invalidates
+that audit for the changed candidate. Rerun affected checks, settle the evidence,
+then submit the changed candidate for review again. The harness detects changed
+inputs when the provider returns; it does not immediately cancel a running provider.
+A previous verdict remains historical evidence only for its unchanged candidate.
+Every provider start emits a reminder on stderr; heartbeat notices stay brief.
+
 Example:
   sdlc-audit --gate delivery-code \
     --audit-record specs/WNNN-descriptor/audits.yaml --work-item WNNN \
