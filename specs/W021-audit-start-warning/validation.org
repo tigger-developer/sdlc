@@ -1,0 +1,28 @@
+#+TITLE: W021 - Warning verification
+#+SCHEMA: 2
+#+STARTUP: overview
+#+TODO: AMBER RED | GREEN
+
+* Execution evidence
+** GREEN RT021.1 - Startup warning and capped diagnostics :testdef:
+:PROPERTIES:
+:REVISION: 0f05cfd - Audit readiness and input-freeze warning
+:COMMAND: go test ./cmd/sdlc-harness -run TestAuditDiagnosticsKeepsHeartbeatAfterLogCap -count=1
+:EVIDENCE: 2026-09-28 expected RED before implementation: only two liveness messages appeared, no startup warning. After implementation the full make test and race-enabled harness package passed, including startup warning, heartbeat counts, private log bounds and identity protection.
+:END:
+- Local macOS verification, temporary Go and lint caches; no live-model tests.
+- Full make test ran go vet, golangci-lint, shellcheck, shfmt and every Go package.
+- Race check: go test -race ./cmd/sdlc-harness passed.
+
+** GREEN OT021.1 - Review packaged warning and documentation :testdef:
+:PROPERTIES:
+:REVISION: 0f05cfd - Audit readiness and input-freeze warning
+:EVIDENCE: 2026-09-28 temporary v3.5.2 executable --help displayed written-code/test/documentation prerequisites, completed checks including applicable lint/vulnerability checks, settled GREEN RT/OT records, AMBER UT exception, input invalidation and deferred mutation detection. Embedded startup notice reviewed against the same contract and existing readiness/evidence code; sanitize produced unchanged text for every changed document.
+:END:
+- Startup event routes the embedded notice to caller stderr before liveness;
+  heartbeat events retain brief output. Existing diagnostic mutex serializes both.
+- Mutation verification and admission logic remain unchanged. No watcher,
+  cancellation, metered regression test or installer invocation was added.
+- The project profile declares kind other and no infrastructure role; the
+  installable CLI uses the project make test checks, without a deployment target.
+- All checks finished before audit invocation; this record is frozen with the inputs.
