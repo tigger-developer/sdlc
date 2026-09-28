@@ -3,7 +3,31 @@
 #+STARTUP: overview
 #+OPTIONS: toc:2 num:nil
 
-* Emergency authority and scope
+* Synopsis
+:PROPERTIES:
+:CUSTOM_ID: summary
+:END:
+** Outcome
+- Authorized *reset recovers running audits* without process investigation.
+** Before
+- A *persisted running flag blocked reset*, even after an interrupted process exited.
+** After
+- Reset *retires the context* and *rejects late writes* from earlier invocations.
+** Changes
+- Context *generations* and short *record locks* protect reset and concurrent updates.
+** Unchanged
+- *History, findings and other gate counters remain intact*; no provider is killed.
+- *Installation remains operator-run*; other projects and provider permissions are unchanged.
+** Edge cases
+- *Legacy generation defaults to zero*; older running binaries must exit before concurrent upgraded use.
+- *Repeated empty reset is a no-op*; malformed or missing records still fail.
+** Decisions
+- *Record aliases share a lock*; provider execution never holds it.
+- Test-code and delivery-code *retain their shared context* and separate counters.
+** Next step
+- *Review reconciled evidence* and release the candidate for operator installation and closure.
+
+* Context
 - Authority :: Approved 2026-09-28 through =BYPASS-GATE-7=; the bounded temporary
   specification is reconciled here after implementation, without advance gate claims.
 - Outcome :: *Reset invalidates the selected audit regardless of recorded status*.
@@ -16,13 +40,13 @@
   [[file:../../docs/ARCHITECTURE.md][Audit architecture]], =reset_test.go= and
   =verdict_budget_test.go=. The old running-refusal test is superseded by AC020.1.
 
-* Acceptance criteria
+* Acceptance Criteria
 ** AC020.1 - Reset every recorded status :ac:
 :PROPERTIES:
 :CUSTOM_ID: ac020-1
 :END:
-Authorized =--reset= accepts running records with or without a session identity,
-clears the selected allowance and lockout, retires context and preserves history
+Authorized =--reset= *accepts running records* with or without a session identity,
+*clears the selected allowance and lockout*, retires context and preserves history
 and findings. Repetition before another attempt is a no-op. Missing or malformed
 records and invalid invocation still fail explicitly.
 - Proven by :: [[#rt020-1][RT020.1 - Reset and stale writers]].
@@ -31,7 +55,7 @@ records and invalid invocation still fail explicitly.
 :PROPERTIES:
 :CUSTOM_ID: ac020-2
 :END:
-After reset, an earlier invocation cannot persist identity, failure or verdict,
+After reset, an *earlier invocation cannot persist identity, failure or verdict*,
 overwrite a new attempt, or adopt the new generation for provider retries.
 A new normal invocation can start from the reset context. No process detection
 or termination is required; an old provider request may finish without a verdict.
@@ -43,11 +67,11 @@ or termination is required; an old provider request may finish without a verdict
 :END:
 Generation comparison and writes form one short process-safe transaction.
 Concurrent updates to distinct entries in one record preserve all entries.
-Resolved aliases share protection. Another project's record remains unchanged
+Resolved aliases share protection. Another project's *record remains unchanged*
 and writable. Provider execution never holds the record lock.
 - Proven by :: [[#rt020-2][RT020.2 - Concurrent record persistence]].
 
-* Test definitions
+* Test Definitions
 ** RT020.1 - Reset and stale writers :testdef:
 :PROPERTIES:
 :CUSTOM_ID: rt020-1
@@ -59,8 +83,12 @@ and writable. Provider execution never holds the record lock.
 - Expected :: Reset succeeds, stale writes fail without changing bytes, history
   and findings survive, fresh attempt succeeds. Existing reset tests protect
   no-op repetition, other gate budgets and missing/invalid invocation errors.
-- Recovery check :: Verify obsolete-generation errors bypass retry and that
-  refreshed failure state is rejected when its generation differs.
+- Recovery boundaries :: Reset from the existing response callback before failure
+  finalization, and from diagnostic output after failure finalization but before
+  state reload. Local executable doubles implement the established provider protocol.
+- Expected recovery :: Both calls return obsolete-generation errors, make exactly
+  one provider call, publish no verdict and leave reset bytes unchanged. A fenced
+  failure bypasses provider incident handling and does not create cooldown state.
 - Retention :: =go test ./cmd/sdlc-harness=; no metered calls.
 
 ** RT020.2 - Concurrent record persistence :testdef:
@@ -83,10 +111,19 @@ and writable. Provider execution never holds the record lock.
 - Method :: Build v3.5.1 CLI into OS temporary storage, run reset against synthetic
   running YAML, inspect help, recovery branches and lock lifetime; sanitize changed
   documentation and validate durable evidence. No live provider or installation.
+- Recovery check :: Verify obsolete-generation errors bypass retry and that
+  refreshed failure state is rejected when its generation differs.
 - Expected :: Reset confirmation, retained history and fresh generation; help and
   documentation describe ownership, shared implementation context and upgrade limits.
 
-* Solution design
+* Edge Cases
+- *Reset before identity discovery* still invalidates the recorded attempt; AC020.1
+  - Reset every status and RT020.1 - Reset and stale writers cover that boundary.
+- *Counter overflow fails explicitly* without modifying the record.
+- *Old binaries cannot be fenced retroactively*; the compatibility boundary is
+  recorded under Solution Design and checked in OT020.1 - Packaging and contract review.
+
+* Solution Design
 - State :: Optional unsigned =generation= on each context; missing means zero.
   Reset increments it, clears identity and current verdict, appends the existing
   selected-gate budget boundary and preserves findings/history. A subsequent
@@ -111,7 +148,16 @@ and writable. Provider execution never holds the record lock.
 - Verification :: RTs cover persistence outcomes; OT reviews lock lifetime and
   recovery control flow. Existing regression pack covers provider and gate contracts.
 
-* Delivery evidence
+* Delivery Handoff
+:PROPERTIES:
+:CUSTOM_ID: delivery-handoff
+:END:
+- Required reading :: Project profile, [[file:../../src/HARNESS.md][Harness guide]],
+  [[file:../../src/AUDITS.md][Audit standards]] and the named architecture.
+- Entry authority :: Emergency scope approved 2026-09-28; no advance definition
+  claim. Review implementation, then the reconciled definition.
+- Documentation :: Harness guide, audit standards, help, architecture, changelog
+  and learnings describe the reset contract. No skill interface change is required.
 - Validation :: [[file:validation.org][W020 - Reset verification]].
 - Independent reviews :: [[file:audits.yaml][W020 - Harness-owned audits]].
 - Closure :: Operator decision after verification; no separate subjective UT is
