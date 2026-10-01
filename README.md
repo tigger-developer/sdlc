@@ -8,7 +8,7 @@ last-updated: 2026-09-23
 
 This public repository provides a standalone, provider-neutral engineering
 standards library and a lean delivery workflow for coding agents. SDLC v3 uses
-one definition artefact and two human gates. It does not require GitHub Spec Kit.
+one definition artefact and two human gates.
 
 SDLC v3 supports **Codex**, **Claude Code**, **GitHub Copilot CLI**, and
 **Hermes**. One canonical skill source is exposed through each harness's native
