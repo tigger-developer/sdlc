@@ -1,15 +1,20 @@
 ---
 title: SDLC v3 Quickstart
 version: 1
-last-updated: 2026-09-23
+last-updated: 2026-10-01
 ---
 
 # SDLC v3 Quickstart
 
 ## 1. Install the framework
 
-Prerequisites are Go, Git, and at least one supported harness: Codex, Claude
-Code, GitHub Copilot CLI, or Hermes. GitHub CLI is required only for legacy
+Building the installer and SDLC commands from source requires Go 1.23 or later.
+If `htmlpreview` is absent from `PATH`, installation also builds the pinned
+HTML-Preview source, which currently requires Go 1.26.8. Git and at least one
+supported harness are also needed: Codex, Claude Code,
+GitHub Copilot CLI, or Hermes. The installer needs a `trash` executable on
+`PATH` when it applies changes; the [README note](README.md#quickstart)
+explains macOS and Linux options. GitHub CLI is required only for legacy
 GitHub-ticket migration. Document review uses
 [tigger-developer/HTML-Preview](https://github.com/tigger-developer/HTML-Preview),
 which renders **Org and Markdown** as **high-fidelity HTML**. Its

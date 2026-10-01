@@ -34,15 +34,27 @@ of delivery modes, proportionate to the change.
 
 The [design journey and detailed learnings](LEARNINGS.md#the-journey-from-v1-to-v3)
 explain those choices. [HTML-Preview](https://github.com/tigger-developer/HTML-Preview)
-began here as a quick Markdown preview script. As the SDLC adopted Org and
-browser annotations for reviewing specifications and designs in context, the
-viewer grew useful beyond this framework and became its own project.
+began here as a quick Markdown preview script. As the SDLC adopted Org, it
+became a Markdown and Org viewer with browser annotations: an operator could
+review a specification for approval and place feedback beside the passage an
+agent needed to revise. Its usefulness beyond this framework and growing
+complexity led to a separate project.
 
 ## Quickstart
 
-Install from this repository with Go 1.23 or later, Git, the `trash` command,
-and at least one supported coding-agent harness available. GitHub CLI is needed
-only for migrating an SDLC v1 project's GitHub tickets.
+Building the SDLC commands requires Go 1.23 or later. `make install` also
+builds the pinned HTML-Preview source when `htmlpreview` is absent from `PATH`;
+that source currently requires Go 1.26.8. The installed commands are compiled
+binaries and do not need Go just to run. Git and at least one supported
+coding-agent harness are also needed. GitHub CLI is needed only for migrating
+an SDLC v1 project's GitHub tickets.
+
+The installer needs a `trash` executable on `PATH` when it applies changes.
+This is a command requirement, not a requirement for one package manager. On
+macOS, check for `trash` first; [Homebrew's `trash` formula](https://formulae.brew.sh/formula/trash)
+is one way to obtain it if absent. On Linux,
+[trash-cli](https://github.com/andreafrancia/trash-cli) provides the command;
+other compatible implementations can be used. Homebrew itself is optional.
 
 ```sh
 make install

@@ -14,6 +14,9 @@ last-updated: 2026-10-01
   the design learnings while retaining the detailed decision records.
 - Preserve the previous detailed README under `docs/archive/` for historical
   and operational reference.
+- Distinguish the SDLC and pinned HTML-Preview Go build requirements from
+  running installed commands, and document the cross-platform `trash` command
+  without requiring Homebrew.
 
 ## v3.5.2 - 2026-09-28
 
