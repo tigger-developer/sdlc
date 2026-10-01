@@ -42,19 +42,10 @@ complexity led to a separate project.
 
 ## Quickstart
 
-Building the SDLC commands requires Go 1.23 or later. `make install` also
-builds the pinned HTML-Preview source when `htmlpreview` is absent from `PATH`;
-that source currently requires Go 1.26.8. The installed commands are compiled
-binaries and do not need Go just to run. Git and at least one supported
-coding-agent harness are also needed. GitHub CLI is needed only for migrating
-an SDLC v1 project's GitHub tickets.
-
-The installer needs a `trash` executable on `PATH` when it applies changes.
-This is a command requirement, not a requirement for one package manager. On
-macOS, check for `trash` first; [Homebrew's `trash` formula](https://formulae.brew.sh/formula/trash)
-is one way to obtain it if absent. On Linux,
-[trash-cli](https://github.com/andreafrancia/trash-cli) provides the command;
-other compatible implementations can be used. Homebrew itself is optional.
+Building and installing the SDLC commands requires Go 1.23 or later[^go],
+Git, a `trash` command on `PATH`[^trash], and at least one supported
+coding-agent harness. GitHub CLI is needed only for migrating an SDLC v1
+project's GitHub tickets.
 
 ```sh
 make install
@@ -144,3 +135,17 @@ standards, skills, and command help.
 
 - Version 2 (2026-10-01): Reorganized the front page around purpose, history,
   quickstart, and the main steps; preserved the previous detailed reference.
+
+[^go]: `make install` also builds the pinned HTML-Preview source when
+    `htmlpreview` is absent from `PATH`; that source currently requires Go
+    1.26.8. The installed commands are compiled binaries and do not need Go
+    just to run.
+
+[^trash]: The installer needs a `trash` executable on `PATH` when it applies
+    changes. This is a command requirement, not a requirement for one package
+    manager. On macOS, check for `trash` first; [Homebrew's `trash`
+    formula](https://formulae.brew.sh/formula/trash) is one way to obtain it if
+    absent. On Linux,
+    [trash-cli](https://github.com/andreafrancia/trash-cli) provides the
+    command; other compatible implementations can be used. Homebrew itself
+    is optional.
