@@ -31,9 +31,13 @@ process while preserving human authority.
 The sections below record the individual decisions and their evidence.
 Current rules live under `src/`.
 
-HTML-Preview began as an SDLC script and became the separate
-[HTML-Preview project](https://github.com/tigger-developer/HTML-Preview)
-for inspecting rendered Markdown and Org documents.
+HTML-Preview began here as a quick Markdown preview script. When the SDLC
+adopted Org for its richer document structure, the script grew into a viewer
+for both Markdown and Org. Browser annotations then let the operator review
+specifications, designs, and architecture in context, placing feedback beside
+the material it addressed so an agent could incorporate it into revisions.
+That review use reached beyond this SDLC, and the viewer's growing complexity
+warranted the separate [HTML-Preview project](https://github.com/tigger-developer/HTML-Preview).
 
 ## Why the Spec Kit integration ended
 

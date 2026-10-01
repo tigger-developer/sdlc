@@ -34,8 +34,9 @@ of delivery modes, proportionate to the change.
 
 The [design journey and detailed learnings](LEARNINGS.md#the-journey-from-v1-to-v3)
 explain those choices. [HTML-Preview](https://github.com/tigger-developer/HTML-Preview)
-began as a script in this SDLC and grew into a separate project for reviewing
-rendered Markdown and Org documents.
+began here as a quick Markdown preview script. As the SDLC adopted Org and
+browser annotations for reviewing specifications and designs in context, the
+viewer grew useful beyond this framework and became its own project.
 
 ## Quickstart
 
