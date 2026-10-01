@@ -1,0 +1,438 @@
+---
+title: Lean SDLC for Coding Agents
+version: 1
+last-updated: 2026-09-23
+---
+
+# Lean SDLC for Coding Agents
+
+This public repository provides a standalone, provider-neutral engineering
+standards library and a lean delivery workflow for coding agents. SDLC v3 uses
+one definition artefact and two human gates.
+
+SDLC v3 supports **Codex**, **Claude Code**, **GitHub Copilot CLI**, and
+**Hermes**. One canonical skill source is exposed through each harness's native
+global skill location; fixed adapters preserve their different model, provider,
+output, and resumable-session contracts.
+
+## Delivery readiness
+
+`sdlc-validate` checks the Org test inventory and execution records locally, without
+a model call. `make install` deploys it alongside `sdlc-init` and `sdlc-audit`.
+Run `sdlc-validate --help`; for example:
+
+```sh
+sdlc-validate --spec specs/WNNN-descriptor/spec.org --readiness-check=test-code
+```
+
+Replace `specs/WNNN-descriptor/spec.org` with the active specification path.
+
+Normal delivery reviews the written tests before production implementation, then
+reviews the finished solution in the same retained implementation-auditor context.
+The audit command uses `--gate test-code`, then `--gate delivery-code`; each gate
+automatically applies its readiness check. Minimal execution-enabling scaffolding
+is permitted before test review, not implemented behaviour. An approved OT/UT-only
+change skips test-code. Final delivery review includes affected product documentation.
+Use `--readiness-check=delivery-code` before that final review: RTs and OTs must be
+GREEN; UTs may remain outstanding. Output is readable YAML with inventory, source
+locations and errors. Nonzero means not ready or invalid input. The harness repeats
+the checks before spending an audit round. See [Org schema](src/ORG-SCHEMA.md).
+Older sheets need tagged AC/test headings and structured validation records; the
+validator never silently rewrites them or manufactures execution results.
+
+Audit recovery records primary cooldowns within each project's `.sdlc/cooldowns/`
+and uses its configured fallback during cooldown. The default period is one hour,
+configurable as `delivery.audit.fallback.cool_off_period`. See the
+[harness recovery guide](src/HARNESS.md#primary-audit-cooldown).
+
+## Audit invocation
+
+Run the harness with the work item, audit record, explicit gate and complete evidence
+list. No session ID or start/resume selection is needed. Only valid verdicts consume
+the gate's allowance. Infrastructure failures are logged privately and recovered
+within an internal bound. An authorized `--reset` clears both counters and retires the selected provider context.
+Authentication failure tries fallback immediately; failure there stops for intervention.
+See [audit usage and diagnostics](src/HARNESS.md).
+
+## Prerequisites
+
+- Go 1.23 or later to build the installer and helper commands.
+- Git for recoverability, migration branches, and delivery checkpoints.
+- The `trash` CLI on PATH for recoverable replacement of installed artefacts.
+- At least one supported coding-agent harness: Codex, Claude Code, GitHub
+  Copilot CLI, or Hermes.
+- GitHub CLI only when migrating an SDLC v1 project's GitHub tickets.
+
+## Install
+
+For the recommended **driver/auditor setup**, including model capability,
+authentication and billing, see the [quickstart configuration guidance](QUICKSTART.md#recommended-driver-and-auditor-setup).
+
+`make install` also initializes the pinned
+[tigger-developer/HTML-Preview](https://github.com/tigger-developer/HTML-Preview)
+submodule and runs its own `make install` if `htmlpreview` is absent from PATH.
+Existing installations are retained. This previewer was
+developed primarily for SDLC document review and renders **Org and Markdown**
+as **high-fidelity HTML**, including navigable document structure.
+
+```sh
+make install
+```
+
+The repository-internal `sdlc-install` command is invoked by `make install`; it
+is not installed on the global path. The installation:
+
+- builds `sdlc-install` locally, deploys `sdlc-init` and
+  `sdlc-merge-legacy-acs` under `~/.agents/sdlc/bin`, and links those operator
+  commands onto the global path;
+- deploys `sdlc-harness` under `~/.agents/sdlc/bin` and exposes it as
+  `~/.local/bin/sdlc-audit`; `sdlc-audit --help` describes the audit interface;
+- moves recognized retired command remnants to Trash rather than leaving
+  executable `.sdlc-*-retired` names in command directories;
+- synchronizes the canonical standards to `~/.agents/sdlc`;
+- installs SDLC skills globally under `~/.agents/skills`;
+- links canonical skills into the native Claude, Copilot, and Hermes skill
+  locations; and
+- registers the same canonical command guard through all four native hook
+  mechanisms without replacing unrelated provider configuration.
+
+It lists only missing or differing artefacts. An unchanged rerun writes nothing
+and asks no question. Set `VERBOSE=1` to include matching artefacts. Interactive
+confirmation accepts `y` or `yes`.
+
+Replaced managed files, links and retired SDLC artefacts go to **Trash**, not
+adjacent `.bak` files. Merged **configuration files**, including provider settings
+and global SDLC defaults, retain `<path>.<epoch>.bak` before modification.
+Applying changes requires `trash`; a failed operation stops replacement.
+Already trashed items remain recoverable through Trash. Existing backups are
+not cleaned up. `sdlc-init` preserves its Git and document migration archives;
+those are historical evidence, not disposable deployment copies.
+
+`make sync` refreshes HTML-Preview from its upstream default branch and runs its
+own `make install` to update the installed command. It then stages and commits
+local changes including the updated submodule pin, and pulls and pushes the
+SDLC branch. `COMMIT_MESSAGE` defaults to `chore: sync`. Each step stops on
+failure. Ordinary installation uses the recorded pin; synchronization updates
+both the pin and the installed previewer.
+
+HTML-Preview's installer preserves conflicting files and links. If a previous
+checkout owns `~/.local/bin/htmlpreview`, move that link aside once before
+`make sync` installs the submodule-managed command.
+
+## Repository layout
+
+| Path | Purpose |
+|---|---|
+| `src/MAIN.md` | Universal rules and progressive routing |
+| `src/*.md` | Requirements, testing, auditing, coding, Git, documentation, security, paired, emergency, Org, and Markdown standards |
+| `src/technologies/` | Automatically discoverable technology standards |
+| `src/templates/v3/` | Unified specification, work, audit, and validation templates |
+| `src/prompts/` | Saved prompts used by bounded headless initializer analysis |
+| `skills/` | Globally installed workflow and focused audit skills |
+| `cmd/` and `internal/` | Installer, initializer, harness adapters, and ledger merger |
+
+## Initialize a project once
+
+Run from a clean, named Git branch:
+
+```sh
+sdlc-init
+```
+
+The initializer:
+
+1. refuses when `.sdlc/project.yaml` already exists;
+2. detects a new project, an SDLC v1 project, or an SDLC v2 Spec Kit project;
+3. applies schema-defined heuristics to the bounded Git inventory and presents
+   the detected technologies as preselected choices for operator confirmation;
+4. asks the remaining schema-driven questions needed before migration,
+   including project role, infrastructure ownership, implementation branch
+   strategy, agent settings, and audit timeout;
+5. creates a dated branch preserving the exact pre-migration state and offers
+   to push it;
+6. creates a dedicated v3 migration branch;
+7. offers the optional legacy-ticket migration for eligible SDLC v1 projects
+   and continues with the existing ledger when declined;
+8. archives and removes active Spec Kit artefacts for v2 projects without
+   normalizing unfinished work;
+9. inventories README, vision, and architecture Markdown or Org documents and
+   lets the operator select, deselect, move, and rescan them;
+10. folds any canonical `docs/ACs.org` into a preserved or newly created
+   `docs/work.org`, which becomes the sole requirement authority;
+11. for v2 projects with archived specifications, runs one bounded read-only
+    classification with the configured audit harness and model, removes their obsolete
+    top-level Status fields, and renders their lifecycle into `docs/work.org`;
+12. creates `.sdlc/project.yaml` and commits the migration with a concise
+    commit summary; and
+13. asks whether to merge the migration branch into the original branch.
+
+Set `VERBOSE=1` to show Git's complete changed-file inventory during the
+migration commit.
+
+The first real project migration should be performed with the operator watching.
+See [QUICKSTART.md](QUICKSTART.md) for each migration path.
+
+## Configuration
+
+Global non-secret defaults and the deployed SDLC release live at
+`~/.agents/sdlc.yaml`. Project facts and explicit overrides live in tracked
+`.sdlc/project.yaml`. Resolution order is:
+
+1. command line;
+2. process environment;
+3. project YAML;
+4. global YAML; and
+5. schema default.
+
+When a global value exists, the initializer inherits it without asking and does
+not copy it into the project file. Pass `--override-global-config` to display
+those questions and record selected project overrides. Project identity,
+technology selection, and infrastructure role are always project decisions.
+
+When no explicit technology selection exists, the initializer applies the
+deterministic file heuristics in `config/project-init.schema.yaml` to the bounded
+Git inventory. Maintained manifests and source files provide recommendations;
+archives, generated output, vendored dependencies, and provider runtime state
+are excluded. Recommendations begin selected with concise matching evidence,
+and the operator confirms or corrects them. A genuinely blank project has no
+inferred stack and requires a manual choice. The heuristics optimize recall and
+need not establish the stack without operator confirmation.
+
+Every interactive question begins on a separate line. Schema choices and
+document authorities share the same `[x]` and `[ ]` presentation; configuration
+questions select one value, while authority questions permit toggling and
+rescanning. After validation, each schema response prints the resolved value;
+multi-choice questions redraw their complete state after each numbered or named
+toggle and require Enter to confirm it.
+
+Product and architecture authorities are selected after migration from the
+project's bounded Git file inventory. The chooser finds Markdown and Org files
+whose stems contain README, VISION, or ARCHITECTURE, preserves exact path case,
+and supports multiple selections and rescanning after a move. The initializer
+preserves an existing `docs/work.org`, adds missing migration structure, and
+folds a canonical legacy AC ledger beneath `Legacy Acceptance Criteria (SDLC
+v1)`. It then records only `docs/work.org` as the requirement authority.
+Only archived v2 specification disposition requires model judgement. Pass
+`--no-agent-scan` to preserve those specifications as unresolved `REVIEW` work
+instead. A temporary `.sdlc/.init/` working directory remains
+if initialization is interrupted. Rerunning `sdlc-init` on the migration
+branch resumes when the dated archive and original primary branch are
+unambiguous, including after the primary branch has advanced. From `master` or
+`main`, a sole migration branch is proposed with a warning and a default-no
+`y/n` confirmation before switching. Multiple candidates require selecting the
+intended migration branch explicitly. No reset, stash or forced switch is used.
+A tracked `.sdlc/.gitignore` excludes that temporary directory from
+commits. The initializer never uses private `.git` paths as application storage.
+
+Example global configuration:
+
+```yaml
+version: 3
+release: v3.4.2
+delivery:
+  branch_strategy: current
+  definition:
+    harness: codex
+    provider: openai
+    model: gpt-5.6-sol
+  build:
+    harness: codex
+    provider: openai
+    model: gpt-5.6-terra
+  goal:
+    max_turns: 20             # Hermes and Copilot only.
+                             # Claude Code caps consecutive Stop-hook continuations at 8.
+    max_token_budget: "100,000" # Codex only; commas separate thousands.
+  audit:
+    harness: codex
+    provider: openai
+    model: gpt-5.6-luna
+    timeout: 5m
+    max_rounds: 5
+    max_failures: 3
+    # Optional: use when an audit attempt ends without a usable verdict.
+    # fallback:
+    #   cool_off_period: 1h
+    #   harness: hermes
+    #   provider: nous
+    #   model: z-ai/glm-5.3
+infrastructure:
+  owner: Example platform team
+  contract: /absolute/path/to/PROJECT-INTEGRATION.md
+```
+
+`version` identifies the configuration schema. `release` identifies the latest
+semantic-version Git tag deployed by `make install`; the installer maintains it
+without replacing unrelated settings. Projects follow those global skills and
+standards, so `.sdlc/project.yaml` does not duplicate an SDLC release pin.
+
+Each of `delivery.definition`, `delivery.build` and `delivery.audit` accepts an
+optional `fallback` mapping containing `harness`, `provider` where supported, and
+`model`. Project YAML replaces the global tuple as a whole; `fallback: {}` disables
+it. Omission inherits it. Audit fallback handles attempts ending without a usable
+verdict, including usage limits, launch/authentication errors, timeout and malformed
+output. PASS, FAIL and PROVISIONAL PASS never trigger it; running attempts must finish
+or time out. Local configuration, evidence and record errors remain blockers.
+Non-audit definition/build retain authentication-only fallback. It retains the configured per-call timeout; unusable responses count only
+towards the separate internal failure bound. Session recovery is harness-owned: configuration changes and recognized
+missing-session errors create a replacement with full evidence and preserved
+audit history. Run the installed harness's `--help` for diagnostic boundaries.
+
+Goal values above match the schema defaults. Plain positive integers and
+correctly comma-grouped thousands are accepted; periods, decimals, malformed
+grouping, scientific notation, signs, zero and leading zeroes are rejected before
+numeric conversion. The exact JSON integer ceiling is 9,007,199,254,740,991.
+Project overrides use the same keys under `.sdlc/project.yaml`.
+
+`deliver-change` reads normalized limits through the internal harness's
+`goal-config` operation. Native activation is capability-dependent: Codex goal
+tools may be called directly; other harnesses may require operator activation.
+This release does not install goal-control plugins for Hermes or Copilot.
+Configuration is not proof of activation or a guaranteed spending ceiling.
+The skill reports the effective native state and limits; audit budgets and
+operator gates remain unchanged. See the
+[native goal instructions](skills/deliver-change/references/native-goal.md).
+
+Document inspection defaults to `htmlpreview`. Set `HTML_PREVIEW_TOOL` to an
+executable name or path to use another viewer; an unset or empty value uses the
+default. The override selects the viewer without changing HTML-Preview's
+installation or synchronization. See the
+[HTML-Preview prerequisites](https://github.com/tigger-developer/HTML-Preview#prerequisites-and-installation)
+for its supported Go and Pandoc versions. Preview is presentation, not a gate.
+
+The initializer can import only schema-allowlisted historical `SDLC_*` values
+from a project `.env` through its shell wrapper. After the YAML profile is
+written, it removes those exact historical keys while preserving all unrelated
+lines. Agents never read `.env`, and v3 runtime configuration never depends on
+it.
+
+## Lean delivery workflow
+
+### Define
+
+Invoke `$define-change`. It asks only the clarification needed and creates one
+`spec.org` containing:
+
+- context and scope;
+- falsifiable acceptance criteria;
+- RT, UT, and OT test definitions linked to those criteria;
+- edge cases;
+- solution design and architecture impact, with mandatory security analysis;
+  and
+- a context-independent delivery handoff.
+
+The skill invokes the composite definition gate through the configured audit
+harness and remediates all findings before resuming its retained context, within
+the configured round limit. Audit state lives only in `audits.yaml`.
+After `PASS` or effective `PROVISIONAL PASS`, the work item moves to `REVIEW`.
+Explicit operator sign-off records authority, date and approval scope in the
+specification and moves the item to `ACTIVE` unless delivery is explicitly held.
+
+The operator reviews and signs off the definition before implementation.
+
+### Deliver
+
+Invoke `$deliver-change`. It checks operator sign-off in the specification,
+`ACTIVE` lifecycle state in `work.org`, current definition-gate evidence in
+`audits.yaml`, and documented delivery prerequisites or holds; it does not
+rerun the definition audits. Automated regression tests are written and executed
+first, with observed RED or justified initially GREEN preservation results. After
+deterministic readiness, the written tests receive test-code review. The agent then
+implements the solution, records RT/OT GREEN, reconciles affected documentation,
+and resumes the same auditor for delivery-code review. Each stage has its own
+configured verdict allowance. UTs can remain AMBER until operator validation and closure.
+
+Audit results live in `audits.yaml`. They are evidence for an exact revision, not
+human approval.
+
+Audit criteria are selected by the composite audit harness; individual audit
+skills are not deployed. The harness-invoked prompt returns findings; only the
+harness writes audit state. Duplicated audit state in a supplied artefact is a
+gate failure.
+
+The harness refers to original evidence paths without copying documents. Each
+recorded round retains only file paths, sizes, and SHA-256 hashes alongside its
+result or incident. Attempts and native session IDs are checkpointed before a
+verdict; timeouts retain that evidence without consuming the verdict budget.
+The harness owns bounded failure recovery. Calling agents invoke the same command
+for each review and report an intervention diagnostic without troubleshooting. Resuming the same work-item/gate session highlights changed inputs;
+unchanged material can be reused when still understood in context. Changes
+during the run reject the response. See the harness `--help` for evidence and
+cleanup details.
+
+## Variant workflows
+
+- `$pair-change` supports explicitly selected live human-agent implementation.
+  The bounded objective and each explicit iteration instruction form the
+  working specification. User validations are first-class evidence and are
+  consolidated into durable artefacts at closure. Create a skeleton ticket
+  before coding and audit each coherent implemented increment promptly.
+- The exact operator token `BYPASS-GATE-7` invokes `$emergency-change`. It uses
+  a bounded temporary specification, preserves TDD where an automated test is
+  justified, records the ticket immediately after the fix, and runs the
+  delivery-code gate after updating affected product docs, before retrospective
+  specification consolidation.
+- Both routes audit implemented tests and code together, then retrospectively
+  review requirements, design, and test definitions in the separate definition
+  session. Proposed behaviour or design changes return to the operator for
+  normal delivery. Documentation-only edits do not require a ticket.
+
+## Project artefacts
+
+```text
+.sdlc/project.yaml
+docs/work.org
+specs/WNNN-descriptor/spec.org
+specs/WNNN-descriptor/audits.yaml
+specs/WNNN-descriptor/validation.org
+```
+
+Org provides foldable hierarchy and stable internal links without making Emacs
+a dependency. Read `~/.agents/sdlc/ORGMODE.md` before editing Org artefacts and
+`~/.agents/sdlc/MARKDOWN.md` before creating or materially updating Markdown
+documents. Existing Markdown documents may adopt the required frontmatter when
+they are next updated.
+
+## Migration evidence
+
+SDLC v1 ticket migration remains an explicit operator-invoked workflow. It
+creates a lossless local ticket archive, an intermediate canonical
+`docs/ACs.org`, and `docs/ticket-migration.org`, updates stale project documents,
+archives the old
+implementation plan, and closes tickets only after durable evidence is
+committed.
+
+The initializer selects `delivery.definition` for **ticket migration** and
+**AC conversion or repair**. It
+invokes the configured CLI directly as a **writing migration agent**, not through
+`sdlc-harness`. The migration skill has no hardcoded model preference.
+Codex, Hermes and Claude have direct migration adapters; other selections retain
+an explicit manual handoff. Only Hermes consumes the configured provider.
+Native command policies and installed hooks remain enabled. A failed launch
+stops initialization; rerun `sdlc-init` to resume and, if the ticket migration
+index is still absent, choose the migration again.
+
+`sdlc-init` then validates that intermediate ledger against the
+canonical Org structure and folds it into `docs/work.org` before importing
+unresolved legacy work or archived Spec Kit specifications. If deterministic
+validation cannot safely interpret the ledger, the initializer invokes one
+repair using the configured definition agent and validates the result
+before continuing. An unsuccessful repair stops initialization without merging
+or deleting the source. The AC disposition becomes its headline state and the
+redundant Status field is removed. After the embedded copy is verified, the
+separate `docs/ACs.org` is removed.
+
+Applicable legacy ACs use **`VALID`**, not the old generated `HOLD`/`HOLDING`
+labels. Validity is not a test result. The importer accepts those old legacy
+labels for compatibility and emits `VALID`; normal work-item `BLOCKED` status
+is unchanged. For manually maintained migrated ledgers, update the legacy AC
+headlines, `#+TYP_TODO:` declaration and glossary in `docs/work.org`, and the
+intermediate `docs/ACs.org` if it still exists. Do not rewrite archived evidence.
+
+For an already initialized v3 project, run `sdlc-merge-legacy-acs` once from the
+project root. A successful rerun is a no-op.
+
+SDLC v2 migration preserves `.specify` and existing feature directories under
+`docs/archive/sdlc-v2/`, removes them from the active workflow, and indexes the
+preserved work for later operator disposition. It does not force incomplete work
+through a migration-time definition exercise.

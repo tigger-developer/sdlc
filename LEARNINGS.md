@@ -1,10 +1,57 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 1
-last-updated: 2026-09-28
+version: 2
+last-updated: 2026-10-01
 ---
 
 # SDLC Standards: Design Learnings
+
+## The journey from v1 to v3
+
+The first SDLC brought engineering rules and a delivery process together. It
+helped agents preserve scope, record decisions, test changes, and seek review.
+As the rules grew, every session had to carry more instructions, including
+material unrelated to the work at hand. The context cost made the discipline
+harder to apply consistently.
+
+V2 tested whether Spec Kit could own the workflow while this SDLC supplied
+standards and independent review. The integration established useful boundaries:
+project rules could be selected rather than copied wholesale, and an agent
+should not treat an informal request as authority to write code. In routine
+delivery, however, the combined stages and reviews imposed too much time,
+context, and cost for the value they added.
+
+V3 kept the useful constraints and changed their shape. A small entry point
+routes agents to task-relevant standards. One specification holds requirements,
+tests, and solution design. Reviews sit at definition, test, and delivery
+boundaries, with deterministic readiness checks and retained auditor context.
+Standard, paired, and emergency routes allow different work to receive proportionate
+process while preserving human authority.
+
+The sections below record the individual decisions and their evidence.
+Current rules live under `src/`.
+
+HTML-Preview began as an SDLC script and became the separate
+[HTML-Preview project](https://github.com/tigger-developer/HTML-Preview)
+for inspecting rendered Markdown and Org documents.
+
+## Why the Spec Kit integration ended
+
+V2 was a useful but unsuccessful delivery experiment. Spec Kit offered a
+coherent artefact sequence, and the SDLC supplied engineering standards and
+independent audits. Together they introduced repeated contexts, overlapping
+documents, and review loops for decisions that could be made at fewer
+boundaries. Small changes became slow to define and deliver.
+
+This judgement rests on observed work, not on a general objection to Spec Kit
+or to audits. The [lean-orchestration record](#lean-orchestration-is-part-of-correctness)
+describes routine work taking roughly four times as long, a small script
+change producing about 1,400 lines of artefacts and nine audits without
+delivery, and a sharp rise in subscription use. V3 kept independent review but
+combined the definition decision into one specification and one gate, then
+reused the implementation auditor across test and delivery review. The
+[decision-boundary lesson](#audit-decision-boundaries-not-every-intermediate-document)
+explains the resulting audit topology.
 
 ## Reset invalidates ownership rather than guessing liveness
 
@@ -1071,6 +1118,12 @@ with the operator's ordinary meaning of blocked work. The canonical label is
 now VALID. Applicability, delivery and test results are distinct facts: renaming
 a status must not fabricate evidence or reinterpret an actual blocked item.
 Compatibility belongs in the scoped legacy importer, not the new vocabulary.
+
+## Document history
+
+- Version 2 (2026-10-01): Added a novice-facing v1 to v3 narrative and a
+  focused explanation of why the Spec Kit delivery experiment ended. The
+  detailed design records remain in place.
 
 ## Licence
 

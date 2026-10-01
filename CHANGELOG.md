@@ -1,10 +1,19 @@
 ---
 title: Changelog
 version: 1
-last-updated: 2026-09-28
+last-updated: 2026-10-01
 ---
 
 # Changelog
+
+## v3.5.3 - 2026-10-01
+
+- Recast the README as an onboarding guide with a short purpose, design
+  history, quickstart, and explanations of the main workflow steps.
+- Add an accessible v1 to v3 journey and a focused Spec Kit retrospective to
+  the design learnings while retaining the detailed decision records.
+- Preserve the previous detailed README under `docs/archive/` for historical
+  and operational reference.
 
 ## v3.5.2 - 2026-09-28
 
