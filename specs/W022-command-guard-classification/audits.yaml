@@ -1,0 +1,324 @@
+version: 1
+audits:
+    - generation: 1
+      readiness_check: delivery-code
+      work_item: W022
+      gate: implementation
+      session_id: ""
+      harness: claude
+      model: claude-opus-5
+      configured:
+        harness: hermes
+        provider: nous
+        model: z-ai/glm-5.3
+      previous_sessions:
+        - session_id: ""
+          harness: hermes
+          provider: nous
+          model: z-ai/glm-5.3
+          reason: timeout-fallback
+          updated: "2026-10-02T00:50:24Z"
+        - session_id: 0d00bf52-b610-4fbd-ad87-0f7de588a7c1
+          harness: claude
+          model: claude-opus-5
+          reason: operator-reset
+          updated: "2026-10-02T01:11:10Z"
+      external_round: 3
+      budget_resets:
+        - gate: delivery-code
+          after_round: 3
+          updated: "2026-10-02T01:11:10Z"
+      status: identity-missing
+      updated: "2026-10-02T01:11:10Z"
+      history:
+        - diagnostic: /Users/tigger/code/agents/sdlc/.sdlc/audit-diagnostics/audit-3406805204.log
+          readiness_check: delivery-code
+          cache_key: sha256:0fc3e0539bf1346819ee4adda737f0e4e690465dc44ef2d7e561bbb8dce72ecb
+          harness: hermes
+          provider: nous
+          model: z-ai/glm-5.3
+          incident: timeout
+          evidence:
+            - path: /Users/tigger/.agents/sdlc/ARCHITECTURE.md
+              sha256: bd7a66ffd967010eefb8dc7abe64b059994c7b0f44ed5f5c30ec73e354f5b7f7
+              bytes: 8154
+            - path: /Users/tigger/.agents/sdlc/AUDITS.md
+              sha256: 82c7c3103e24525ddc89b08b7fb8294f6eb896f8b6f2d2726fd2585bbde7229b
+              bytes: 15524
+            - path: /Users/tigger/.agents/sdlc/CODING.md
+              sha256: a69a5d3b7ce3604b093703d72ab0de1bb6d607f140baab17292d209054fe902f
+              bytes: 13502
+            - path: /Users/tigger/.agents/sdlc/DOCUMENTATION.md
+              sha256: d8696dca9f4ed75cc8487e064a8c6756a418bbe623e55bcde0bc58996b011c9c
+              bytes: 7652
+            - path: /Users/tigger/.agents/sdlc/EMERGENCY.md
+              sha256: 5539a827b058a41c761593f329bef9ae539f1565d0c75a6e0938a5021014a662
+              bytes: 4831
+            - path: /Users/tigger/.agents/sdlc/MAIN.md
+              sha256: 6560e15ae577d79ba0fa565eaba53f1a94c57f00e9b1c3b3278291e19bf22dd8
+              bytes: 11718
+            - path: /Users/tigger/.agents/sdlc/ORG-SCHEMA.md
+              sha256: 4c93e9ebfd051a1caa3a3a456ef20228c4403f3ca00726ed1ac4c93676ac26cc
+              bytes: 4915
+            - path: /Users/tigger/.agents/sdlc/SECURITY.md
+              sha256: fbceb4dffd2ab69a3edcd1dd924873bdbe5298cffa4c2e65548e04541fb78f73
+              bytes: 5027
+            - path: /Users/tigger/.agents/sdlc/TESTING.md
+              sha256: 1a0d1296b6ec080c7c86b24713c4976a7eb6f9fab7071e2369ce2038baaad4f9
+              bytes: 16346
+            - path: /Users/tigger/.agents/sdlc/technologies/GO.md
+              sha256: 63a41c24322b2c4144367b69777528b023a30222593c462b0696df98b1967917
+              bytes: 7301
+            - path: /Users/tigger/.agents/sdlc/technologies/SHELL.md
+              sha256: c1a56e020ef7b66c166ef80346bc2df67a039c6145bbca38961a127cefad1fed
+              bytes: 11225
+            - path: /Users/tigger/code/agents/sdlc/.sdlc/project.yaml
+              sha256: 7435fbc30502a8a150bf976a612f9355ec4fafad508f66042eaeddd0a70de02d
+              bytes: 307
+            - path: /Users/tigger/code/agents/sdlc/CHANGELOG.md
+              sha256: c9c7bb23efec6da2ab0ca96c96aaca7dca372c049dc968de4162e556edc21c15
+              bytes: 80402
+            - path: /Users/tigger/code/agents/sdlc/LEARNINGS.md
+              sha256: 064d1937e28c9a88866a438dc3f931d7c9aa38934482ff6d65b6fef362a86641
+              bytes: 62870
+            - path: /Users/tigger/code/agents/sdlc/Makefile
+              sha256: 5fb426fb3fda73b25e597e8009b29ebc36628d82efc2218374c94e4d056f1c1f
+              bytes: 2490
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-guard-shell/main.go
+              sha256: 7d18ec91ddb3d3f8a1a5c07179f1d42e3098dac7cc5a3e854abb17f615bf1e0d
+              bytes: 1172
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-install/main_test.go
+              sha256: c74332afa094660287ee1f991c3c5c94572a7e79cac880e81c72ddf37ff8c49c
+              bytes: 4089
+            - path: /Users/tigger/code/agents/sdlc/docs/ARCHITECTURE.md
+              sha256: 5e332201147766aca8dc003379c0b179bf08fad8152361efa6d85ac6070ebe5b
+              bytes: 19281
+            - path: /Users/tigger/code/agents/sdlc/docs/work.org
+              sha256: 893e17fa4204fa6958584629700f45d3c808295574444bcd8a1deba06e503581
+              bytes: 15117
+            - path: /Users/tigger/code/agents/sdlc/go.mod
+              sha256: e2caeb849a0bacf1da5b9087b13c878333bd7923add3954c6bed08f3c06da4f8
+              bytes: 156
+            - path: /Users/tigger/code/agents/sdlc/go.sum
+              sha256: 00e323d821133628ac6f6bc76e6ab6a09b6dab51455ee32e46e61eeebe6fd036
+              bytes: 1519
+            - path: /Users/tigger/code/agents/sdlc/hooks/agent-command-guard.sh
+              sha256: 012a1eddc22026f902bfab97dbfa3ccf8ca0783bcd352e6415052396b79151b3
+              bytes: 4375
+            - path: /Users/tigger/code/agents/sdlc/internal/commandguard/shell.go
+              sha256: e4c20de239a2bcbfb12155f444b630796334c0038ba6a27bcbb377d646261beb
+              bytes: 10536
+            - path: /Users/tigger/code/agents/sdlc/internal/installer/guard_w004_test.go
+              sha256: c7a8052efcc0f485f38dbf00017e61e8b1f4bd13b435fd85d91b648be52ec1ae
+              bytes: 15290
+            - path: /Users/tigger/code/agents/sdlc/internal/installer/installer.go
+              sha256: 683f26bdebaf8475893653769291bde060d4793b7b2c64d541942020eb4dd367
+              bytes: 61208
+            - path: /Users/tigger/code/agents/sdlc/specs/004-multi-harness-support/spec.org
+              sha256: 5de03e3f8c9a5fc46866d86498624531e90bc374a989f388a948a582b6e6b392
+              bytes: 45748
+            - path: /Users/tigger/code/agents/sdlc/specs/W022-command-guard-classification/spec.org
+              sha256: 7a59cf53ed5920a0cda10ce95cc5a1aaeea5301abc18c01ab11903f32061b438
+              bytes: 7241
+            - path: /Users/tigger/code/agents/sdlc/specs/W022-command-guard-classification/validation.org
+              sha256: 986f153c981cc65b7ed48638d1aa262401a1383051b399730c19f9875301ca3c
+              bytes: 2580
+            - path: /Users/tigger/code/agents/sdlc/src/THIRD_PARTY_NOTICES.md
+              sha256: bf9038abaefa7b03b66845fa0c9f125b282438f58f57a51c971c52407bd14b1a
+              bytes: 1812
+          round: 1
+          updated: "2026-10-02T00:35:24Z"
+        - diagnostic: /Users/tigger/code/agents/sdlc/.sdlc/audit-diagnostics/audit-3406805204.log
+          readiness_check: delivery-code
+          cache_key: sha256:0fc3e0539bf1346819ee4adda737f0e4e690465dc44ef2d7e561bbb8dce72ecb
+          session_id: 0d00bf52-b610-4fbd-ad87-0f7de588a7c1
+          harness: claude
+          model: claude-opus-5
+          incident: timeout
+          evidence:
+            - path: /Users/tigger/.agents/sdlc/ARCHITECTURE.md
+              sha256: bd7a66ffd967010eefb8dc7abe64b059994c7b0f44ed5f5c30ec73e354f5b7f7
+              bytes: 8154
+            - path: /Users/tigger/.agents/sdlc/AUDITS.md
+              sha256: 82c7c3103e24525ddc89b08b7fb8294f6eb896f8b6f2d2726fd2585bbde7229b
+              bytes: 15524
+            - path: /Users/tigger/.agents/sdlc/CODING.md
+              sha256: a69a5d3b7ce3604b093703d72ab0de1bb6d607f140baab17292d209054fe902f
+              bytes: 13502
+            - path: /Users/tigger/.agents/sdlc/DOCUMENTATION.md
+              sha256: d8696dca9f4ed75cc8487e064a8c6756a418bbe623e55bcde0bc58996b011c9c
+              bytes: 7652
+            - path: /Users/tigger/.agents/sdlc/EMERGENCY.md
+              sha256: 5539a827b058a41c761593f329bef9ae539f1565d0c75a6e0938a5021014a662
+              bytes: 4831
+            - path: /Users/tigger/.agents/sdlc/MAIN.md
+              sha256: 6560e15ae577d79ba0fa565eaba53f1a94c57f00e9b1c3b3278291e19bf22dd8
+              bytes: 11718
+            - path: /Users/tigger/.agents/sdlc/ORG-SCHEMA.md
+              sha256: 4c93e9ebfd051a1caa3a3a456ef20228c4403f3ca00726ed1ac4c93676ac26cc
+              bytes: 4915
+            - path: /Users/tigger/.agents/sdlc/SECURITY.md
+              sha256: fbceb4dffd2ab69a3edcd1dd924873bdbe5298cffa4c2e65548e04541fb78f73
+              bytes: 5027
+            - path: /Users/tigger/.agents/sdlc/TESTING.md
+              sha256: 1a0d1296b6ec080c7c86b24713c4976a7eb6f9fab7071e2369ce2038baaad4f9
+              bytes: 16346
+            - path: /Users/tigger/.agents/sdlc/technologies/GO.md
+              sha256: 63a41c24322b2c4144367b69777528b023a30222593c462b0696df98b1967917
+              bytes: 7301
+            - path: /Users/tigger/.agents/sdlc/technologies/SHELL.md
+              sha256: c1a56e020ef7b66c166ef80346bc2df67a039c6145bbca38961a127cefad1fed
+              bytes: 11225
+            - path: /Users/tigger/code/agents/sdlc/.sdlc/project.yaml
+              sha256: 7435fbc30502a8a150bf976a612f9355ec4fafad508f66042eaeddd0a70de02d
+              bytes: 307
+            - path: /Users/tigger/code/agents/sdlc/CHANGELOG.md
+              sha256: c9c7bb23efec6da2ab0ca96c96aaca7dca372c049dc968de4162e556edc21c15
+              bytes: 80402
+            - path: /Users/tigger/code/agents/sdlc/LEARNINGS.md
+              sha256: 064d1937e28c9a88866a438dc3f931d7c9aa38934482ff6d65b6fef362a86641
+              bytes: 62870
+            - path: /Users/tigger/code/agents/sdlc/Makefile
+              sha256: 5fb426fb3fda73b25e597e8009b29ebc36628d82efc2218374c94e4d056f1c1f
+              bytes: 2490
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-guard-shell/main.go
+              sha256: 7d18ec91ddb3d3f8a1a5c07179f1d42e3098dac7cc5a3e854abb17f615bf1e0d
+              bytes: 1172
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-install/main_test.go
+              sha256: c74332afa094660287ee1f991c3c5c94572a7e79cac880e81c72ddf37ff8c49c
+              bytes: 4089
+            - path: /Users/tigger/code/agents/sdlc/docs/ARCHITECTURE.md
+              sha256: 5e332201147766aca8dc003379c0b179bf08fad8152361efa6d85ac6070ebe5b
+              bytes: 19281
+            - path: /Users/tigger/code/agents/sdlc/docs/work.org
+              sha256: 893e17fa4204fa6958584629700f45d3c808295574444bcd8a1deba06e503581
+              bytes: 15117
+            - path: /Users/tigger/code/agents/sdlc/go.mod
+              sha256: e2caeb849a0bacf1da5b9087b13c878333bd7923add3954c6bed08f3c06da4f8
+              bytes: 156
+            - path: /Users/tigger/code/agents/sdlc/go.sum
+              sha256: 00e323d821133628ac6f6bc76e6ab6a09b6dab51455ee32e46e61eeebe6fd036
+              bytes: 1519
+            - path: /Users/tigger/code/agents/sdlc/hooks/agent-command-guard.sh
+              sha256: 012a1eddc22026f902bfab97dbfa3ccf8ca0783bcd352e6415052396b79151b3
+              bytes: 4375
+            - path: /Users/tigger/code/agents/sdlc/internal/commandguard/shell.go
+              sha256: e4c20de239a2bcbfb12155f444b630796334c0038ba6a27bcbb377d646261beb
+              bytes: 10536
+            - path: /Users/tigger/code/agents/sdlc/internal/installer/guard_w004_test.go
+              sha256: c7a8052efcc0f485f38dbf00017e61e8b1f4bd13b435fd85d91b648be52ec1ae
+              bytes: 15290
+            - path: /Users/tigger/code/agents/sdlc/internal/installer/installer.go
+              sha256: 683f26bdebaf8475893653769291bde060d4793b7b2c64d541942020eb4dd367
+              bytes: 61208
+            - path: /Users/tigger/code/agents/sdlc/specs/004-multi-harness-support/spec.org
+              sha256: 5de03e3f8c9a5fc46866d86498624531e90bc374a989f388a948a582b6e6b392
+              bytes: 45748
+            - path: /Users/tigger/code/agents/sdlc/specs/W022-command-guard-classification/spec.org
+              sha256: 7a59cf53ed5920a0cda10ce95cc5a1aaeea5301abc18c01ab11903f32061b438
+              bytes: 7241
+            - path: /Users/tigger/code/agents/sdlc/specs/W022-command-guard-classification/validation.org
+              sha256: 986f153c981cc65b7ed48638d1aa262401a1383051b399730c19f9875301ca3c
+              bytes: 2580
+            - path: /Users/tigger/code/agents/sdlc/src/THIRD_PARTY_NOTICES.md
+              sha256: bf9038abaefa7b03b66845fa0c9f125b282438f58f57a51c971c52407bd14b1a
+              bytes: 1812
+          round: 2
+          updated: "2026-10-02T00:50:24Z"
+        - diagnostic: /Users/tigger/code/agents/sdlc/.sdlc/audit-diagnostics/audit-3406805204.log
+          readiness_check: delivery-code
+          cache_key: sha256:0fc3e0539bf1346819ee4adda737f0e4e690465dc44ef2d7e561bbb8dce72ecb
+          session_id: 0d00bf52-b610-4fbd-ad87-0f7de588a7c1
+          harness: claude
+          model: claude-opus-5
+          incident: interrupted
+          evidence:
+            - path: /Users/tigger/.agents/sdlc/ARCHITECTURE.md
+              sha256: bd7a66ffd967010eefb8dc7abe64b059994c7b0f44ed5f5c30ec73e354f5b7f7
+              bytes: 8154
+            - path: /Users/tigger/.agents/sdlc/AUDITS.md
+              sha256: 82c7c3103e24525ddc89b08b7fb8294f6eb896f8b6f2d2726fd2585bbde7229b
+              bytes: 15524
+            - path: /Users/tigger/.agents/sdlc/CODING.md
+              sha256: a69a5d3b7ce3604b093703d72ab0de1bb6d607f140baab17292d209054fe902f
+              bytes: 13502
+            - path: /Users/tigger/.agents/sdlc/DOCUMENTATION.md
+              sha256: d8696dca9f4ed75cc8487e064a8c6756a418bbe623e55bcde0bc58996b011c9c
+              bytes: 7652
+            - path: /Users/tigger/.agents/sdlc/EMERGENCY.md
+              sha256: 5539a827b058a41c761593f329bef9ae539f1565d0c75a6e0938a5021014a662
+              bytes: 4831
+            - path: /Users/tigger/.agents/sdlc/MAIN.md
+              sha256: 6560e15ae577d79ba0fa565eaba53f1a94c57f00e9b1c3b3278291e19bf22dd8
+              bytes: 11718
+            - path: /Users/tigger/.agents/sdlc/ORG-SCHEMA.md
+              sha256: 4c93e9ebfd051a1caa3a3a456ef20228c4403f3ca00726ed1ac4c93676ac26cc
+              bytes: 4915
+            - path: /Users/tigger/.agents/sdlc/SECURITY.md
+              sha256: fbceb4dffd2ab69a3edcd1dd924873bdbe5298cffa4c2e65548e04541fb78f73
+              bytes: 5027
+            - path: /Users/tigger/.agents/sdlc/TESTING.md
+              sha256: 1a0d1296b6ec080c7c86b24713c4976a7eb6f9fab7071e2369ce2038baaad4f9
+              bytes: 16346
+            - path: /Users/tigger/.agents/sdlc/technologies/GO.md
+              sha256: 63a41c24322b2c4144367b69777528b023a30222593c462b0696df98b1967917
+              bytes: 7301
+            - path: /Users/tigger/.agents/sdlc/technologies/SHELL.md
+              sha256: c1a56e020ef7b66c166ef80346bc2df67a039c6145bbca38961a127cefad1fed
+              bytes: 11225
+            - path: /Users/tigger/code/agents/sdlc/.sdlc/project.yaml
+              sha256: 7435fbc30502a8a150bf976a612f9355ec4fafad508f66042eaeddd0a70de02d
+              bytes: 307
+            - path: /Users/tigger/code/agents/sdlc/CHANGELOG.md
+              sha256: c9c7bb23efec6da2ab0ca96c96aaca7dca372c049dc968de4162e556edc21c15
+              bytes: 80402
+            - path: /Users/tigger/code/agents/sdlc/LEARNINGS.md
+              sha256: 064d1937e28c9a88866a438dc3f931d7c9aa38934482ff6d65b6fef362a86641
+              bytes: 62870
+            - path: /Users/tigger/code/agents/sdlc/Makefile
+              sha256: 5fb426fb3fda73b25e597e8009b29ebc36628d82efc2218374c94e4d056f1c1f
+              bytes: 2490
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-guard-shell/main.go
+              sha256: 7d18ec91ddb3d3f8a1a5c07179f1d42e3098dac7cc5a3e854abb17f615bf1e0d
+              bytes: 1172
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-install/main_test.go
+              sha256: c74332afa094660287ee1f991c3c5c94572a7e79cac880e81c72ddf37ff8c49c
+              bytes: 4089
+            - path: /Users/tigger/code/agents/sdlc/docs/ARCHITECTURE.md
+              sha256: 5e332201147766aca8dc003379c0b179bf08fad8152361efa6d85ac6070ebe5b
+              bytes: 19281
+            - path: /Users/tigger/code/agents/sdlc/docs/work.org
+              sha256: 893e17fa4204fa6958584629700f45d3c808295574444bcd8a1deba06e503581
+              bytes: 15117
+            - path: /Users/tigger/code/agents/sdlc/go.mod
+              sha256: e2caeb849a0bacf1da5b9087b13c878333bd7923add3954c6bed08f3c06da4f8
+              bytes: 156
+            - path: /Users/tigger/code/agents/sdlc/go.sum
+              sha256: 00e323d821133628ac6f6bc76e6ab6a09b6dab51455ee32e46e61eeebe6fd036
+              bytes: 1519
+            - path: /Users/tigger/code/agents/sdlc/hooks/agent-command-guard.sh
+              sha256: 012a1eddc22026f902bfab97dbfa3ccf8ca0783bcd352e6415052396b79151b3
+              bytes: 4375
+            - path: /Users/tigger/code/agents/sdlc/internal/commandguard/shell.go
+              sha256: e4c20de239a2bcbfb12155f444b630796334c0038ba6a27bcbb377d646261beb
+              bytes: 10536
+            - path: /Users/tigger/code/agents/sdlc/internal/installer/guard_w004_test.go
+              sha256: c7a8052efcc0f485f38dbf00017e61e8b1f4bd13b435fd85d91b648be52ec1ae
+              bytes: 15290
+            - path: /Users/tigger/code/agents/sdlc/internal/installer/installer.go
+              sha256: 683f26bdebaf8475893653769291bde060d4793b7b2c64d541942020eb4dd367
+              bytes: 61208
+            - path: /Users/tigger/code/agents/sdlc/specs/004-multi-harness-support/spec.org
+              sha256: 5de03e3f8c9a5fc46866d86498624531e90bc374a989f388a948a582b6e6b392
+              bytes: 45748
+            - path: /Users/tigger/code/agents/sdlc/specs/W022-command-guard-classification/spec.org
+              sha256: 7a59cf53ed5920a0cda10ce95cc5a1aaeea5301abc18c01ab11903f32061b438
+              bytes: 7241
+            - path: /Users/tigger/code/agents/sdlc/specs/W022-command-guard-classification/validation.org
+              sha256: 986f153c981cc65b7ed48638d1aa262401a1383051b399730c19f9875301ca3c
+              bytes: 2580
+            - path: /Users/tigger/code/agents/sdlc/src/THIRD_PARTY_NOTICES.md
+              sha256: bf9038abaefa7b03b66845fa0c9f125b282438f58f57a51c971c52407bd14b1a
+              bytes: 1812
+          round: 3
+          updated: "2026-10-02T01:05:24Z"

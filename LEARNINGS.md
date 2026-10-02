@@ -49,6 +49,12 @@ parsing actual shell syntax then separates executable nodes from data. A guard
 that cannot classify or parse an executable request must fail visibly rather
 than silently allow it.
 
+An operator may also need one trusted shell bootstrap to restore an inherited
+environment. Exempt the exact operator-owned `~/.envrc` source form, not the
+`source` builtin generally. Continue inspecting commands after that source;
+the bootstrap's contents are trusted operator configuration and are outside
+the submitted command's syntax tree.
+
 ## Why the Spec Kit integration ended
 
 V2 was a useful but unsuccessful delivery experiment. Spec Kit offered a

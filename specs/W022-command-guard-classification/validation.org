@@ -7,26 +7,34 @@
 * Automated regression
 ** GREEN RT022.1 - Classify native and shell payloads :testdef:
 :PROPERTIES:
-:REVISION: d5ee620 - Parsed command-guard candidate
+:REVISION: W022 candidate - parsed command guard with operator bootstrap exception
 :COMMAND: go test ./internal/installer -run TestW022CommandGuard -count=1
-:EVIDENCE: On 2026-10-02 before implementation, the written regression test failed for patch prose, Ruby heredoc data, newline commands, nested newline commands, command substitution and eval in their intended assertions. Against the committed candidate, the focused tests and full make test passed. The existing cross-provider command and native-read policy matrix also passed.
+:EVIDENCE: On 2026-10-02 before implementation, the written regression test failed for patch prose, Ruby heredoc data, newline commands, nested newline commands, command substitution and eval in their intended assertions. Against the current candidate, the focused tests and full make test passed. The existing cross-provider command and native-read policy matrix also passed.
 :END:
 - Method :: Synthetic provider JSON entered the actual hook with a temporary compiled classifier. The guard did not execute submitted commands.
 - Additional cases :: Global Git options, a Bash long option, input redirection and comment data were checked after implementation; the three newly failing cases were corrected and all cases passed.
 
 ** GREEN RT022.2 - Require the installed classifier :testdef:
 :PROPERTIES:
-:REVISION: d5ee620 - Parsed command-guard candidate
+:REVISION: W022 candidate - parsed command guard with operator bootstrap exception
 :COMMAND: go test ./internal/installer ./cmd/sdlc-install -count=1
 :EVIDENCE: On 2026-10-02 the hook fixture without its binary blocked a shell event with an actionable reason. The installer fixture tests passed with the new internal binary in their source inventory. This preservation case was first executed after the implementation and was initially GREEN; no artificial RED was created.
 :END:
 - Method :: Invoke a copied hook without its classifier and exercise the installer's actual planning and provider fixtures.
 
+** GREEN RT022.3 - Permit the exact environment bootstrap :testdef:
+:PROPERTIES:
+:REVISION: W022 candidate - exact operator environment bootstrap
+:COMMAND: go test ./internal/installer -run TestW022CommandGuardOperatorEnvrc -count=1
+:EVIDENCE: On 2026-10-02, the new regression failed before implementation for four exact bootstrap forms and passed after the narrow classifier exception. It then exposed quoted literal tildes as an overbroad allowance; after tightening the syntax check, those were blocked. Explicit local, home and HOME-parameter =.env= source cases also stayed blocked, as did unrelated targets, neighbouring filenames, extra arguments, dynamic targets and a later prohibited command.
+:END:
+- Method :: Submit synthetic provider JSON to the hook with a temporary built classifier; the submitted bootstrap command is classified but never executed.
+
 * One-off tests
 ** GREEN OT022.1 - Check the packaged guard :testdef:
 :PROPERTIES:
-:REVISION: d5ee620 - Parsed command-guard candidate
-:EVIDENCE: On 2026-10-02, make test passed go vet, golangci-lint, shellcheck, shfmt and all Go package tests. make build produced the internal classifier. Its help and version commands returned successfully. govulncheck ./... reported no reachable vulnerabilities. Changed technical documents were unchanged by sanitize; the specification rendered through Pandoc and git diff --check passed.
+:REVISION: W022 candidate - parsed command guard with operator bootstrap exception
+:EVIDENCE: On 2026-10-02, make test passed go vet, golangci-lint, shellcheck, shfmt and all Go package tests after the bootstrap exception. make build produced the internal classifier. Its help and version commands returned successfully before the exception; the new classifier build succeeded after it. govulncheck ./... reported no reachable vulnerabilities after the exception. Changed technical documents were unchanged by sanitize; the specification rendered through Pandoc and git diff --check passed.
 :END:
 - The pre-release build reported the previously reachable v3.5.3 tag. The v3.5.4 tag is created only after review and release commit.
 - The pinned parser licence notice is deployed through the installer's existing standards mapping. No live provider configuration or operator installation was changed.

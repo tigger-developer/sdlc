@@ -77,6 +77,9 @@ func checkCall(words []*syntax.Word, depth int) string {
 		case "sed", "awk":
 			return "sed and awk are prohibited; use format-aware tools or an explicit patch."
 		case "source", ".":
+			if len(words) == 2 && operatorEnvrcWord(words[1]) {
+				return ""
+			}
 			return "sourcing arbitrary files bypasses command policy; run an explicit command instead."
 		case "eval":
 			return "eval executes uninspected shell text; use an explicit command instead."
@@ -198,6 +201,25 @@ func staticWord(word *syntax.Word) (string, bool) {
 func literalEquals(word *syntax.Word, expected string) bool {
 	value, ok := staticWord(word)
 	return ok && value == expected
+}
+
+func operatorEnvrcWord(word *syntax.Word) bool {
+	if word == nil || len(word.Parts) != 1 {
+		return false
+	}
+	if literal, ok := word.Parts[0].(*syntax.Lit); ok {
+		return literal.Value == "~/.envrc"
+	}
+	quoted, ok := word.Parts[0].(*syntax.DblQuoted)
+	if !ok || len(quoted.Parts) != 2 {
+		return false
+	}
+	home, ok := quoted.Parts[0].(*syntax.ParamExp)
+	if !ok || home.Param == nil || home.Param.Value != "HOME" || home.Excl || home.Length || home.Width || home.Index != nil || home.Slice != nil || home.Repl != nil || home.Names != 0 || home.Exp != nil {
+		return false
+	}
+	suffix, ok := quoted.Parts[1].(*syntax.Lit)
+	return ok && suffix.Value == "/.envrc"
 }
 
 func hasLiteral(words []*syntax.Word, expected string) bool {

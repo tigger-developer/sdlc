@@ -170,6 +170,42 @@ func TestW022CommandGuardPatchProse(t *testing.T) {
 	}
 }
 
+func TestW022CommandGuardOperatorEnvrc(t *testing.T) {
+	tests := []struct {
+		name    string
+		command string
+		blocked bool
+	}{
+		{name: "home shorthand", command: "source ~/.envrc", blocked: false},
+		{name: "home parameter", command: `source "$HOME/.envrc"`, blocked: false},
+		{name: "dot builtin", command: ". ~/.envrc", blocked: false},
+		{name: "homebrew bash", command: `/opt/homebrew/bin/bash -c 'printf ready'`, blocked: false},
+		{name: "homebrew bash command", command: `/opt/homebrew/bin/bash -c 'source ~/.envrc; printf ready'`, blocked: false},
+		{name: "other source", command: "source config.sh", blocked: true},
+		{name: "protected local env", command: "source .env", blocked: true},
+		{name: "protected home env", command: "source ~/.env", blocked: true},
+		{name: "protected home parameter env", command: `source "$HOME/.env"`, blocked: true},
+		{name: "neighbouring file", command: "source ~/.envrc.local", blocked: true},
+		{name: "single quoted tilde", command: "source '~/.envrc'", blocked: true},
+		{name: "double quoted tilde", command: `source "~/.envrc"`, blocked: true},
+		{name: "extra argument", command: "source ~/.envrc unexpected", blocked: true},
+		{name: "dynamic source", command: `source "$(printf ~/.envrc)"`, blocked: true},
+		{name: "later prohibited command", command: "source ~/.envrc; rm obsolete", blocked: true},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			blocked, _, _ := runGuard(t, map[string]any{
+				"hook_event_name": "PreToolUse",
+				"tool_name":       "Bash",
+				"tool_input":      map[string]any{"command": test.command},
+			})
+			if blocked != test.blocked {
+				t.Fatalf("blocked = %t, want %t", blocked, test.blocked)
+			}
+		})
+	}
+}
+
 // RT022.2 - A missing installed classifier cannot silently disable the hook.
 func TestW022CommandGuardRequiresInstalledClassifier(t *testing.T) {
 	root := t.TempDir()

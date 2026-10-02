@@ -57,6 +57,11 @@ binary, which parses Bash syntax and checks executable nodes, including nested
 commands. The hook blocks when the classifier is missing or cannot parse the
 input. The installer deploys the binary beside the other internal commands
 without adding a public command link.
+The classifier permits `source ~/.envrc` and `source "$HOME/.envrc"` as a
+narrow operator-owned shell bootstrap exception. Other sourced paths remain
+blocked, and commands after the bootstrap are still inspected. A submitted
+`/opt/homebrew/bin/bash` command already follows the same shell parser path;
+the guard does not select an agent's shell or rewrite its `PATH`.
 The installed [third-party notice](../src/THIRD_PARTY_NOTICES.md) accompanies
 the classifier's pinned shell parser dependency.
 

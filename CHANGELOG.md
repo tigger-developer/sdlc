@@ -8,6 +8,8 @@ last-updated: 2026-10-02
 
 ## v3.5.4 - 2026-10-02
 
+- Permit the exact operator-owned `~/.envrc` shell bootstrap while continuing
+  to block arbitrary sourced files and commands following it that violate policy.
 - Route native file operations and shell commands separately so patch prose and
   heredoc data do not trigger command-policy blocks.
 - Parse shell syntax to catch prohibited commands after newlines, in command
