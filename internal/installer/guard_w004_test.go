@@ -4,11 +4,65 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 )
+
+var guardFixtureOnce sync.Once
+var guardFixturePath string
+var guardFixtureRoot string
+var guardFixtureError error
+
+func TestMain(m *testing.M) {
+	code := m.Run()
+	if guardFixtureRoot != "" {
+		if err := os.RemoveAll(guardFixtureRoot); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			code = 1
+		}
+	}
+	os.Exit(code)
+}
+
+func guardScript(t *testing.T) string {
+	t.Helper()
+	guardFixtureOnce.Do(func() {
+		guardFixtureRoot, guardFixtureError = os.MkdirTemp("", "sdlc-guard-test-")
+		if guardFixtureError != nil {
+			return
+		}
+		binary := filepath.Join(guardFixtureRoot, "bin", "sdlc-guard-shell")
+		guardFixtureError = os.MkdirAll(filepath.Dir(binary), 0o700)
+		if guardFixtureError != nil {
+			return
+		}
+		build := exec.Command("go", "build", "-o", binary, "./cmd/sdlc-guard-shell")
+		build.Dir = filepath.Join("..", "..")
+		if output, err := build.CombinedOutput(); err != nil {
+			guardFixtureError = fmt.Errorf("building shell guard: %w: %s", err, output)
+			return
+		}
+		source, err := os.ReadFile(filepath.Join("..", "..", "hooks", "agent-command-guard.sh"))
+		if err != nil {
+			guardFixtureError = err
+			return
+		}
+		guardFixturePath = filepath.Join(guardFixtureRoot, "hooks", "agent-command-guard.sh")
+		guardFixtureError = os.MkdirAll(filepath.Dir(guardFixturePath), 0o700)
+		if guardFixtureError == nil {
+			guardFixtureError = os.WriteFile(guardFixturePath, source, 0o600)
+		}
+	})
+	if guardFixtureError != nil {
+		t.Fatal(guardFixtureError)
+	}
+	return guardFixturePath
+}
 
 func TestW004CommandGuardCommandPosition(t *testing.T) {
 	tests := []struct {
@@ -68,6 +122,74 @@ func TestW004CommandGuardExactRestrictions(t *testing.T) {
 		if !got {
 			t.Errorf("command was not blocked: %s", command)
 		}
+	}
+}
+
+// RT022.1 - Keep document data separate from shell commands and inspect shell structure.
+func TestW022CommandGuardShellStructure(t *testing.T) {
+	tests := []struct {
+		name    string
+		command string
+		blocked bool
+	}{
+		{name: "ruby heredoc data", command: "ruby <<'RUBY'\nputs 'ready'; source = 'document'\nRUBY", blocked: false},
+		{name: "newline command", command: "printf ready\nrm obsolete.txt", blocked: true},
+		{name: "nested newline command", command: "bash -c 'printf ready\nrm obsolete.txt'", blocked: true},
+		{name: "command substitution", command: "printf '%s' \"$(rm obsolete.txt)\"", blocked: true},
+		{name: "shell eval", command: "eval 'rm obsolete.txt'", blocked: true},
+		{name: "git global directory option", command: "git -C repo remote add origin example", blocked: true},
+		{name: "git global config option", command: "git -c user.name=Agent push --force origin master", blocked: true},
+		{name: "bash long option with script path", command: "bash --norc 'source data.txt'", blocked: false},
+		{name: "input redirection", command: "cat < .env", blocked: true},
+		{name: "comment data", command: "printf ready # source config.sh", blocked: false},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			blocked, _, _ := runGuard(t, map[string]any{
+				"hook_event_name": "PreToolUse",
+				"tool_name":       "Bash",
+				"tool_input":      map[string]any{"command": test.command},
+			})
+			if blocked != test.blocked {
+				t.Fatalf("blocked = %t, want %t", blocked, test.blocked)
+			}
+		})
+	}
+}
+
+func TestW022CommandGuardPatchProse(t *testing.T) {
+	blocked, _, _ := runGuard(t, map[string]any{
+		"hook_event_name": "PreToolUse",
+		"tool_name":       "apply_patch",
+		"tool_input": map[string]any{
+			"command": "*** Begin Patch\n*** Update File: README.md\n@@\n-Old text; source is a noun.\n+New text; source is a noun.\n*** End Patch",
+		},
+	})
+	if blocked {
+		t.Fatal("patch prose was treated as a shell command")
+	}
+}
+
+// RT022.2 - A missing installed classifier cannot silently disable the hook.
+func TestW022CommandGuardRequiresInstalledClassifier(t *testing.T) {
+	root := t.TempDir()
+	hook := filepath.Join(root, "hooks", "agent-command-guard.sh")
+	if err := os.MkdirAll(filepath.Dir(hook), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	source, err := os.ReadFile(filepath.Join("..", "..", "hooks", "agent-command-guard.sh"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(hook, source, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	command := exec.Command("bash", hook)
+	command.Stdin = strings.NewReader(`{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{"command":"printf ready"}}`)
+	output, err := command.CombinedOutput()
+	var exitError *exec.ExitError
+	if !errors.As(err, &exitError) || exitError.ExitCode() != 2 || !strings.Contains(string(output), "guard binary is missing") {
+		t.Fatalf("missing classifier result = %q, error = %v", output, err)
 	}
 }
 
@@ -244,7 +366,7 @@ func TestW004CommandGuardRejectsMalformedRecognizedPayload(t *testing.T) {
 		{payload: []byte(`{"unexpected":"shape"}`)},
 	} {
 		// #nosec G204 -- the command and repository fixture path are constants.
-		command := exec.Command("bash", filepath.Join("..", "..", "hooks", "agent-command-guard.sh"))
+		command := exec.Command("bash", guardScript(t))
 		command.Stdin = bytes.NewReader(test.payload)
 		output, err := command.CombinedOutput()
 		if test.hermesJSON {
@@ -264,7 +386,7 @@ func runGuard(t *testing.T, payload map[string]any) (bool, []byte, []byte) {
 		t.Fatal(err)
 	}
 	// #nosec G204 -- the command and repository fixture path are constants.
-	command := exec.Command("bash", filepath.Join("..", "..", "hooks", "agent-command-guard.sh"))
+	command := exec.Command("bash", guardScript(t))
 	command.Stdin = bytes.NewReader(encoded)
 	var stdout, stderr bytes.Buffer
 	command.Stdout = &stdout

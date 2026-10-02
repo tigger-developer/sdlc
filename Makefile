@@ -5,6 +5,7 @@ PROJECT_INITIALIZER ?= bin/sdlc-init
 LEGACY_AC_MERGER ?= bin/sdlc-merge-legacy-acs
 HARNESS_RUNNER ?= bin/sdlc-harness
 VALIDATOR ?= bin/sdlc-validate
+GUARD_SHELL ?= bin/sdlc-guard-shell
 INSTALL_FLAGS ?=
 COMMIT_MESSAGE ?= chore: sync
 export COMMIT_MESSAGE
@@ -26,6 +27,7 @@ build:
 	go build $(LEGACY_AC_MERGER_BUILD_FLAGS) -o $(LEGACY_AC_MERGER) ./cmd/sdlc-merge-legacy-acs
 	go build $(HARNESS_RUNNER_BUILD_FLAGS) -o $(HARNESS_RUNNER) ./cmd/sdlc-harness
 	go build $(HARNESS_RUNNER_BUILD_FLAGS) -o $(VALIDATOR) ./cmd/sdlc-validate
+	go build $(HARNESS_RUNNER_BUILD_FLAGS) -o $(GUARD_SHELL) ./cmd/sdlc-guard-shell
 
 test: lint
 	go test ./...

@@ -110,6 +110,7 @@ var deployedCommandNames = []string{
 
 var deployedInternalCommandNames = []string{
 	"sdlc-harness",
+	"sdlc-guard-shell",
 }
 
 const (

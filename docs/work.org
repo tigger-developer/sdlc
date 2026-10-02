@@ -78,6 +78,17 @@ classification; it is provenance, not current state.
 
 * Work items
 
+** ACTIVE W022 - Classify guarded shell commands without scanning document data :defect:
+:PROPERTIES:
+:CUSTOM_ID: w022
+:PRIORITY: P1
+:SOURCE: operator
+:CREATED: 2026-10-02
+:END:
+- *Specification:* [[file:../specs/W022-command-guard-classification/spec.org][W022 - Command guard classification]]
+- *Validation:* [[file:../specs/W022-command-guard-classification/validation.org][W022 - Guard verification]]
+- *Audit evidence:* [[file:../specs/W022-command-guard-classification/audits.yaml][W022 - Harness-owned reviews]]
+
 ** REVIEW W021 - Warn before reviewing frozen audit inputs :defect:
 :PROPERTIES:
 :CUSTOM_ID: w021

@@ -1,7 +1,7 @@
 ---
 title: SDLC v3 Architecture
-version: 2
-last-updated: 2026-09-28
+version: 3
+last-updated: 2026-10-02
 ---
 
 # SDLC v3 Architecture
@@ -49,6 +49,16 @@ skill root directly. Each supported harness receives its native registration
 for the shared command guard and uses a thin capability-aware adapter for
 bounded external audits. Private provider configuration remains outside this
 repository's ownership.
+
+The shared guard first distinguishes native file operations from shell tools.
+Native writes are never parsed as shell commands; native reads retain the exact
+protected-file rule. Shell commands pass to the internal `sdlc-guard-shell`
+binary, which parses Bash syntax and checks executable nodes, including nested
+commands. The hook blocks when the classifier is missing or cannot parse the
+input. The installer deploys the binary beside the other internal commands
+without adding a public command link.
+The installed [third-party notice](../src/THIRD_PARTY_NOTICES.md) accompanies
+the classifier's pinned shell parser dependency.
 
 ## Project architecture
 
@@ -323,3 +333,8 @@ operator diagnostic reference on failure. Private bounded logs under
 Version 2 supersedes the earlier agent-managed session and shared attempt-budget
 contract. Existing attempt history remains intact; only labelled valid verdicts
 are charged to an explicit gate.
+
+## Document history
+
+- Version 3 (2026-10-02): Describe the parsed command-guard boundary and its
+  installed classifier.

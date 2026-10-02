@@ -1,0 +1,111 @@
+#+TITLE: W022 - Classify guarded shell commands without scanning document data
+#+SCHEMA: 8
+#+STARTUP: overview
+#+OPTIONS: toc:2 num:nil
+
+* Synopsis
+:PROPERTIES:
+:CUSTOM_ID: summary
+:END:
+** Outcome
+- The shared pre-tool guard *distinguishes shell commands from document data*.
+** Before
+- Patch prose and Ruby heredoc data containing =source= could be blocked.
+- Newline-separated commands, command substitutions and =eval= could bypass a block.
+** After
+- Native writes and shell data *receive no spurious command block*.
+- Executable shell syntax *receives the established policy checks*.
+** Changes
+- The hook *routes shell input to a parsed classifier* installed with the SDLC.
+** Unchanged
+- Provider hook registrations, result envelopes and exact native file-read policy remain.
+** Edge cases
+- A missing classifier or unparseable shell input *blocks rather than silently allows*.
+** Decisions
+- Use a pinned Bash grammar parser rather than extend the custom shell tokenizer.
+** Next step
+- Review the emergency implementation and test evidence for operator closure.
+
+* Context
+- Authority :: Explicit =BYPASS-GATE-7= emergency scope on 2026-10-02, following reproduced guard false positives and missed blocks. This record was reconciled after the fix; it was not an advance definition gate.
+- Scope :: The public SDLC pre-tool command guard, its installed classifier, regression tests and affected documentation.
+- Exclusions :: No provider configuration changes, policy relaxation, user installation, external service calls or changes to the separate HTML-Preview project.
+- Baseline :: [[file:../004-multi-harness-support/spec.org::#command-guard-contract][W004 - Shared command guard contract]], [[file:../../docs/ARCHITECTURE.md][SDLC architecture]], the existing provider-payload regression tests and the installed hook. The old tokenizer classified patch data as shell text and treated a newline as whitespace.
+
+* Acceptance Criteria
+** AC022.1 - Keep document and heredoc data out of command classification :ac:
+:PROPERTIES:
+:CUSTOM_ID: ac022-1
+:END:
+A native file-write payload is not parsed as a shell command. Text inside a
+shell heredoc, a comment or an allowed command's data argument is not treated
+as an executable command merely because it contains a guarded word.
+- Proven by :: [[#rt022-1][RT022.1 - Classify native and shell payloads]].
+
+** AC022.2 - Enforce guarded shell actions across shell structure :ac:
+:PROPERTIES:
+:CUSTOM_ID: ac022-2
+:END:
+The guard blocks actual prohibited commands after newlines, inside command
+substitutions and nested shell command strings, and through the forbidden
+=eval= builtin. Existing direct commands, wrapper forms, exact protected file
+reads and bypass flags remain blocked. Allowed neighbouring commands remain
+allowed.
+- Proven by :: [[#rt022-1][RT022.1 - Classify native and shell payloads]].
+
+** AC022.3 - Keep one installed policy boundary and fail closed :ac:
+:PROPERTIES:
+:CUSTOM_ID: ac022-3
+:END:
+All supported provider hooks use the same installed guard entry point and
+existing block response forms. The shell classifier is installed with that
+entry point; its absence, parser failure or an unrecognized command payload
+cannot silently allow the command.
+- Proven by :: [[#rt022-2][RT022.2 - Require the installed classifier]],
+  [[#ot022-1][OT022.1 - Check the packaged guard]].
+
+* Test Definitions
+** RT022.1 - Classify native and shell payloads :testdef:
+:PROPERTIES:
+:CUSTOM_ID: rt022-1
+:END:
+- Covers :: [[#ac022-1][AC022.1 - Keep document and heredoc data out of command classification]], [[#ac022-2][AC022.2 - Enforce guarded shell actions across shell structure]].
+- Boundary :: Submit synthetic provider JSON to the actual hook with a temporary built classifier.
+- Method :: Exercise patch prose, Ruby heredoc data, comments, real =source=, newline commands, nested shell strings, substitution, =eval=, global Git options, input redirection and the maintained policy matrix.
+- Expected :: The named data cases allow; executable prohibited cases block with the provider's established response.
+
+** RT022.2 - Require the installed classifier :testdef:
+:PROPERTIES:
+:CUSTOM_ID: rt022-2
+:END:
+- Covers :: [[#ac022-3][AC022.3 - Keep one installed policy boundary and fail closed]].
+- Boundary :: Invoke a hook fixture without its classifier and run the installer fixture tests.
+- Expected :: The missing classifier blocks a shell event with an actionable reason; installation plans include the internal binary and preserve provider registrations.
+
+** OT022.1 - Check the packaged guard :testdef:
+:PROPERTIES:
+:CUSTOM_ID: ot022-1
+:END:
+- Covers :: [[#ac022-3][AC022.3 - Keep one installed policy boundary and fail closed]].
+- Method :: Build all SDLC commands; inspect the internal guard's help and version output, its deployed-binary plan, dependency notice and architecture text; run the full local lint and regression suite.
+- Expected :: The build and suite pass, the guard has an executable built artefact, and the release documentation describes the installed boundary accurately.
+
+* Edge Cases
+- Dynamic executable names and command strings cannot be proven safe by static syntax and fail closed.
+- The parser accepts Bash grammar for hook command text and nested =bash=, =sh= and =zsh= command strings. Non-Bash syntax that cannot be parsed fails closed.
+- Quoted heredoc bodies are data. Command substitution inside shell syntax remains executable and is inspected.
+
+* Solution Design
+- Keep =hooks/agent-command-guard.sh= as the canonical provider hook entry point. It projects native payload fields, checks exact protected native reads and routes only recognized shell tools to the internal classifier.
+- Build and install =sdlc-guard-shell= alongside the existing internal harness binary. The hook locates it relative to its installed path and blocks if it is absent.
+- Use the pinned =mvdan.cc/sh/v3= parser to inspect executable syntax nodes, including nested substitutions and commands separated by newlines. This replaces the hand-written token stream and its data/command confusion.
+- Preserve the existing wrapper and option decisions for direct guarded commands. Block =eval= because it would execute text outside static inspection.
+- Security :: No submitted command is executed by the guard. The parser handles bounded stdin; invalid syntax, excessive input and missing binary fail closed. Native write payloads are never reinterpreted as shell.
+- Dependency :: Version 3.12.0 is pinned in =go.mod= and =go.sum=. Go's standard library has no Bash syntax tree parser. The dependency's licence notice is shipped with installed SDLC documentation.
+- Architecture :: The provider interface and hook path remain stable. The new internal binary is not added to the user's public command links.
+
+* Delivery Handoff
+- Validation :: [[file:validation.org][W022 - Guard verification]].
+- Audit record :: [[file:audits.yaml][W022 - Harness-owned reviews]].
+- Product documentation :: [[file:../../docs/ARCHITECTURE.md][SDLC architecture]], [[file:../../LEARNINGS.md][Design learnings]], third-party notice and changelog.
+- Closure :: Operator decision after current delivery and retrospective definition evidence; no operator installation was performed.

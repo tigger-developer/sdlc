@@ -1,10 +1,20 @@
 ---
 title: Changelog
 version: 1
-last-updated: 2026-10-01
+last-updated: 2026-10-02
 ---
 
 # Changelog
+
+## v3.5.4 - 2026-10-02
+
+- Route native file operations and shell commands separately so patch prose and
+  heredoc data do not trigger command-policy blocks.
+- Parse shell syntax to catch prohibited commands after newlines, in command
+  substitutions, and through nested shell strings; block `eval` and fail closed
+  when the classifier is unavailable.
+- Install the internal classifier with the shared hook and retain its
+  provider-specific block responses and protected-file checks.
 
 ## v3.5.3 - 2026-10-01
 

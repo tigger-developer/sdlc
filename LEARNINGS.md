@@ -1,7 +1,7 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 2
-last-updated: 2026-10-01
+version: 3
+last-updated: 2026-10-02
 ---
 
 # SDLC Standards: Design Learnings
@@ -38,6 +38,16 @@ specifications, designs, and architecture in context, placing feedback beside
 the material it addressed so an agent could incorporate it into revisions.
 That review use reached beyond this SDLC, and the viewer's growing complexity
 warranted the separate [HTML-Preview project](https://github.com/tigger-developer/HTML-Preview).
+
+## Classify the tool before interpreting its text
+
+A pre-tool guard once treated a document patch's `command` field as shell input.
+Its hand-written tokenizer then read prose and Ruby heredoc data as executable
+commands, while missing commands after newlines and inside substitutions.
+Classifying the native tool first establishes whether its text is code at all;
+parsing actual shell syntax then separates executable nodes from data. A guard
+that cannot classify or parse an executable request must fail visibly rather
+than silently allow it.
 
 ## Why the Spec Kit integration ended
 
@@ -1125,6 +1135,7 @@ Compatibility belongs in the scoped legacy importer, not the new vocabulary.
 
 ## Document history
 
+- Version 3 (2026-10-02): Record the tool-boundary and shell-parsing lesson.
 - Version 2 (2026-10-01): Added a novice-facing v1 to v3 narrative and a
   focused explanation of why the Spec Kit delivery experiment ended. The
   detailed design records remain in place.

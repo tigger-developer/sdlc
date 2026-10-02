@@ -106,6 +106,7 @@ func newCLIFixture(t *testing.T) (string, string) {
 		"bin/sdlc-init":                      "initializer\n",
 		"bin/sdlc-validate":                  "validator\n",
 		"bin/sdlc-harness":                   "runner\n",
+		"bin/sdlc-guard-shell":               "shell guard\n",
 		"bin/sdlc-merge-legacy-acs":          "ledger merger\n",
 	} {
 		fullPath := filepath.Join(source, filepath.FromSlash(path))
