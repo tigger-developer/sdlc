@@ -1,0 +1,32 @@
+#+TITLE: W022 - Command guard classification verification
+#+SCHEMA: 2
+#+STARTUP: content
+#+OPTIONS: toc:2 num:nil
+#+TODO: AMBER RED | GREEN
+
+* Automated regression
+** GREEN RT022.1 - Classify native and shell payloads :testdef:
+:PROPERTIES:
+:REVISION: d5ee620 - Parsed command-guard candidate
+:COMMAND: go test ./internal/installer -run TestW022CommandGuard -count=1
+:EVIDENCE: On 2026-10-02 before implementation, the written regression test failed for patch prose, Ruby heredoc data, newline commands, nested newline commands, command substitution and eval in their intended assertions. Against the committed candidate, the focused tests and full make test passed. The existing cross-provider command and native-read policy matrix also passed.
+:END:
+- Method :: Synthetic provider JSON entered the actual hook with a temporary compiled classifier. The guard did not execute submitted commands.
+- Additional cases :: Global Git options, a Bash long option, input redirection and comment data were checked after implementation; the three newly failing cases were corrected and all cases passed.
+
+** GREEN RT022.2 - Require the installed classifier :testdef:
+:PROPERTIES:
+:REVISION: d5ee620 - Parsed command-guard candidate
+:COMMAND: go test ./internal/installer ./cmd/sdlc-install -count=1
+:EVIDENCE: On 2026-10-02 the hook fixture without its binary blocked a shell event with an actionable reason. The installer fixture tests passed with the new internal binary in their source inventory. This preservation case was first executed after the implementation and was initially GREEN; no artificial RED was created.
+:END:
+- Method :: Invoke a copied hook without its classifier and exercise the installer's actual planning and provider fixtures.
+
+* One-off tests
+** GREEN OT022.1 - Check the packaged guard :testdef:
+:PROPERTIES:
+:REVISION: d5ee620 - Parsed command-guard candidate
+:EVIDENCE: On 2026-10-02, make test passed go vet, golangci-lint, shellcheck, shfmt and all Go package tests. make build produced the internal classifier. Its help and version commands returned successfully. govulncheck ./... reported no reachable vulnerabilities. Changed technical documents were unchanged by sanitize; the specification rendered through Pandoc and git diff --check passed.
+:END:
+- The pre-release build reported the previously reachable v3.5.3 tag. The v3.5.4 tag is created only after review and release commit.
+- The pinned parser licence notice is deployed through the installer's existing standards mapping. No live provider configuration or operator installation was changed.
