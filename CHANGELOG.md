@@ -1,13 +1,16 @@
 ---
 title: Changelog
 version: 1
-last-updated: 2026-10-02
+last-updated: 2026-10-03
 ---
 
 # Changelog
 
-## v3.5.4 - 2026-10-02
+## v3.5.4 - 2026-10-03
 
+- Prefer shell mechanisms that leave `IFS` unchanged; prohibit global changes
+  and manual save/restore sequences, and require justified exceptions to use
+  command-scoped `read` assignments or subshell containment.
 - Permit the exact operator-owned `~/.envrc` shell bootstrap while continuing
   to block arbitrary sourced files and commands following it that violate policy.
 - Route native file operations and shell commands separately so patch prose and

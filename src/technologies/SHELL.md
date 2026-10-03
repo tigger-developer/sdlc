@@ -1,3 +1,9 @@
+---
+title: Shell Standards
+version: 1
+last-updated: 2026-10-03
+---
+
 # Shell Standards
 
 Shell-specific standards covering both interactive shell commands and scripts. The general coding standards in `~/.agents/sdlc/CODING.md` apply on top of these; this document does not repeat cross-language rules.
@@ -41,8 +47,27 @@ Omit only with documented reason. Does not apply to one-shot commands at the pro
 **`IFS=$'\n\t'` is forbidden.** A global override breaks legitimate parsing of
 space-delimited tool output, including `read A B C < <(cmd)`, even when
 variables are quoted. It only mitigates unquoted-variable use, which is already
-prohibited. Do not add it to the safety header. When a specific block needs
-different word splitting, set `IFS` locally and restore it afterwards.
+prohibited. Do not add it to the safety header. The field-separator policy
+below supersedes the former advice to change `IFS` locally and restore it.
+
+## Field Separators
+
+Prefer mechanisms that leave `IFS` unchanged. Bash 5+ provides `mapfile` /
+`readarray` for loading records into arrays; use quoted arrays for argument
+lists, parameter expansion for simple string operations, and format-aware
+parsers for structured data. For streaming whole lines, `read -r` without a
+variable name stores the line in `REPLY` without field splitting.
+
+Do not change `IFS` globally or use manual save/change/restore sequences.
+Failures and early returns can skip a manual restoration. Do not add traps
+solely to repair an avoidable `IFS` mutation.
+
+An exception must explain beside the code why an alternative that leaves
+`IFS` unchanged is unsuitable. Confine the assignment to a single `read`
+command or a subshell so that Bash contains the change automatically on both
+success and failure. The caller's original value, including whether `IFS`
+was unset, must survive unchanged. Scoping alone is not a reason to prefer
+mutation, and Bash 3 compatibility is not a justification for Bash 5+ code.
 
 ## Required Practices
 

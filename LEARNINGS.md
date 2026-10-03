@@ -1,7 +1,7 @@
 ---
 title: "SDLC Standards: Design Learnings"
 version: 3
-last-updated: 2026-10-02
+last-updated: 2026-10-03
 ---
 
 # SDLC Standards: Design Learnings
@@ -38,6 +38,16 @@ specifications, designs, and architecture in context, placing feedback beside
 the material it addressed so an agent could incorporate it into revisions.
 That review use reached beyond this SDLC, and the viewer's growing complexity
 warranted the separate [HTML-Preview project](https://github.com/tigger-developer/HTML-Preview).
+
+## Avoid field-separator mutation before managing its lifetime
+
+Manual restoration of `IFS` depends on control flow reaching the restoration.
+Prefer Bash 5+ record readers and explicit arrays that avoid the mutation.
+Where field splitting genuinely requires an exception, command-scoped `read`
+assignments or subshell containment preserve the caller's state without a
+cleanup step. Automatic containment makes an exception safer; it does not
+make mutation the default. The current policy lives in
+[`src/technologies/SHELL.md`](src/technologies/SHELL.md#field-separators).
 
 ## Classify the tool before interpreting its text
 
