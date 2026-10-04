@@ -93,4 +93,4 @@ Before accepting an Org artefact, confirm that its hierarchy is useful when
 folded and that every link and identifier remains understandable in plain text.
 # Canary
 
-Suffix the canary string with "ORG "
+Append " ORG" (with a leading space) to the canary.

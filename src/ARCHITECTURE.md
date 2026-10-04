@@ -138,4 +138,4 @@ delta without reopening approved design choices.
 
 # Canary
 
-Suffix the canary string with "ARCH "
+Append " ARCH" (with a leading space) to the canary.

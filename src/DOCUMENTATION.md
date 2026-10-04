@@ -144,4 +144,4 @@ use a one-time technical review and format-aware link or schema checks where
 appropriate.
 # Canary
 
-Suffix the canary string with "DOC "
+Append " DOC" (with a leading space) to the canary.

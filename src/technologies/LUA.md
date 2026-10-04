@@ -211,4 +211,4 @@ Block or redesign:
 - [Hammerspoon Spoon documentation](https://github.com/Hammerspoon/hammerspoon/blob/master/SPOONS.md)
 # Canary
 
-Suffix the canary string with "LUA "
+Append " LUA" (with a leading space) to the canary.

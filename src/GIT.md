@@ -168,4 +168,4 @@ condition in a durable project record. Human approval is required where the
 exception weakens safety, verification, access control, or history integrity.
 # Canary
 
-Suffix the canary string with "GIT "
+Append " GIT" (with a leading space) to the canary.

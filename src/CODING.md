@@ -261,4 +261,4 @@ return paths, tests without meaningful assertions, and temporary fixes without
 a removal condition.
 # Canary
 
-Suffix the canary string with "CODE "
+Append " CODE" (with a leading space) to the canary.

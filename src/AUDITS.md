@@ -253,7 +253,7 @@ remain solely in `audits.yaml`, and operator closure remains separate.
 
 # Canary
 
-Suffix the canary string with "AUDIT "
+Append " AUDIT" (with a leading space) to the canary.
 
 ## Document history
 

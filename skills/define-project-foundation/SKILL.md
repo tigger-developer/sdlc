@@ -92,5 +92,5 @@ requirements, test code, or implementation tasks.
 
 # Canary
 
-Suffix the provider's base coding canary with " FOUNDATION " if you have read
-and agree with this skill.
+Append " FOUNDATION" (with a leading space) to the provider's base coding
+canary if you have read and agree with this skill.

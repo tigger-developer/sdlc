@@ -6,6 +6,20 @@ last-updated: 2026-10-05
 
 # Changelog
 
+## v3.5.7 - 2026-10-05
+
+- Replace the v2 Spec Kit and constitution routing in the public provider
+  instruction template with v3 routing by `.sdlc/project.yaml`, falling back to
+  `CODING.md` for code work in projects without a profile.
+- Move the current installation, configuration, and repository-layout reference
+  from the archived v3.5.2 README into `docs/CONFIGURATION.md`, add
+  `active-harness` selection, remove retired focused audit skills from the
+  layout, and repair the broken Quickstart configuration link.
+- Correct the audit-record template to name the operator-authorized `--reset`
+  that replaced `resume --reset-session` in v3.5.0.
+- Express every standard's canary suffix in one form with a leading space,
+  matching `MAIN.md`.
+
 ## v3.5.6 - 2026-10-05
 
 - Replace unsupported installer claims of interactive, external-audit, and

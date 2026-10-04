@@ -98,4 +98,4 @@ rather than omit the check.
 - [npm audit](https://docs.npmjs.com/cli/v11/commands/npm-audit/)
 # Canary
 
-Suffix the canary string with "NODE "
+Append " NODE" (with a leading space) to the canary.

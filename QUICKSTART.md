@@ -1,7 +1,7 @@
 ---
 title: SDLC v3 Quickstart
-version: 2
-last-updated: 2026-10-04
+version: 3
+last-updated: 2026-10-05
 ---
 
 # SDLC v3 Quickstart
@@ -77,7 +77,7 @@ or record an explicit override in `.sdlc/project.yaml`.
   complex requirements and architecture. Do not choose it on low price alone:
   repeated misunderstandings and review loops can erase the saving.
 - Set the driver through `delivery.definition` and `delivery.build`, and the
-  auditor through `delivery.audit` in the [configuration](README.md#configuration).
+  auditor through `delivery.audit` in the [configuration](docs/CONFIGURATION.md#configuration).
   Model capability matters more than harness branding, but the selected
   **harness must support the model, authentication and session resumption**.
 - **Hermes offers multiple provider routes**, but is not exempt from model

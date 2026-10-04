@@ -231,4 +231,4 @@ For systemd, launchd, cron:
 - Logs must go somewhere predictable; failures must be visible
 # Canary
 
-Suffix the canary string with "SHELL "
+Append " SHELL" (with a leading space) to the canary.

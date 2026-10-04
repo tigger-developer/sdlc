@@ -101,4 +101,4 @@ same target and exception policy rather than creating a second security process.
 - [OWASP vulnerable dependency management](https://cheatsheetseries.owasp.org/cheatsheets/Vulnerable_Dependency_Management_Cheat_Sheet.html)
 # Canary
 
-Suffix the canary string with "SECURITY "
+Append " SECURITY" (with a leading space) to the canary.

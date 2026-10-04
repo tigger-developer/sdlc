@@ -148,4 +148,4 @@ as user-test evidence under `~/.agents/sdlc/TESTING.md`.
 - Open Graph: [ogp.me](https://ogp.me/)
 # Canary
 
-Suffix the canary string with "WEB "
+Append " WEB" (with a leading space) to the canary.

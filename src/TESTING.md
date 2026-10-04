@@ -312,4 +312,4 @@ Distinguish focused checks from the complete project suite. Never convert a
 partial verification result into a claim about the whole system.
 # Canary
 
-Suffix the canary string with "TEST "
+Append " TEST" (with a leading space) to the canary.

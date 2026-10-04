@@ -92,4 +92,4 @@ durable artefacts, test evidence, audit result, assumptions, and anything left
 undone for the operator's decision.
 # Canary
 
-Suffix the canary string with "EMERGENCY "
+Append " EMERGENCY" (with a leading space) to the canary.

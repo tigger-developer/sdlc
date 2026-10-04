@@ -1,7 +1,7 @@
 ---
 title: Lean SDLC for Coding Agents
-version: 3
-last-updated: 2026-10-04
+version: 4
+last-updated: 2026-10-05
 ---
 
 # Lean SDLC for Coding Agents
@@ -125,11 +125,11 @@ The [audit harness guide](src/HARNESS.md) covers commands and diagnostics.
 |---|---|
 | Set up an agent and walk through a project | [Quickstart](QUICKSTART.md) |
 | Understand the design history and v2 experiment | [Design learnings](LEARNINGS.md) |
-| Configure global defaults or project overrides | [Configuration reference](docs/archive/README-v3.5.2.md#configuration) and [Quickstart setup](QUICKSTART.md#2-set-optional-global-defaults) |
-| Inspect installation behaviour and recovery | [Installation reference](docs/archive/README-v3.5.2.md#install) |
+| Configure global defaults or project overrides | [Configuration reference](docs/CONFIGURATION.md#configuration) and [Quickstart setup](QUICKSTART.md#2-set-optional-global-defaults) |
+| Inspect installation behaviour and recovery | [Installation reference](docs/CONFIGURATION.md#install) |
 | Diagnose an audit or its readiness check | [Audit harness guide](src/HARNESS.md) and [Org schema](src/ORG-SCHEMA.md) |
 | Understand project authority and standards routing | [Core SDLC rules](src/MAIN.md) |
-| Locate templates, skills, and implementation | [Repository layout](docs/archive/README-v3.5.2.md#repository-layout) |
+| Locate templates, skills, and implementation | [Repository layout](docs/CONFIGURATION.md#repository-layout) |
 | Review legacy migration evidence | [Migration reference](docs/archive/README-v3.5.2.md#migration-evidence) |
 
 The [previous detailed README](docs/archive/README-v3.5.2.md) is preserved as
@@ -138,6 +138,8 @@ standards, skills, and command help.
 
 ## Document history
 
+- Version 4 (2026-10-05): Linked the current configuration, installation, and
+  repository-layout reference instead of the archived README.
 - Version 3 (2026-10-04): Documented interactive provider-home selection and
   the shared `active-harness` default.
 - Version 2 (2026-10-01): Reorganized the front page around purpose, history,

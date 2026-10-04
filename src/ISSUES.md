@@ -320,4 +320,4 @@ A plan or task list may refine how a requirement is delivered. It may not alter
 the required outcome without a corresponding specification change.
 # Canary
 
-Suffix the canary string with "ISSUES "
+Append " ISSUES" (with a leading space) to the canary.

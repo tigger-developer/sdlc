@@ -126,4 +126,4 @@ non-interactive authentication boundary without placing credentials in source
 or command output.
 # Canary
 
-Suffix the canary string with "PY "
+Append " PY" (with a leading space) to the canary.

@@ -46,4 +46,4 @@ syntax instead.
 
 # Canary
 
-Suffix the canary string with "MD "
+Append " MD" (with a leading space) to the canary.

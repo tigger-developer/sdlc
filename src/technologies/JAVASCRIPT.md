@@ -140,4 +140,4 @@ desktop-only.
 - [Obsidian plugin submission requirements](https://docs.obsidian.md/community-directory/submission-requirements-for-plugins)
 # Canary
 
-Suffix the canary string with "JS "
+Append " JS" (with a leading space) to the canary.

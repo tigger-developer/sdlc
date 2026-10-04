@@ -341,4 +341,4 @@ Block or redesign:
   build can deploy a pinned artefact.
 # Canary
 
-Suffix the canary string with "RUST "
+Append " RUST" (with a leading space) to the canary.

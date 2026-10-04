@@ -80,4 +80,4 @@ These are prohibited unless an existing project requires them and the exception 
 - Obfuscated Perl idioms that require expert Perl knowledge to maintain.
 # Canary
 
-Suffix the canary string with "PERL "
+Append " PERL" (with a leading space) to the canary.

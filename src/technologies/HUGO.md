@@ -90,4 +90,4 @@ private infrastructure paths in public project documentation.
 - [Hugo configuration](https://gohugo.io/configuration/)
 # Canary
 
-Suffix the canary string with "HUGO "
+Append " HUGO" (with a leading space) to the canary.

@@ -119,4 +119,4 @@ operator has authorized that action and every applicable project requirement is
 satisfied.
 # Canary
 
-Suffix the canary string with "PAIR "
+Append " PAIR" (with a leading space) to the canary.

@@ -245,4 +245,4 @@ Block or redesign:
 - [fish-lsp](https://github.com/ndonfris/fish-lsp)
 # Canary
 
-Suffix the canary string with "FISH "
+Append " FISH" (with a leading space) to the canary.

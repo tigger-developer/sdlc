@@ -186,4 +186,4 @@ Reject or redesign:
 - [OWASP API Security Top 10](https://owasp.org/www-project-api-security/)
 # Canary
 
-Suffix the canary string with "API "
+Append " API" (with a leading space) to the canary.
