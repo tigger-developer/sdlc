@@ -1,10 +1,18 @@
 ---
 title: Changelog
 version: 1
-last-updated: 2026-10-04
+last-updated: 2026-10-05
 ---
 
 # Changelog
+
+## v3.5.6 - 2026-10-05
+
+- Replace unsupported installer claims of interactive, external-audit, and
+  initializer readiness with the local facts actually validated: command-guard
+  projection validity and external-audit adapter-command construction.
+- Report a failed guard projection without making an unevaluated claim about
+  the harness adapter or provider.
 
 ## v3.5.5 - 2026-10-04
 

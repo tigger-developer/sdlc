@@ -1,7 +1,7 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 4
-last-updated: 2026-10-04
+version: 5
+last-updated: 2026-10-05
 ---
 
 # SDLC Standards: Design Learnings
@@ -1162,8 +1162,19 @@ presence replaces the question, but it does not authorize creating missing
 provider homes. Explicit command-line selection remains the deliberate local
 override.
 
+## Installer labels must not outrun installer evidence
+
+Constructing a harness command proves only that the local adapter accepted its
+request. Passing a provider-shaped payload through the installed guard proves
+only that the local guard projection handled that shape. Neither check invokes
+or authenticates the provider, exercises an interactive session, or validates
+initializer behaviour. Installer output must name these local facts rather
+than collapse them into a broad `READY` claim.
+
 ## Document history
 
+- Version 5 (2026-10-05): Distinguish local installer validation from provider
+  and harness readiness.
 - Version 4 (2026-10-04): Record the shared active-harness installation
   selection boundary.
 - Version 3 (2026-10-02): Record the tool-boundary and shell-parsing lesson.

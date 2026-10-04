@@ -1,7 +1,7 @@
 ---
 title: SDLC v3 Architecture
-version: 4
-last-updated: 2026-10-04
+version: 5
+last-updated: 2026-10-05
 ---
 
 # SDLC v3 Architecture
@@ -49,6 +49,12 @@ skill root directly. Each supported harness receives its native registration
 for the shared command guard and uses a thin capability-aware adapter for
 bounded external audits. Private provider configuration remains outside this
 repository's ownership.
+
+Post-install validation executes the installed guard with each harness's local
+payload shape and constructs start and resume commands through each audit
+adapter. Its output reports command-guard projection validity and
+external-audit adapter-construction validity. It does not claim that a provider
+was invoked, authenticated, interactively ready, or initializer-ready.
 
 Interactive installation discovers supported harnesses from existing provider
 home directories. A top-level `active-harness` list in the shared
@@ -347,6 +353,8 @@ are charged to an explicit gate.
 
 ## Document history
 
+- Version 5 (2026-10-05): Bound installer validation labels to local guard
+  projection and audit-adapter command construction.
 - Version 4 (2026-10-04): Define provider-home discovery and shared
   `active-harness` installer selection.
 - Version 3 (2026-10-02): Describe the parsed command-guard boundary and its

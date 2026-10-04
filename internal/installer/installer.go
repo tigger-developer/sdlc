@@ -272,7 +272,7 @@ func RunInteractive(sourcePath, userHome, release string, input io.Reader, outpu
 		if err := verifyHarnessAdapters(commonHome, agents); err != nil {
 			return err
 		}
-		printHarnessReadiness(output, agents)
+		printHarnessLocalValidation(output, agents)
 		return nil
 	}
 	printInstallationPlan(output, plan, false)
@@ -324,7 +324,7 @@ func RunInteractive(sourcePath, userHome, release string, input io.Reader, outpu
 	if err := verifyHarnessAdapters(commonHome, agents); err != nil {
 		return err
 	}
-	printHarnessReadiness(output, agents)
+	printHarnessLocalValidation(output, agents)
 	fmt.Fprintln(output, "All listed SDLC changes were installed.")
 	return nil
 }
@@ -400,13 +400,9 @@ func detectedAgents(userHome string) ([]string, error) {
 	return detected, nil
 }
 
-func printHarnessReadiness(output io.Writer, agents []string) {
+func printHarnessLocalValidation(output io.Writer, agents []string) {
 	for _, agent := range agents {
-		initializer := "HANDOFF"
-		if agent == agentCodex {
-			initializer = "READY"
-		}
-		fmt.Fprintf(output, "Harness %s: interactive=READY; external-audit=READY; initializer=%s\n", agent, initializer)
+		fmt.Fprintf(output, "Harness %s: command-guard-projection=VALID; external-audit-adapter-construction=VALID\n", agent)
 	}
 }
 
@@ -435,7 +431,7 @@ func verifyHarnessGuards(commonHome string, agents []string, output io.Writer) e
 			verified = errors.As(err, &exitError) && exitError.ExitCode() == 2 && strings.Contains(stderr.String(), "Blocked by agent-command-guard")
 		}
 		if !verified {
-			fmt.Fprintf(output, "Harness %s: interactive=NOT_READY; external-audit=NOT_READY; initializer=NOT_READY; guard verification failed at %s\n", agent, guard)
+			fmt.Fprintf(output, "Harness %s: command-guard-projection=INVALID; guard verification failed at %s\n", agent, guard)
 			return fmt.Errorf("%s native command-guard projection could not be verified", agent)
 		}
 	}

@@ -64,8 +64,13 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 		t.Fatalf("install: %v\n%s", err, output.String())
 	}
 	for _, provider := range []string{"claude", "codex", "copilot", "hermes"} {
-		if !strings.Contains(output.String(), "Harness "+provider+": interactive=READY; external-audit=READY") {
-			t.Fatalf("missing %s readiness result:\n%s", provider, output.String())
+		if !strings.Contains(output.String(), "Harness "+provider+": command-guard-projection=VALID; external-audit-adapter-construction=VALID") {
+			t.Fatalf("missing %s local validation result:\n%s", provider, output.String())
+		}
+		for _, overclaim := range []string{"interactive=READY", "external-audit=READY", "initializer=READY", "initializer=HANDOFF"} {
+			if strings.Contains(output.String(), overclaim) {
+				t.Fatalf("installer overclaimed %s for %s:\n%s", overclaim, provider, output.String())
+			}
 		}
 	}
 	if count := strings.Count(readFixtureFile(t, guardCountPath), "invoked\n"); count != 4 {
