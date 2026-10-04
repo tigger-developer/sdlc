@@ -1,0 +1,387 @@
+version: 1
+audits:
+    - work_item: W023
+      gate: definition
+      session_id: 20261004_151257_ce259f
+      harness: hermes
+      provider: nous
+      model: z-ai/glm-5.3
+      configured:
+        harness: claude
+        model: claude-sonnet-5.5
+      previous_sessions:
+        - session_id: 4b9a1eb2-6511-49d7-b820-04a8e9e380db
+          harness: claude
+          model: claude-sonnet-5.5
+          reason: start-failed-fallback
+          updated: "2026-10-04T14:12:55Z"
+      external_round: 3
+      status: passed
+      updated: "2026-10-04T14:14:45Z"
+      revision: eeee54bdb64cebe300fc494c6233d8a7b0dd44f35d05f170b363a16ac3eaa082
+      verdict: PASS
+      response: |-
+        GATE: definition
+        REVISION: eeee54bdb64cebe300fc494c6233d8a7b0dd44f35d05f170b363a16ac3eaa082
+        VERDICT: PASS
+
+        Changed evidence reviewed: docs/work.org now records W023 with the REVIEW lifecycle keyword, one work-item heading, unchanged properties (CUSTOM_ID w023, P1, operator, 2026-10-04) and the specification link. This matches the ledger's own rules and the define-change contract after a definition PASS; it introduces no audit-state duplication — audit evidence remains solely in audits.yaml, linked but not copied.
+
+        The specification and all other evidence are byte-unchanged (matching hashes); the prior assessment of the complete package stands: traced ACs with bidirectional RT/OT coverage, feasible deterministic RTs against the current readiness implementation, bounded OT023.1 for standards-text criteria, no artificial UT or source-grep tests, additive and backward-compatible design proportionate to the operator-authorized change, mandatory security impact present, no annotation records or feedback.yaml obligations, impersonal factual voice, and documentation impact correctly identified in the handoff without demanding delivered updates.
+
+        No findings. No follow-up work required at this gate; the package awaits operator sign-off.
+      history:
+        - diagnostic: /Users/tigger/code/agents/sdlc/.sdlc/audit-diagnostics/audit-1615042749.log
+          cache_key: sha256:c04119aa9390e911c203b6efa333562ac5cdba94edfdca24a50191699adbd217
+          session_id: 4b9a1eb2-6511-49d7-b820-04a8e9e380db
+          harness: claude
+          model: claude-sonnet-5.5
+          incident: start-failed
+          evidence:
+            - path: /Users/tigger/code/agents/sdlc/.sdlc/project.yaml
+              sha256: 7435fbc30502a8a150bf976a612f9355ec4fafad508f66042eaeddd0a70de02d
+              bytes: 307
+            - path: /Users/tigger/code/agents/sdlc/QUICKSTART.md
+              sha256: 95a411425945c1e05fed7ccdf3a2a2653c4a1d9da56c59fc801981592e58fa5e
+              bytes: 10937
+            - path: /Users/tigger/code/agents/sdlc/README.md
+              sha256: b283ec2fc22d8d7fe9aa116ff9d217914d4a9c6899c82a0bcefe7ba3429ebec7
+              bytes: 7044
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/audit-start.md
+              sha256: fb7a4cb6f5ec5f5192fcc28c03822666554d6db1081b5ebb7a7410a09410dedf
+              bytes: 644
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/help.md
+              sha256: 0a61c21a9f53f7306bed76f60a1dd21bcc2d3f59a9c1b417221ffce215a7f063
+              bytes: 3852
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-validate/help.md
+              sha256: 9b2b72abddfed5e0513d8db417b5f46f7d041fefcbf9b0ad2784c884242d3e21
+              bytes: 1486
+            - path: /Users/tigger/code/agents/sdlc/docs/ARCHITECTURE.md
+              sha256: da706a09dcb0b978225afd51f9487e918d1878b45d803b75e32634c4c1d4b17a
+              bytes: 19649
+            - path: /Users/tigger/code/agents/sdlc/docs/work.org
+              sha256: db4b7242801e47a9e1ff0783a72d4e04a4610e5a1f015b0c687ad44af74841ef
+              bytes: 15447
+            - path: /Users/tigger/code/agents/sdlc/internal/readiness/check.go
+              sha256: 04781ded4312f468fe703df034a3f17ce048cf5f293f90d2920cee8ef8aa857c
+              bytes: 11122
+            - path: /Users/tigger/code/agents/sdlc/internal/readiness/check_test.go
+              sha256: 01fb9d5886c17548f2a073ef36615ff2486479f98489f2c64ee7f950872a23fa
+              bytes: 6430
+            - path: /Users/tigger/code/agents/sdlc/skills/define-change/SKILL.md
+              sha256: 06a81c330382d5de287b19a7277042bf2eb845387db17e05a3f9afdf0803440f
+              bytes: 5426
+            - path: /Users/tigger/code/agents/sdlc/skills/deliver-change/SKILL.md
+              sha256: 46ea394de00acc09099f29fbf5d9b76c4e5af75d60a1273e5f363d0f4e543e93
+              bytes: 9242
+            - path: /Users/tigger/code/agents/sdlc/skills/emergency-change/SKILL.md
+              sha256: 4a87f450e6b83f56833b46aa344628ebed2e79f0554c02e1f365e2e3b38d2e0d
+              bytes: 2570
+            - path: /Users/tigger/code/agents/sdlc/skills/pair-change/SKILL.md
+              sha256: 897f6d4fbf3e33ed88d89534269ba61a19c26ebd5b9d709c2a5902fdaf9b4a2d
+              bytes: 2554
+            - path: /Users/tigger/code/agents/sdlc/specs/W023-automated-ticket-tests/spec.org
+              sha256: eeee54bdb64cebe300fc494c6233d8a7b0dd44f35d05f170b363a16ac3eaa082
+              bytes: 24424
+            - path: /Users/tigger/code/agents/sdlc/src/ARCHITECTURE.md
+              sha256: bd7a66ffd967010eefb8dc7abe64b059994c7b0f44ed5f5c30ec73e354f5b7f7
+              bytes: 8154
+            - path: /Users/tigger/code/agents/sdlc/src/AUDITS.md
+              sha256: 82c7c3103e24525ddc89b08b7fb8294f6eb896f8b6f2d2726fd2585bbde7229b
+              bytes: 15524
+            - path: /Users/tigger/code/agents/sdlc/src/CODING.md
+              sha256: a69a5d3b7ce3604b093703d72ab0de1bb6d607f140baab17292d209054fe902f
+              bytes: 13502
+            - path: /Users/tigger/code/agents/sdlc/src/DOCUMENTATION.md
+              sha256: d8696dca9f4ed75cc8487e064a8c6756a418bbe623e55bcde0bc58996b011c9c
+              bytes: 7652
+            - path: /Users/tigger/code/agents/sdlc/src/EMERGENCY.md
+              sha256: 5539a827b058a41c761593f329bef9ae539f1565d0c75a6e0938a5021014a662
+              bytes: 4831
+            - path: /Users/tigger/code/agents/sdlc/src/ISSUES.md
+              sha256: 66982ab8b25b26ea1bfaf40577bf4955bf0c804cfd035ab582c6d9ff658e2581
+              bytes: 16627
+            - path: /Users/tigger/code/agents/sdlc/src/MAIN.md
+              sha256: 6560e15ae577d79ba0fa565eaba53f1a94c57f00e9b1c3b3278291e19bf22dd8
+              bytes: 11718
+            - path: /Users/tigger/code/agents/sdlc/src/ORG-SCHEMA.md
+              sha256: 4c93e9ebfd051a1caa3a3a456ef20228c4403f3ca00726ed1ac4c93676ac26cc
+              bytes: 4915
+            - path: /Users/tigger/code/agents/sdlc/src/ORGMODE.md
+              sha256: baffdd38fac0c2dd24d2be5389edb2a0b88ea19e8d67e1bc2f6f65d55601b7b3
+              bytes: 2974
+            - path: /Users/tigger/code/agents/sdlc/src/PAIRING.md
+              sha256: 6143ccad299a5cd89cb8b73fbb4082caa7a9826d065d78b1a41cdcaba9fed854
+              bytes: 6035
+            - path: /Users/tigger/code/agents/sdlc/src/SECURITY.md
+              sha256: fbceb4dffd2ab69a3edcd1dd924873bdbe5298cffa4c2e65548e04541fb78f73
+              bytes: 5027
+            - path: /Users/tigger/code/agents/sdlc/src/TESTING.md
+              sha256: 1a0d1296b6ec080c7c86b24713c4976a7eb6f9fab7071e2369ce2038baaad4f9
+              bytes: 16346
+            - path: /Users/tigger/code/agents/sdlc/src/prompts/audits.yaml
+              sha256: 6eecd2cdd3c7f80dbcc9eaa40025f55948fce5e81401052f31b6daf85c3b7740
+              bytes: 15899
+            - path: /Users/tigger/code/agents/sdlc/src/technologies/GO.md
+              sha256: 63a41c24322b2c4144367b69777528b023a30222593c462b0696df98b1967917
+              bytes: 7301
+            - path: /Users/tigger/code/agents/sdlc/src/technologies/SHELL.md
+              sha256: 6dfce7f7fc044ffd67c082e3ff39868b5cd7288ff80483c76e1c959a0daee55c
+              bytes: 12330
+            - path: /Users/tigger/code/agents/sdlc/src/technologies/WEB.md
+              sha256: c474f4646fae1e318c78c18b68cfe75d7100b2b7dd85d8ad264326fa375bc000
+              bytes: 10423
+            - path: /Users/tigger/code/agents/sdlc/src/templates/v3/spec.org
+              sha256: 73f6a85ff6be4d023d90c93ece42a33b4638f263c9a7b70b79630d79c984b686
+              bytes: 19415
+            - path: /Users/tigger/code/agents/sdlc/src/templates/v3/validation.org
+              sha256: 5ad49dd2ddd9fc8e5546e3e4e20a78913a96e0de29ba3edb8a93f2ee4faf70ea
+              bytes: 2164
+          round: 1
+          updated: "2026-10-04T14:12:52Z"
+        - diagnostic: /Users/tigger/code/agents/sdlc/.sdlc/audit-diagnostics/audit-1615042749.log
+          cache_key: sha256:c04119aa9390e911c203b6efa333562ac5cdba94edfdca24a50191699adbd217
+          session_id: 20261004_151257_ce259f
+          harness: hermes
+          provider: nous
+          model: z-ai/glm-5.3
+          evidence:
+            - path: /Users/tigger/code/agents/sdlc/.sdlc/project.yaml
+              sha256: 7435fbc30502a8a150bf976a612f9355ec4fafad508f66042eaeddd0a70de02d
+              bytes: 307
+            - path: /Users/tigger/code/agents/sdlc/QUICKSTART.md
+              sha256: 95a411425945c1e05fed7ccdf3a2a2653c4a1d9da56c59fc801981592e58fa5e
+              bytes: 10937
+            - path: /Users/tigger/code/agents/sdlc/README.md
+              sha256: b283ec2fc22d8d7fe9aa116ff9d217914d4a9c6899c82a0bcefe7ba3429ebec7
+              bytes: 7044
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/audit-start.md
+              sha256: fb7a4cb6f5ec5f5192fcc28c03822666554d6db1081b5ebb7a7410a09410dedf
+              bytes: 644
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/help.md
+              sha256: 0a61c21a9f53f7306bed76f60a1dd21bcc2d3f59a9c1b417221ffce215a7f063
+              bytes: 3852
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-validate/help.md
+              sha256: 9b2b72abddfed5e0513d8db417b5f46f7d041fefcbf9b0ad2784c884242d3e21
+              bytes: 1486
+            - path: /Users/tigger/code/agents/sdlc/docs/ARCHITECTURE.md
+              sha256: da706a09dcb0b978225afd51f9487e918d1878b45d803b75e32634c4c1d4b17a
+              bytes: 19649
+            - path: /Users/tigger/code/agents/sdlc/docs/work.org
+              sha256: db4b7242801e47a9e1ff0783a72d4e04a4610e5a1f015b0c687ad44af74841ef
+              bytes: 15447
+            - path: /Users/tigger/code/agents/sdlc/internal/readiness/check.go
+              sha256: 04781ded4312f468fe703df034a3f17ce048cf5f293f90d2920cee8ef8aa857c
+              bytes: 11122
+            - path: /Users/tigger/code/agents/sdlc/internal/readiness/check_test.go
+              sha256: 01fb9d5886c17548f2a073ef36615ff2486479f98489f2c64ee7f950872a23fa
+              bytes: 6430
+            - path: /Users/tigger/code/agents/sdlc/skills/define-change/SKILL.md
+              sha256: 06a81c330382d5de287b19a7277042bf2eb845387db17e05a3f9afdf0803440f
+              bytes: 5426
+            - path: /Users/tigger/code/agents/sdlc/skills/deliver-change/SKILL.md
+              sha256: 46ea394de00acc09099f29fbf5d9b76c4e5af75d60a1273e5f363d0f4e543e93
+              bytes: 9242
+            - path: /Users/tigger/code/agents/sdlc/skills/emergency-change/SKILL.md
+              sha256: 4a87f450e6b83f56833b46aa344628ebed2e79f0554c02e1f365e2e3b38d2e0d
+              bytes: 2570
+            - path: /Users/tigger/code/agents/sdlc/skills/pair-change/SKILL.md
+              sha256: 897f6d4fbf3e33ed88d89534269ba61a19c26ebd5b9d709c2a5902fdaf9b4a2d
+              bytes: 2554
+            - path: /Users/tigger/code/agents/sdlc/specs/W023-automated-ticket-tests/spec.org
+              sha256: eeee54bdb64cebe300fc494c6233d8a7b0dd44f35d05f170b363a16ac3eaa082
+              bytes: 24424
+            - path: /Users/tigger/code/agents/sdlc/src/ARCHITECTURE.md
+              sha256: bd7a66ffd967010eefb8dc7abe64b059994c7b0f44ed5f5c30ec73e354f5b7f7
+              bytes: 8154
+            - path: /Users/tigger/code/agents/sdlc/src/AUDITS.md
+              sha256: 82c7c3103e24525ddc89b08b7fb8294f6eb896f8b6f2d2726fd2585bbde7229b
+              bytes: 15524
+            - path: /Users/tigger/code/agents/sdlc/src/CODING.md
+              sha256: a69a5d3b7ce3604b093703d72ab0de1bb6d607f140baab17292d209054fe902f
+              bytes: 13502
+            - path: /Users/tigger/code/agents/sdlc/src/DOCUMENTATION.md
+              sha256: d8696dca9f4ed75cc8487e064a8c6756a418bbe623e55bcde0bc58996b011c9c
+              bytes: 7652
+            - path: /Users/tigger/code/agents/sdlc/src/EMERGENCY.md
+              sha256: 5539a827b058a41c761593f329bef9ae539f1565d0c75a6e0938a5021014a662
+              bytes: 4831
+            - path: /Users/tigger/code/agents/sdlc/src/ISSUES.md
+              sha256: 66982ab8b25b26ea1bfaf40577bf4955bf0c804cfd035ab582c6d9ff658e2581
+              bytes: 16627
+            - path: /Users/tigger/code/agents/sdlc/src/MAIN.md
+              sha256: 6560e15ae577d79ba0fa565eaba53f1a94c57f00e9b1c3b3278291e19bf22dd8
+              bytes: 11718
+            - path: /Users/tigger/code/agents/sdlc/src/ORG-SCHEMA.md
+              sha256: 4c93e9ebfd051a1caa3a3a456ef20228c4403f3ca00726ed1ac4c93676ac26cc
+              bytes: 4915
+            - path: /Users/tigger/code/agents/sdlc/src/ORGMODE.md
+              sha256: baffdd38fac0c2dd24d2be5389edb2a0b88ea19e8d67e1bc2f6f65d55601b7b3
+              bytes: 2974
+            - path: /Users/tigger/code/agents/sdlc/src/PAIRING.md
+              sha256: 6143ccad299a5cd89cb8b73fbb4082caa7a9826d065d78b1a41cdcaba9fed854
+              bytes: 6035
+            - path: /Users/tigger/code/agents/sdlc/src/SECURITY.md
+              sha256: fbceb4dffd2ab69a3edcd1dd924873bdbe5298cffa4c2e65548e04541fb78f73
+              bytes: 5027
+            - path: /Users/tigger/code/agents/sdlc/src/TESTING.md
+              sha256: 1a0d1296b6ec080c7c86b24713c4976a7eb6f9fab7071e2369ce2038baaad4f9
+              bytes: 16346
+            - path: /Users/tigger/code/agents/sdlc/src/prompts/audits.yaml
+              sha256: 6eecd2cdd3c7f80dbcc9eaa40025f55948fce5e81401052f31b6daf85c3b7740
+              bytes: 15899
+            - path: /Users/tigger/code/agents/sdlc/src/technologies/GO.md
+              sha256: 63a41c24322b2c4144367b69777528b023a30222593c462b0696df98b1967917
+              bytes: 7301
+            - path: /Users/tigger/code/agents/sdlc/src/technologies/SHELL.md
+              sha256: 6dfce7f7fc044ffd67c082e3ff39868b5cd7288ff80483c76e1c959a0daee55c
+              bytes: 12330
+            - path: /Users/tigger/code/agents/sdlc/src/technologies/WEB.md
+              sha256: c474f4646fae1e318c78c18b68cfe75d7100b2b7dd85d8ad264326fa375bc000
+              bytes: 10423
+            - path: /Users/tigger/code/agents/sdlc/src/templates/v3/spec.org
+              sha256: 73f6a85ff6be4d023d90c93ece42a33b4638f263c9a7b70b79630d79c984b686
+              bytes: 19415
+            - path: /Users/tigger/code/agents/sdlc/src/templates/v3/validation.org
+              sha256: 5ad49dd2ddd9fc8e5546e3e4e20a78913a96e0de29ba3edb8a93f2ee4faf70ea
+              bytes: 2164
+          round: 2
+          revision: eeee54bdb64cebe300fc494c6233d8a7b0dd44f35d05f170b363a16ac3eaa082
+          verdict: PASS
+          response: |-
+            GATE: definition
+            REVISION: eeee54bdb64cebe300fc494c6233d8a7b0dd44f35d05f170b363a16ac3eaa082
+            VERDICT: PASS
+
+            Assessment basis (compact):
+
+            - Traceability: AC023.1–AC023.7 are :ac:-tagged with stable CUSTOM_IDs and proven-by links; RT023.1–RT023.3 and OT023.1 cover every AC bidirectionally; no orphan tests, no unproven criteria. Handoff and work-item links resolve (#w023).
+            - Classification and TDD suitability: RT023.1/RT023.2 are deterministic tests against the existing readiness package and validator boundary — feasible and observable under the current check.go structure (identifier allowlist, prefix counts, evidence predicates, stage rules). RT023.3 reuses the established installer/embedded-help/full-suite fixtures and asserts on installed artefacts and command help, not source greps; prose consistency across all active surfaces is correctly assigned to bounded OT023.1. No UT is required: this is not a user-experience change. OT023.1 is the credible bounded evidence for the standards-text ACs (023.2–023.5, 023.7); no artificial RTs demanded.
+            - Design and architecture fit: additive AT category, one shared automated predicate, no-AT-and-no-RT skip, preserved non-UT-GREEN delivery rule — all match the current implementation facts cited as evidence. No new dependency, service, configuration key or moving part. The validator stays non-arithmetic for allowances, with rationale recorded and definition review as the enforcement point.
+            - Explicit assessments: the design does not exceed the operator-authorized package (additive category, fourfold non-monetary allowance, true one-off OT boundary, UT requirement, backward compatibility, handoff); it is not over-engineered (a materially simpler design would not deliver the four-category distinction); no component or mechanism was added to fill template sections — the schema 8→9 increment and new template fields each trace to AC023.3–AC023.5.
+            - Backward compatibility and transition: existing-category-only fixtures are required in RT023.1/RT023.2; AT is newly allocated only; existing count keys unchanged; archives and prior specifications explicitly untouched; no migration path needed, so no retirement condition is missing.
+            - DOCUMENTATION.md conformance: factual impersonal voice, no conversation narration or personal attribution, OPERATOR_SIGNOFF: PENDING, Synopsis derived accurately from the detail with all eight categories and no introduced or omitted material fact.
+            - Annotation and audit-state rules: spec.org contains no semantically identified annotation record or block (the hands-off note is an ordinary Org authoring comment); no feedback.yaml is supplied and no processed feedback is indicated; no audit findings, status, revisions, round numbers or session IDs are duplicated — audits.yaml is linked as evidence only.
+            - Mandatory security impact is present: no trust-boundary or access change; the identified authority-expansion risk is constrained by explicit exclusions, per-boundary limits and unchanged monetary ceilings.
+            - Significant decisions are resolved in the design; only routine details (helper names, fixture composition, line wrapping) are left to implementation, which is appropriate.
+          updated: "2026-10-04T14:12:55Z"
+        - diagnostic: /Users/tigger/code/agents/sdlc/.sdlc/audit-diagnostics/audit-1161864762.log
+          cache_key: sha256:8ca0e22c5c7e69408d766e0137b72eb9b02a6438750edaff5b1f9d9d890f61ed
+          session_id: 20261004_151257_ce259f
+          harness: hermes
+          provider: nous
+          model: z-ai/glm-5.3
+          evidence:
+            - path: /Users/tigger/code/agents/sdlc/.sdlc/project.yaml
+              sha256: 7435fbc30502a8a150bf976a612f9355ec4fafad508f66042eaeddd0a70de02d
+              bytes: 307
+            - path: /Users/tigger/code/agents/sdlc/QUICKSTART.md
+              sha256: 95a411425945c1e05fed7ccdf3a2a2653c4a1d9da56c59fc801981592e58fa5e
+              bytes: 10937
+            - path: /Users/tigger/code/agents/sdlc/README.md
+              sha256: b283ec2fc22d8d7fe9aa116ff9d217914d4a9c6899c82a0bcefe7ba3429ebec7
+              bytes: 7044
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/audit-start.md
+              sha256: fb7a4cb6f5ec5f5192fcc28c03822666554d6db1081b5ebb7a7410a09410dedf
+              bytes: 644
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-harness/help.md
+              sha256: 0a61c21a9f53f7306bed76f60a1dd21bcc2d3f59a9c1b417221ffce215a7f063
+              bytes: 3852
+            - path: /Users/tigger/code/agents/sdlc/cmd/sdlc-validate/help.md
+              sha256: 9b2b72abddfed5e0513d8db417b5f46f7d041fefcbf9b0ad2784c884242d3e21
+              bytes: 1486
+            - path: /Users/tigger/code/agents/sdlc/docs/ARCHITECTURE.md
+              sha256: da706a09dcb0b978225afd51f9487e918d1878b45d803b75e32634c4c1d4b17a
+              bytes: 19649
+            - path: /Users/tigger/code/agents/sdlc/docs/work.org
+              sha256: 00f1df2feddd62b0dd0ed222d2cc3bb397065ae95ec071c8c092cda0e3541e86
+              bytes: 15449
+            - path: /Users/tigger/code/agents/sdlc/internal/readiness/check.go
+              sha256: 04781ded4312f468fe703df034a3f17ce048cf5f293f90d2920cee8ef8aa857c
+              bytes: 11122
+            - path: /Users/tigger/code/agents/sdlc/internal/readiness/check_test.go
+              sha256: 01fb9d5886c17548f2a073ef36615ff2486479f98489f2c64ee7f950872a23fa
+              bytes: 6430
+            - path: /Users/tigger/code/agents/sdlc/skills/define-change/SKILL.md
+              sha256: 06a81c330382d5de287b19a7277042bf2eb845387db17e05a3f9afdf0803440f
+              bytes: 5426
+            - path: /Users/tigger/code/agents/sdlc/skills/deliver-change/SKILL.md
+              sha256: 46ea394de00acc09099f29fbf5d9b76c4e5af75d60a1273e5f363d0f4e543e93
+              bytes: 9242
+            - path: /Users/tigger/code/agents/sdlc/skills/emergency-change/SKILL.md
+              sha256: 4a87f450e6b83f56833b46aa344628ebed2e79f0554c02e1f365e2e3b38d2e0d
+              bytes: 2570
+            - path: /Users/tigger/code/agents/sdlc/skills/pair-change/SKILL.md
+              sha256: 897f6d4fbf3e33ed88d89534269ba61a19c26ebd5b9d709c2a5902fdaf9b4a2d
+              bytes: 2554
+            - path: /Users/tigger/code/agents/sdlc/specs/W023-automated-ticket-tests/spec.org
+              sha256: eeee54bdb64cebe300fc494c6233d8a7b0dd44f35d05f170b363a16ac3eaa082
+              bytes: 24424
+            - path: /Users/tigger/code/agents/sdlc/src/ARCHITECTURE.md
+              sha256: bd7a66ffd967010eefb8dc7abe64b059994c7b0f44ed5f5c30ec73e354f5b7f7
+              bytes: 8154
+            - path: /Users/tigger/code/agents/sdlc/src/AUDITS.md
+              sha256: 82c7c3103e24525ddc89b08b7fb8294f6eb896f8b6f2d2726fd2585bbde7229b
+              bytes: 15524
+            - path: /Users/tigger/code/agents/sdlc/src/CODING.md
+              sha256: a69a5d3b7ce3604b093703d72ab0de1bb6d607f140baab17292d209054fe902f
+              bytes: 13502
+            - path: /Users/tigger/code/agents/sdlc/src/DOCUMENTATION.md
+              sha256: d8696dca9f4ed75cc8487e064a8c6756a418bbe623e55bcde0bc58996b011c9c
+              bytes: 7652
+            - path: /Users/tigger/code/agents/sdlc/src/EMERGENCY.md
+              sha256: 5539a827b058a41c761593f329bef9ae539f1565d0c75a6e0938a5021014a662
+              bytes: 4831
+            - path: /Users/tigger/code/agents/sdlc/src/ISSUES.md
+              sha256: 66982ab8b25b26ea1bfaf40577bf4955bf0c804cfd035ab582c6d9ff658e2581
+              bytes: 16627
+            - path: /Users/tigger/code/agents/sdlc/src/MAIN.md
+              sha256: 6560e15ae577d79ba0fa565eaba53f1a94c57f00e9b1c3b3278291e19bf22dd8
+              bytes: 11718
+            - path: /Users/tigger/code/agents/sdlc/src/ORG-SCHEMA.md
+              sha256: 4c93e9ebfd051a1caa3a3a456ef20228c4403f3ca00726ed1ac4c93676ac26cc
+              bytes: 4915
+            - path: /Users/tigger/code/agents/sdlc/src/ORGMODE.md
+              sha256: baffdd38fac0c2dd24d2be5389edb2a0b88ea19e8d67e1bc2f6f65d55601b7b3
+              bytes: 2974
+            - path: /Users/tigger/code/agents/sdlc/src/PAIRING.md
+              sha256: 6143ccad299a5cd89cb8b73fbb4082caa7a9826d065d78b1a41cdcaba9fed854
+              bytes: 6035
+            - path: /Users/tigger/code/agents/sdlc/src/SECURITY.md
+              sha256: fbceb4dffd2ab69a3edcd1dd924873bdbe5298cffa4c2e65548e04541fb78f73
+              bytes: 5027
+            - path: /Users/tigger/code/agents/sdlc/src/TESTING.md
+              sha256: 1a0d1296b6ec080c7c86b24713c4976a7eb6f9fab7071e2369ce2038baaad4f9
+              bytes: 16346
+            - path: /Users/tigger/code/agents/sdlc/src/prompts/audits.yaml
+              sha256: 6eecd2cdd3c7f80dbcc9eaa40025f55948fce5e81401052f31b6daf85c3b7740
+              bytes: 15899
+            - path: /Users/tigger/code/agents/sdlc/src/technologies/GO.md
+              sha256: 63a41c24322b2c4144367b69777528b023a30222593c462b0696df98b1967917
+              bytes: 7301
+            - path: /Users/tigger/code/agents/sdlc/src/technologies/SHELL.md
+              sha256: 6dfce7f7fc044ffd67c082e3ff39868b5cd7288ff80483c76e1c959a0daee55c
+              bytes: 12330
+            - path: /Users/tigger/code/agents/sdlc/src/technologies/WEB.md
+              sha256: c474f4646fae1e318c78c18b68cfe75d7100b2b7dd85d8ad264326fa375bc000
+              bytes: 10423
+            - path: /Users/tigger/code/agents/sdlc/src/templates/v3/spec.org
+              sha256: 73f6a85ff6be4d023d90c93ece42a33b4638f263c9a7b70b79630d79c984b686
+              bytes: 19415
+            - path: /Users/tigger/code/agents/sdlc/src/templates/v3/validation.org
+              sha256: 5ad49dd2ddd9fc8e5546e3e4e20a78913a96e0de29ba3edb8a93f2ee4faf70ea
+              bytes: 2164
+          round: 3
+          revision: eeee54bdb64cebe300fc494c6233d8a7b0dd44f35d05f170b363a16ac3eaa082
+          verdict: PASS
+          response: |-
+            GATE: definition
+            REVISION: eeee54bdb64cebe300fc494c6233d8a7b0dd44f35d05f170b363a16ac3eaa082
+            VERDICT: PASS
+
+            Changed evidence reviewed: docs/work.org now records W023 with the REVIEW lifecycle keyword, one work-item heading, unchanged properties (CUSTOM_ID w023, P1, operator, 2026-10-04) and the specification link. This matches the ledger's own rules and the define-change contract after a definition PASS; it introduces no audit-state duplication — audit evidence remains solely in audits.yaml, linked but not copied.
+
+            The specification and all other evidence are byte-unchanged (matching hashes); the prior assessment of the complete package stands: traced ACs with bidirectional RT/OT coverage, feasible deterministic RTs against the current readiness implementation, bounded OT023.1 for standards-text criteria, no artificial UT or source-grep tests, additive and backward-compatible design proportionate to the operator-authorized change, mandatory security impact present, no annotation records or feedback.yaml obligations, impersonal factual voice, and documentation impact correctly identified in the handoff without demanding delivered updates.
+
+            No findings. No follow-up work required at this gate; the package awaits operator sign-off.
+          updated: "2026-10-04T14:14:34Z"

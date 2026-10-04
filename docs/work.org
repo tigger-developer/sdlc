@@ -78,6 +78,16 @@ classification; it is provenance, not current state.
 
 * Work items
 
+** REVIEW W023 - Distinguish automated ticket tests and resilient execution allowances :feature:
+:PROPERTIES:
+:CUSTOM_ID: w023
+:PRIORITY: P1
+:SOURCE: operator
+:CREATED: 2026-10-04
+:END:
+
+- *Specification:* [[file:../specs/W023-automated-ticket-tests/spec.org][W023 - Automated ticket-test classification and execution allowances]]
+
 ** ACTIVE W022 - Classify guarded shell commands without scanning document data :defect:
 :PROPERTIES:
 :CUSTOM_ID: w022
