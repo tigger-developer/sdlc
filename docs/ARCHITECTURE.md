@@ -1,7 +1,7 @@
 ---
 title: SDLC v3 Architecture
-version: 3
-last-updated: 2026-10-02
+version: 4
+last-updated: 2026-10-04
 ---
 
 # SDLC v3 Architecture
@@ -49,6 +49,12 @@ skill root directly. Each supported harness receives its native registration
 for the shared command guard and uses a thin capability-aware adapter for
 bounded external audits. Private provider configuration remains outside this
 repository's ownership.
+
+Interactive installation discovers supported harnesses from existing provider
+home directories. A top-level `active-harness` list in the shared
+`~/.agents/sdlc.yaml` configuration replaces the selection question; the
+installer intersects that list with the homes that exist. Explicit `--agent`
+invocation remains the highest-precedence selection route.
 
 The shared guard first distinguishes native file operations from shell tools.
 Native writes are never parsed as shell commands; native reads retain the exact
@@ -341,5 +347,7 @@ are charged to an explicit gate.
 
 ## Document history
 
+- Version 4 (2026-10-04): Define provider-home discovery and shared
+  `active-harness` installer selection.
 - Version 3 (2026-10-02): Describe the parsed command-guard boundary and its
   installed classifier.

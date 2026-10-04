@@ -1,10 +1,19 @@
 ---
 title: Changelog
 version: 1
-last-updated: 2026-10-03
+last-updated: 2026-10-04
 ---
 
 # Changelog
+
+## v3.5.5 - 2026-10-04
+
+- Detect installable harnesses from existing Codex, Claude, Copilot, and Hermes
+  home directories, then ask which detected homes should receive native SDLC
+  adapters.
+- Use the shared top-level `active-harness` list in `~/.agents/sdlc.yaml` as a
+  pre-authorized selection that bypasses the question, while skipping missing
+  provider homes and retaining explicit `--agent` as an override.
 
 ## v3.5.4 - 2026-10-03
 

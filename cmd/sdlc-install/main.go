@@ -40,6 +40,8 @@ func run(arguments []string, input io.Reader, output io.Writer) error {
 		fmt.Fprintln(output, "shared standards, global skills, command guard, and supported provider")
 		fmt.Fprintln(output, "adapters. It does not initialize a software project; run sdlc-init from")
 		fmt.Fprintln(output, "that project's root instead.")
+		fmt.Fprintln(output, "Without --agent, it asks which existing provider homes to use unless the")
+		fmt.Fprintln(output, "top-level active-harness list in ~/.agents/sdlc.yaml supplies the selection.")
 		fmt.Fprintln(output, "")
 		fmt.Fprintln(output, "Options:")
 		flags.PrintDefaults()

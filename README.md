@@ -1,7 +1,7 @@
 ---
 title: Lean SDLC for Coding Agents
-version: 2
-last-updated: 2026-10-01
+version: 3
+last-updated: 2026-10-04
 ---
 
 # Lean SDLC for Coding Agents
@@ -50,6 +50,11 @@ project's GitHub tickets.
 ```sh
 make install
 ```
+
+The installer asks which of the existing `~/.codex`, `~/.claude`,
+`~/.copilot`, and `~/.hermes` homes should receive native adapters. A top-level
+`active-harness` list in `~/.agents/sdlc.yaml` supplies that selection without
+asking. It does not create a missing provider home.
 
 From a clean, named branch in the project you want to use, run:
 
@@ -133,6 +138,8 @@ standards, skills, and command help.
 
 ## Document history
 
+- Version 3 (2026-10-04): Documented interactive provider-home selection and
+  the shared `active-harness` default.
 - Version 2 (2026-10-01): Reorganized the front page around purpose, history,
   quickstart, and the main steps; preserved the previous detailed reference.
 

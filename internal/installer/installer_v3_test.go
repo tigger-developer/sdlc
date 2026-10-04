@@ -60,7 +60,7 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 	guardCountPath := filepath.Join(root, "guard-count")
 	t.Setenv("SDLC_GUARD_COUNT_FILE", guardCountPath)
 	var output bytes.Buffer
-	if err := RunInteractive(source, root, "v3.0.0", strings.NewReader("yes\nyes\n"), &output); err != nil {
+	if err := RunInteractive(source, root, "v3.0.0", strings.NewReader("\nyes\nyes\n"), &output); err != nil {
 		t.Fatalf("install: %v\n%s", err, output.String())
 	}
 	for _, provider := range []string{"claude", "codex", "copilot", "hermes"} {
@@ -163,7 +163,7 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 
 	writeFixtureFile(t, filepath.Join(source, "skills", "define-change", "SKILL.md"), "updated canonical skill\n")
 	var refreshOutput bytes.Buffer
-	if err := RunInteractive(source, root, "v3.0.0", strings.NewReader("yes\n"), &refreshOutput); err != nil {
+	if err := RunInteractive(source, root, "v3.0.0", strings.NewReader("\nyes\n"), &refreshOutput); err != nil {
 		t.Fatalf("refresh install: %v\n%s", err, refreshOutput.String())
 	}
 	assertFixtureContent(t, filepath.Join(root, ".agents", "skills", "define-change", "SKILL.md"), "updated canonical skill\n")
@@ -171,7 +171,7 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 		assertFixtureContent(t, filepath.Join(root, "."+provider, "skills", "define-change", "SKILL.md"), "updated canonical skill\n")
 	}
 	var noOpOutput bytes.Buffer
-	if err := RunInteractive(source, root, "v3.0.0", strings.NewReader("unexpected\n"), &noOpOutput); err != nil {
+	if err := RunInteractive(source, root, "v3.0.0", strings.NewReader("\nunexpected\n"), &noOpOutput); err != nil {
 		t.Fatalf("all-provider no-op: %v\n%s", err, noOpOutput.String())
 	}
 	if !strings.Contains(noOpOutput.String(), "All detected SDLC copies are current.") || strings.Contains(noOpOutput.String(), "Deploy all") {
@@ -217,7 +217,7 @@ func TestV3InteractiveInstallIsSilentNoOpAfterSynchronization(t *testing.T) {
 	writeFixtureFile(t, filepath.Join(source, "templates", "codex-sdlc.rules.example"), codexPythonRulesStart+"\n"+codexPythonRulesEnd+"\n")
 	var first bytes.Buffer
 	writeFixtureFile(t, filepath.Join(root, ".agents", "sdlc.yaml"), "# operator settings\nversion: 3\nrelease: v2.1.0\ndelivery:\n  branch_strategy: feature\n")
-	if err := RunInteractive(source, root, "v3.0.0", strings.NewReader("yes\n"), &first); err != nil {
+	if err := RunInteractive(source, root, "v3.0.0", strings.NewReader("\nyes\n"), &first); err != nil {
 		t.Fatal(err)
 	}
 	global := readFixtureFile(t, filepath.Join(root, ".agents", "sdlc.yaml"))
@@ -227,7 +227,7 @@ func TestV3InteractiveInstallIsSilentNoOpAfterSynchronization(t *testing.T) {
 		}
 	}
 	var second bytes.Buffer
-	if err := RunInteractive(source, root, "v3.0.0", strings.NewReader("unexpected\n"), &second); err != nil {
+	if err := RunInteractive(source, root, "v3.0.0", strings.NewReader("\nunexpected\n"), &second); err != nil {
 		t.Fatal(err)
 	}
 	if !strings.Contains(second.String(), "All detected SDLC copies are current.") || strings.Contains(second.String(), "Deploy all") {
@@ -235,7 +235,7 @@ func TestV3InteractiveInstallIsSilentNoOpAfterSynchronization(t *testing.T) {
 	}
 }
 
-func TestW004DetectionUsesExecutableNotProviderHome(t *testing.T) {
+func TestW004DetectionUsesProviderHomeNotExecutable(t *testing.T) {
 	root := t.TempDir()
 	if err := os.MkdirAll(filepath.Join(root, ".claude"), 0o755); err != nil {
 		t.Fatal(err)
@@ -245,8 +245,8 @@ func TestW004DetectionUsesExecutableNotProviderHome(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if strings.Join(agents, ",") != "hermes" {
-		t.Fatalf("detected agents = %v, want executable-backed Hermes only", agents)
+	if strings.Join(agents, ",") != "claude" {
+		t.Fatalf("detected agents = %v, want directory-backed Claude only", agents)
 	}
 }
 

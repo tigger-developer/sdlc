@@ -1,7 +1,7 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 3
-last-updated: 2026-10-03
+version: 4
+last-updated: 2026-10-04
 ---
 
 # SDLC Standards: Design Learnings
@@ -1149,8 +1149,23 @@ now VALID. Applicability, delivery and test results are distinct facts: renaming
 a status must not fabricate evidence or reinterpret an actual blocked item.
 Compatibility belongs in the scoped legacy importer, not the new vocabulary.
 
+## Shared harness selection belongs in global configuration
+
+Provider executables do not establish which configuration homes exist or which
+harnesses the operator wants an installer to modify. Installation selection
+therefore begins with the supported provider-home directories and remains a
+human choice when no durable preference exists.
+
+The top-level `active-harness` list in `~/.agents/sdlc.yaml` is the shared
+durable preference for both public SDLC and private agent installation. Its
+presence replaces the question, but it does not authorize creating missing
+provider homes. Explicit command-line selection remains the deliberate local
+override.
+
 ## Document history
 
+- Version 4 (2026-10-04): Record the shared active-harness installation
+  selection boundary.
 - Version 3 (2026-10-02): Record the tool-boundary and shell-parsing lesson.
 - Version 2 (2026-10-01): Added a novice-facing v1 to v3 narrative and a
   focused explanation of why the Spec Kit delivery experiment ended. The

@@ -51,11 +51,37 @@ func TestDefaultRunDetectsInstalledProviderSubset_RT4_4(t *testing.T) {
 	}
 	t.Setenv("HOME", root)
 	var output bytes.Buffer
+	if err := run([]string{"--source", source}, strings.NewReader("codex,hermes\nno\n"), &output); err != nil {
+		t.Fatalf("run() error = %v", err)
+	}
+	if got := output.String(); !strings.Contains(got, "Detected agent homes: codex, hermes") || !strings.Contains(got, "Detected agents: codex, hermes") || strings.Contains(got, ".claude") || strings.Contains(got, ".copilot") {
+		t.Fatalf("provider detection output = %q", got)
+	}
+}
+
+func TestDefaultRunUsesActiveHarnessWithoutSelectionQuestion(t *testing.T) {
+	root, source := newCLIFixture(t)
+	for _, name := range []string{".codex", ".hermes"} {
+		if err := os.MkdirAll(filepath.Join(root, name), 0o700); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := os.MkdirAll(filepath.Join(root, ".agents"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, ".agents", "sdlc.yaml"), []byte("version: 3\nactive-harness:\n  - hermes\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, ".hermes", "config.yaml"), []byte("model:\n  provider: test\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("HOME", root)
+	var output bytes.Buffer
 	if err := run([]string{"--source", source}, strings.NewReader("no\n"), &output); err != nil {
 		t.Fatalf("run() error = %v", err)
 	}
-	if got := output.String(); !strings.Contains(got, "Detected agents: codex, hermes") || strings.Contains(got, ".claude") || strings.Contains(got, ".copilot") {
-		t.Fatalf("provider detection output = %q", got)
+	if got := output.String(); !strings.Contains(got, "Active harnesses from") || !strings.Contains(got, "Detected agents: hermes") || strings.Contains(got, "Install the SDLC for which agents?") {
+		t.Fatalf("active-harness output = %q", got)
 	}
 }
 

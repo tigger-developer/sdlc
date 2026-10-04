@@ -1,7 +1,7 @@
 ---
 title: SDLC v3 Quickstart
-version: 1
-last-updated: 2026-10-01
+version: 2
+last-updated: 2026-10-04
 ---
 
 # SDLC v3 Quickstart
@@ -28,6 +28,24 @@ make install
 This builds the repository-internal installer, deploys the public commands under
 `~/.agents/sdlc/bin`, and links those deployed copies onto the global path. The
 links do not point back into the source checkout.
+
+The installer lists the existing `~/.codex`, `~/.claude`, `~/.copilot`, and
+`~/.hermes` directories and asks which detected agents should receive native
+adapters. To use the same pre-authorized selection for both the public SDLC
+installer and the private agents installer, add this top-level key to
+`~/.agents/sdlc.yaml`:
+
+```yaml
+active-harness:
+  - hermes
+  - codex
+  - claude
+  - copilot
+```
+
+When the key is present, the installers do not ask the selection question.
+They still skip a listed harness when its provider home does not exist. An
+explicit SDLC `--agent` invocation remains an override for a single provider.
 
 The same command initializes the pinned HTML-Preview submodule and, when
 `htmlpreview` is not already installed, invokes that project's own

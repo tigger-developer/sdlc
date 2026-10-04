@@ -233,7 +233,8 @@ func RunInteractive(sourcePath, userHome, release string, input io.Reader, outpu
 	if err != nil {
 		return fmt.Errorf("resolving user home %q: %w", userHome, err)
 	}
-	agents, err := detectedAgents(userHome)
+	reader := bufio.NewReader(input)
+	agents, err := selectInteractiveAgents(userHome, reader, output)
 	if err != nil {
 		return err
 	}
@@ -257,8 +258,6 @@ func RunInteractive(sourcePath, userHome, release string, input io.Reader, outpu
 		return err
 	}
 	plan.configurations = configurations
-	reader := bufio.NewReader(input)
-
 	fmt.Fprintln(output, "SDLC installer: INTERACTIVE")
 	if len(agents) == 0 {
 		fmt.Fprintln(output, "Detected agents: none")
@@ -386,7 +385,15 @@ func confirmationAccepted(response string) bool {
 func detectedAgents(userHome string) ([]string, error) {
 	var detected []string
 	for _, provider := range providerDefinitions {
-		if _, err := exec.LookPath(provider.name); err == nil {
+		path := filepath.Join(userHome, "."+provider.name)
+		info, err := os.Stat(path)
+		if errors.Is(err, os.ErrNotExist) {
+			continue
+		}
+		if err != nil {
+			return nil, fmt.Errorf("inspecting %s agent home %q: %w", provider.name, path, err)
+		}
+		if info.IsDir() {
 			detected = append(detected, provider.name)
 		}
 	}
