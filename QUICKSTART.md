@@ -46,6 +46,9 @@ active-harness:
 When the key is present, the installers do not ask the selection question.
 They still skip a listed harness when its provider home does not exist. An
 explicit SDLC `--agent` invocation remains an override for a single provider.
+After displaying the selected plan, the interactive installer applies it
+without a second aggregate confirmation. It asks separately before replacing
+an unknown same-path provider configuration conflict.
 
 The same command initializes the pinned HTML-Preview submodule and, when
 `htmlpreview` is not already installed, invokes that project's own
@@ -55,8 +58,8 @@ document review uses `htmlpreview`.
 HTML-Preview's default installation links to its submodule checkout; keep that
 checkout in place.
 
-Use non-interactive application only when the listed variances have already been
-reviewed:
+For automation targeting one explicit provider, use the non-interactive
+application flags only when that target has already been reviewed:
 
 ```sh
 INSTALL_FLAGS=--apply make install

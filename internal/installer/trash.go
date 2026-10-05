@@ -11,8 +11,8 @@ import (
 	"time"
 )
 
-// Trash exact managed paths, not symlink targets. Configuration merges retain
-// their separate adjacent-backup and restoration path.
+// Trash exact managed paths, not symlink targets. Configuration merges use the
+// same recovery path before the merged replacement is written.
 func trashArtifact(output io.Writer, path string) error {
 	absolute, err := filepath.Abs(path)
 	if err != nil {

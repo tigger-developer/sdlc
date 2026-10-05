@@ -6,6 +6,14 @@ last-updated: 2026-10-05
 
 # Changelog
 
+## v3.5.8 - 2026-10-05
+
+- Apply an interactively selected installation plan without a redundant final
+  aggregate confirmation. Retain a separate confirmation only when replacing
+  an unknown same-path provider configuration conflict.
+- Move replaced provider and global configuration files to Trash before
+  writing their merged replacements. Do not leave adjacent `.bak` files.
+
 ## v3.5.7 - 2026-10-05
 
 - Replace the v2 Spec Kit and constitution routing in the public provider

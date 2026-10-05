@@ -30,7 +30,7 @@ func run(arguments []string, input io.Reader, output io.Writer) error {
 	agentHome := flags.String("agent-home", "", "provider home receiving native SDLC adapters")
 	source := flags.String("source", workingDirectory, "staging SDLC clone")
 	apply := flags.Bool("apply", false, "synchronize SDLC-owned copies for one provider")
-	configure := flags.Bool("configure", false, "offer supported provider configuration changes for confirmation")
+	configure := flags.Bool("configure", false, "apply supported provider configuration changes")
 	version := flags.Bool("version", false, "print the command version")
 	flags.Usage = func() {
 		fmt.Fprintln(output, "usage: sdlc-install [options]")

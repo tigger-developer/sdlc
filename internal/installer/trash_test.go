@@ -57,24 +57,24 @@ func TestManagedReplacementUsesTrash(t *testing.T) {
 	}
 }
 
-// RT014.3: configuration merges retain an exact adjacent recovery copy.
-func TestConfigurationRetainsAdjacentBackup(t *testing.T) {
+// RT014.3: replaced configurations are recoverable without adjacent backup files.
+func TestConfigurationReplacementUsesTrash(t *testing.T) {
 	root := t.TempDir()
 	installHarnessExecutables(t, root)
 	path := filepath.Join(root, "config.yaml")
 	writeFixtureFile(t, path, "personal: old\n")
 	change := &configurationChange{path: path, contents: []byte("personal: old\nmanaged: new\n"), mode: 0o600}
-	if err := applyConfigurationChange(change, &bytes.Buffer{}); err != nil {
+	var output bytes.Buffer
+	if err := applyConfigurationChange(change, &output); err != nil {
 		t.Fatal(err)
 	}
-	backups, err := filepath.Glob(path + ".*.bak")
-	if err != nil || len(backups) != 1 {
-		t.Fatalf("backups = %v, %v", backups, err)
-	}
-	assertFixtureContent(t, backups[0], "personal: old\n")
+	assertFixtureContent(t, assertTrashed(t, path), "personal: old\n")
 	assertFixtureContent(t, path, string(change.contents))
-	if _, err := os.Lstat(os.Getenv("TEST_TRASH_ROOT") + path); !os.IsNotExist(err) {
-		t.Fatalf("configuration was trashed: %v", err)
+	if backups, err := filepath.Glob(path + ".*.bak"); err != nil || len(backups) != 0 {
+		t.Fatalf("configuration has adjacent backups: %v, %v", backups, err)
+	}
+	if !strings.Contains(output.String(), "Trashed:") {
+		t.Fatal(output.String())
 	}
 }
 
@@ -83,7 +83,7 @@ func TestMissingSourceDoesNotTrashDestination(t *testing.T) {
 	installHarnessExecutables(t, root)
 	path := filepath.Join(root, "live")
 	writeFixtureFile(t, path, "old")
-	err := synchronizeFile(managedSync{source: filepath.Join(root, "missing"), destination: path}, 0, &bytes.Buffer{})
+	err := synchronizeFile(managedSync{source: filepath.Join(root, "missing"), destination: path}, &bytes.Buffer{})
 	if err == nil {
 		t.Fatal("missing source accepted")
 	}

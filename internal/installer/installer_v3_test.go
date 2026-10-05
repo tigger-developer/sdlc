@@ -3,6 +3,7 @@ package installer
 import (
 	"bytes"
 	"errors"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -60,7 +61,7 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 	guardCountPath := filepath.Join(root, "guard-count")
 	t.Setenv("SDLC_GUARD_COUNT_FILE", guardCountPath)
 	var output bytes.Buffer
-	if err := RunInteractive(source, root, "v3.0.0", strings.NewReader("\nyes\nyes\n"), &output); err != nil {
+	if err := RunInteractive(source, root, "v3.0.0", strings.NewReader("\nyes\n"), &output); err != nil {
 		t.Fatalf("install: %v\n%s", err, output.String())
 	}
 	for _, provider := range []string{"claude", "codex", "copilot", "hermes"} {
@@ -75,6 +76,9 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 	}
 	if count := strings.Count(readFixtureFile(t, guardCountPath), "invoked\n"); count != 4 {
 		t.Fatalf("guard invocation count = %d, want 4", count)
+	}
+	if strings.Contains(output.String(), "Deploy all listed SDLC changes?") {
+		t.Fatalf("installer asked for an aggregate confirmation:\n%s", output.String())
 	}
 	assertFixtureContent(t, unrelatedPath, "operator-owned bytes\n")
 	assertFixtureContent(t, filepath.Join(root, ".agents", "sdlc", "MAIN.md"), "# Lean SDLC\n")
@@ -157,10 +161,7 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 			t.Fatalf("guard absent from %s: %s", path, contents)
 		}
 	}
-	copilotBackups, err := filepath.Glob(filepath.Join(root, ".copilot", "hooks", "sdlc-tool-guard.json.*.bak"))
-	if err != nil || len(copilotBackups) != 1 || readFixtureFile(t, copilotBackups[0]) != "{}\n" {
-		t.Fatalf("Copilot conflict backup = %v, %v", copilotBackups, err)
-	}
+	assertFixtureContent(t, assertTrashed(t, filepath.Join(root, ".copilot", "hooks", "sdlc-tool-guard.json")), "{}\n")
 	global := readFixtureFile(t, filepath.Join(root, ".agents", "sdlc.yaml"))
 	if !strings.Contains(global, "version: 3") || !strings.Contains(global, "release: v3.0.0") {
 		t.Fatalf("global configuration does not identify the schema and deployed release:\n%s", global)
@@ -168,7 +169,7 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 
 	writeFixtureFile(t, filepath.Join(source, "skills", "define-change", "SKILL.md"), "updated canonical skill\n")
 	var refreshOutput bytes.Buffer
-	if err := RunInteractive(source, root, "v3.0.0", strings.NewReader("\nyes\n"), &refreshOutput); err != nil {
+	if err := RunInteractive(source, root, "v3.0.0", strings.NewReader("\n"), &refreshOutput); err != nil {
 		t.Fatalf("refresh install: %v\n%s", err, refreshOutput.String())
 	}
 	assertFixtureContent(t, filepath.Join(root, ".agents", "skills", "define-change", "SKILL.md"), "updated canonical skill\n")
@@ -222,7 +223,7 @@ func TestV3InteractiveInstallIsSilentNoOpAfterSynchronization(t *testing.T) {
 	writeFixtureFile(t, filepath.Join(source, "templates", "codex-sdlc.rules.example"), codexPythonRulesStart+"\n"+codexPythonRulesEnd+"\n")
 	var first bytes.Buffer
 	writeFixtureFile(t, filepath.Join(root, ".agents", "sdlc.yaml"), "# operator settings\nversion: 3\nrelease: v2.1.0\ndelivery:\n  branch_strategy: feature\n")
-	if err := RunInteractive(source, root, "v3.0.0", strings.NewReader("\nyes\n"), &first); err != nil {
+	if err := RunInteractive(source, root, "v3.0.0", strings.NewReader("\n"), &first); err != nil {
 		t.Fatal(err)
 	}
 	global := readFixtureFile(t, filepath.Join(root, ".agents", "sdlc.yaml"))
@@ -255,22 +256,29 @@ func TestW004DetectionUsesProviderHomeNotExecutable(t *testing.T) {
 	}
 }
 
-func TestW004ConfigurationRestoreFailureReportsBothErrors(t *testing.T) {
+func TestW004ConfigurationTrashFailurePreventsReplacement(t *testing.T) {
 	root := t.TempDir()
 	path := filepath.Join(root, "settings.json")
 	writeFixtureFile(t, path, "original\n")
-	writeFailure := errors.New("write failed")
-	restoreFailure := errors.New("restore failed")
+	trashFailure := errors.New("trash failed")
+	writeCalled := false
 	change := &configurationChange{path: path, contents: []byte("replacement\n"), mode: 0o600}
 	err := applyConfigurationChangeWith(
 		change,
 		&bytes.Buffer{},
-		func(string, []byte, os.FileMode) error { return writeFailure },
-		func(string, string) error { return restoreFailure },
+		func(string, []byte, os.FileMode) error {
+			writeCalled = true
+			return nil
+		},
+		func(io.Writer, string) error { return trashFailure },
 	)
-	if !errors.Is(err, writeFailure) || !errors.Is(err, restoreFailure) || !strings.Contains(err.Error(), "restoring configuration backup") {
+	if !errors.Is(err, trashFailure) {
 		t.Fatalf("configuration failure = %v", err)
 	}
+	if writeCalled {
+		t.Fatal("configuration write ran after Trash failed")
+	}
+	assertFixtureContent(t, path, "original\n")
 }
 
 func writeFixtureFile(t *testing.T, path, contents string) {

@@ -49,16 +49,18 @@ is not installed on the global path. The installation:
   native hook mechanism without replacing unrelated provider configuration.
 
 It lists only missing or differing artefacts. An unchanged rerun writes nothing
-and asks no question. Set `VERBOSE=1` to include matching artefacts. Interactive
-confirmation accepts `y` or `yes`.
+and asks no question. Set `VERBOSE=1` to include matching artefacts. A selected
+plan is applied without a second aggregate confirmation. Replacing an unknown
+same-path provider configuration conflict still requires an explicit `y` or
+`yes`.
 
-Replaced managed files, links and retired SDLC artefacts go to **Trash**, not
-adjacent `.bak` files. Merged **configuration files**, including provider settings
-and global SDLC defaults, retain `<path>.<epoch>.bak` before modification.
-Applying changes requires `trash`; a failed operation stops replacement.
-Already trashed items remain recoverable through Trash. Existing backups are
-not cleaned up. `sdlc-init` preserves its Git and document migration archives;
-those are historical evidence, not disposable deployment copies.
+Replaced managed files, links, retired SDLC artefacts, and merged
+**configuration files** go to **Trash**, not adjacent `.bak` files. This includes
+provider settings and global SDLC defaults. Applying changes requires `trash`;
+a failed operation stops replacement. Already trashed items remain recoverable
+through Trash. Existing backup files are not cleaned up. `sdlc-init` preserves
+its Git and document migration archives; those are historical evidence, not
+disposable deployment copies.
 
 `make sync` refreshes HTML-Preview from its upstream default branch and runs its
 own `make install` to update the installed command. It then stages and commits

@@ -1,6 +1,6 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 5
+version: 6
 last-updated: 2026-10-05
 ---
 
@@ -196,12 +196,12 @@ later reviews instead of repeatedly trying the unavailable primary.
 
 ## Separate deployment recovery from configuration history
 
-Adjacent backups of every deployed instruction accumulate stale context that
-agents may rediscover. Repository-managed copies can instead be recovered from
-Trash. Merged configuration still needs an adjacent pre-change copy because it
-contains user-owned values. Initialization archives serve a different purpose:
-they preserve project history and remain intact. Test the replacement boundary
-with disposable recovery trees rather than filling the operator's real Trash.
+Adjacent backups of deployed instructions and merged configuration accumulate
+stale context that agents may rediscover. Move each exact replaced path to
+Trash before writing its replacement, including configuration containing
+user-owned values. Initialization archives serve a different purpose: they
+preserve project history and remain intact. Test the replacement boundary with
+disposable recovery trees rather than filling the operator's real Trash.
 
 Renaming an obsolete command in its PATH directory does not retire it: the
 renamed file may still execute or appear in command discovery. Move recognized
@@ -1173,6 +1173,8 @@ than collapse them into a broad `READY` claim.
 
 ## Document history
 
+- Version 6 (2026-10-05): Apply Trash recovery consistently to replaced
+  configuration and avoid redundant aggregate installation confirmation.
 - Version 5 (2026-10-05): Distinguish local installer validation from provider
   and harness readiness.
 - Version 4 (2026-10-04): Record the shared active-harness installation

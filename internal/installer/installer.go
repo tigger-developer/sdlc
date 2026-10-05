@@ -12,7 +12,6 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
-	"time"
 
 	"github.com/BurntSushi/toml"
 	"github.com/tigger-developer/sdlc/internal/harness"
@@ -207,7 +206,7 @@ func Run(options Options) error {
 		return offerConfigurationChanges(changes, options.Input, options.Output)
 	}
 	if len(changes) != 0 {
-		fmt.Fprintln(options.Output, "Configuration: recommendation only; re-run with --configure to review and confirm it.")
+		fmt.Fprintln(options.Output, "Configuration: recommendation only; re-run with --configure to review and apply it.")
 	}
 	return nil
 }
@@ -279,7 +278,7 @@ func RunInteractive(sourcePath, userHome, release string, input io.Reader, outpu
 	for _, change := range plan.configurations {
 		printConfigurationChange(output, change)
 		if change.conflict {
-			accepted, confirmErr := confirm(reader, output, "Replace this unknown same-path conflict after creating a byte-for-byte backup? [yes/no]: ")
+			accepted, confirmErr := confirm(reader, output, "Replace this unknown same-path conflict after moving the existing file to Trash? [yes/no]: ")
 			if confirmErr != nil {
 				return confirmErr
 			}
@@ -287,14 +286,6 @@ func RunInteractive(sourcePath, userHome, release string, input io.Reader, outpu
 				return fmt.Errorf("declined replacement leaves the provider not SDLC-ready: %s", change.path)
 			}
 		}
-	}
-	accepted, confirmErr := confirm(reader, output, "Deploy all listed SDLC changes? [yes/no]: ")
-	if confirmErr != nil {
-		return confirmErr
-	}
-	if !accepted {
-		fmt.Fprintln(output, "Deployment declined; no changes were made.")
-		return nil
 	}
 	if err := applyInstallation(plan, output); err != nil {
 		return err
@@ -998,12 +989,11 @@ func applyInstallation(plan installationPlan, output io.Writer) error {
 			return fmt.Errorf("installation requires the trash CLI on PATH: %w", err)
 		}
 	}
-	epoch := time.Now().Unix()
 	for _, sync := range plan.syncs {
 		if !sync.needsSync {
 			continue
 		}
-		if err := synchronizeFile(sync, epoch, output); err != nil {
+		if err := synchronizeFile(sync, output); err != nil {
 			return err
 		}
 	}
@@ -1022,7 +1012,7 @@ func applyInstallation(plan installationPlan, output io.Writer) error {
 		if !link.needsSync {
 			continue
 		}
-		if err := synchronizeLink(link, epoch, output); err != nil {
+		if err := synchronizeLink(link, output); err != nil {
 			return err
 		}
 	}
@@ -1208,7 +1198,7 @@ func destinationParentObstructed(destination, destinationRoot string) (bool, err
 	}
 }
 
-func synchronizeFile(sync managedSync, epoch int64, output io.Writer) error {
+func synchronizeFile(sync managedSync, output io.Writer) error {
 	contents, err := os.ReadFile(sync.source)
 	if err != nil {
 		return fmt.Errorf("reading install source %q: %w", sync.source, err)
@@ -1217,7 +1207,7 @@ func synchronizeFile(sync managedSync, epoch int64, output io.Writer) error {
 	if err != nil {
 		return fmt.Errorf("inspecting install source %q: %w", sync.source, err)
 	}
-	if err := ensureRegularDirectory(filepath.Dir(sync.destination), epoch, output); err != nil {
+	if err := ensureRegularDirectory(filepath.Dir(sync.destination), output); err != nil {
 		return err
 	}
 	if _, err := os.Lstat(sync.destination); err == nil {
@@ -1234,8 +1224,8 @@ func synchronizeFile(sync managedSync, epoch int64, output io.Writer) error {
 	return nil
 }
 
-func synchronizeLink(link managedLink, epoch int64, output io.Writer) error {
-	if err := ensureRegularDirectory(filepath.Dir(link.destination), epoch, output); err != nil {
+func synchronizeLink(link managedLink, output io.Writer) error {
+	if err := ensureRegularDirectory(filepath.Dir(link.destination), output); err != nil {
 		return err
 	}
 	if _, err := os.Lstat(link.destination); err == nil {
@@ -1252,7 +1242,7 @@ func synchronizeLink(link managedLink, epoch int64, output io.Writer) error {
 	return nil
 }
 
-func ensureRegularDirectory(directory string, epoch int64, output io.Writer) error {
+func ensureRegularDirectory(directory string, output io.Writer) error {
 	info, err := os.Lstat(directory)
 	if err == nil && info.IsDir() && info.Mode()&os.ModeSymlink == 0 {
 		return nil
@@ -1260,7 +1250,7 @@ func ensureRegularDirectory(directory string, epoch int64, output io.Writer) err
 	if errors.Is(err, os.ErrNotExist) {
 		parent := filepath.Dir(directory)
 		if parent != directory {
-			if err := ensureRegularDirectory(parent, epoch, output); err != nil {
+			if err := ensureRegularDirectory(parent, output); err != nil {
 				return err
 			}
 		}
@@ -1288,20 +1278,6 @@ func regularFilesEqual(sourcePath string, sourceInfo os.FileInfo, destinationPat
 		return false, err
 	}
 	return bytes.Equal(sourceContent, destinationContent), nil
-}
-
-func backupArtifact(output io.Writer, path string, epoch int64) (string, error) {
-	backup := fmt.Sprintf("%s.%d.bak", path, epoch)
-	if _, err := os.Lstat(backup); err == nil {
-		return "", fmt.Errorf("backup destination already exists: %s", backup)
-	} else if !errors.Is(err, os.ErrNotExist) {
-		return "", err
-	}
-	if err := os.Rename(path, backup); err != nil {
-		return "", fmt.Errorf("backing up drifted artefact %q: %w", path, err)
-	}
-	fmt.Fprintf(output, "Backup: %s\n", backup)
-	return backup, nil
 }
 
 func analyseConfiguration(agent, agentHome, source string, output io.Writer) ([]*configurationChange, error) {
@@ -1826,7 +1802,7 @@ func offerConfigurationChanges(changes []*configurationChange, input io.Reader, 
 	for _, change := range changes {
 		printConfigurationChange(output, change)
 		if change.conflict {
-			accepted, err := confirm(reader, output, "Replace this unknown same-path conflict after creating a byte-for-byte backup? [yes/no]: ")
+			accepted, err := confirm(reader, output, "Replace this unknown same-path conflict after moving the existing file to Trash? [yes/no]: ")
 			if err != nil {
 				return err
 			}
@@ -1834,19 +1810,6 @@ func offerConfigurationChanges(changes []*configurationChange, input io.Reader, 
 				return fmt.Errorf("declined replacement leaves the provider not SDLC-ready: %s", change.path)
 			}
 		}
-	}
-	fmt.Fprint(output, "Apply these configuration changes? Type yes to continue: ")
-	scanner := bufio.NewScanner(reader)
-	if !scanner.Scan() {
-		if err := scanner.Err(); err != nil {
-			return fmt.Errorf("reading configuration confirmation: %w", err)
-		}
-		fmt.Fprintln(output, "Configuration unchanged.")
-		return nil
-	}
-	if !confirmationAccepted(scanner.Text()) {
-		fmt.Fprintln(output, "Configuration unchanged.")
-		return nil
 	}
 	for _, change := range changes {
 		if err := applyConfigurationChange(change, output); err != nil {
@@ -1862,38 +1825,22 @@ func printConfigurationChange(output io.Writer, change *configurationChange) {
 }
 
 func applyConfigurationChange(change *configurationChange, output io.Writer) error {
-	return applyConfigurationChangeWith(change, output, writeFileAtomic, os.Rename)
+	return applyConfigurationChangeWith(change, output, writeFileAtomic, trashArtifact)
 }
 
-func applyConfigurationChangeWith(change *configurationChange, output io.Writer, write func(string, []byte, os.FileMode) error, restore func(string, string) error) error {
-	backupPath, err := backupConfiguration(change.path)
-	if err != nil {
-		return err
-	}
-	if backupPath != "" {
-		fmt.Fprintf(output, "Backup: %s\n", backupPath)
+func applyConfigurationChangeWith(change *configurationChange, output io.Writer, write func(string, []byte, os.FileMode) error, trash func(io.Writer, string) error) error {
+	if _, err := os.Lstat(change.path); err == nil {
+		if err := trash(output, change.path); err != nil {
+			return err
+		}
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return fmt.Errorf("inspecting configuration %q: %w", change.path, err)
 	}
 	if err := write(change.path, change.contents, change.mode); err != nil {
-		if backupPath != "" {
-			if restoreErr := restore(backupPath, change.path); restoreErr != nil {
-				return errors.Join(err, fmt.Errorf("restoring configuration backup %q to %q: %w", backupPath, change.path, restoreErr))
-			}
-		}
-		return err
+		return fmt.Errorf("writing configuration %q after preserving the previous file in Trash: %w", change.path, err)
 	}
 	fmt.Fprintf(output, "Configuration updated: %s\n", change.path)
 	return nil
-}
-
-func backupConfiguration(path string) (string, error) {
-	_, err := os.Lstat(path)
-	if errors.Is(err, os.ErrNotExist) {
-		return "", nil
-	}
-	if err != nil {
-		return "", fmt.Errorf("inspecting configuration backup source %q: %w", path, err)
-	}
-	return backupArtifact(io.Discard, path, time.Now().Unix())
 }
 
 func writeFileAtomic(path string, contents []byte, mode os.FileMode) error {

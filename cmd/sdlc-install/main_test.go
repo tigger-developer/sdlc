@@ -40,6 +40,7 @@ func TestDefaultRunDetectsInstalledProviderSubset_RT4_4(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+	installCLITrashDouble(t, bin, root)
 	t.Setenv("PATH", bin)
 	for _, name := range []string{".codex", ".hermes"} {
 		if err := os.MkdirAll(filepath.Join(root, name), 0o700); err != nil {
@@ -51,8 +52,8 @@ func TestDefaultRunDetectsInstalledProviderSubset_RT4_4(t *testing.T) {
 	}
 	t.Setenv("HOME", root)
 	var output bytes.Buffer
-	if err := run([]string{"--source", source}, strings.NewReader("codex,hermes\nno\n"), &output); err != nil {
-		t.Fatalf("run() error = %v", err)
+	if err := run([]string{"--source", source}, strings.NewReader("codex,hermes\n"), &output); err != nil {
+		t.Fatalf("run() error = %v\n%s", err, output.String())
 	}
 	if got := output.String(); !strings.Contains(got, "Detected agent homes: codex, hermes") || !strings.Contains(got, "Detected agents: codex, hermes") || strings.Contains(got, ".claude") || strings.Contains(got, ".copilot") {
 		t.Fatalf("provider detection output = %q", got)
@@ -61,6 +62,12 @@ func TestDefaultRunDetectsInstalledProviderSubset_RT4_4(t *testing.T) {
 
 func TestDefaultRunUsesActiveHarnessWithoutSelectionQuestion(t *testing.T) {
 	root, source := newCLIFixture(t)
+	bin := filepath.Join(root, "fake-bin")
+	if err := os.MkdirAll(bin, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	installCLITrashDouble(t, bin, root)
+	t.Setenv("PATH", bin+string(os.PathListSeparator)+os.Getenv("PATH"))
 	for _, name := range []string{".codex", ".hermes"} {
 		if err := os.MkdirAll(filepath.Join(root, name), 0o700); err != nil {
 			t.Fatal(err)
@@ -77,11 +84,26 @@ func TestDefaultRunUsesActiveHarnessWithoutSelectionQuestion(t *testing.T) {
 	}
 	t.Setenv("HOME", root)
 	var output bytes.Buffer
-	if err := run([]string{"--source", source}, strings.NewReader("no\n"), &output); err != nil {
-		t.Fatalf("run() error = %v", err)
+	if err := run([]string{"--source", source}, strings.NewReader(""), &output); err != nil {
+		t.Fatalf("run() error = %v\n%s", err, output.String())
 	}
 	if got := output.String(); !strings.Contains(got, "Active harnesses from") || !strings.Contains(got, "Detected agents: hermes") || strings.Contains(got, "Install the SDLC for which agents?") {
 		t.Fatalf("active-harness output = %q", got)
+	}
+}
+
+func installCLITrashDouble(t *testing.T, bin, root string) {
+	t.Helper()
+	t.Setenv("TEST_TRASH_ROOT", filepath.Join(root, "trash"))
+	script := `#!/bin/sh
+set -eu
+dest="$TEST_TRASH_ROOT$1"
+while [ -e "$dest" ] || [ -L "$dest" ]; do dest="$dest.next"; done
+/bin/mkdir -p "${dest%/*}"
+/bin/mv "$1" "$dest"
+`
+	if err := os.WriteFile(filepath.Join(bin, "trash"), []byte(script), 0o700); err != nil {
+		t.Fatal(err)
 	}
 }
 
@@ -126,7 +148,6 @@ func newCLIFixture(t *testing.T) (string, string) {
 		"src/MAIN.md":                        "# SDLC\n",
 		"README.md":                          "# Quickstart\n",
 		"templates/codex-sdlc.rules.example": "prefix_rule()\n",
-		"commands/build.md":                  "# Build\n",
 		"skills/audit-code/SKILL.md":         "# Audit\n",
 		"hooks/agent-command-guard.sh":       "#!/bin/sh\nIFS= read -r payload\ncase \"$payload\" in *pre_tool_call*) printf '{\"decision\":\"block\"}\\n'; exit 0 ;; *) printf 'Blocked by agent-command-guard: test\\n' >&2; exit 2 ;; esac\n",
 		"bin/sdlc-init":                      "initializer\n",
@@ -140,6 +161,14 @@ func newCLIFixture(t *testing.T) (string, string) {
 			t.Fatal(err)
 		}
 		if err := os.WriteFile(fullPath, []byte(content), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := os.Chmod(filepath.Join(source, "hooks", "agent-command-guard.sh"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{"sdlc-init", "sdlc-validate", "sdlc-harness", "sdlc-guard-shell", "sdlc-merge-legacy-acs"} {
+		if err := os.Chmod(filepath.Join(source, "bin", name), 0o700); err != nil {
 			t.Fatal(err)
 		}
 	}
