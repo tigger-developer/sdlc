@@ -1,6 +1,6 @@
 ---
 title: Audit and Gate Standards
-version: 4
+version: 5
 last-updated: 2026-10-06
 ---
 
@@ -174,7 +174,8 @@ evidence that the audit has completed.
 
 Codex and Claude receive original absolute evidence paths, not document copies.
 Hermes and Copilot run without file tools: the harness supplies verified UTF-8
-contents on every invocation. It stores only the paths/hashes, never document copies.
+project evidence initially and serves requested installed standards in their
+retained session. It stores only the paths/hashes, never document copies.
 Supply
 the complete input list on each invocation; the per-attempt manifest in
 `audits.yaml` identifies added, changed, unchanged, and omitted inputs on resume.
@@ -264,6 +265,8 @@ Append " AUDIT" (with a leading space) to the canary.
 
 ## Document history
 
+Version 5 serves installed standards on demand to tools-disabled auditors rather
+than preloading their complete text.
 Version 4 makes the full installed Markdown inventory available to the auditor,
 with gate-specific mandatory standards and provider-appropriate transport.
 Version 3 makes the harness responsible for supplying installed SDLC standards;

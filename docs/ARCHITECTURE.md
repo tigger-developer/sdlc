@@ -1,6 +1,6 @@
 ---
 title: SDLC v3 Architecture
-version: 9
+version: 10
 last-updated: 2026-10-06
 ---
 
@@ -177,7 +177,8 @@ not participate in this protocol and must exit before concurrent use.
 
 Codex and Claude receive original absolute paths and a metadata-only evidence
 manifest. Hermes and Copilot run without file tools and receive verified UTF-8
-contents on every invocation, without retained copies. The harness
+project evidence initially; installed standards are fetched by validated
+relative-name requests in the retained session, without retained copies. The harness
 hashes regular files before and after execution, rejects
 mutation, and checkpoints each invocation's manifest before execution in
 `audits.yaml` under `history[].evidence`. Resume compares against that gate's
@@ -366,6 +367,8 @@ are charged to an explicit gate.
 
 ## Document history
 
+- Version 10 (2026-10-06): Serve requested standards within a bounded retained
+  audit session for tools-disabled providers, without preloading their text.
 - Version 9 (2026-10-06): Expose the full installed Markdown inventory to each
   audit, preserving a mandatory core and provider-appropriate evidence transport.
 - Version 8 (2026-10-06): Move managed audit standards into harness-owned

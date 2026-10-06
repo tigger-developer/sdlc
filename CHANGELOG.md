@@ -6,6 +6,11 @@ last-updated: 2026-10-06
 
 # Changelog
 
+## v3.5.13 - 2026-10-06
+
+- Replace tools-disabled preloading of every installed standard with a bounded, hash-verified standards request inside the retained audit session.
+- Keep the full standards inventory visible while sending project evidence first; reject unknown, repeated and malformed document requests.
+
 ## v3.5.12 - 2026-10-06
 
 - Make the full installed SDLC Markdown inventory available as hashed audit evidence, while retaining mandatory gate-specific standards and standalone workflow exclusions.

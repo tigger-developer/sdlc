@@ -237,6 +237,7 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		}
 	}
 	var registry auditPromptDocument
+	standardsRoot := ""
 	if normalizedPhase == "audit" {
 		var loadErr error
 		registry, loadErr = readAuditPrompts(*auditPrompts)
@@ -249,7 +250,7 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 				return errors.New("audit prompt registry lacks the standalone profile")
 			}
 			prompt = append([]byte(base+"\n\n"+registry.EvidenceInstructions+"\n\nOperator-supplied audit context:\n"), prompt...)
-			standardsRoot := filepath.Dir(filepath.Dir(auditPromptPath(*auditPrompts)))
+			standardsRoot = filepath.Dir(filepath.Dir(auditPromptPath(*auditPrompts)))
 			inputs, loadErr = standaloneAuditStandards(standardsRoot, inputs)
 			if loadErr != nil {
 				return loadErr
@@ -260,7 +261,8 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 				return loadErr
 			}
 			prompt = append([]byte(base+"\nAudit gate: "+normalizedGate+"\n\nOperator-supplied audit context:\n"), prompt...)
-			inputs, loadErr = managedAuditStandards(projectRoot, normalizedGate, installedStandardsRoot(), inputs)
+			standardsRoot = installedStandardsRoot()
+			inputs, loadErr = managedAuditStandards(projectRoot, normalizedGate, standardsRoot, inputs)
 			if loadErr != nil {
 				return loadErr
 			}
@@ -358,7 +360,7 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		recordPath = strings.TrimSpace(*auditRecord)
 	}
 	runner := recoveryRun{config: config, request: request, evidence: evidence, registry: registry,
-		path: recordPath, work: *workItem, gate: sessionGate, cacheKey: cacheKey, readinessCheck: readinessCheck, audit: normalizedPhase == "audit" && !standalone, diagnostics: errorOutput}
+		path: recordPath, work: *workItem, gate: sessionGate, cacheKey: cacheKey, readinessCheck: readinessCheck, standardsRoot: standardsRoot, audit: normalizedPhase == "audit" && !standalone, diagnostics: errorOutput}
 	if runner.audit {
 		runner.cooldowns = harness.CooldownStore{Directory: filepath.Join(projectRoot, ".sdlc")}
 		log, logErr := openAuditDiagnostics(projectRoot, errorOutput)

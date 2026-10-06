@@ -1,6 +1,6 @@
 ---
 title: SDLC Audit Harness Guide
-version: 6
+version: 7
 last-updated: 2026-10-06
 ---
 
@@ -124,9 +124,12 @@ the same automatic audit behaviour. The old reset-session flag is replaced by re
 - Hermes uses `chat --quiet --query-file -` with its native resume option and
   reads native `session_id:` stderr metadata. Top-level `-z` is not used because
   it bypasses session options; model-written session identifiers are not trusted.
-- Hermes and Copilot run with file tools disabled. Their supplied UTF-8 evidence
-  is hash-verified and sent with every invocation, including resume. This
-  adapter-specific transport resends the full text;
+- Hermes and Copilot run with file tools disabled. Project evidence is supplied
+  as hash-verified UTF-8 text. The installed standards are listed by relative
+  name and hash; the auditor requests applicable documents through a bounded
+  `STANDARDS-REQUEST` response, and the harness supplies their verified text in
+  the retained session. This avoids preloading every standard. Each later audit
+  invocation again supplies current project evidence and the standards inventory;
   only paths and hashes are stored in the audit record, not file contents.
 - Supply the complete evidence list on every invocation. The harness hashes it
   and, on resume, identifies added, changed, unchanged, and removed inputs against
@@ -370,6 +373,7 @@ infrastructure failure. Known FAIL findings remain unresolved until reassessed.
 
 ## Document history
 
+Version 7 adds bounded on-demand standards retrieval for tools-disabled auditors.
 Version 6 exposes the full installed Markdown inventory while distinguishing
 mandatory core standards from additional applicable documents.
 Version 5 makes SDLC gate standards harness-owned evidence and limits caller

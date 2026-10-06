@@ -480,9 +480,9 @@ installed Markdown inventory in harness-owned hashed evidence, with a small
 mandatory core for each audit route. The auditor selects further applicable
 documents; inventory availability alone does not make workflow rules applicable
 to standalone projects. Tools-disabled adapters need verified content transport,
-not paths alone. A future on-demand retrieval protocol could reduce prompt size,
-but requires a bounded request/response contract before it can replace complete
-transport.
+not paths alone. A bounded request-and-supply exchange within the retained audit
+session gives them access without preloading every standard or treating a document
+request as a verdict round.
 
 Individual audit skills encouraged accidental context proliferation and made
 session ownership ambiguous. Composite gate prompts belong in a versioned YAML

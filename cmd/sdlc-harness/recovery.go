@@ -23,6 +23,7 @@ type recoveryRun struct {
 	path, work, gate string
 	cacheKey         string
 	readinessCheck   string
+	standardsRoot    string
 	audit            bool
 	diagnostics      io.Writer
 	diagnosticPath   string
@@ -237,7 +238,23 @@ func (r recoveryRun) prepare(entry harness.AuditEntry, selected harness.Config, 
 	}
 	request.Prompt += "\n\n" + manifest
 	if selected.Harness == "hermes" || selected.Harness == "copilot" {
-		contents, err := r.evidence.ContentPrompt()
+		paths := make([]string, 0, len(r.evidence.Files))
+		if r.standardsRoot != "" {
+			standards, projectFiles, listing, inventoryErr := r.standardInventory()
+			if inventoryErr != nil {
+				return request, inventoryErr
+			}
+			paths = projectFiles
+			if len(standards) != 0 {
+				request.Prompt += "\n\nInstalled SDLC standards available on request (relative name and captured hash):\n" + listing
+				request.Prompt += "\nTo read standards, return only STANDARDS-REQUEST: [\"NAME.md\", ...] with exact listed names. The harness will supply verified contents in this retained session. Request applicable standards before returning a verdict; do not claim unread standards were reviewed.\n"
+			}
+		} else {
+			for _, file := range r.evidence.Files {
+				paths = append(paths, file.Path)
+			}
+		}
+		contents, err := r.evidence.ContentPromptFor(paths)
 		if err != nil {
 			return request, err
 		}
@@ -287,9 +304,44 @@ func (r recoveryRun) invoke(entry harness.AuditEntry, selected harness.Config, r
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), selected.Timeout)
 	defer cancel()
-	result, err = harness.Execute(ctx, request, resume, &r.evidence, nil, r.diagnostics)
-	if err != nil {
-		return result, err
+	requested := map[string]bool{}
+	for fetches := 0; ; fetches++ {
+		result, err = harness.Execute(ctx, request, resume, &r.evidence, nil, r.diagnostics)
+		if err != nil {
+			return result, err
+		}
+		if r.standardsRoot == "" || (selected.Harness != "hermes" && selected.Harness != "copilot") {
+			break
+		}
+		standards, _, _, inventoryErr := r.standardInventory()
+		if inventoryErr != nil {
+			return result, inventoryErr
+		}
+		if len(standards) == 0 {
+			break
+		}
+		paths, isRequest, requestErr := r.requestedStandardPaths(result.Response, requested)
+		if requestErr != nil {
+			return result, standardsRequestIncident(selected.Harness, result.SessionID, requestErr)
+		}
+		if !isRequest {
+			break
+		}
+		if fetches >= maximumStandardFetches {
+			return result, standardsRequestIncident(selected.Harness, result.SessionID, errors.New("standards request limit exceeded"))
+		}
+		contents, contentErr := r.evidence.ContentPromptFor(paths)
+		if contentErr != nil {
+			return result, contentErr
+		}
+		request.SessionID = result.SessionID
+		request.Prompt = "Requested installed SDLC standards, verified against the audit manifest:\n" + contents + "\nContinue this audit in the retained session. Request other listed standards with STANDARDS-REQUEST: JSON, or return the required final verdict.\n"
+		resume = true
+		if request.ResultFile != "" {
+			if err := os.Truncate(request.ResultFile, 0); err != nil {
+				return result, fmt.Errorf("clearing temporary provider response: %w", err)
+			}
+		}
 	}
 	if r.audit {
 		if err = harness.ValidateCompositeVerdict(result.Response); err != nil {

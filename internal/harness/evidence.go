@@ -117,12 +117,31 @@ func readEvidenceFile(path string, contents io.Writer) (result EvidenceFile, ret
 // ContentPrompt supplies verified text to a tools-disabled adapter over stdin.
 // Nothing is written to disk or persisted in the audit manifest.
 func (evidence Evidence) ContentPrompt() (string, error) {
+	paths := make([]string, 0, len(evidence.Files))
+	for _, file := range evidence.Files {
+		paths = append(paths, file.Path)
+	}
+	return evidence.ContentPromptFor(paths)
+}
+
+// ContentPromptFor transports only requested files from the captured manifest.
+func (evidence Evidence) ContentPromptFor(paths []string) (string, error) {
 	type document struct {
 		EvidenceFile
 		Content string `json:"content"`
 	}
-	documents := make([]document, 0, len(evidence.Files))
-	for _, want := range evidence.Files {
+	indexed := make(map[string]EvidenceFile, len(evidence.Files))
+	for _, file := range evidence.Files {
+		indexed[file.Path] = file
+	}
+	documents := make([]document, 0, len(paths))
+	seen := make(map[string]bool, len(paths))
+	for _, path := range paths {
+		want, found := indexed[path]
+		if !found || seen[path] {
+			return "", fmt.Errorf("requested audit evidence %q is absent or duplicated", path)
+		}
+		seen[path] = true
 		var contents bytes.Buffer
 		got, err := readEvidenceFile(want.Path, &contents)
 		if err != nil {
