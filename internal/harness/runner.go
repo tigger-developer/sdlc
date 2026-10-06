@@ -286,7 +286,8 @@ func BuildStart(request Request) (Invocation, error) {
 		invocation.Args = append(invocation.Args, settings...)
 		invocation.Args = append(invocation.Args, request.Prompt)
 	case "copilot":
-		invocation.Args = []string{"-p", request.Prompt, "-s", "--output-format", "json", "--model", request.Model, "--name", request.SessionID, "--available-tools="}
+		invocation.Args = []string{"-s", "--output-format", "json", "--model", request.Model, "--name", request.SessionID, "--available-tools="}
+		invocation.Stdin = request.Prompt
 	case "hermes":
 		invocation.Args = []string{"chat", "--quiet", "--query-file", "-", "-m", request.Model, "--provider", request.Provider, "-t", "none", "--safe-mode", "--in", request.Directory}
 		invocation.Stdin = request.Prompt
@@ -314,7 +315,8 @@ func BuildResume(request Request) (Invocation, error) {
 		invocation.Args = append(invocation.Args, settings...)
 		invocation.Args = append(invocation.Args, request.Prompt)
 	case "copilot":
-		invocation.Args = []string{"-p", request.Prompt, "-s", "--output-format", "json", "--model", request.Model, "--resume=" + request.SessionID, "--available-tools="}
+		invocation.Args = []string{"-s", "--output-format", "json", "--model", request.Model, "--resume=" + request.SessionID, "--available-tools="}
+		invocation.Stdin = request.Prompt
 	case "hermes":
 		invocation.Args = []string{"chat", "--quiet", "--query-file", "-", "-m", request.Model, "--provider", request.Provider, "-t", "none", "--resume", request.SessionID, "--safe-mode", "--in", request.Directory}
 		invocation.Stdin = request.Prompt

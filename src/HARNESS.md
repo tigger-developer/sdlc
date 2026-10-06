@@ -1,6 +1,6 @@
 ---
 title: SDLC Audit Harness Guide
-version: 5
+version: 6
 last-updated: 2026-10-06
 ---
 
@@ -24,10 +24,12 @@ When `--project` has no `.sdlc/project.yaml`, `sdlc-audit` runs a standalone
 code and documentation standards review. Supply at least one original project
 file with `--input`; omit `--gate`, `--audit-record`, `--work-item` and `--reset`.
 The harness prints a `STANDALONE MODE` warning, supplies its installed
-`STANDALONE-AUDIT.md`, `CODING.md` and `DOCUMENTATION.md`, and asks for an
+`STANDALONE-AUDIT.md`, `CODING.md` and `DOCUMENTATION.md` as the mandatory core,
+and makes the full installed Markdown inventory available. It asks for an
 `AUDIT: standalone` result. This route does not create SDLC project state or
 apply ticket readiness, gate budgets, or closure rules. Supply relevant
-technology standards and project authorities as additional inputs when needed.
+project authorities as additional inputs when needed; installed technology
+standards are harness-owned.
 
 For every audit, the harness derives the project root from its invocation
 directory: the enclosing Git root when present, otherwise that directory.
@@ -105,9 +107,10 @@ the same automatic audit behaviour. The old reset-session flag is replaced by re
 
 ## Evidence and instruction
 
-- For SDLC gates, supply project evidence only. The harness adds its installed
-  gate-relevant standards and the technologies selected in `.sdlc/project.yaml`
-  to the hashed manifest. Do not pass `~/.agents/sdlc` files as `--input`;
+- For SDLC gates, supply project evidence only. The harness adds its full installed
+  SDLC Markdown inventory to the hashed manifest. Gate-specific core standards
+  and the technologies selected in `.sdlc/project.yaml` are mandatory; the
+  auditor judges which other documents apply. Do not pass `~/.agents/sdlc` files as `--input`;
   external caller-supplied paths are rejected. The harness also includes the
   project profile. Supply relevant project authorities separately.
 - Repeat `--input <file>` for every exact evidence file.
@@ -121,9 +124,9 @@ the same automatic audit behaviour. The old reset-session flag is replaced by re
 - Hermes uses `chat --quiet --query-file -` with its native resume option and
   reads native `session_id:` stderr metadata. Top-level `-z` is not used because
   it bypasses session options; model-written session identifiers are not trusted.
-- Hermes runs with tools disabled. Its supplied UTF-8 evidence is hash-verified
-  and sent through stdin on every invocation, including resume, so it needs no
-  filesystem tools. This adapter-specific transport resends the full text;
+- Hermes and Copilot run with file tools disabled. Their supplied UTF-8 evidence
+  is hash-verified and sent with every invocation, including resume. This
+  adapter-specific transport resends the full text;
   only paths and hashes are stored in the audit record, not file contents.
 - Supply the complete evidence list on every invocation. The harness hashes it
   and, on resume, identifies added, changed, unchanged, and removed inputs against
@@ -367,6 +370,8 @@ infrastructure failure. Known FAIL findings remain unresolved until reassessed.
 
 ## Document history
 
+Version 6 exposes the full installed Markdown inventory while distinguishing
+mandatory core standards from additional applicable documents.
 Version 5 makes SDLC gate standards harness-owned evidence and limits caller
 inputs to the invocation project.
 Version 4 binds audits to the invocation project and supplies a bounded file

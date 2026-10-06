@@ -290,7 +290,7 @@ printf '{"type":"thread.started","thread_id":"standalone-fixture"}\n'
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, name := range []string{"STANDALONE-AUDIT.md", "CODING.md", "DOCUMENTATION.md", "go.mod"} {
+	for _, name := range []string{"STANDALONE-AUDIT.md", "CODING.md", "DOCUMENTATION.md", "ORG-SCHEMA.md", "MARKDOWN.md", "go.mod"} {
 		if !bytes.Contains(prompt, []byte(name)) {
 			t.Fatalf("standalone prompt omitted %s", name)
 		}

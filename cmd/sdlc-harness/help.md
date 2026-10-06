@@ -20,12 +20,14 @@ Audit options:
 When the selected project has no .sdlc/project.yaml, omit --gate,
 --audit-record and --work-item. The harness warns STANDALONE MODE and reviews
 the supplied original project files against CODING.md, DOCUMENTATION.md and
-STANDALONE-AUDIT.md. This review has no SDLC gate or persistent audit record.
+STANDALONE-AUDIT.md, with other applicable installed standards available.
+This review has no SDLC gate or persistent audit record.
 Audits are anchored to the invocation project. --project cannot select another
 root; --input accepts only files inside that project tree. Do not pass
 ~/.agents/sdlc/MAIN.md, ARCHITECTURE.md, DOCUMENTATION.md or other installed
-SDLC standards: the harness supplies its own gate-relevant rules and selected
-technology standards automatically. External --input paths are rejected.
+SDLC standards: the harness supplies its full installed Markdown inventory,
+including mandatory gate rules and selected technology standards, automatically.
+External --input paths are rejected.
 Project evidence and audit records must stay inside that tree. Provider
 runtime directories and tmp/temp/temporary directory variants are excluded;
 ordinary hidden project directories are allowed. System temporary directories

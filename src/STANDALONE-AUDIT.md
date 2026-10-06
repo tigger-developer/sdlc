@@ -1,6 +1,6 @@
 ---
 title: Standalone Standards Audit
-version: 2
+version: 3
 last-updated: 2026-10-06
 ---
 
@@ -8,8 +8,9 @@ last-updated: 2026-10-06
 
 Use this route only when the selected project has no `.sdlc/project.yaml`.
 The audit reviews the supplied original project files against `CODING.md`,
-`DOCUMENTATION.md`, relevant technology standards, and the project's existing
-authorities. It reports concrete, evidence-backed code and documentation
+`DOCUMENTATION.md`, other applicable installed standards, and the project's
+existing authorities. The full installed Markdown inventory is available, but
+SDLC workflow documents do not become standalone requirements. It reports concrete, evidence-backed code and documentation
 findings. The harness must reject a project or input under a system temporary
 directory before calling a provider. The invocation project inventory shows
 eligible paths, not their contents. Identify relevant files absent from the
@@ -43,5 +44,6 @@ This result is review evidence, not an SDLC gate verdict or operator approval.
 
 ## Document history
 
+- Version 3 (2026-10-06): Distinguish full standards availability from standalone applicability.
 - Version 2 (2026-10-06): Distinguish project inventory from reviewed contents.
 - Version 1 (2026-10-06): Define standards-only review outside SDLC delivery.

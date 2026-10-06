@@ -1,6 +1,6 @@
 ---
 title: Audit and Gate Standards
-version: 3
+version: 4
 last-updated: 2026-10-06
 ---
 
@@ -23,8 +23,9 @@ An identical request may return a **cached result** from `audits.yaml`: the same
 PASS, FAIL or PROVISIONAL PASS and findings, without a model call or another
 round. The harness checks all supplied file paths/hashes, work item, gate,
 prompts, caller context and primary/fallback model configuration. The harness
-includes the applicable installed SDLC standards and selected technology
-standards in its hashed evidence. Callers supply project files only;
+includes the full installed SDLC Markdown inventory in its hashed evidence.
+Gate-specific core standards and project-selected technologies are mandatory;
+the auditor determines which further listed standards apply. Callers supply project files only;
 independently read files are not covered.
 Cache hits retain all verdict conditions. Incidents are not verdicts, and old
 records without a request key are not cache entries. Changing or omitting an
@@ -172,8 +173,8 @@ notices to stderr: `Audit in progress.` A heartbeat is not provider progress, a 
 evidence that the audit has completed.
 
 Codex and Claude receive original absolute evidence paths, not document copies.
-Hermes has no filesystem tools: the harness supplies verified UTF-8 contents in
-stdin on every invocation. It stores only the paths/hashes, never document copies.
+Hermes and Copilot run without file tools: the harness supplies verified UTF-8
+contents on every invocation. It stores only the paths/hashes, never document copies.
 Supply
 the complete input list on each invocation; the per-attempt manifest in
 `audits.yaml` identifies added, changed, unchanged, and omitted inputs on resume.
@@ -263,6 +264,8 @@ Append " AUDIT" (with a leading space) to the canary.
 
 ## Document history
 
+Version 4 makes the full installed Markdown inventory available to the auditor,
+with gate-specific mandatory standards and provider-appropriate transport.
 Version 3 makes the harness responsible for supplying installed SDLC standards;
 callers provide only project evidence.
 Version 2 replaces caller-managed recovery and shared attempt budgets with automatic

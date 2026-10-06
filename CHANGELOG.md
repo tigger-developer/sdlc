@@ -6,6 +6,11 @@ last-updated: 2026-10-06
 
 # Changelog
 
+## v3.5.12 - 2026-10-06
+
+- Make the full installed SDLC Markdown inventory available as hashed audit evidence, while retaining mandatory gate-specific standards and standalone workflow exclusions.
+- Supply verified evidence contents to both tools-disabled auditors, Hermes and Copilot, and require definition review to check the Org specification schema.
+
 ## v3.5.11 - 2026-10-06
 
 - Supply installed core and selected technology standards automatically for

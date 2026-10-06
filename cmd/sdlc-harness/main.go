@@ -248,10 +248,11 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 			if base == "" {
 				return errors.New("audit prompt registry lacks the standalone profile")
 			}
-			prompt = append([]byte(base+"\n\nOperator-supplied audit context:\n"), prompt...)
+			prompt = append([]byte(base+"\n\n"+registry.EvidenceInstructions+"\n\nOperator-supplied audit context:\n"), prompt...)
 			standardsRoot := filepath.Dir(filepath.Dir(auditPromptPath(*auditPrompts)))
-			for _, name := range []string{"STANDALONE-AUDIT.md", "CODING.md", "DOCUMENTATION.md"} {
-				inputs = append(inputs, filepath.Join(standardsRoot, name))
+			inputs, loadErr = standaloneAuditStandards(standardsRoot, inputs)
+			if loadErr != nil {
+				return loadErr
 			}
 		} else {
 			base, loadErr := registry.prompt(normalizedGate)

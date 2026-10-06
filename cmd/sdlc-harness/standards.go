@@ -5,8 +5,10 @@ package main
 import (
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -37,7 +39,7 @@ func managedAuditStandards(project, gate, standardsRoot string, inputs []string)
 	names := []string{"MAIN.md", "AUDITS.md", "ARCHITECTURE.md", "TESTING.md"}
 	switch gate {
 	case "definition":
-		names = append(names, "ISSUES.md", "DOCUMENTATION.md", "ORGMODE.md")
+		names = append(names, "ISSUES.md", "DOCUMENTATION.md", "ORGMODE.md", "ORG-SCHEMA.md")
 	case "test-code":
 		names = append(names, "CODING.md")
 	case "delivery-code":
@@ -84,5 +86,62 @@ func managedAuditStandards(project, gate, standardsRoot string, inputs []string)
 			return nil, err
 		}
 	}
+	inventory, err := installedAuditDocuments(standardsRoot)
+	if err != nil {
+		return nil, err
+	}
+	for _, path := range inventory {
+		if err := add(path); err != nil {
+			return nil, err
+		}
+	}
 	return paths, nil
+}
+
+// installedAuditDocuments inventories only the installed SDLC Markdown source.
+// The gate prompt distinguishes required rules from available reference material.
+func installedAuditDocuments(root string) ([]string, error) {
+	var paths []string
+	err := filepath.WalkDir(root, func(path string, entry fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		if entry.IsDir() {
+			return nil
+		}
+		if filepath.Ext(entry.Name()) != ".md" {
+			return nil
+		}
+		if !entry.Type().IsRegular() {
+			return fmt.Errorf("installed audit document %q must be a regular file", path)
+		}
+		paths = append(paths, path)
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("inventorying installed SDLC documents: %w", err)
+	}
+	if len(paths) == 0 {
+		return nil, fmt.Errorf("no installed SDLC Markdown documents under %q", root)
+	}
+	sort.Strings(paths)
+	return paths, nil
+}
+
+func standaloneAuditStandards(standardsRoot string, inputs []string) ([]string, error) {
+	paths, err := installedAuditDocuments(standardsRoot)
+	if err != nil {
+		return nil, err
+	}
+	present := make(map[string]bool, len(paths))
+	for _, path := range paths {
+		present[path] = true
+	}
+	for _, name := range []string{"STANDALONE-AUDIT.md", "CODING.md", "DOCUMENTATION.md"} {
+		path := filepath.Join(standardsRoot, name)
+		if !present[path] {
+			return nil, fmt.Errorf("required standalone audit standard %q is missing", path)
+		}
+	}
+	return append(inputs, paths...), nil
 }

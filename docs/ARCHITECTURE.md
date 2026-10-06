@@ -1,6 +1,6 @@
 ---
 title: SDLC v3 Architecture
-version: 8
+version: 9
 last-updated: 2026-10-06
 ---
 
@@ -46,8 +46,9 @@ both routes bind the audit to the invocation Git root or non-Git directory,
 reject evidence outside that root and in runtime or scratch directories, and
 reject system temporary directories including resolved aliases. A bounded
 inventory of eligible project paths exposes omissions without copying content.
-For managed gates, the harness adds its installed gate-relevant SDLC standards
-and profile-selected technology standards to hashed evidence. Callers provide
+For every audit, the harness adds its full installed SDLC Markdown inventory
+to hashed evidence. Gate-specific core rules and profile-selected technologies
+are mandatory; the auditor selects other applicable documents. Callers provide
 only project files; external SDLC standard paths are not accepted as inputs.
 
 `~/.agents/sdlc/MAIN.md` is the only standards bootstrap. It routes an agent to
@@ -175,8 +176,8 @@ search or termination is performed. Existing processes from older releases do
 not participate in this protocol and must exit before concurrent use.
 
 Codex and Claude receive original absolute paths and a metadata-only evidence
-manifest. Hermes runs without filesystem tools and receives the verified UTF-8
-contents through stdin on every invocation, without retained copies. The harness
+manifest. Hermes and Copilot run without file tools and receive verified UTF-8
+contents on every invocation, without retained copies. The harness
 hashes regular files before and after execution, rejects
 mutation, and checkpoints each invocation's manifest before execution in
 `audits.yaml` under `history[].evidence`. Resume compares against that gate's
@@ -365,6 +366,8 @@ are charged to an explicit gate.
 
 ## Document history
 
+- Version 9 (2026-10-06): Expose the full installed Markdown inventory to each
+  audit, preserving a mandatory core and provider-appropriate evidence transport.
 - Version 8 (2026-10-06): Move managed audit standards into harness-owned
   evidence, preserving project-only caller inputs.
 - Version 7 (2026-10-06): Anchor audits to invocation projects and expose

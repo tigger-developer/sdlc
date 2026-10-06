@@ -236,7 +236,7 @@ func (r recoveryRun) prepare(entry harness.AuditEntry, selected harness.Config, 
 		return request, err
 	}
 	request.Prompt += "\n\n" + manifest
-	if selected.Harness == "hermes" {
+	if selected.Harness == "hermes" || selected.Harness == "copilot" {
 		contents, err := r.evidence.ContentPrompt()
 		if err != nil {
 			return request, err

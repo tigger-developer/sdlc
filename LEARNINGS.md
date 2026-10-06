@@ -475,6 +475,15 @@ vendoring.
 
 ## The harness is the audit boundary
 
+An auditor cannot reliably apply a standard it cannot discover. Keep the
+installed Markdown inventory in harness-owned hashed evidence, with a small
+mandatory core for each audit route. The auditor selects further applicable
+documents; inventory availability alone does not make workflow rules applicable
+to standalone projects. Tools-disabled adapters need verified content transport,
+not paths alone. A future on-demand retrieval protocol could reduce prompt size,
+but requires a bounded request/response contract before it can replace complete
+transport.
+
 Individual audit skills encouraged accidental context proliferation and made
 session ownership ambiguous. Composite gate prompts belong in a versioned YAML
 registry, while the harness owns timeout, round limits, start/resume selection,

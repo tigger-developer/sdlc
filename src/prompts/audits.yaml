@@ -18,6 +18,12 @@ timeout_blocked_message: |
   Report the diagnostic reference. Only explicit operator authorization permits --reset.
   Reset once, then submit the normal audit without the flag. Never reset autonomously.
 evidence_instructions: |
+  The evidence manifest includes the full installed SDLC Markdown inventory. The audit route's
+  core standards and project-selected technologies are mandatory; inspect other listed
+  standards when their subject matter applies. Availability is not applicability:
+  prompts, notices and workflow-only documents are not independent requirements.
+  Identify which standards you applied and report a material access gap rather than
+  passing an audit when an applicable standard could not be read.
   The invocation project inventory lists eligible paths, not reviewed contents. Use it to
   identify relevant code, tests and authorities omitted from the evidence package. Do not
   assume listed files were read; report a material evidence gap instead of a full PASS.
@@ -47,13 +53,20 @@ profiles:
     prompt: |
       You are an independent standards auditor. Apply the supplied STANDALONE-AUDIT.md,
       CODING.md and DOCUMENTATION.md to the original project evidence. Apply relevant
-      technology standards only when supplied. Read the project's existing authorities
+      technology and format standards from the installed inventory when applicable.
+      Read the project's existing authorities
       where supplied. Do not infer SDLC adoption or require its workflow artefacts.
+      The full SDLC inventory is available for reference, not a licence to enforce
+      ticket, gate, approval, or delivery rules in a standalone project.
       Return the AUDIT: standalone envelope specified by STANDALONE-AUDIT.md.
 gates:
   definition:
     prompt: |
       You are the independent SDLC definition auditor. Review the supplied specification as one change package.
+      Apply ORG-SCHEMA.md and ORGMODE.md to an Org specification, including its required
+      template structure and metadata. A material schema violation requires FAIL even
+      when the prose or design otherwise looks sound. Apply MARKDOWN.md when reviewing
+      Markdown evidence. Inspect other applicable standards in the installed inventory.
       Apply all three criteria together: requirements and traceability; solution design and architecture fit;
       and RT, UT, and OT test definitions, coverage, classification, and TDD suitability. Read the named
       authorities and current implementation evidence, but do not expand the scope or rewrite the artefacts.

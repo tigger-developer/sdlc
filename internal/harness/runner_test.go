@@ -57,8 +57,8 @@ func TestW004FixedStartAndResumeInvocations(t *testing.T) {
 		},
 		{
 			name:   "copilot",
-			start:  []string{"-p", "prompt", "-s", "--output-format", "json", "--model", "model", "--name", "session", "--available-tools="},
-			resume: []string{"-p", "prompt", "-s", "--output-format", "json", "--model", "model", "--resume=session", "--available-tools="},
+			start:  []string{"-s", "--output-format", "json", "--model", "model", "--name", "session", "--available-tools="},
+			resume: []string{"-s", "--output-format", "json", "--model", "model", "--resume=session", "--available-tools="},
 		},
 		{
 			name: "hermes", provider: "provider", passesProvider: true,
@@ -82,6 +82,9 @@ func TestW004FixedStartAndResumeInvocations(t *testing.T) {
 			}
 			if !reflect.DeepEqual(resume.Args, test.resume) {
 				t.Fatalf("resume = %#v, want %#v", resume.Args, test.resume)
+			}
+			if test.name != "claude" && (start.Stdin != "prompt" || resume.Stdin != "prompt") {
+				t.Fatalf("%s did not receive both prompts on stdin", test.name)
 			}
 			joined := strings.Join(start.Args, " ")
 			if strings.Contains(joined, "--provider") != test.passesProvider {

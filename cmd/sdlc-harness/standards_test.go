@@ -19,6 +19,10 @@ func TestManagedAuditSuppliesCanonicalStandardsWithoutCallerInputs(t *testing.T)
 		t.Fatal(err)
 	}
 	root := installedStandardsRoot()
+	all, err := installedAuditDocuments(root)
+	if err != nil {
+		t.Fatal(err)
+	}
 	for _, gate := range []string{"definition", "test-code", "delivery-code"} {
 		t.Run(gate, func(t *testing.T) {
 			paths, err := managedAuditStandards(project, gate, root, nil)
@@ -38,13 +42,84 @@ func TestManagedAuditSuppliesCanonicalStandardsWithoutCallerInputs(t *testing.T)
 					t.Errorf("%s audit omitted %s", gate, name)
 				}
 			}
+			for _, path := range all {
+				if !present[path] {
+					t.Errorf("%s audit omitted installed document %s", gate, path)
+				}
+			}
 			if !present[profile] || !present[filepath.Join(root, "technologies", "GO.md")] {
 				t.Errorf("%s audit omitted profile or selected Go standard", gate)
 			}
-			if gate == "test-code" && present[filepath.Join(root, "DOCUMENTATION.md")] {
-				t.Error("test-code audit included final-delivery documentation standard")
-			}
 		})
+	}
+}
+
+func TestStandaloneAuditSuppliesFullInstalledInventory(t *testing.T) {
+	root := installedStandardsRoot()
+	all, err := installedAuditDocuments(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	paths, err := standaloneAuditStandards(root, []string{"project.go"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(paths) != len(all)+1 || paths[0] != "project.go" {
+		t.Fatalf("standalone evidence count = %d; want %d", len(paths), len(all)+1)
+	}
+	for _, name := range []string{"ORG-SCHEMA.md", "MARKDOWN.md", "technologies/GO.md"} {
+		if !strings.Contains(strings.Join(paths, "\n"), filepath.Join(root, name)) {
+			t.Fatalf("standalone inventory omitted %s", name)
+		}
+	}
+}
+
+func TestAuditPromptsSeparateDefinitionSchemaAndStandaloneWorkflow(t *testing.T) {
+	registry, err := readAuditPrompts(filepath.Join("..", "..", "src", "prompts", "audits.yaml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	definition, err := registry.prompt("definition")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(definition, "ORG-SCHEMA.md") || !strings.Contains(definition, "material schema violation requires FAIL") {
+		t.Fatal("definition audit does not require the Org schema")
+	}
+	standalone := registry.Profiles["standalone"].Prompt
+	if !strings.Contains(standalone, "not a licence to enforce") {
+		t.Fatal("standalone audit does not exclude SDLC workflow requirements")
+	}
+}
+
+func TestInstalledAuditDocumentsDiscoverNewStandard(t *testing.T) {
+	root := t.TempDir()
+	for _, name := range []string{"MAIN.md", "technologies/NEW.md", "prompts/reference.md"} {
+		path := filepath.Join(root, name)
+		if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, []byte(name+"\n"), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	paths, err := installedAuditDocuments(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(paths) != 3 || paths[1] != filepath.Join(root, "prompts", "reference.md") || paths[2] != filepath.Join(root, "technologies", "NEW.md") {
+		t.Fatalf("unexpected installed inventory: %v", paths)
+	}
+}
+
+func TestStandaloneAuditRequiresItsCoreStandards(t *testing.T) {
+	root := t.TempDir()
+	if err := os.WriteFile(filepath.Join(root, "MAIN.md"), []byte("# Main\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	_, err := standaloneAuditStandards(root, []string{"project.go"})
+	if err == nil || !strings.Contains(err.Error(), "required standalone audit standard") {
+		t.Fatalf("missing core standard error = %v", err)
 	}
 }
 
