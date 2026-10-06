@@ -6,6 +6,15 @@ last-updated: 2026-10-06
 
 # Changelog
 
+## v3.5.10 - 2026-10-06
+
+- Bind audits to the invocation Git root or non-Git directory and refuse
+  caller-selected projects, evidence and records outside that tree.
+- Exclude provider runtime and scratch-directory variants from project evidence
+  while retaining legitimate hidden directories. Supply a bounded project file
+  inventory so auditors can identify missing context without treating paths as
+  reviewed contents.
+
 ## v3.5.9 - 2026-10-06
 
 - Add a standalone `sdlc-audit --input FILE` route for projects without an

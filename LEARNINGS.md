@@ -1,6 +1,6 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 7
+version: 8
 last-updated: 2026-10-06
 ---
 
@@ -1173,6 +1173,8 @@ than collapse them into a broad `READY` claim.
 
 ## Document history
 
+- Version 8 (2026-10-06): Bind audit scope to the invocation project rather
+  than trusting a caller-selected project path or a curated evidence list.
 - Version 7 (2026-10-06): Keep standalone standards review distinct from SDLC
   gate state and reject temporary audit inputs before provider execution.
 - Version 6 (2026-10-05): Apply Trash recovery consistently to replaced

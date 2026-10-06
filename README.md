@@ -1,6 +1,6 @@
 ---
 title: Lean SDLC for Coding Agents
-version: 5
+version: 6
 last-updated: 2026-10-06
 ---
 
@@ -121,7 +121,9 @@ The [audit harness guide](src/HARNESS.md) covers commands and diagnostics.
 For a project without SDLC initialization, `sdlc-audit --input FILE` instead
 reviews the supplied original project files against the installed coding and
 documentation standards. It warns that the review is standalone and does not
-create SDLC process records.
+create SDLC process records. Every audit is anchored to the project from which
+the command is invoked and receives a bounded file inventory so omitted
+project paths are visible, though their contents still require review.
 
 ## Find the detail
 
@@ -142,6 +144,8 @@ standards, skills, and command help.
 
 ## Document history
 
+- Version 6 (2026-10-06): Document invocation-project anchoring and audit
+  file inventory.
 - Version 5 (2026-10-06): Introduced standalone code and documentation
   standards review through `sdlc-audit`.
 - Version 4 (2026-10-05): Linked the current configuration, installation, and

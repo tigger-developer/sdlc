@@ -13,6 +13,35 @@ import (
 )
 
 var profilePresent = projectHasSDLCProfile
+var enforceAuditAnchor = verifyAuditAnchor
+
+func verifyAuditAnchor(project string) (string, error) {
+	invocation, err := os.Getwd()
+	if err != nil {
+		return "", fmt.Errorf("resolving audit invocation directory: %w", err)
+	}
+	root := invocation
+	command := exec.Command("git", "-C", invocation, "rev-parse", "--show-toplevel")
+	if output, gitErr := command.CombinedOutput(); gitErr == nil {
+		root = strings.TrimSpace(string(output))
+	} else if !strings.Contains(string(output), "not a git repository") {
+		return "", fmt.Errorf("resolving invocation Git root: %w: %s", gitErr, strings.TrimSpace(string(output)))
+	}
+	canonicalRoot, err := filepath.EvalSymlinks(root)
+	if err != nil {
+		return "", err
+	}
+	if project != "." {
+		canonicalProject, resolveErr := filepath.EvalSymlinks(project)
+		if resolveErr != nil {
+			return "", resolveErr
+		}
+		if canonicalProject != canonicalRoot {
+			return "", fmt.Errorf("audit project %q differs from invocation project %q; invoke the auditor from the original project", project, root)
+		}
+	}
+	return canonicalRoot, nil
+}
 
 func projectHasSDLCProfile(root string) (bool, error) {
 	path := filepath.Join(root, ".sdlc", "project.yaml")
@@ -57,9 +86,6 @@ func requireOriginalAuditPaths(project string, inputs []string, promptRegistry s
 		return err
 	}
 	paths := append([]string{project}, inputs...)
-	if promptRegistry != "" {
-		paths = append(paths, promptRegistry)
-	}
 	for _, raw := range paths {
 		path := raw
 		if !filepath.IsAbs(path) {
@@ -68,8 +94,67 @@ func requireOriginalAuditPaths(project string, inputs []string, promptRegistry s
 		if err := rejectTemporaryAuditPath(path, roots); err != nil {
 			return err
 		}
+		if err := requireProjectFile(project, path); err != nil {
+			return err
+		}
+	}
+	if promptRegistry != "" {
+		if err := rejectTemporaryAuditPath(promptRegistry, roots); err != nil {
+			return err
+		}
 	}
 	return nil
+}
+
+func requireProjectFile(project, path string) error {
+	absolute, err := filepath.Abs(path)
+	if err != nil {
+		return err
+	}
+	canonicalProject, err := filepath.EvalSymlinks(project)
+	if err != nil {
+		return err
+	}
+	canonicalPath, err := filepath.EvalSymlinks(path)
+	if errors.Is(err, os.ErrNotExist) {
+		parent, parentErr := filepath.EvalSymlinks(filepath.Dir(path))
+		if parentErr != nil {
+			return fmt.Errorf("resolving project path %q: %w", path, parentErr)
+		}
+		canonicalPath = filepath.Join(parent, filepath.Base(path))
+	} else if err != nil {
+		return fmt.Errorf("resolving project path %q: %w", path, err)
+	}
+	if !withinPath(project, absolute) || !withinPath(canonicalProject, canonicalPath) {
+		return fmt.Errorf("audit path %q is outside the invocation project", path)
+	}
+	relative, err := filepath.Rel(project, absolute)
+	if err != nil {
+		return err
+	}
+	canonicalRelative, err := filepath.Rel(canonicalProject, canonicalPath)
+	if err != nil {
+		return err
+	}
+	if excludedAuditPath(relative) || excludedAuditPath(canonicalRelative) {
+		return fmt.Errorf("audit path %q uses an excluded runtime or temporary directory", path)
+	}
+	return nil
+}
+
+func excludedAuditDirectory(name string) bool {
+	lower := strings.ToLower(name)
+	switch lower {
+	case ".git", ".agent", ".agents", ".claude", ".codex", ".copilot", ".hermes":
+		return true
+	}
+	stem := strings.TrimPrefix(lower, ".")
+	for _, word := range []string{"tmp", "temp", "temporary"} {
+		if stem == word || strings.HasPrefix(stem, word+"-") || strings.HasPrefix(stem, word+"_") || strings.HasPrefix(stem, word+".") {
+			return true
+		}
+	}
+	return false
 }
 
 func rejectTemporaryAuditPath(path string, roots []string) error {

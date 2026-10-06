@@ -17,9 +17,101 @@ func TestMain(m *testing.M) {
 	// remains active against this separate synthetic root during those tests.
 	temporaryAuditRoots = func() ([]string, error) { return []string{protected}, nil }
 	profilePresent = func(string) (bool, error) { return true, nil }
+	enforceAuditAnchor = func(project string) (string, error) { return filepath.Abs(project) }
+	inventoryProject = func(string) (string, error) { return "\n\nInvocation project file inventory:\n- fixture\n", nil }
 	code := m.Run()
 	_ = os.RemoveAll(protected) // TestMain removes only the temp directory it created.
 	os.Exit(code)
+}
+
+func TestAuditAnchorUsesInvocationGitRoot(t *testing.T) {
+	root, err := filepath.Abs(filepath.Join("..", ".."))
+	if err != nil {
+		t.Fatal(err)
+	}
+	want, err := filepath.EvalSymlinks(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := verifyAuditAnchor(".")
+	if err != nil || got != want {
+		t.Fatalf("invocation root = %q, %v; want %q", got, err, want)
+	}
+	if _, err := verifyAuditAnchor(t.TempDir()); err == nil {
+		t.Fatal("accepted a caller-selected project outside the invocation Git tree")
+	}
+}
+
+func TestAuditProjectPathsRejectEscapesAndScratchDirectories(t *testing.T) {
+	root := t.TempDir()
+	for _, path := range []string{
+		filepath.Join(root, ".codex", "copy.go"),
+		filepath.Join(root, "module", ".hermes", "copy.go"),
+		filepath.Join(root, "tmp", "copy.go"),
+		filepath.Join(root, "temp-copy", "copy.go"),
+		filepath.Join(root, "tmp.backup", "copy.go"),
+		filepath.Join(root, ".temporary", "copy.go"),
+		filepath.Join(filepath.Dir(root), "outside.go"),
+	} {
+		if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
+			t.Fatal(err)
+		}
+		if err := requireProjectFile(root, path); err == nil {
+			t.Errorf("accepted excluded audit path %q", path)
+		}
+	}
+	for _, path := range []string{
+		filepath.Join(root, ".github", "workflows", "test.yaml"),
+		filepath.Join(root, "templates", "page.go"),
+		filepath.Join(root, "tests", "tmpfile.go"),
+	} {
+		if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
+			t.Fatal(err)
+		}
+		if err := requireProjectFile(root, path); err != nil {
+			t.Errorf("rejected legitimate project path %q: %v", path, err)
+		}
+	}
+}
+
+func TestAuditProjectPathRejectsAliasIntoRuntimeDirectory(t *testing.T) {
+	root := t.TempDir()
+	runtime := filepath.Join(root, ".codex")
+	if err := os.Mkdir(runtime, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(runtime, "copy.go"), []byte("package copy\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(runtime, filepath.Join(root, "alias")); err != nil {
+		t.Fatal(err)
+	}
+	if err := requireProjectFile(root, filepath.Join(root, "alias", "copy.go")); err == nil {
+		t.Fatal("accepted symlink alias into a provider runtime directory")
+	}
+}
+
+func TestProjectInventoryExposesLegitimateHiddenFilesButNotRuntimeCopies(t *testing.T) {
+	root := t.TempDir()
+	for _, name := range []string{".github/workflows/test.yaml", "source.go", ".codex/copy.go", "tmp/copy.go"} {
+		path := filepath.Join(root, name)
+		if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, []byte("fixture"), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	inventory, err := auditProjectInventory(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(inventory, ".github/workflows/test.yaml") || !strings.Contains(inventory, "source.go") {
+		t.Fatalf("inventory omits project files: %q", inventory)
+	}
+	if strings.Contains(inventory, "copy.go") {
+		t.Fatalf("inventory includes runtime or scratch copies: %q", inventory)
+	}
 }
 
 func TestTemporaryAuditPathRefusedBeforeProvider(t *testing.T) {
@@ -126,7 +218,7 @@ func TestStandaloneRejectsInputEscapingProject(t *testing.T) {
 	t.Cleanup(func() { profilePresent = oldProfile })
 	var output bytes.Buffer
 	err := run([]string{"--project", project, "--input", "alias.go"}, strings.NewReader(""), &output, &output)
-	if err == nil || !strings.Contains(err.Error(), "outside the selected project") {
+	if err == nil || !strings.Contains(err.Error(), "outside the invocation project") {
 		t.Fatalf("escaped input error = %v", err)
 	}
 }
@@ -176,6 +268,9 @@ printf '{"type":"thread.started","thread_id":"standalone-fixture"}\n'
 	oldProfile := profilePresent
 	profilePresent = func(string) (bool, error) { return false, nil }
 	t.Cleanup(func() { profilePresent = oldProfile })
+	oldInventory := inventoryProject
+	inventoryProject = auditProjectInventory
+	t.Cleanup(func() { inventoryProject = oldInventory })
 	args := []string{"--project", project, "--input", "go.mod", "--audit-prompts", filepath.Join(project, "src", "prompts", "audits.yaml"), "--global-config", filepath.Join(project, "absent-global.yaml"), "--harness", "codex", "--model", "fixture"}
 	var output, diagnostics bytes.Buffer
 	if err := run(args, strings.NewReader("Review the supplied project files."), &output, &diagnostics); err != nil {
@@ -195,5 +290,8 @@ printf '{"type":"thread.started","thread_id":"standalone-fixture"}\n'
 	}
 	if bytes.Contains(prompt, []byte("Audit gate:")) {
 		t.Fatal("standalone prompt contains an SDLC gate")
+	}
+	if !bytes.Contains(prompt, []byte("Invocation project file inventory")) || !bytes.Contains(prompt, []byte("README.md")) {
+		t.Fatal("standalone prompt omitted the project inventory")
 	}
 }

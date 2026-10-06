@@ -1,6 +1,6 @@
 ---
 title: SDLC v3 Architecture
-version: 6
+version: 7
 last-updated: 2026-10-06
 ---
 
@@ -42,8 +42,10 @@ The same executable selects a standalone standards profile when the project has
 no `.sdlc/project.yaml`. That profile supplies the installed coding,
 documentation and standalone routing standards, emits a distinct result
 envelope, and does not create an SDLC audit record. Before provider execution,
-both routes reject project roots and supplied evidence under system temporary
-directories, checking both submitted paths and resolved aliases.
+both routes bind the audit to the invocation Git root or non-Git directory,
+reject evidence outside that root and in runtime or scratch directories, and
+reject system temporary directories including resolved aliases. A bounded
+inventory of eligible project paths exposes omissions without copying content.
 
 `~/.agents/sdlc/MAIN.md` is the only standards bootstrap. It routes an agent to
 the minimum relevant universal, domain, technology, and workflow documents.
@@ -360,6 +362,8 @@ are charged to an explicit gate.
 
 ## Document history
 
+- Version 7 (2026-10-06): Anchor audits to invocation projects and expose
+  eligible project paths through a bounded inventory.
 - Version 6 (2026-10-06): Define standalone standards review and the
   original-path refusal boundary.
 - Version 5 (2026-10-05): Bound installer validation labels to local guard

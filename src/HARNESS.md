@@ -1,6 +1,6 @@
 ---
 title: SDLC Audit Harness Guide
-version: 3
+version: 4
 last-updated: 2026-10-06
 ---
 
@@ -29,11 +29,25 @@ The harness prints a `STANDALONE MODE` warning, supplies its installed
 apply ticket readiness, gate budgets, or closure rules. Supply relevant
 technology standards and project authorities as additional inputs when needed.
 
-For every audit, the project root, supplied evidence, and an explicit prompt
-registry must be outside the operating system's temporary directories. The
-harness checks lexical and resolved paths before reading evidence or starting a
-provider. It refuses a project copy or clone located there; it cannot establish
-whether a non-temporary directory is the operator's authoritative checkout.
+For every audit, the harness derives the project root from its invocation
+directory: the enclosing Git root when present, otherwise that directory.
+An explicit `--project` must resolve to the same root. Supplied project evidence
+and the audit record must remain inside that tree; paths under provider runtime
+directories (`.agent`, `.agents`, `.claude`, `.codex`, `.copilot`, `.hermes`,
+`.git`) or directories named `tmp`, `temp`, `temporary`, or their dotted,
+hyphenated or underscored variants are refused. Other hidden directories,
+including `.github`, remain eligible. System temporary roots are also refused,
+including symlink aliases. The harness performs these checks before provider
+execution.
+
+The auditor receives a bounded inventory of tracked and non-ignored untracked
+files in a Git project, or eligible files under a non-Git invocation directory.
+It excludes the same runtime and scratch paths. The inventory exposes possible
+omissions; it contains paths, not file contents or proof of review. The author
+must still supply the relevant source, tests and authorities as `--input`
+evidence. A caller that changes the process working directory to another
+non-temporary checkout can still present that checkout as the invocation
+project; the harness cannot establish its relationship to an earlier session.
 
 ## Implementation readiness
 
@@ -66,7 +80,8 @@ activate a goal, write configuration or enforce native continuation itself.
 
     /absolute/path/to/.agents/sdlc/bin/sdlc-harness goal-config --project .
 
-- `--project DIR`: project root; defaults to the current directory.
+- `--project DIR`: audit project root; defaults to the invocation Git root or,
+  outside Git, the invocation directory.
 - `--global-config FILE`: defaults to `~/.agents/sdlc.yaml`.
 - `--sdlc-root DIR`: schema root; defaults to the deployed executable's parent
   directory. Source-tree checks may pass `--sdlc-root src`.
@@ -347,7 +362,9 @@ infrastructure failure. Known FAIL findings remain unresolved until reassessed.
 
 ## Document history
 
-Version 3 adds standalone standards review and temporary project/evidence
+Version 4 binds audits to the invocation project and supplies a bounded file
+inventory while excluding runtime and scratch directories. Version 3 adds
+standalone standards review and temporary project/evidence
 refusal. Version 2 replaces agent-managed sessions and attempt-based budgets
 with automatic invocation, gate-local verdict limits and private bounded
 failure diagnostics.

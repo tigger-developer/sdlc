@@ -18,6 +18,9 @@ timeout_blocked_message: |
   Report the diagnostic reference. Only explicit operator authorization permits --reset.
   Reset once, then submit the normal audit without the flag. Never reset autonomously.
 evidence_instructions: |
+  The invocation project inventory lists eligible paths, not reviewed contents. Use it to
+  identify relevant code, tests and authorities omitted from the evidence package. Do not
+  assume listed files were read; report a material evidence gap instead of a full PASS.
   The harness owns native session IDs, recovery and cache lookup. Return only the requested audit
   envelope and findings; do not invent session IDs, invoke another auditor or troubleshoot the harness.
   If an Evidence contents section is supplied, it contains the complete current text of every

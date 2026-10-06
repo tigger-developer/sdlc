@@ -1,4 +1,4 @@
-// ABOUTME: Checks exact external evidence grants through the CLI start/resume boundary.
+// ABOUTME: Checks exact project evidence grants through the CLI start/resume boundary.
 // ABOUTME: Uses a local executable fixture, not a metered Claude invocation.
 package main
 
@@ -16,7 +16,7 @@ import (
 
 func TestW011CLIProjectsEvidencePermissionsAndRetainsSession(t *testing.T) {
 	root := t.TempDir()
-	external := filepath.Join(t.TempDir(), "authority.org")
+	external := filepath.Join(root, "authority.org")
 	probe := filepath.Join(root, "settings.json")
 	identity := filepath.Join(root, "identity")
 	t.Setenv("PROBE_SETTINGS", probe)
@@ -35,7 +35,7 @@ printf '%s\n' '{"result":"GATE: definition\nREVISION: fixture\nVERDICT: PASS\n"}
 	if err := os.WriteFile(filepath.Join(root, "claude"), []byte(script), 0o700); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(external, []byte("external authority"), 0o600); err != nil {
+	if err := os.WriteFile(external, []byte("project authority"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	registry := filepath.Join(root, "prompts.yaml")

@@ -99,6 +99,12 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 	if err != nil {
 		return err
 	}
+	if normalizedPhase == "audit" {
+		projectRoot, err = enforceAuditAnchor(*project)
+		if err != nil {
+			return err
+		}
+	}
 	initialized, err := profilePresent(projectRoot)
 	if err != nil {
 		return err
@@ -110,6 +116,15 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 	if normalizedPhase == "audit" {
 		if err := requireOriginalAuditPaths(projectRoot, inputs, *auditPrompts); err != nil {
 			return err
+		}
+		if *auditRecord != "" {
+			record := *auditRecord
+			if !filepath.IsAbs(record) {
+				record = filepath.Join(projectRoot, record)
+			}
+			if err := requireProjectFile(projectRoot, record); err != nil {
+				return err
+			}
 		}
 	}
 	if standalone && (normalizedGate != "" || *auditRecord != "" || *workItem != "" || *resetSession) {
@@ -245,6 +260,11 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 			}
 			prompt = append([]byte(base+"\nAudit gate: "+normalizedGate+"\n\nOperator-supplied audit context:\n"), prompt...)
 		}
+		inventory, inventoryErr := inventoryProject(projectRoot)
+		if inventoryErr != nil {
+			return inventoryErr
+		}
+		prompt = append(prompt, inventory...)
 	}
 	evidence, err := harness.CaptureEvidence(projectRoot, inputs)
 	if err != nil {

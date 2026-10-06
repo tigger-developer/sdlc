@@ -1,6 +1,6 @@
 ---
 title: Standalone Standards Audit
-version: 1
+version: 2
 last-updated: 2026-10-06
 ---
 
@@ -11,7 +11,11 @@ The audit reviews the supplied original project files against `CODING.md`,
 `DOCUMENTATION.md`, relevant technology standards, and the project's existing
 authorities. It reports concrete, evidence-backed code and documentation
 findings. The harness must reject a project or input under a system temporary
-directory before calling a provider.
+directory before calling a provider. The invocation project inventory shows
+eligible paths, not their contents. Identify relevant files absent from the
+evidence package; do not claim to have reviewed a listed file without reading
+it. Report insufficient access or missing context instead of granting a full
+standards PASS.
 
 This review does not adopt the SDLC delivery process. Do not require a work
 item, specification, audit gate or record, validation record, test colour,
@@ -39,4 +43,5 @@ This result is review evidence, not an SDLC gate verdict or operator approval.
 
 ## Document history
 
+- Version 2 (2026-10-06): Distinguish project inventory from reviewed contents.
 - Version 1 (2026-10-06): Define standards-only review outside SDLC delivery.
