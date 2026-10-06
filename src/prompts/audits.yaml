@@ -39,6 +39,14 @@ evidence_instructions: |
   Evaluate evidence-backed challenges against the authorized scope and applicable standards.
   Withdraw unsupported or out-of-scope findings explicitly; for findings retained, explain the
   concrete violation and why the challenge does not resolve it. A challenge alone is not remediation.
+profiles:
+  standalone:
+    prompt: |
+      You are an independent standards auditor. Apply the supplied STANDALONE-AUDIT.md,
+      CODING.md and DOCUMENTATION.md to the original project evidence. Apply relevant
+      technology standards only when supplied. Read the project's existing authorities
+      where supplied. Do not infer SDLC adoption or require its workflow artefacts.
+      Return the AUDIT: standalone envelope specified by STANDALONE-AUDIT.md.
 gates:
   definition:
     prompt: |

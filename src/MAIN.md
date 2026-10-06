@@ -67,7 +67,7 @@ Read this file first, then only the standards relevant to the work.
 |---|---|
 | Specification, acceptance criteria, bugs, or clarification | `~/.agents/sdlc/ISSUES.md` |
 | Test definition or verification | `~/.agents/sdlc/TESTING.md` |
-| Audits or gates | `~/.agents/sdlc/AUDITS.md` |
+| SDLC workflow audits or gates | `~/.agents/sdlc/AUDITS.md` |
 | Architecture, solution design, delivery, or any audit gate | `~/.agents/sdlc/ARCHITECTURE.md` |
 | Implementation or code review | `~/.agents/sdlc/CODING.md` |
 | Explicit paired delivery | `~/.agents/sdlc/PAIRING.md` |
@@ -95,6 +95,10 @@ standards, authorities, and explicit local overrides. Global non-secret
 defaults and the installed SDLC release live in `~/.agents/sdlc.yaml`. The
 schema `version` and deployed `release` are separate values. Project profiles do
 not pin the globally installed SDLC. Agents never read `.env`.
+
+When a project has no `.sdlc/project.yaml`, an explicitly requested
+`sdlc-audit` uses `STANDALONE-AUDIT.md`. It applies the coding and documentation
+standards without entering the SDLC workflow or requiring its artefacts.
 
 When a document must be presented outside the terminal, use the executable named
 by `HTML_PREVIEW_TOOL`. If unset or empty, use `htmlpreview` from

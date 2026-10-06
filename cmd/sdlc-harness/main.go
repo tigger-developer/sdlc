@@ -54,12 +54,9 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		fmt.Fprintf(output, "sdlc-harness %s\n", version)
 		return nil
 	}
-	if len(arguments) == 0 {
-		return errors.New("usage: sdlc-harness --gate GATE --audit-record FILE --work-item ID [options]")
-	}
 	action := "audit"
 	flagArguments := arguments
-	if !strings.HasPrefix(arguments[0], "-") {
+	if len(arguments) != 0 && !strings.HasPrefix(arguments[0], "-") {
 		action, flagArguments = arguments[0], arguments[1:]
 	}
 	if action == "goal-config" {
@@ -98,20 +95,61 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 	}
 	normalizedPhase := strings.ToLower(strings.TrimSpace(*phase))
 	normalizedGate := strings.ToLower(strings.TrimSpace(*gate))
-	if normalizedPhase == "audit" && normalizedGate != "definition" && !readiness.ValidMode(normalizedGate) {
-		return errors.New("audit phase requires --gate definition, --gate test-code, or --gate delivery-code")
-	}
-	// Implementation gates share context and history, but not verdict budgets.
-	sessionGate, readinessCheck := normalizedGate, ""
-	if normalizedPhase == "audit" && readiness.ValidMode(normalizedGate) {
-		sessionGate, readinessCheck = "implementation", normalizedGate
-	}
 	projectRoot, err := filepath.Abs(*project)
 	if err != nil {
 		return err
 	}
-	if normalizedPhase == "audit" && (strings.TrimSpace(*auditRecord) == "" || strings.TrimSpace(*workItem) == "") {
+	initialized, err := profilePresent(projectRoot)
+	if err != nil {
+		return err
+	}
+	standalone := normalizedPhase == "audit" && !initialized
+	if standalone && action != "audit" {
+		return errors.New("standalone standards audit does not accept legacy start/resume operations")
+	}
+	if normalizedPhase == "audit" {
+		if err := requireOriginalAuditPaths(projectRoot, inputs, *auditPrompts); err != nil {
+			return err
+		}
+	}
+	if standalone && (normalizedGate != "" || *auditRecord != "" || *workItem != "" || *resetSession) {
+		return errors.New("standalone standards audit accepts --input and provider options, without --gate, --audit-record, --work-item or --reset")
+	}
+	if standalone && len(inputs) == 0 {
+		return errors.New("standalone standards audit requires at least one original project --input file")
+	}
+	if standalone {
+		resolvedProject, resolveErr := filepath.EvalSymlinks(projectRoot)
+		if resolveErr != nil {
+			return fmt.Errorf("resolving standalone project %q: %w", projectRoot, resolveErr)
+		}
+		for _, value := range inputs {
+			path := value
+			if !filepath.IsAbs(path) {
+				path = filepath.Join(projectRoot, path)
+			}
+			resolvedInput, resolveErr := filepath.EvalSymlinks(path)
+			if resolveErr != nil {
+				return fmt.Errorf("resolving standalone input %q: %w", value, resolveErr)
+			}
+			if !withinPath(projectRoot, path) || !withinPath(resolvedProject, resolvedInput) {
+				return fmt.Errorf("standalone input %q is outside the selected project", value)
+			}
+		}
+	}
+	if normalizedPhase == "audit" && !standalone && normalizedGate != "definition" && !readiness.ValidMode(normalizedGate) {
+		return errors.New("SDLC audit requires --gate definition, --gate test-code, or --gate delivery-code")
+	}
+	// Implementation gates share context and history, but not verdict budgets.
+	sessionGate, readinessCheck := normalizedGate, ""
+	if normalizedPhase == "audit" && !standalone && readiness.ValidMode(normalizedGate) {
+		sessionGate, readinessCheck = "implementation", normalizedGate
+	}
+	if normalizedPhase == "audit" && !standalone && (strings.TrimSpace(*auditRecord) == "" || strings.TrimSpace(*workItem) == "") {
 		return errors.New("audit requires --audit-record and --work-item")
+	}
+	if standalone {
+		fmt.Fprintln(errorOutput, "STANDALONE MODE: reviewing code and documentation standards; no SDLC gate or audit record applies.")
 	}
 	if *auditRecord != "" && !filepath.IsAbs(*auditRecord) {
 		*auditRecord = filepath.Join(projectRoot, *auditRecord)
@@ -190,11 +228,23 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		if loadErr != nil {
 			return loadErr
 		}
-		base, loadErr := registry.prompt(normalizedGate)
-		if loadErr != nil {
-			return loadErr
+		if standalone {
+			base := strings.TrimSpace(registry.Profiles["standalone"].Prompt)
+			if base == "" {
+				return errors.New("audit prompt registry lacks the standalone profile")
+			}
+			prompt = append([]byte(base+"\n\nOperator-supplied audit context:\n"), prompt...)
+			standardsRoot := filepath.Dir(filepath.Dir(auditPromptPath(*auditPrompts)))
+			for _, name := range []string{"STANDALONE-AUDIT.md", "CODING.md", "DOCUMENTATION.md"} {
+				inputs = append(inputs, filepath.Join(standardsRoot, name))
+			}
+		} else {
+			base, loadErr := registry.prompt(normalizedGate)
+			if loadErr != nil {
+				return loadErr
+			}
+			prompt = append([]byte(base+"\nAudit gate: "+normalizedGate+"\n\nOperator-supplied audit context:\n"), prompt...)
 		}
-		prompt = append([]byte(base+"\nAudit gate: "+normalizedGate+"\n\nOperator-supplied audit context:\n"), prompt...)
 	}
 	evidence, err := harness.CaptureEvidence(projectRoot, inputs)
 	if err != nil {
@@ -279,11 +329,11 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		Evidence: evidence.Files,
 	}
 	recordPath := ""
-	if normalizedPhase == "audit" {
+	if normalizedPhase == "audit" && !standalone {
 		recordPath = strings.TrimSpace(*auditRecord)
 	}
 	runner := recoveryRun{config: config, request: request, evidence: evidence, registry: registry,
-		path: recordPath, work: *workItem, gate: sessionGate, cacheKey: cacheKey, readinessCheck: readinessCheck, audit: normalizedPhase == "audit", diagnostics: errorOutput}
+		path: recordPath, work: *workItem, gate: sessionGate, cacheKey: cacheKey, readinessCheck: readinessCheck, audit: normalizedPhase == "audit" && !standalone, diagnostics: errorOutput}
 	if runner.audit {
 		runner.cooldowns = harness.CooldownStore{Directory: filepath.Join(projectRoot, ".sdlc")}
 		log, logErr := openAuditDiagnostics(projectRoot, errorOutput)
@@ -307,6 +357,11 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 	result, err := runner.execute(entry, resume)
 	if err != nil {
 		return err
+	}
+	if standalone {
+		if err := validateStandaloneVerdict(result.Response); err != nil {
+			return err
+		}
 	}
 	_, err = fmt.Fprintln(output, result.Response)
 	return err
@@ -334,19 +389,17 @@ type auditPromptDocument struct {
 	TimeoutMessage              string `yaml:"timeout_message"`
 	TimeoutBlockedMessage       string `yaml:"timeout_blocked_message"`
 	SessionRecoveryInstructions string `yaml:"session_recovery_instructions"`
-	Gates                       map[string]struct {
+	Profiles                    map[string]struct {
+		Prompt string `yaml:"prompt"`
+	} `yaml:"profiles"`
+	Gates map[string]struct {
 		Prompt string `yaml:"prompt"`
 	} `yaml:"gates"`
 }
 
 func readAuditPrompts(explicit string) (auditPromptDocument, error) {
 	var document auditPromptDocument
-	path := explicit
-	if path == "" {
-		if executable, err := os.Executable(); err == nil {
-			path = filepath.Join(filepath.Dir(executable), "..", "prompts", "audits.yaml")
-		}
-	}
+	path := auditPromptPath(explicit)
 	if path == "" {
 		return document, errors.New("audit prompt registry path is unavailable")
 	}
@@ -358,6 +411,16 @@ func readAuditPrompts(explicit string) (auditPromptDocument, error) {
 		return document, fmt.Errorf("parsing audit prompt registry %s: %w", path, err)
 	}
 	return document, nil
+}
+
+func auditPromptPath(explicit string) string {
+	if explicit != "" {
+		return explicit
+	}
+	if executable, err := os.Executable(); err == nil {
+		return filepath.Join(filepath.Dir(executable), "..", "prompts", "audits.yaml")
+	}
+	return ""
 }
 
 func (document auditPromptDocument) prompt(gate string) (string, error) {

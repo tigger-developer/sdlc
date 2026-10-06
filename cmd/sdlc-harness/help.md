@@ -1,13 +1,14 @@
-sdlc-audit: request an independent SDLC audit.
+sdlc-audit: request an independent SDLC or standalone standards audit.
 Alias of sdlc-harness; both use the same interface.
 
 Usage:
+  sdlc-audit --input FILE [--input FILE ...] [options] < context.txt
   sdlc-audit --gate GATE --audit-record FILE --work-item ID [options] < context.txt
   sdlc-audit --reset --gate GATE --audit-record FILE --work-item ID
   sdlc-audit goal-config [options]
 
 Audit options:
-  --gate GATE          Required: definition, test-code, delivery-code.
+  --gate GATE          SDLC projects: definition, test-code, delivery-code.
   --audit-record FILE  Harness-owned audits.yaml beside the specification.
   --work-item ID       Work item owning that record.
   --input FILE         Evidence file; repeat for every relevant input.
@@ -15,6 +16,13 @@ Audit options:
   --reset              Operator-authorized reset of gate counters and context; then exit.
   -h, --help           Show this reference.
   --version            Show installed version.
+
+When the selected project has no .sdlc/project.yaml, omit --gate,
+--audit-record and --work-item. The harness warns STANDALONE MODE and reviews
+the supplied original project files against CODING.md, DOCUMENTATION.md and
+STANDALONE-AUDIT.md. This review has no SDLC gate or persistent audit record.
+Project roots and evidence under system temporary directories are refused
+before a provider starts, including paths reached through symlinks.
 
 Use the same normal command for the first audit and every remediation.
 The harness owns provider selection, context, fallback and bounded recovery.

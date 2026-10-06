@@ -1,7 +1,7 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 6
-last-updated: 2026-10-05
+version: 7
+last-updated: 2026-10-06
 ---
 
 # SDLC Standards: Design Learnings
@@ -1173,6 +1173,8 @@ than collapse them into a broad `READY` claim.
 
 ## Document history
 
+- Version 7 (2026-10-06): Keep standalone standards review distinct from SDLC
+  gate state and reject temporary audit inputs before provider execution.
 - Version 6 (2026-10-05): Apply Trash recovery consistently to replaced
   configuration and avoid redundant aggregate installation confirmation.
 - Version 5 (2026-10-05): Distinguish local installer validation from provider

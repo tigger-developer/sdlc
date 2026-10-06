@@ -3,7 +3,9 @@
 ## Readability and fit
 
 Apply `~/.agents/sdlc/ARCHITECTURE.md` for proportionality, responsibilities,
-reuse and conformance to the approved solution design.
+reuse and conformance to an approved solution design when one governs the work.
+In a standalone standards audit, use the project's existing architecture and
+conventions; absence of SDLC approval is not itself a code defect.
 
 - Optimize for the next maintainer. Prefer explicit names and straightforward
   control flow over compressed cleverness.
@@ -58,7 +60,8 @@ only those selected by the project's standards profile.
 - Follow an established file-header convention. If the project has none, each
   source file begins with a concise two-line `ABOUTME` header describing its
   purpose where the language permits it. Record any project-wide deviation in
-  `.sdlc/project.yaml` or the named architecture authority.
+  `.sdlc/project.yaml` when the SDLC is active, or the project's named
+  architecture authority.
 - Public APIs, exported symbols, configuration keys, and operational interfaces
   require durable documentation.
 
@@ -246,7 +249,8 @@ Block or redesign code that introduces:
 - injection, traversal, secret exposure, or widened access;
 - unbounded input, recursion, concurrency, retries, or resource use;
 - irreversible mutation without a specified recovery path;
-- a new architecture or public contract absent from the specification;
+- a new architecture or public contract without authority in the applicable
+  specification, project documentation, or operator instruction;
 - tests coupled only to implementation details; or
 - claims of compatibility or correctness unsupported by evidence.
 

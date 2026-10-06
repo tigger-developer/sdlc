@@ -1,7 +1,7 @@
 ---
 title: SDLC Audit Harness Guide
-version: 2
-last-updated: 2026-09-28
+version: 3
+last-updated: 2026-10-06
 ---
 
 # SDLC audit harness guide
@@ -14,8 +14,26 @@ SDLC skills continue to use the resolved absolute harness path.
 
 ## Usage
 
+    sdlc-audit --input FILE [--input FILE ...] [options] < context.txt
     sdlc-harness --gate GATE --audit-record FILE --work-item ID [options] < audit-context.txt
     sdlc-harness goal-config [options]
+
+## Standalone standards review
+
+When `--project` has no `.sdlc/project.yaml`, `sdlc-audit` runs a standalone
+code and documentation standards review. Supply at least one original project
+file with `--input`; omit `--gate`, `--audit-record`, `--work-item` and `--reset`.
+The harness prints a `STANDALONE MODE` warning, supplies its installed
+`STANDALONE-AUDIT.md`, `CODING.md` and `DOCUMENTATION.md`, and asks for an
+`AUDIT: standalone` result. This route does not create SDLC project state or
+apply ticket readiness, gate budgets, or closure rules. Supply relevant
+technology standards and project authorities as additional inputs when needed.
+
+For every audit, the project root, supplied evidence, and an explicit prompt
+registry must be outside the operating system's temporary directories. The
+harness checks lexical and resolved paths before reading evidence or starting a
+provider. It refuses a project copy or clone located there; it cannot establish
+whether a non-temporary directory is the operator's authoritative checkout.
 
 ## Implementation readiness
 
@@ -98,7 +116,7 @@ the same automatic audit behaviour. The old reset-session flag is replaced by re
   execution rejects the response; hashes detect changes, not prevent writes.
 - Per-attempt paths and hashes live only in `audits.yaml` under `history[].evidence`.
   Older records without hashes retain their session and receive a full evidence
-  pass. Every audit requires an audit record.
+  pass. Every SDLC gate audit requires an audit record; standalone review does not.
 - No document cache is created. The small final-response temporary file is
   cleared before each attempt so fallback cannot reuse failed-provider output,
   then
@@ -329,6 +347,8 @@ infrastructure failure. Known FAIL findings remain unresolved until reassessed.
 
 ## Document history
 
-Version 2 replaces agent-managed sessions and attempt-based budgets with automatic
-invocation, gate-local verdict limits and private bounded failure diagnostics.
+Version 3 adds standalone standards review and temporary project/evidence
+refusal. Version 2 replaces agent-managed sessions and attempt-based budgets
+with automatic invocation, gate-local verdict limits and private bounded
+failure diagnostics.
 Version 1 remains available in Git history.

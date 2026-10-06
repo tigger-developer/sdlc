@@ -1,7 +1,7 @@
 ---
 title: SDLC v3 Architecture
-version: 5
-last-updated: 2026-10-05
+version: 6
+last-updated: 2026-10-06
 ---
 
 # SDLC v3 Architecture
@@ -37,6 +37,13 @@ deployed release under `~/.agents/sdlc/bin`, never the mutable source checkout.
 The public `sdlc-audit` link targets the deployed `sdlc-harness`; no duplicate
 audit implementation is built. Recognized historical command retirement markers
 are removed through Trash, not retained in executable directories.
+
+The same executable selects a standalone standards profile when the project has
+no `.sdlc/project.yaml`. That profile supplies the installed coding,
+documentation and standalone routing standards, emits a distinct result
+envelope, and does not create an SDLC audit record. Before provider execution,
+both routes reject project roots and supplied evidence under system temporary
+directories, checking both submitted paths and resolved aliases.
 
 `~/.agents/sdlc/MAIN.md` is the only standards bootstrap. It routes an agent to
 the minimum relevant universal, domain, technology, and workflow documents.
@@ -353,6 +360,8 @@ are charged to an explicit gate.
 
 ## Document history
 
+- Version 6 (2026-10-06): Define standalone standards review and the
+  original-path refusal boundary.
 - Version 5 (2026-10-05): Bound installer validation labels to local guard
   projection and audit-adapter command construction.
 - Version 4 (2026-10-04): Define provider-home discovery and shared

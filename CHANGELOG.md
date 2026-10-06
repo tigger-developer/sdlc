@@ -1,10 +1,19 @@
 ---
 title: Changelog
 version: 1
-last-updated: 2026-10-05
+last-updated: 2026-10-06
 ---
 
 # Changelog
+
+## v3.5.9 - 2026-10-06
+
+- Add a standalone `sdlc-audit --input FILE` route for projects without an
+  SDLC profile. Supply coding, documentation and standalone routing standards
+  automatically; keep its verdict separate from SDLC gates and records.
+- Refuse audit project roots, evidence and explicit prompt registries under
+  system temporary directories before provider startup, including symlinked
+  paths. Document the limit of this deterministic path check.
 
 ## v3.5.8 - 2026-10-05
 

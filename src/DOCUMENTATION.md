@@ -115,6 +115,10 @@ specification, plan, architecture record, or reference document.
 
 ## Delivery closure
 
+This section governs SDLC-managed delivery. A standalone standards audit uses
+the review criteria below and does not require gate, validation, sign-off or
+closure records.
+
 Definition identifies affected documentation in the handoff. Update it during
 delivery and include it in the final delivery-code audit: verify usage,
 configuration, interfaces and architecture wherever the change affects them,

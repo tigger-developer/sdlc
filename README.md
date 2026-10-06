@@ -1,7 +1,7 @@
 ---
 title: Lean SDLC for Coding Agents
-version: 4
-last-updated: 2026-10-05
+version: 5
+last-updated: 2026-10-06
 ---
 
 # Lean SDLC for Coding Agents
@@ -118,6 +118,10 @@ records its verdict against that revision, and manages bounded retries and
 recovery. It also performs local readiness checks before spending a review
 round. An audit verdict is evidence for human judgement, not human approval.
 The [audit harness guide](src/HARNESS.md) covers commands and diagnostics.
+For a project without SDLC initialization, `sdlc-audit --input FILE` instead
+reviews the supplied original project files against the installed coding and
+documentation standards. It warns that the review is standalone and does not
+create SDLC process records.
 
 ## Find the detail
 
@@ -138,6 +142,8 @@ standards, skills, and command help.
 
 ## Document history
 
+- Version 5 (2026-10-06): Introduced standalone code and documentation
+  standards review through `sdlc-audit`.
 - Version 4 (2026-10-05): Linked the current configuration, installation, and
   repository-layout reference instead of the archived README.
 - Version 3 (2026-10-04): Documented interactive provider-home selection and
