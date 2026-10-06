@@ -11,7 +11,7 @@ Audit options:
   --gate GATE          SDLC projects: definition, test-code, delivery-code.
   --audit-record FILE  Harness-owned audits.yaml beside the specification.
   --work-item ID       Work item owning that record.
-  --input FILE         Evidence file; repeat for every relevant input.
+  --input FILE         Project evidence file; repeat for every relevant input.
   --project DIR        Audit root (default: invocation Git root or current directory).
   --reset              Operator-authorized reset of gate counters and context; then exit.
   -h, --help           Show this reference.
@@ -22,7 +22,11 @@ When the selected project has no .sdlc/project.yaml, omit --gate,
 the supplied original project files against CODING.md, DOCUMENTATION.md and
 STANDALONE-AUDIT.md. This review has no SDLC gate or persistent audit record.
 Audits are anchored to the invocation project. --project cannot select another
-root; project evidence and audit records must stay inside that tree. Provider
+root; --input accepts only files inside that project tree. Do not pass
+~/.agents/sdlc/MAIN.md, ARCHITECTURE.md, DOCUMENTATION.md or other installed
+SDLC standards: the harness supplies its own gate-relevant rules and selected
+technology standards automatically. External --input paths are rejected.
+Project evidence and audit records must stay inside that tree. Provider
 runtime directories and tmp/temp/temporary directory variants are excluded;
 ordinary hidden project directories are allowed. System temporary directories
 and symlink aliases are refused before a provider starts. A bounded project
@@ -68,7 +72,8 @@ Example:
   sdlc-audit --gate delivery-code \
     --audit-record specs/WNNN-descriptor/audits.yaml --work-item WNNN \
     --input tests.go --input application.go
-Include all relevant source, test and authority files; this example abbreviates inputs.
+Include all relevant project source, test and authority files; this example
+abbreviates inputs. Do not add paths under ~/.agents/sdlc.
 
 Goal-config options:
   --project DIR  --global-config FILE  Project and global configuration.

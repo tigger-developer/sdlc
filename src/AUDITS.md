@@ -1,7 +1,7 @@
 ---
 title: Audit and Gate Standards
-version: 2
-last-updated: 2026-09-28
+version: 3
+last-updated: 2026-10-06
 ---
 
 # Audit and Gate Standards
@@ -22,18 +22,21 @@ Harness investigation requires the operator to explicitly place it in scope.
 An identical request may return a **cached result** from `audits.yaml`: the same
 PASS, FAIL or PROVISIONAL PASS and findings, without a model call or another
 round. The harness checks all supplied file paths/hashes, work item, gate,
-prompts, caller context and primary/fallback model configuration. Include the
-relevant SDLC standards as evidence; independently read files are not covered.
+prompts, caller context and primary/fallback model configuration. The harness
+includes the applicable installed SDLC standards and selected technology
+standards in its hashed evidence. Callers supply project files only;
+independently read files are not covered.
 Cache hits retain all verdict conditions. Incidents are not verdicts, and old
 records without a request key are not cache entries. Changing or omitting an
 input invalidates the key; do not alter inputs merely to evade a cached FAIL.
 
 ## Composite gates
 
-Apply `~/.agents/sdlc/ARCHITECTURE.md` at all three gates and include it in the
-supplied evidence, alongside the relevant project architecture. Definition
-review resolves significant design decisions and their verification; implementation
-review checks adherence without substituting the auditor's preferred design.
+Apply `~/.agents/sdlc/ARCHITECTURE.md` at all three gates. The harness supplies
+that installed standard; the caller supplies the relevant project architecture.
+Definition review resolves significant design decisions and their verification;
+implementation review checks adherence without substituting the auditor's
+preferred design.
 
 The **definition gate** reviews the specification, solution design, and RT/UT/OT
 test definitions together. The **test-code gate** reviews the written tests and
@@ -93,7 +96,9 @@ does not itself dismiss a finding or change the verdict; only the harness record
 the auditor's reassessment in `audits.yaml`.
 
 Invoke the resolved absolute harness path with `--gate`, `--audit-record`,
-`--work-item`, and the complete `--input` list. Supply extra review context on
+`--work-item`, and the complete project `--input` list. Do not pass paths under
+`~/.agents/sdlc` as inputs: the harness loads its own installed rules. Supply
+extra review context on
 stdin. Use the same command after remediation. Do not select start/resume, pass
 session IDs, or override providers. The harness owns context selection, cooldown,
 fallback, bounded retries and response-envelope correction.
@@ -220,8 +225,9 @@ increment promptly, not every live edit. Emergency work fixes first, records the
 durable ticket, then audits implementation. Both consolidate and retrospectively
 review the definition after the delivery-code gate has an effective PASS.
 For all routes, affected product documentation must be current at the final
-delivery-code verdict. Include `~/.agents/sdlc/DOCUMENTATION.md` in definition and
-delivery-code audit evidence. Review the changed documentation against its voice,
+delivery-code verdict. The harness includes `~/.agents/sdlc/DOCUMENTATION.md`
+in definition and delivery-code audit evidence. Review the changed documentation
+against its voice,
 document-purpose and presentation rules as well as technical accuracy; cite concrete
 violations, not editorial preferences. The test-code gate does not demand
 those updates. A paired/emergency retrospective specification may follow code
@@ -257,5 +263,7 @@ Append " AUDIT" (with a leading space) to the canary.
 
 ## Document history
 
+Version 3 makes the harness responsible for supplying installed SDLC standards;
+callers provide only project evidence.
 Version 2 replaces caller-managed recovery and shared attempt budgets with automatic
 audits, separate verdict allowances and private internal-failure handling.

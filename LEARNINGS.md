@@ -1,6 +1,6 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 8
+version: 9
 last-updated: 2026-10-06
 ---
 
@@ -1173,6 +1173,8 @@ than collapse them into a broad `READY` claim.
 
 ## Document history
 
+- Version 9 (2026-10-06): Keep installed audit-rule evidence under harness
+  ownership so project-only input validation does not conflict with gate rules.
 - Version 8 (2026-10-06): Bind audit scope to the invocation project rather
   than trusting a caller-selected project path or a curated evidence list.
 - Version 7 (2026-10-06): Keep standalone standards review distinct from SDLC

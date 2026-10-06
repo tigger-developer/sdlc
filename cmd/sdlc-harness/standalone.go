@@ -86,7 +86,7 @@ func requireOriginalAuditPaths(project string, inputs []string, promptRegistry s
 		return err
 	}
 	paths := append([]string{project}, inputs...)
-	for _, raw := range paths {
+	for index, raw := range paths {
 		path := raw
 		if !filepath.IsAbs(path) {
 			path = filepath.Join(project, path)
@@ -95,6 +95,9 @@ func requireOriginalAuditPaths(project string, inputs []string, promptRegistry s
 			return err
 		}
 		if err := requireProjectFile(project, path); err != nil {
+			if index != 0 {
+				return fmt.Errorf("%w; pass project evidence only, installed SDLC standards are supplied by the harness", err)
+			}
 			return err
 		}
 	}

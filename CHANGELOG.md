@@ -6,6 +6,13 @@ last-updated: 2026-10-06
 
 # Changelog
 
+## v3.5.11 - 2026-10-06
+
+- Supply installed core and selected technology standards automatically for
+  managed audit gates, with gate-specific documentation and coding standards.
+- Clarify `sdlc-audit --help` and audit routing: callers pass project evidence
+  only; installed SDLC paths are not valid `--input` values.
+
 ## v3.5.10 - 2026-10-06
 
 - Bind audits to the invocation Git root or non-Git directory and refuse

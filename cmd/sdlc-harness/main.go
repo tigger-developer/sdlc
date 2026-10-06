@@ -259,6 +259,10 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 				return loadErr
 			}
 			prompt = append([]byte(base+"\nAudit gate: "+normalizedGate+"\n\nOperator-supplied audit context:\n"), prompt...)
+			inputs, loadErr = managedAuditStandards(projectRoot, normalizedGate, installedStandardsRoot(), inputs)
+			if loadErr != nil {
+				return loadErr
+			}
 		}
 		inventory, inventoryErr := inventoryProject(projectRoot)
 		if inventoryErr != nil {

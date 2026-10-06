@@ -1,6 +1,6 @@
 ---
 title: SDLC Audit Harness Guide
-version: 4
+version: 5
 last-updated: 2026-10-06
 ---
 
@@ -105,6 +105,11 @@ the same automatic audit behaviour. The old reset-session flag is replaced by re
 
 ## Evidence and instruction
 
+- For SDLC gates, supply project evidence only. The harness adds its installed
+  gate-relevant standards and the technologies selected in `.sdlc/project.yaml`
+  to the hashed manifest. Do not pass `~/.agents/sdlc` files as `--input`;
+  external caller-supplied paths are rejected. The harness also includes the
+  project profile. Supply relevant project authorities separately.
 - Repeat `--input <file>` for every exact evidence file.
 - Paths are resolved against `--project`. Codex and Claude read original absolute
   paths. The provider is launched from the project; no document copies are retained.
@@ -193,8 +198,8 @@ remediation; a cached provisional pass retains its conditions.
 The versioned SHA-256 key covers work item, gate, every supplied path and content
 hash, audit prompt registry, caller context and effective primary/fallback model
 configuration. File order and timestamps do not matter. Added, changed or omitted
-inputs invalidate it. Include all relevant SDLC standards as inputs; ambient
-instructions or independently read files are not covered by this cache.
+inputs invalidate it. Installed standards are automatically included in the
+manifest; ambient instructions or independently read files are not covered.
 
 Only validated, incident-free responses are reusable. Running attempts, timeouts,
 authentication failures and malformed responses are not cache results. Older
@@ -362,6 +367,8 @@ infrastructure failure. Known FAIL findings remain unresolved until reassessed.
 
 ## Document history
 
+Version 5 makes SDLC gate standards harness-owned evidence and limits caller
+inputs to the invocation project.
 Version 4 binds audits to the invocation project and supplies a bounded file
 inventory while excluding runtime and scratch directories. Version 3 adds
 standalone standards review and temporary project/evidence

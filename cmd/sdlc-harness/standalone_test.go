@@ -19,6 +19,13 @@ func TestMain(m *testing.M) {
 	profilePresent = func(string) (bool, error) { return true, nil }
 	enforceAuditAnchor = func(project string) (string, error) { return filepath.Abs(project) }
 	inventoryProject = func(string) (string, error) { return "\n\nInvocation project file inventory:\n- fixture\n", nil }
+	installedStandardsRoot = func() string {
+		root, err := filepath.Abs(filepath.Join("..", "..", "src"))
+		if err != nil {
+			return ""
+		}
+		return root
+	}
 	code := m.Run()
 	_ = os.RemoveAll(protected) // TestMain removes only the temp directory it created.
 	os.Exit(code)

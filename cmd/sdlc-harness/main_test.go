@@ -198,6 +198,17 @@ printf '{"type":"thread.started","thread_id":"native-session"}\n'
 		if !strings.Contains(output.String(), "VERDICT: PASS") || strings.Contains(diagnostics.String(), "SESSION_ID:") {
 			t.Fatalf("%v output = %q; diagnostics = %q", arguments, output.String(), diagnostics.String())
 		}
+		entry, found, err := harness.ReadAuditEntry(filepath.Join(project, "result.yaml"), "W004", "implementation")
+		if err != nil || !found {
+			t.Fatalf("managed audit record = %#v, %v", entry, err)
+		}
+		standards := map[string]bool{}
+		for _, file := range entry.LatestEvidence() {
+			standards[filepath.Base(file.Path)] = true
+		}
+		if !standards["MAIN.md"] || !standards["ARCHITECTURE.md"] || !standards["DOCUMENTATION.md"] {
+			t.Fatalf("managed audit omitted canonical standards: %#v", entry.LatestEvidence())
+		}
 	}
 }
 

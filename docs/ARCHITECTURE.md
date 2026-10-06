@@ -1,6 +1,6 @@
 ---
 title: SDLC v3 Architecture
-version: 7
+version: 8
 last-updated: 2026-10-06
 ---
 
@@ -46,6 +46,9 @@ both routes bind the audit to the invocation Git root or non-Git directory,
 reject evidence outside that root and in runtime or scratch directories, and
 reject system temporary directories including resolved aliases. A bounded
 inventory of eligible project paths exposes omissions without copying content.
+For managed gates, the harness adds its installed gate-relevant SDLC standards
+and profile-selected technology standards to hashed evidence. Callers provide
+only project files; external SDLC standard paths are not accepted as inputs.
 
 `~/.agents/sdlc/MAIN.md` is the only standards bootstrap. It routes an agent to
 the minimum relevant universal, domain, technology, and workflow documents.
@@ -362,6 +365,8 @@ are charged to an explicit gate.
 
 ## Document history
 
+- Version 8 (2026-10-06): Move managed audit standards into harness-owned
+  evidence, preserving project-only caller inputs.
 - Version 7 (2026-10-06): Anchor audits to invocation projects and expose
   eligible project paths through a bounded inventory.
 - Version 6 (2026-10-06): Define standalone standards review and the
