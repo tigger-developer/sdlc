@@ -79,6 +79,7 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 	model := flags.String("model", "", "model override")
 	timeout := flags.Duration("timeout", 0, "execution timeout")
 	resetSession := flags.Bool("reset", false, "operator-authorized reset of gate counters and provider context, then exit")
+	agentSpike := flags.Bool("agent-spike", false, "standalone standards review of a hands-off spike, even in an SDLC project")
 	var inputs inputList
 	flags.Var(&inputs, "input", "exact evidence file to include; repeat as needed")
 	flags.Usage = func() {
@@ -95,6 +96,9 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 	}
 	normalizedPhase := strings.ToLower(strings.TrimSpace(*phase))
 	normalizedGate := strings.ToLower(strings.TrimSpace(*gate))
+	if *agentSpike && normalizedPhase != "audit" {
+		return errors.New("--agent-spike applies only to --phase audit")
+	}
 	projectRoot, err := filepath.Abs(*project)
 	if err != nil {
 		return err
@@ -109,7 +113,8 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 	if err != nil {
 		return err
 	}
-	standalone := normalizedPhase == "audit" && !initialized
+	// A hands-off spike is deliberately reviewed outside the SDLC gate record.
+	standalone := normalizedPhase == "audit" && (!initialized || *agentSpike)
 	if standalone && action != "audit" {
 		return errors.New("standalone standards audit does not accept legacy start/resume operations")
 	}
@@ -163,7 +168,9 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 	if normalizedPhase == "audit" && !standalone && (strings.TrimSpace(*auditRecord) == "" || strings.TrimSpace(*workItem) == "") {
 		return errors.New("audit requires --audit-record and --work-item")
 	}
-	if standalone {
+	if standalone && *agentSpike {
+		fmt.Fprintln(errorOutput, "SPIKE MODE: standalone standards review inside an SDLC project; no SDLC gate or audit record applies.")
+	} else if standalone {
 		fmt.Fprintln(errorOutput, "STANDALONE MODE: reviewing code and documentation standards; no SDLC gate or audit record applies.")
 	}
 	if *auditRecord != "" && !filepath.IsAbs(*auditRecord) {

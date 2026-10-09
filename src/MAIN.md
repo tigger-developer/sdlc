@@ -25,8 +25,8 @@ report that exact path.
   paths through the operating system. Changing directory or following a symlink
   does not grant permission to write outside the original boundary.
 - Never write code without a defined specification. In normal delivery this is
-  the active `spec.org`; paired and emergency delivery use the explicit
-  alternatives defined below.
+  the active `spec.org`; paired and emergency delivery and the signed-off
+  hands-off spike brief are the explicit alternatives defined below.
 - Do not silently decide product behaviour, scope, architecture, security,
   persisted-data formats, access, or irreversible outcomes.
 - Never widen access to data or systems without explicit human instruction.
@@ -181,6 +181,10 @@ contract, or irreversible decisions.
 
 - **Paired development:** only an explicit operator selection enables the live
   collaborative route in `PAIRING.md`. Ordinary conversation does not.
+- **Hands-off spike:** only an explicit operator invocation of
+  `hands-off-spike` starts an unattended exploration. It answers a signed-off
+  question on a never-merged branch, and its code receives an independent
+  `--agent-spike` standalone review. It never delivers product behaviour.
 - **Emergency delivery:** only the exact operator token `BYPASS-GATE-7` in the
   same request authorizes and invokes `emergency-change`, which applies
   `EMERGENCY.md`. An agent must never suggest, infer, or self-authorize it.

@@ -1,7 +1,7 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 9
-last-updated: 2026-10-09
+version: 10
+last-updated: 2026-10-10
 ---
 
 # SDLC Standards: Design Learnings
@@ -1188,8 +1188,24 @@ or authenticates the provider, exercises an interactive session, or validates
 initializer behaviour. Installer output must name these local facts rather
 than collapse them into a broad `READY` claim.
 
+## Spikes reuse existing review rather than a new gate
+
+Paired development already serves as the attended spike: live direction
+replaces an advance specification. Unattended exploration needs the same
+bounded question, but its answers must arrive while nobody is watching, so
+every human decision moves into one clarifying question set and a signed-off
+brief before hands-off work begins.
+
+Exploratory code still receives independent review. Adding an SDLC gate for
+spikes would change the audit harness at its riskiest point, so the spike
+reuses the existing standalone review through one opt-in flag. The SDLC gate
+path is untouched when the flag is absent. A spike answers a question; it
+never delivers behaviour, and adoption returns to normal definition.
+
 ## Document history
 
+- Version 10 (2026-10-10): Record the hands-off spike's reuse of standalone
+  review.
 - Version 9 (2026-10-06): Keep installed audit-rule evidence under harness
   ownership so project-only input validation does not conflict with gate rules.
 - Version 8 (2026-10-06): Bind audit scope to the invocation project rather

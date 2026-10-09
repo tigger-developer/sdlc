@@ -1,10 +1,25 @@
 ---
 title: Changelog
 version: 1
-last-updated: 2026-10-09
+last-updated: 2026-10-10
 ---
 
 # Changelog
+
+## v3.6.0 - 2026-10-10
+
+- Add the operator-invoked `hands-off-spike` skill: the unattended counterpart
+  to paired development. It first clarifies the objective in one question set,
+  records a signed-off exploration brief, works hands-off on a never-merged
+  spike branch, records experiments as one-off tests, and hands back findings
+  for the operator to adopt through `define-change` or discard.
+- Add `sdlc-harness --agent-spike`, which selects the existing standalone
+  standards review inside an SDLC project so spike code is always
+  independently reviewed without an SDLC gate, budget or `audits.yaml` record.
+  The flag accepts only the audit phase and standalone options; SDLC gate
+  behaviour is unchanged when it is absent.
+- Extend `STANDALONE-AUDIT.md`, the harness guide and help, and MAIN's variant
+  workflows to the spike route.
 
 ## v3.5.14 - 2026-10-09
 

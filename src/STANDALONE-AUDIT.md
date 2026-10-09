@@ -1,12 +1,16 @@
 ---
 title: Standalone Standards Audit
-version: 3
-last-updated: 2026-10-06
+version: 4
+last-updated: 2026-10-10
 ---
 
 # Standalone standards audit
 
-Use this route only when the selected project has no `.sdlc/project.yaml`.
+Use this route only when the selected project has no `.sdlc/project.yaml`, or
+when the operator's `hands-off-spike` workflow selects `--agent-spike` in an
+SDLC project. A spike review is deliberately outside SDLC delivery: the
+presence of an SDLC profile does not make its workflow artefacts required, and
+exploratory code receives the same code and documentation scrutiny.
 The audit reviews the supplied original project files against `CODING.md`,
 `DOCUMENTATION.md`, other applicable installed standards, and the project's
 existing authorities. The full installed Markdown inventory is available, but
@@ -44,6 +48,7 @@ This result is review evidence, not an SDLC gate verdict or operator approval.
 
 ## Document history
 
+- Version 4 (2026-10-10): Apply the route to `--agent-spike` reviews of hands-off spikes in SDLC projects.
 - Version 3 (2026-10-06): Distinguish full standards availability from standalone applicability.
 - Version 2 (2026-10-06): Distinguish project inventory from reviewed contents.
 - Version 1 (2026-10-06): Define standards-only review outside SDLC delivery.

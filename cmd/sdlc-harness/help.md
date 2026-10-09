@@ -14,6 +14,7 @@ Audit options:
   --input FILE         Project evidence file; repeat for every relevant input.
   --project DIR        Audit root (default: invocation Git root or current directory).
   --reset              Operator-authorized reset of gate counters and context; then exit.
+  --agent-spike        Hands-off spike: standalone review even in an SDLC project.
   -h, --help           Show this reference.
   --version            Show installed version.
 
@@ -22,6 +23,9 @@ When the selected project has no .sdlc/project.yaml, omit --gate,
 the supplied original project files against CODING.md, DOCUMENTATION.md and
 STANDALONE-AUDIT.md, with other applicable installed standards available.
 This review has no SDLC gate or persistent audit record.
+In an SDLC project, --agent-spike selects the same standalone review for a
+hands-off spike and warns SPIKE MODE. It accepts the same options and rejects
+--gate, --audit-record, --work-item, --reset and any phase other than audit.
 Audits are anchored to the invocation project. --project cannot select another
 root; --input accepts only files inside that project tree. Do not pass
 ~/.agents/sdlc/MAIN.md, ARCHITECTURE.md, DOCUMENTATION.md or other installed

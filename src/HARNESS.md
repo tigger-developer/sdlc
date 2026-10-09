@@ -1,7 +1,7 @@
 ---
 title: SDLC Audit Harness Guide
-version: 7
-last-updated: 2026-10-06
+version: 8
+last-updated: 2026-10-10
 ---
 
 # SDLC audit harness guide
@@ -30,6 +30,13 @@ and makes the full installed Markdown inventory available. It asks for an
 apply ticket readiness, gate budgets, or closure rules. Supply relevant
 project authorities as additional inputs when needed; installed technology
 standards are harness-owned.
+
+`--agent-spike` selects the same standalone review in a project that has
+`.sdlc/project.yaml`. The `hands-off-spike` skill uses it so exploratory code
+is always independently reviewed without entering an SDLC gate, budget, or
+`audits.yaml` record. The harness prints a `SPIKE MODE` warning instead of
+`STANDALONE MODE`. The flag accepts only the audit phase and the standalone
+options above; every path, anchor and verdict check is unchanged.
 
 For every audit, the harness derives the project root from its invocation
 directory: the enclosing Git root when present, otherwise that directory.
@@ -373,6 +380,8 @@ infrastructure failure. Known FAIL findings remain unresolved until reassessed.
 
 ## Document history
 
+Version 8 adds `--agent-spike` standalone review for hands-off spikes in SDLC
+projects.
 Version 7 adds bounded on-demand standards retrieval for tools-disabled auditors.
 Version 6 exposes the full installed Markdown inventory while distinguishing
 mandatory core standards from additional applicable documents.
