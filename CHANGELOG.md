@@ -6,6 +6,11 @@ last-updated: 2026-10-10
 
 # Changelog
 
+## v3.6.1 - 2026-10-10
+
+- List the hands-off spike route in the README delivery modes and the
+  Quickstart variant workflows.
+
 ## v3.6.0 - 2026-10-10
 
 - Add the operator-invoked `hands-off-spike` skill: the unattended counterpart

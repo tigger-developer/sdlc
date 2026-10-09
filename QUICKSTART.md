@@ -1,7 +1,7 @@
 ---
 title: SDLC v3 Quickstart
-version: 3
-last-updated: 2026-10-05
+version: 4
+last-updated: 2026-10-10
 ---
 
 # SDLC v3 Quickstart
@@ -245,6 +245,17 @@ For live paired implementation:
 ```text
 $pair-change
 ```
+
+For an unattended exploratory spike:
+
+```text
+$hands-off-spike
+```
+
+The skill first asks about anything unclear in the objective, records a brief
+for your sign-off, then works hands-off on a never-merged `spike/` branch. Its
+code receives an independent `--agent-spike` standalone review, and the
+findings return to you to adopt through `$define-change` or discard.
 
 For an emergency, include the exact token in the same instruction:
 

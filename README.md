@@ -1,7 +1,7 @@
 ---
 title: Lean SDLC for Coding Agents
-version: 6
-last-updated: 2026-10-06
+version: 7
+last-updated: 2026-10-10
 ---
 
 # Lean SDLC for Coding Agents
@@ -89,13 +89,17 @@ The process does not silently turn unfinished work into approved v3 changes.
   it. This is the normal route for work that can be specified before coding.
 - **Paired:** `$pair-change` supports live human review and short iterations,
   such as visual or editorial changes.
+- **Hands-off spike:** `$hands-off-spike` answers a signed-off exploratory
+  question unattended on a never-merged branch. Its code always receives an
+  independent standalone review, and adoption returns to the standard route.
 - **Emergency:** the exact `BYPASS-GATE-7` token selects the bounded emergency
   patch process. It records the decision and verification afterwards without
   suspending safety or evidence requirements.
 
 The [standard workflow](src/MAIN.md#normal-workflow),
-[paired route](src/PAIRING.md), and [emergency route](src/EMERGENCY.md)
-set out their authority and validation rules.
+[paired route](src/PAIRING.md), [hands-off spike](skills/hands-off-spike/SKILL.md),
+and [emergency route](src/EMERGENCY.md) set out their authority and validation
+rules.
 
 ### Define the change
 
@@ -144,6 +148,7 @@ standards, skills, and command help.
 
 ## Document history
 
+- Version 7 (2026-10-10): Listed the hands-off spike route.
 - Version 6 (2026-10-06): Document invocation-project anchoring and audit
   file inventory.
 - Version 5 (2026-10-06): Introduced standalone code and documentation
