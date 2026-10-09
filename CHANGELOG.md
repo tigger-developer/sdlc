@@ -1,10 +1,14 @@
 ---
 title: Changelog
 version: 1
-last-updated: 2026-10-06
+last-updated: 2026-10-09
 ---
 
 # Changelog
+
+## v3.5.14 - 2026-10-09
+
+- Require every test that needs `sudo`, including indirect invocations, to be an operator-executed user test and exclude it from automated regression packs and persistent automation.
 
 ## v3.5.13 - 2026-10-06
 

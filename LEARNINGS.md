@@ -1,7 +1,7 @@
 ---
 title: "SDLC Standards: Design Learnings"
 version: 9
-last-updated: 2026-10-06
+last-updated: 2026-10-09
 ---
 
 # SDLC Standards: Design Learnings
@@ -38,6 +38,14 @@ specifications, designs, and architecture in context, placing feedback beside
 the material it addressed so an agent could incorporate it into revisions.
 That review use reached beyond this SDLC, and the viewer's growing complexity
 warranted the separate [HTML-Preview project](https://github.com/tigger-developer/HTML-Preview).
+
+## Privileged tests require operator execution
+
+A test's need for `sudo` determines its classification even when privilege
+elevation occurs inside a helper or requires no password. Keep that evidence
+as an operator-executed user test rather than embedding privileged execution
+in the automated regression pack. The current policy lives in
+[`src/TESTING.md`](src/TESTING.md#choose-durable-evidence).
 
 ## Avoid field-separator mutation before managing its lifetime
 

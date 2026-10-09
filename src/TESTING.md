@@ -1,7 +1,7 @@
 ---
 title: Testing Standards
 version: 1
-last-updated: 2026-09-23
+last-updated: 2026-10-09
 ---
 
 # Testing Standards
@@ -121,6 +121,13 @@ Use three distinct test categories. A change may use more than one:
   environment, or documentation review that has no lasting regression value.
 - **User tests:** human verification of outcomes requiring visual, editorial,
   ergonomic, operational, or other human judgement.
+
+Any test that requires `sudo` must be classified as a user test (UT) and
+executed by the operator. This includes `sudo` invoked indirectly by setup,
+fixtures, helper scripts, dependencies, or cleanup. Such tests must never be
+included in the automated regression pack or its persistent test targets,
+CI, or scheduled automation. Passwordless `sudo` and cached credentials do
+not change this classification.
 
 Do not create permanent test code solely to satisfy a test-count rule. Record
 one-off or user-test evidence durably, then remove temporary files from the
