@@ -48,7 +48,7 @@ func TestAuthenticationFallbackIsImmediateAndBounded(t *testing.T) {
 				}
 			}
 			args := []string{"--gate", "definition", "--project", root, "--global-config", config, "--audit-prompts", registry, "--audit-record", filepath.Join(root, "audits.yaml"), "--work-item", "W019", "--input", registry}
-			err := run(args, strings.NewReader("audit"), &bytes.Buffer{}, &bytes.Buffer{})
+			err := runFixture(args, strings.NewReader("audit"), &bytes.Buffer{}, &bytes.Buffer{})
 			if (err != nil) != (outcome != "success") {
 				t.Fatalf("result=%v", err)
 			}
@@ -60,7 +60,7 @@ func TestAuthenticationFallbackIsImmediateAndBounded(t *testing.T) {
 			if err != nil || string(calls) != want {
 				t.Fatalf("calls=%q %v", calls, err)
 			}
-			_ = run(args, strings.NewReader("audit"), &bytes.Buffer{}, &bytes.Buffer{})
+			_ = runFixture(args, strings.NewReader("audit"), &bytes.Buffer{}, &bytes.Buffer{})
 			after, err := os.ReadFile(filepath.Join(root, "calls"))
 			if err != nil || !bytes.Equal(calls, after) {
 				t.Fatal("lockout/cache called provider")

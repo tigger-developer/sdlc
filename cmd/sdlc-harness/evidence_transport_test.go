@@ -21,7 +21,7 @@ func TestAuditEvidenceTransportMatchesProviderFileAccess(t *testing.T) {
 	}
 	for _, name := range []string{"codex", "claude", "copilot", "hermes"} {
 		t.Run(name, func(t *testing.T) {
-			runner := recoveryRun{request: harness.Request{Prompt: "Audit this project."}, evidence: evidence}
+			runner := recoveryRun{request: harness.Request{Prompt: "Audit this project.", Evidence: evidence.Files}, evidence: evidence}
 			request, err := runner.prepare(harness.AuditEntry{}, harness.Config{Harness: name}, false, "")
 			if err != nil {
 				t.Fatal(err)

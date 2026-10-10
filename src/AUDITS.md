@@ -1,7 +1,7 @@
 ---
 title: Audit and Gate Standards
-version: 5
-last-updated: 2026-10-06
+version: 6
+last-updated: 2026-10-10
 ---
 
 # Audit and Gate Standards
@@ -25,7 +25,11 @@ round. The harness checks all supplied file paths/hashes, work item, gate,
 prompts, caller context and primary/fallback model configuration. The harness
 includes the full installed SDLC Markdown inventory in its hashed evidence.
 Gate-specific core standards and project-selected technologies are mandatory;
-the auditor determines which further listed standards apply. Callers supply project files only;
+technologies identified from supplied source files supplement the profile.
+Markdown and Org evidence add their documentation and format standards.
+The harness supplies their complete verified contents before review. The auditor
+must read every mandatory standard before returning any verdict and determines
+which further listed standards apply. Callers supply project files only;
 independently read files are not covered.
 Cache hits retain all verdict conditions. Incidents are not verdicts, and old
 records without a request key are not cache entries. Changing or omitting an
@@ -172,15 +176,22 @@ reminder to stderr. While waiting, it emits anonymous start and 30-second livene
 notices to stderr: `Audit in progress.` A heartbeat is not provider progress, a verdict, or
 evidence that the audit has completed.
 
-Codex and Claude receive original absolute evidence paths, not document copies.
-Hermes and Copilot run without file tools: the harness supplies verified UTF-8
-project evidence initially and serves requested installed standards in their
-retained session. It stores only the paths/hashes, never document copies.
+All four providers run with native file tools disabled. The harness supplies
+hash-verified UTF-8 project evidence and mandatory standards over stdin.
+Additional installed references may be requested once through the harness.
+Caller-selected standards and audit prompt overrides are rejected. Unknown,
+duplicate and previously supplied standard requests are rejected before another
+document delivery. It stores paths and hashes, never document copies.
 Supply
 the complete input list on each invocation; the per-attempt manifest in
 `audits.yaml` identifies added, changed, unchanged, and omitted inputs on resume.
-Reuse unchanged evidence only while its meaning remains understood; reread it
-after context loss or when an affected dependency requires it. Omission never
+Unchanged standards are supplied once per retained context; added or changed
+contents are supplied on resume. Successful transport is recorded separately
+from the verdict as `standards_delivered`. Unconfirmed delivery or context loss
+requires a replacement context with a fresh package; never request unchanged
+standards again in the retained context. Old cached verdicts lacking required
+delivery evidence cannot be reused. Transport proves delivery, not comprehension.
+Omission never
 resolves a finding. Attempts and native IDs are checkpointed before a verdict,
 so a timeout retains its evidence baseline. The harness verifies supplied files before and after the
 provider runs and rejects changed evidence. Hashes detect mutation; read-only
@@ -265,6 +276,9 @@ Append " AUDIT" (with a leading space) to the canary.
 
 ## Document history
 
+Version 6 deterministically supplies mandatory standards to every provider,
+separates standalone and agent-spike routing, and binds delivery evidence to
+the retained context and cache contract.
 Version 5 serves installed standards on demand to tools-disabled auditors rather
 than preloading their complete text.
 Version 4 makes the full installed Markdown inventory available to the auditor,

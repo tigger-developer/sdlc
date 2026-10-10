@@ -1,6 +1,6 @@
 ---
 title: Lean SDLC for Coding Agents
-version: 7
+version: 8
 last-updated: 2026-10-10
 ---
 
@@ -122,6 +122,11 @@ records its verdict against that revision, and manages bounded retries and
 recovery. It also performs local readiness checks before spending a review
 round. An audit verdict is evidence for human judgement, not human approval.
 The [audit harness guide](src/HARNESS.md) covers commands and diagnostics.
+The harness supplies mandatory standards as verified text to every provider:
+SDLC gates receive gate and technology rules, non-SDLC reviews receive the full
+library, and agent-spike reviews receive all coding and TDD/testing standards
+without workflow, gate or documentation requirements. Native file tools are
+disabled; unchanged standards are supplied once per retained context.
 For a project without SDLC initialization, `sdlc-audit --input FILE` instead
 reviews the supplied original project files against the installed coding and
 documentation standards. It warns that the review is standalone and does not

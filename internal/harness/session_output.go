@@ -103,6 +103,12 @@ func (output *sessionOutput) finish(failed bool) {
 // report forwards event metadata, never assistant prose, tool payloads or prompts.
 // Error messages are the only provider text exposed by this stdout adapter.
 func (output *sessionOutput) report(line []byte) {
+	if output.request.ControlledReads {
+		if kind := controlledEventIncident(output.request.Harness, line); kind != "" {
+			output.err = newIncident(kind, output.request.Harness, output.identity, errors.New("auditor attempted a native tool or lost its supplied standards context"))
+			return
+		}
+	}
 	if output.progress == nil || len(bytes.TrimSpace(line)) == 0 {
 		return
 	}
@@ -166,6 +172,43 @@ func (output *sessionOutput) report(line []byte) {
 	if output.notices == maxProgressNotices {
 		output.diagnostic("progress", "event display limit reached; heartbeats and errors continue")
 	}
+}
+
+// A provider advertising disabled tools must not turn an unexpected tool event
+// into an accepted audit. Only native event structure is examined, not prose.
+func controlledEventIncident(provider string, line []byte) string {
+	var event struct {
+		Type    string `json:"type"`
+		Subtype string `json:"subtype"`
+		Item    struct {
+			Type string `json:"type"`
+		} `json:"item"`
+		Message json.RawMessage `json:"message"`
+	}
+	if json.Unmarshal(line, &event) != nil {
+		return ""
+	}
+	if event.Subtype == "compact_boundary" || event.Type == "thread.compacted" || event.Item.Type == "context_compaction" {
+		return "context-lost"
+	}
+	if strings.HasPrefix(event.Type, "tool.") {
+		return "unexpected-tool-use"
+	}
+	var message struct {
+		Content []struct {
+			Type string `json:"type"`
+		} `json:"content"`
+	}
+	_ = json.Unmarshal(event.Message, &message)
+	for _, item := range message.Content {
+		if item.Type == "tool_use" {
+			return "unexpected-tool-use"
+		}
+	}
+	if provider == "codex" && event.Item.Type != "" && event.Item.Type != "agent_message" && event.Item.Type != "reasoning" && event.Item.Type != "plan" {
+		return "unexpected-tool-use"
+	}
+	return ""
 }
 
 func (output *sessionOutput) diagnostic(kind, message string) {

@@ -70,14 +70,17 @@ criteria, or boundaries require renewed sign-off.
   revision, observation, and the criterion it informs. Follow TESTING.md for
   bounded live checks. A check requiring `sudo` or human judgement is a UT:
   leave it AMBER for the operator.
-- Spike code meets CODING.md and the selected technology standards. Write an
+- Spike code meets all applicable coding and TDD/testing standards, without
+  entering full SDLC delivery, gates or documentation requirements. Write an
   automated test first wherever it is the evidence for a criterion.
 - Stay inside the question. Record new questions as findings, not new work.
 
 ## 4. Audit the spike code
 
-Code produced by a spike is always independently reviewed. Before handback,
-invoke the resolved absolute `~/.agents/sdlc/bin/sdlc-harness` path with
+Code produced by a spike is always independently reviewed. The harness's
+`SPIKE-AUDIT.md` profile supplies all coding, security, technology and testing
+standards; it does not require SDLC workflow or documentation artefacts.
+Before handback, invoke the resolved absolute `~/.agents/sdlc/bin/sdlc-harness` path with
 `--agent-spike`, every spike code and test file, and the brief as `--input`.
 Supply `Workflow: hands-off spike` and the brief's question on stdin. Do not
 pass `--gate`, `--audit-record`, `--work-item`, or installed SDLC paths.

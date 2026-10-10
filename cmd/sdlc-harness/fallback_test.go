@@ -95,14 +95,14 @@ printf 'GATE: delivery-code\nREVISION: fixture\nVERDICT: PASS\n'
 					t.Fatal(err)
 				}
 				reset := []string{"resume", "--reset", "--project", root, "--gate", "delivery-code", "--audit-record", record, "--work-item", "W015-fallback"}
-				if err := run(reset, strings.NewReader(""), &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+				if err := runFixture(reset, strings.NewReader(""), &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
 					t.Fatal(err)
 				}
 				args[0] = "resume"
 			}
 			var output, diagnostics bytes.Buffer
 			started := time.Now()
-			err := run(args, strings.NewReader("audit"), &output, &diagnostics)
+			err := runFixture(args, strings.NewReader("audit"), &output, &diagnostics)
 			blocked := mode == "fallback-fails" || mode == "evidence-changed"
 			if (err != nil) != blocked {
 				t.Fatalf("error = %v\n%s", err, diagnostics.String())
@@ -143,7 +143,11 @@ printf 'GATE: delivery-code\nREVISION: fixture\nVERDICT: PASS\n'
 			if !valid && entry.History[0].Incident == "" {
 				t.Fatal("lost primary incident")
 			}
-			if strings.Contains(wantCalls, "fallback") && (entry.Harness != "hermes" || entry.Provider != "nous" || entry.SessionID != "fallback-session" || len(entry.Sessions) != map[bool]int{true: 2, false: 1}[mode == "reset-limit"]) {
+			wantSessions := 1
+			if mode == "reset-limit" || mode == "fallback-fails" || mode == "empty" {
+				wantSessions++
+			}
+			if strings.Contains(wantCalls, "fallback") && (entry.Harness != "hermes" || entry.Provider != "nous" || entry.SessionID != "fallback-session" || len(entry.Sessions) != wantSessions) {
 				t.Fatalf("fallback provenance = %#v", entry)
 			}
 			if !valid && !blocked && entry.Verdict != "PASS" {
@@ -159,7 +163,7 @@ printf 'GATE: delivery-code\nREVISION: fixture\nVERDICT: PASS\n'
 					t.Fatal(err)
 				}
 				args[0] = "resume"
-				if err := run(args, strings.NewReader("audit"), &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+				if err := runFixture(args, strings.NewReader("audit"), &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
 					t.Fatal(err)
 				}
 				calls, _ = os.ReadFile(filepath.Join(root, "calls"))
@@ -171,7 +175,7 @@ printf 'GATE: delivery-code\nREVISION: fixture\nVERDICT: PASS\n'
 				writeReadyDocuments(t, other)
 				otherArgs := []string{"start", "--project", other, "--global-config", config, "--audit-prompts", registry, "--gate", "delivery-code", "--audit-record", filepath.Join(other, "audits.yaml"), "--work-item", "W017-cooldown"}
 				var nextDiagnostics bytes.Buffer
-				if err := run(otherArgs, strings.NewReader("audit"), &bytes.Buffer{}, &nextDiagnostics); err != nil {
+				if err := runFixture(otherArgs, strings.NewReader("audit"), &bytes.Buffer{}, &nextDiagnostics); err != nil {
 					t.Fatal(err)
 				}
 				calls, readErr = os.ReadFile(filepath.Join(root, "calls"))

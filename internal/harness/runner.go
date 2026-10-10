@@ -30,10 +30,18 @@ type Request struct {
 	ResultFile string
 	SessionID  string
 	Evidence   []EvidenceFile
+	// Standards identifies verified contents already delivered or supplied in this turn.
+	Standards         []EvidenceFile
+	SuppliedStandards []EvidenceFile
+	SuppliedEvidence  []EvidenceFile
+	DeniedReadRoot    string
+	ControlledReads   bool
 	// OnSession checkpoints a native identity as soon as the adapter observes it.
 	OnSession func(string) error
 	// OnResponse retains unvalidated provider output for private diagnostics.
 	OnResponse func([]byte) error
+	// OnDelivered acknowledges successful transport before verdict parsing.
+	OnDelivered func(string) error
 }
 
 // Invocation is a fixed executable invocation. Args are never shell-evaluated.
@@ -163,6 +171,9 @@ func Execute(ctx context.Context, request Request, resume bool, evidence *Eviden
 	if recovery := providerFailure(stdout.failureText, request, resume); recovery != "" {
 		return Result{}, newIncident(recovery, request.Harness, stdout.identity, errors.New("provider rejected the invocation; see stderr"))
 	}
+	if stdout.failureText != "" {
+		return Result{}, newIncident("provider-rejected", request.Harness, stdout.identity, errors.New("provider returned an explicit error; see stderr"))
+	}
 	if evidence != nil {
 		if err := evidence.Verify(); err != nil {
 			return Result{}, err
@@ -204,6 +215,11 @@ func Execute(ctx context.Context, request Request, resume bool, evidence *Eviden
 	}
 	if resume && result.SessionID != request.SessionID {
 		return Result{}, newIncident("identity-mismatch", request.Harness, request.SessionID, errors.New("provider returned a different session"))
+	}
+	if request.OnDelivered != nil {
+		if err := request.OnDelivered(result.SessionID); err != nil {
+			return Result{}, err
+		}
 	}
 	return result, nil
 }
@@ -276,15 +292,25 @@ func BuildStart(request Request) (Invocation, error) {
 	switch request.Harness {
 	case "codex":
 		invocation.Args = []string{"exec", "-m", request.Model, "-s", "read-only", "-C", request.Directory, "--skip-git-repo-check", "--json", "-o", request.ResultFile, "-"}
+		if request.ControlledReads {
+			invocation.Args = append(invocation.Args, controlledCodexOptions()...)
+		}
 		invocation.Stdin = request.Prompt
 	case "claude":
-		invocation.Args = []string{"-p", "--output-format", "stream-json", "--verbose", "--model", request.Model, "--session-id", request.SessionID, "--tools", "Read", "--permission-mode", "plan"}
-		settings, err := claudeEvidenceSettings(request.Evidence)
+		invocation.Args = []string{"-p", "--output-format", "stream-json", "--verbose", "--model", request.Model, "--session-id", request.SessionID, "--tools", claudeTools(request), "--permission-mode", "plan"}
+		if request.ControlledReads {
+			invocation.Args = append(invocation.Args, "--safe-mode", "--strict-mcp-config")
+		}
+		settings, err := claudeRequestSettings(request)
 		if err != nil {
 			return Invocation{}, err
 		}
 		invocation.Args = append(invocation.Args, settings...)
-		invocation.Args = append(invocation.Args, request.Prompt)
+		if len(request.Standards) != 0 {
+			invocation.Stdin = request.Prompt
+		} else {
+			invocation.Args = append(invocation.Args, request.Prompt)
+		}
 	case "copilot":
 		invocation.Args = []string{"-s", "--output-format", "json", "--model", request.Model, "--name", request.SessionID, "--available-tools="}
 		invocation.Stdin = request.Prompt
@@ -305,15 +331,25 @@ func BuildResume(request Request) (Invocation, error) {
 	switch request.Harness {
 	case "codex":
 		invocation.Args = []string{"exec", "resume", "-m", request.Model, "--skip-git-repo-check", "--json", "-o", request.ResultFile, request.SessionID, "-"}
+		if request.ControlledReads {
+			invocation.Args = append(invocation.Args, controlledCodexOptions()...)
+		}
 		invocation.Stdin = request.Prompt
 	case "claude":
-		invocation.Args = []string{"-p", "--output-format", "stream-json", "--verbose", "--model", request.Model, "--resume", request.SessionID, "--tools", "Read", "--permission-mode", "plan"}
-		settings, err := claudeEvidenceSettings(request.Evidence)
+		invocation.Args = []string{"-p", "--output-format", "stream-json", "--verbose", "--model", request.Model, "--resume", request.SessionID, "--tools", claudeTools(request), "--permission-mode", "plan"}
+		if request.ControlledReads {
+			invocation.Args = append(invocation.Args, "--safe-mode", "--strict-mcp-config")
+		}
+		settings, err := claudeRequestSettings(request)
 		if err != nil {
 			return Invocation{}, err
 		}
 		invocation.Args = append(invocation.Args, settings...)
-		invocation.Args = append(invocation.Args, request.Prompt)
+		if len(request.Standards) != 0 {
+			invocation.Stdin = request.Prompt
+		} else {
+			invocation.Args = append(invocation.Args, request.Prompt)
+		}
 	case "copilot":
 		invocation.Args = []string{"-s", "--output-format", "json", "--model", request.Model, "--resume=" + request.SessionID, "--available-tools="}
 		invocation.Stdin = request.Prompt
@@ -322,6 +358,22 @@ func BuildResume(request Request) (Invocation, error) {
 		invocation.Stdin = request.Prompt
 	}
 	return invocation, nil
+}
+
+// Invocation-local isolation removes user MCP/tool registrations, not credentials.
+// Native tools cannot reread a standard outside the harness delivery ledger.
+func controlledCodexOptions() []string {
+	return []string{"--ignore-user-config", "--disable", "shell_tool", "--disable", "unified_exec",
+		"--disable", "apps", "--disable", "plugins", "--disable", "multi_agent", "--disable", "view_image",
+		"--disable", "browser_use", "--disable", "computer_use", "--disable", "image_generation", "--disable", "memories",
+		"--disable", "skill_search", "--disable", "goals", "--disable", "sleep_tool", "-c", "web_search=\"disabled\""}
+}
+
+func claudeTools(request Request) string {
+	if request.ControlledReads {
+		return ""
+	}
+	return "Read"
 }
 
 func validateRequest(request Request, resume bool) error {

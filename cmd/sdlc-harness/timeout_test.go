@@ -58,7 +58,7 @@ sleep 10
 	source := filepath.Join(root, "spec.org")
 	for path, value := range map[string]string{
 		config:   "version: 3\ndelivery:\n  audit:\n    harness: codex\n    model: fixture\n    max_rounds: 2\n    timeout: 1s\n",
-		registry: "version: 1\ntimeout_resume_instructions: CONTINUE_INTERRUPTED_FIXTURE\ntimeout_message: RETRY_SAME_SESSION_FIXTURE\ntimeout_blocked_message: STOP_FIXTURE\ngates:\n  delivery-code:\n    prompt: audit\n",
+		registry: "version: 1\nsession_recovery_instructions: Supply full replacement context.\ntimeout_resume_instructions: CONTINUE_INTERRUPTED_FIXTURE\ntimeout_message: RETRY_SAME_SESSION_FIXTURE\ntimeout_blocked_message: STOP_FIXTURE\ngates:\n  delivery-code:\n    prompt: audit\n",
 		source:   "unchanged requirement",
 	} {
 		if err := os.WriteFile(path, []byte(value), 0o600); err != nil {
@@ -70,7 +70,7 @@ sleep 10
 	args := []string{"--project", root, "--global-config", config, "--audit-prompts", registry, "--gate", "delivery-code", "--audit-record", record, "--work-item", "W006-recovery", "--input", source}
 
 	var output, diagnostics bytes.Buffer
-	err := run(args, strings.NewReader("review"), &output, &diagnostics)
+	err := runFixture(args, strings.NewReader("review"), &output, &diagnostics)
 	var incident *harness.Incident
 	wantAttempts, wantVerdicts := 3, 0
 	if recovery == "success" {
@@ -85,7 +85,7 @@ sleep 10
 	if err != nil || !found || len(entry.History) != wantAttempts || entry.RoundsUsed() != wantVerdicts || entry.History[0].Incident != "timeout" || entry.History[0].Verdict != "" {
 		t.Fatalf("timeout accounting = %#v (%v)", entry, err)
 	}
-	if len(entry.LatestEvidence()) != 2 {
+	if len(entry.LatestEvidence()) < 3 {
 		t.Fatal("lost evidence")
 	}
 	if recovery == "identity-missing" && entry.SessionID != "" {
@@ -93,8 +93,8 @@ sleep 10
 	}
 	if recovery == "success" {
 		prompt, err := os.ReadFile(filepath.Join(root, "prompt"))
-		if err != nil || !bytes.Contains(prompt, []byte("CONTINUE_INTERRUPTED_FIXTURE")) || !bytes.Contains(prompt, []byte(`"change": "unchanged"`)) {
-			t.Fatalf("resume prompt = %s (%v)", prompt, err)
+		if err != nil || !bytes.Contains(prompt, []byte(`"change": "added"`)) || len(entry.Standards) == 0 || len(entry.Sessions) != 1 {
+			t.Fatalf("unconfirmed standards must use a fully supplied replacement context (%v)", err)
 		}
 	} else if output.Len() != 0 {
 		t.Fatal("incident emitted verdict")
@@ -103,7 +103,7 @@ sleep 10
 	if err != nil {
 		t.Fatal(err)
 	}
-	_ = run(args, strings.NewReader("review"), &bytes.Buffer{}, &bytes.Buffer{})
+	_ = runFixture(args, strings.NewReader("review"), &bytes.Buffer{}, &bytes.Buffer{})
 	after, err := os.ReadFile(filepath.Join(root, "calls"))
 	if err != nil || !bytes.Equal(before, after) {
 		t.Fatal("cache or lockout relaunched provider")

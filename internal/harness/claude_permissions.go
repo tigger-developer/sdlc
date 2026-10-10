@@ -10,8 +10,15 @@ import (
 	"unicode"
 )
 
-func claudeEvidenceSettings(files []EvidenceFile) ([]string, error) {
-	if len(files) == 0 {
+func claudeRequestSettings(request Request) ([]string, error) {
+	if request.ControlledReads {
+		return claudeAuditSettings(nil, request.DeniedReadRoot)
+	}
+	return claudeAuditSettings(request.Evidence, request.DeniedReadRoot)
+}
+
+func claudeAuditSettings(files []EvidenceFile, deniedRoot string) ([]string, error) {
+	if len(files) == 0 && deniedRoot == "" {
 		return nil, nil
 	}
 	var rules []string
@@ -39,7 +46,18 @@ func claudeEvidenceSettings(files []EvidenceFile) ([]string, error) {
 			rules = append(rules, "Read(/"+literal+")")
 		}
 	}
-	settings, err := json.Marshal(map[string]map[string][]string{"permissions": {"allow": rules}})
+	permissions := map[string][]string{"allow": rules}
+	if deniedRoot != "" {
+		canonical, err := filepath.EvalSymlinks(deniedRoot)
+		if err != nil {
+			return nil, fmt.Errorf("resolving supplied standards root: %w", err)
+		}
+		for _, root := range []string{deniedRoot, canonical} {
+			literal := strings.NewReplacer("\\", "\\\\", "*", "\\*", "?", "\\?", "[", "\\[", "]", "\\]", "{", "\\{", "}", "\\}").Replace(root)
+			permissions["deny"] = append(permissions["deny"], "Read(/"+literal+"/**)")
+		}
+	}
+	settings, err := json.Marshal(map[string]map[string][]string{"permissions": permissions})
 	if err != nil {
 		return nil, fmt.Errorf("encoding Claude evidence permissions: %w", err)
 	}

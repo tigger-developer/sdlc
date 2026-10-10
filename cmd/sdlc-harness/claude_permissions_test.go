@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
-	"reflect"
 	"strings"
 	"testing"
 
@@ -44,17 +43,9 @@ printf '%s\n' '{"result":"GATE: definition\nREVISION: fixture\nVERDICT: PASS\n"}
 	}
 	record := filepath.Join(root, "audits.yaml")
 	args := []string{"--phase", "audit", "--gate", "definition", "--harness", "claude", "--model", "fixture", "--project", root, "--global-config", filepath.Join(root, "absent.yaml"), "--audit-prompts", registry, "--audit-record", record, "--work-item", "W011-evidence", "--input", external}
-	canonical, err := filepath.EvalSymlinks(external)
-	if err != nil {
-		t.Fatal(err)
-	}
-	want := []string{"Read(/" + external + ")"}
-	if canonical != external {
-		want = append(want, "Read(/"+canonical+")")
-	}
 	var firstID string
 	for _, action := range []string{"start", "resume"} {
-		if err := run(append([]string{action}, args...), strings.NewReader("review"), &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+		if err := runFixture(append([]string{action}, args...), strings.NewReader("review"), &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
 			t.Fatal(err)
 		}
 		data, err := os.ReadFile(probe)
@@ -65,8 +56,8 @@ printf '%s\n' '{"result":"GATE: definition\nREVISION: fixture\nVERDICT: PASS\n"}
 		if err := json.Unmarshal(data, &settings); err != nil {
 			t.Fatal(err)
 		}
-		if !reflect.DeepEqual(settings["permissions"]["allow"], want) {
-			t.Fatalf("grants = %s, want %v", data, want)
+		if len(settings["permissions"]["allow"]) != 0 || len(settings["permissions"]["deny"]) == 0 {
+			t.Fatalf("controlled audit must not grant native file reads: %s", data)
 		}
 		entry, found, err := harness.ReadAuditEntry(record, "W011-evidence", "definition")
 		if err != nil || !found {

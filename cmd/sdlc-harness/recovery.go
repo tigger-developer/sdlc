@@ -16,24 +16,30 @@ import (
 )
 
 type recoveryRun struct {
-	config           harness.Config
-	request          harness.Request
-	evidence         harness.Evidence
-	registry         auditPromptDocument
-	path, work, gate string
-	cacheKey         string
-	readinessCheck   string
-	standardsRoot    string
-	audit            bool
-	diagnostics      io.Writer
-	diagnosticPath   string
-	cooldowns        harness.CooldownStore
+	config            harness.Config
+	request           harness.Request
+	evidence          harness.Evidence
+	registry          auditPromptDocument
+	path, work, gate  string
+	cacheKey          string
+	readinessCheck    string
+	standardsRoot     string
+	requiredStandards []string
+	audit             bool
+	diagnostics       io.Writer
+	diagnosticPath    string
+	cooldowns         harness.CooldownStore
 }
+
+const maximumAuditPromptBytes = 8 * 1024 * 1024
 
 func (r recoveryRun) execute(entry harness.AuditEntry, resume bool) (harness.Result, error) {
 	entry.ReadinessCheck = r.readinessCheck
 	selected := r.config
 	reason := ""
+	if resume && r.standardsRoot != "" && entry.StandardsContract != 1 {
+		reason = "standards-delivery-unconfirmed"
+	}
 	if resume && r.path != "" {
 		// Keep an already selected fallback while both its tuple and the primary are unchanged.
 		if entry.Configured != nil && *entry.Configured == r.config.Agent() && r.config.Fallback != nil && owns(entry, *r.config.Fallback) {
@@ -69,6 +75,9 @@ func (r recoveryRun) execute(entry harness.AuditEntry, resume bool) (harness.Res
 	authenticationFallback := false
 	// At most one configured fallback; unusable launches share the internal bound.
 	for {
+		if reason == "" && resume && r.standardsRoot != "" && entry.StandardsContract != 1 {
+			reason = "standards-delivery-unconfirmed"
+		}
 		if r.audit && (entry.FailureBlocked() || (!authenticationFallback && entry.ConsecutiveFailures() >= r.config.MaxFailures)) {
 			return harness.Result{}, auditUnavailable()
 		}
@@ -135,6 +144,8 @@ func (r recoveryRun) execute(entry harness.AuditEntry, resume bool) (harness.Res
 			return harness.Result{}, r.block(entry)
 		}
 		switch {
+		case r.audit && incident.Kind == "context-lost":
+			reason = "context-lost"
 		case r.audit && strings.HasPrefix(incident.Kind, "response-") && entry.SessionID != "" && !corrected[selected.Agent()]:
 			corrected[selected.Agent()] = true
 			resume, reason = true, ""
@@ -171,6 +182,9 @@ func (r recoveryRun) block(entry harness.AuditEntry) error {
 }
 
 func fallbackEligible(incident *harness.Incident, audit bool) bool {
+	if incident.Kind == "context-lost" || incident.Kind == "unexpected-tool-use" {
+		return false
+	}
 	if incident.Kind == "authentication-failed" {
 		return true
 	}
@@ -190,6 +204,7 @@ func retireSession(entry *harness.AuditEntry, reason string) {
 	}
 	entry.Sessions = append(entry.Sessions, harness.RetiredSession{SessionID: entry.SessionID, AgentConfig: harness.AgentConfig{Harness: entry.Harness, Provider: entry.Provider, Model: entry.Model}, Reason: reason, Updated: time.Now().UTC().Format(time.RFC3339)})
 	entry.SessionID = ""
+	entry.StandardsContract, entry.Standards = 0, nil
 }
 
 func (r recoveryRun) prepare(entry harness.AuditEntry, selected harness.Config, resume bool, reason string) (harness.Request, error) {
@@ -203,7 +218,7 @@ func (r recoveryRun) prepare(entry harness.AuditEntry, selected harness.Config, 
 			return request, err
 		}
 		previous = nil
-	} else if r.path != "" {
+	} else if entry.SessionID != "" {
 		request.SessionID = entry.SessionID
 	}
 	if reason != "" && r.path != "" {
@@ -237,21 +252,21 @@ func (r recoveryRun) prepare(entry harness.AuditEntry, selected harness.Config, 
 		return request, err
 	}
 	request.Prompt += "\n\n" + manifest
-	if selected.Harness == "hermes" || selected.Harness == "copilot" {
-		paths := make([]string, 0, len(r.evidence.Files))
-		if r.standardsRoot != "" {
-			standards, projectFiles, listing, inventoryErr := r.standardInventory()
-			if inventoryErr != nil {
-				return request, inventoryErr
-			}
-			paths = projectFiles
-			if len(standards) != 0 {
-				request.Prompt += "\n\nInstalled SDLC standards available on request (relative name and captured hash):\n" + listing
-				request.Prompt += "\nTo read standards, return only STANDARDS-REQUEST: [\"NAME.md\", ...] with exact listed names. The harness will supply verified contents in this retained session. Request applicable standards before returning a verdict; do not claim unread standards were reviewed.\n"
-			}
-		} else {
+	if err := r.prepareStandards(&request, entry, resume); err != nil {
+		return request, err
+	}
+	if request.ControlledReads || selected.Harness == "hermes" || selected.Harness == "copilot" {
+		var paths []string
+		if r.standardsRoot == "" {
 			for _, file := range r.evidence.Files {
 				paths = append(paths, file.Path)
+			}
+		} else {
+			current := harness.Evidence{Files: request.Evidence}
+			for _, change := range current.Changes(previous) {
+				if change.Change == "added" || change.Change == "changed" {
+					paths = append(paths, change.Path)
+				}
 			}
 		}
 		contents, err := r.evidence.ContentPromptFor(paths)
@@ -259,12 +274,19 @@ func (r recoveryRun) prepare(entry harness.AuditEntry, selected harness.Config, 
 			return request, err
 		}
 		request.Prompt += "\n\n" + contents
+		request.SuppliedEvidence = evidenceFiles(r.evidence, paths)
+	}
+	if len(request.Prompt) > maximumAuditPromptBytes {
+		return request, errors.New("audit prompt exceeds the 8 MiB transport limit; no documents were trimmed or provider invoked")
 	}
 	return request, nil
 }
 
 func (r recoveryRun) invoke(entry harness.AuditEntry, selected harness.Config, request harness.Request, resume bool) (result harness.Result, runErr error) {
 	var err error
+	if err := r.verifyStandards(request.Standards); err != nil {
+		return result, err
+	}
 	if resume {
 		_, err = harness.BuildResume(request)
 	} else {
@@ -281,6 +303,7 @@ func (r recoveryRun) invoke(entry harness.AuditEntry, selected harness.Config, r
 		}
 	}
 	var attempt *auditAttempt
+	deliveryConfirmed := false
 	if r.path != "" {
 		primary := r.config.Agent()
 		entry.Configured = &primary
@@ -291,6 +314,17 @@ func (r recoveryRun) invoke(entry harness.AuditEntry, selected harness.Config, r
 		}
 		attempt.entry.History[len(attempt.entry.History)-1].Diagnostic = r.diagnosticPath
 		request.OnSession = attempt.recordIdentity
+		request.OnDelivered = func(identity string) error {
+			if r.standardsRoot != "" {
+				attempt.entry.StandardsContract, attempt.entry.Standards = 1, request.Standards
+				attempt.entry.History[len(attempt.entry.History)-1].Standards = request.Standards
+			}
+			if err := attempt.recordIdentity(identity); err != nil {
+				return err
+			}
+			deliveryConfirmed = true
+			return nil
+		}
 		defer func() {
 			if finishErr := attempt.finish(runErr); finishErr != nil {
 				runErr = errors.Join(runErr, finishErr)
@@ -302,15 +336,32 @@ func (r recoveryRun) invoke(entry harness.AuditEntry, selected harness.Config, r
 			}
 		}()
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), selected.Timeout)
-	defer cancel()
-	requested := map[string]bool{}
+	requested := r.deliveredStandardNames(request.Standards)
 	for fetches := 0; ; fetches++ {
+		if len(request.Prompt) > maximumAuditPromptBytes {
+			return result, errors.New("audit prompt exceeds the 8 MiB transport limit; no documents were trimmed")
+		}
+		deliveryConfirmed = false
+		ctx, cancel := context.WithTimeout(context.Background(), selected.Timeout)
 		result, err = harness.Execute(ctx, request, resume, &r.evidence, nil, r.diagnostics)
+		cancel()
 		if err != nil {
+			if attempt != nil && !deliveryConfirmed && (len(request.SuppliedStandards) != 0 || len(request.SuppliedEvidence) != 0) {
+				attempt.entry.StandardsContract = 0
+			}
 			return result, err
 		}
-		if r.standardsRoot == "" || (selected.Harness != "hermes" && selected.Harness != "copilot") {
+		if strings.TrimSpace(result.Response) == "CONTEXT-LOST" {
+			return result, &harness.Incident{Kind: "context-lost", Harness: selected.Harness, SessionID: result.SessionID, Err: errors.New("auditor reports loss of mandatory standards context")}
+		}
+		if attempt != nil && r.standardsRoot != "" {
+			attempt.entry.StandardsContract, attempt.entry.Standards = 1, request.Standards
+			attempt.entry.History[len(attempt.entry.History)-1].Standards = request.Standards
+			if err := attempt.recordIdentity(result.SessionID); err != nil {
+				return result, err
+			}
+		}
+		if r.standardsRoot == "" {
 			break
 		}
 		standards, _, _, inventoryErr := r.standardInventory()
@@ -335,7 +386,11 @@ func (r recoveryRun) invoke(entry harness.AuditEntry, selected harness.Config, r
 			return result, contentErr
 		}
 		request.SessionID = result.SessionID
-		request.Prompt = "Requested installed SDLC standards, verified against the audit manifest:\n" + contents + "\nContinue this audit in the retained session. Request other listed standards with STANDARDS-REQUEST: JSON, or return the required final verdict.\n"
+		request.SuppliedStandards = evidenceFiles(r.evidence, paths)
+		request.SuppliedEvidence = nil
+		request.Standards = mergeDeliveredStandards(request.Standards, request.SuppliedStandards)
+		requested = r.deliveredStandardNames(request.Standards)
+		request.Prompt = "Additional installed SDLC standards, verified against the audit manifest:\n" + contents + "\nRead these additional standards before continuing. Never request or reread standards already supplied. Continue this audit in the retained session or return the required final verdict.\n"
 		resume = true
 		if request.ResultFile != "" {
 			if err := os.Truncate(request.ResultFile, 0); err != nil {

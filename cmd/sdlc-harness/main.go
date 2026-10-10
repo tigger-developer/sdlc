@@ -99,6 +99,12 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 	if *agentSpike && normalizedPhase != "audit" {
 		return errors.New("--agent-spike applies only to --phase audit")
 	}
+	if normalizedPhase == "audit" && *auditPrompts != "" {
+		return errors.New("--audit-prompts is not accepted for audits; routing and standards are harness-owned")
+	}
+	if *resetSession && (normalizedPhase != "audit" || len(inputs) != 0) {
+		return errors.New("--reset requires --gate --audit-record --work-item, without --input")
+	}
 	projectRoot, err := filepath.Abs(*project)
 	if err != nil {
 		return err
@@ -119,6 +125,9 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		return errors.New("standalone standards audit does not accept legacy start/resume operations")
 	}
 	if normalizedPhase == "audit" {
+		if err := rejectCallerStandards(projectRoot, installedStandardsRoot(), inputs); err != nil {
+			return err
+		}
 		if err := requireOriginalAuditPaths(projectRoot, inputs, *auditPrompts); err != nil {
 			return err
 		}
@@ -177,9 +186,6 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		*auditRecord = filepath.Join(projectRoot, *auditRecord)
 	}
 	if *resetSession {
-		if normalizedPhase != "audit" || len(inputs) != 0 {
-			return errors.New("--reset requires --gate --audit-record --work-item, without --input")
-		}
 		path := *auditRecord
 		if !filepath.IsAbs(path) {
 			path = filepath.Join(projectRoot, path)
@@ -238,13 +244,12 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 	if err != nil {
 		return fmt.Errorf("reading prompt: %w", err)
 	}
-	if len(prompt) == 0 || len(prompt) > 2*1024*1024 {
-		if normalizedPhase != "audit" {
-			return errors.New("prompt must contain between 1 byte and 2 MiB")
-		}
+	if len(prompt) > 2*1024*1024 || (len(prompt) == 0 && normalizedPhase != "audit") {
+		return errors.New("caller context exceeds 2 MiB or a non-audit prompt is empty; no text was trimmed")
 	}
 	var registry auditPromptDocument
 	standardsRoot := ""
+	var requiredStandards []string
 	if normalizedPhase == "audit" {
 		var loadErr error
 		registry, loadErr = readAuditPrompts(*auditPrompts)
@@ -252,15 +257,28 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 			return loadErr
 		}
 		if standalone {
-			base := strings.TrimSpace(registry.Profiles["standalone"].Prompt)
+			profile := "standalone"
+			if *agentSpike {
+				profile = "agent-spike"
+			}
+			base := strings.TrimSpace(registry.Profiles[profile].Prompt)
 			if base == "" {
-				return errors.New("audit prompt registry lacks the standalone profile")
+				return fmt.Errorf("audit prompt registry lacks the %s profile", profile)
 			}
 			prompt = append([]byte(base+"\n\n"+registry.EvidenceInstructions+"\n\nOperator-supplied audit context:\n"), prompt...)
-			standardsRoot = filepath.Dir(filepath.Dir(auditPromptPath(*auditPrompts)))
-			inputs, loadErr = standaloneAuditStandards(standardsRoot, inputs)
+			standardsRoot = installedStandardsRoot()
+			if *agentSpike {
+				inputs, loadErr = spikeAuditStandards(standardsRoot, inputs)
+			} else {
+				inputs, loadErr = standaloneAuditStandards(standardsRoot, inputs)
+			}
 			if loadErr != nil {
 				return loadErr
+			}
+			for _, path := range inputs {
+				if withinPath(standardsRoot, path) {
+					requiredStandards = append(requiredStandards, path)
+				}
 			}
 		} else {
 			base, loadErr := registry.prompt(normalizedGate)
@@ -269,6 +287,10 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 			}
 			prompt = append([]byte(base+"\nAudit gate: "+normalizedGate+"\n\nOperator-supplied audit context:\n"), prompt...)
 			standardsRoot = installedStandardsRoot()
+			requiredStandards, loadErr = managedRequiredStandards(projectRoot, normalizedGate, standardsRoot, inputs...)
+			if loadErr != nil {
+				return loadErr
+			}
 			inputs, loadErr = managedAuditStandards(projectRoot, normalizedGate, standardsRoot, inputs)
 			if loadErr != nil {
 				return loadErr
@@ -339,7 +361,7 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 			}
 			return auditUnavailable()
 		}
-		if cached, ok := cachedAudit(entry, cacheKey); ok {
+		if cached, ok := cachedAudit(entry, cacheKey, evidenceFiles(evidence, requiredStandards)...); ok {
 			if err := evidence.Verify(); err != nil {
 				return err
 			}
@@ -367,7 +389,7 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		recordPath = strings.TrimSpace(*auditRecord)
 	}
 	runner := recoveryRun{config: config, request: request, evidence: evidence, registry: registry,
-		path: recordPath, work: *workItem, gate: sessionGate, cacheKey: cacheKey, readinessCheck: readinessCheck, standardsRoot: standardsRoot, audit: normalizedPhase == "audit" && !standalone, diagnostics: errorOutput}
+		path: recordPath, work: *workItem, gate: sessionGate, cacheKey: cacheKey, readinessCheck: readinessCheck, standardsRoot: standardsRoot, requiredStandards: requiredStandards, audit: normalizedPhase == "audit" && !standalone, diagnostics: errorOutput}
 	if runner.audit {
 		runner.cooldowns = harness.CooldownStore{Directory: filepath.Join(projectRoot, ".sdlc")}
 		log, logErr := openAuditDiagnostics(projectRoot, errorOutput)
@@ -447,14 +469,22 @@ func readAuditPrompts(explicit string) (auditPromptDocument, error) {
 	return document, nil
 }
 
-func auditPromptPath(explicit string) string {
+var auditPromptPath = func(explicit string) string {
 	if explicit != "" {
 		return explicit
 	}
 	if executable, err := os.Executable(); err == nil {
-		return filepath.Join(filepath.Dir(executable), "..", "prompts", "audits.yaml")
+		return auditRegistryForExecutable(executable)
 	}
 	return ""
+}
+
+func auditRegistryForExecutable(executable string) string {
+	resolved, err := filepath.EvalSymlinks(executable)
+	if err != nil {
+		return ""
+	}
+	return filepath.Clean(filepath.Join(filepath.Dir(resolved), "..", "prompts", "audits.yaml"))
 }
 
 func (document auditPromptDocument) prompt(gate string) (string, error) {

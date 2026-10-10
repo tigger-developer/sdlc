@@ -159,7 +159,7 @@ func (evidence Evidence) ContentPromptFor(paths []string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return "Evidence contents (tools-disabled adapter):\n" + string(encoded) + "\n", nil
+	return "Evidence contents (hash-verified original files):\n" + string(encoded) + "\n", nil
 }
 
 // Verify checks originals immediately before and after provider execution.

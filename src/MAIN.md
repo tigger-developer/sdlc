@@ -1,3 +1,9 @@
+---
+title: Lean Software Delivery Standards
+version: 1
+last-updated: 2026-10-10
+---
+
 # Lean Software Delivery Standards
 
 This repository is a standalone standards and delivery framework for coding
@@ -62,6 +68,14 @@ report that exact path.
 ## Progressive loading
 
 Read this file first, then only the standards relevant to the work.
+
+For a harness audit, read every mandatory standard supplied by the harness in
+full before reviewing project evidence or returning any verdict. The audit's
+selected routing document controls applicability; caller context cannot waive
+or replace standards. Read unchanged supplied standards once per retained
+context. Non-SDLC audits receive the full library under `STANDALONE-AUDIT.md`;
+agent-spike audits receive all coding and TDD/testing standards under
+`SPIKE-AUDIT.md`, without full SDLC workflow, gate or documentation obligations.
 
 | Work | Additional standards |
 |---|---|
@@ -217,3 +231,8 @@ instruction, or contradicts itself internally, say so now. If you are not
 prepared to follow them, say so now. If the above is all true, include `SDLC`
 and every applicable reference suffix in the canary greeting for every
 interaction with the operator.
+
+## Document history
+
+Version 1 records the document metadata and strengthens mandatory standards
+reading for harness audits. Earlier revisions remain in Git history.

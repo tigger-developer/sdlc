@@ -1,6 +1,6 @@
 ---
 title: SDLC Audit Harness Guide
-version: 8
+version: 9
 last-updated: 2026-10-10
 ---
 
@@ -23,20 +23,24 @@ SDLC skills continue to use the resolved absolute harness path.
 When `--project` has no `.sdlc/project.yaml`, `sdlc-audit` runs a standalone
 code and documentation standards review. Supply at least one original project
 file with `--input`; omit `--gate`, `--audit-record`, `--work-item` and `--reset`.
-The harness prints a `STANDALONE MODE` warning, supplies its installed
-`STANDALONE-AUDIT.md`, `CODING.md` and `DOCUMENTATION.md` as the mandatory core,
-and makes the full installed Markdown inventory available. It asks for an
+The harness prints a `STANDALONE MODE` warning and supplies `STANDALONE-AUDIT.md`
+first, followed by the entire installed Markdown standards library as verified
+text. Every document must be read once before review; only applicable engineering
+rules are enforced. Reading workflow documents does not elect that workflow. It asks for an
 `AUDIT: standalone` result. This route does not create SDLC project state or
 apply ticket readiness, gate budgets, or closure rules. Supply relevant
 project authorities as additional inputs when needed; installed technology
 standards are harness-owned.
 
-`--agent-spike` selects the same standalone review in a project that has
+`--agent-spike` selects a separate spike profile in a project that has
 `.sdlc/project.yaml`. The `hands-off-spike` skill uses it so exploratory code
 is always independently reviewed without entering an SDLC gate, budget, or
 `audits.yaml` record. The harness prints a `SPIKE MODE` warning instead of
 `STANDALONE MODE`. The flag accepts only the audit phase and the standalone
-options above; every path, anchor and verdict check is unchanged.
+options above; every path, anchor and verdict check is unchanged. `SPIKE-AUDIT.md`
+routes the review against all coding, architecture, security, Git, technology
+and TDD/testing standards. Full SDLC workflow, gates and documentation requirements
+do not apply. The response retains the `AUDIT: standalone` envelope for compatibility.
 
 For every audit, the harness derives the project root from its invocation
 directory: the enclosing Git root when present, otherwise that directory.
@@ -116,40 +120,49 @@ the same automatic audit behaviour. The old reset-session flag is replaced by re
 
 - For SDLC gates, supply project evidence only. The harness adds its full installed
   SDLC Markdown inventory to the hashed manifest. Gate-specific core standards
-  and the technologies selected in `.sdlc/project.yaml` are mandatory; the
+  and the technologies selected in `.sdlc/project.yaml` are mandatory. Source
+  extensions supplement technology selection; Markdown and Org evidence add
+  their format rules. Node includes JavaScript; Hugo includes Web. The
   auditor judges which other documents apply. Do not pass `~/.agents/sdlc` files as `--input`;
   external caller-supplied paths are rejected. The harness also includes the
   project profile. Supply relevant project authorities separately.
 - Repeat `--input <file>` for every exact evidence file.
-- Paths are resolved against `--project`. Codex and Claude read original absolute
-  paths. The provider is launched from the project; no document copies are retained.
-- Claude start/resume add invocation-local Read permissions for the exact supplied
-  files and their resolved aliases, never their containing directories. Literal
-  pattern characters are escaped. Read-only tools, plan mode and existing deny
-  rules remain in force; these grants do not bypass native policy. Unsupported
-  non-POSIX paths or control characters fail before invocation.
+- Paths are resolved against `--project`. Every provider receives hash-verified
+  UTF-8 contents over stdin and is launched from the project. No document copies
+  are retained. Supplied project evidence must be sufficient for the review;
+  omitted files are an evidence gap rather than permission to use native file tools.
+- Claude audits disable built-in tools, use safe mode and strict MCP configuration,
+  and deny native reads of installed standards. Codex audits disable shell, external
+  integrations and other tool features with invocation-local options. Codex ignores
+  user configuration while retaining its credential store: custom model-provider
+  definitions in that configuration are unavailable to this isolated audit route.
+  The CLI must support these options; an unsupported invocation fails closed.
 - Hermes uses `chat --quiet --query-file -` with its native resume option and
   reads native `session_id:` stderr metadata. Top-level `-z` is not used because
   it bypasses session options; model-written session identifiers are not trusted.
-- Hermes and Copilot run with file tools disabled. Project evidence is supplied
-  as hash-verified UTF-8 text. The installed standards are listed by relative
-  name and hash; the auditor requests applicable documents through a bounded
-  `STANDARDS-REQUEST` response, and the harness supplies their verified text in
-  the retained session. This avoids preloading every standard. Each later audit
-  invocation again supplies current project evidence and the standards inventory;
-  only paths and hashes are stored in the audit record, not file contents.
+- Hermes and Copilot also run with file tools disabled. The harness selects and
+  supplies mandatory standards automatically for each route. Further references
+  use a bounded `STANDARDS-REQUEST` response with exact inventory names. All
+  adapters use this same protocol. Already supplied, duplicated or unknown names
+  are rejected; an invalid batch does not consume any document. Each provider
+  turn has its own configured timeout, with at most four additional fetch turns.
+  Only paths and hashes are stored in the audit record, not file contents.
 - Supply the complete evidence list on every invocation. The harness hashes it
   and, on resume, identifies added, changed, unchanged, and removed inputs against
   the last recorded round. Removed means omitted from the list, not deleted.
-- Unchanged files may be reused from retained context, but must be reread when
-  context is lost or changes affect their interpretation. Hashes are not proof
+- Unchanged files are reused from retained context. Changed contents are supplied
+  again; context loss or unconfirmed delivery requires a replacement context.
+  An auditor reports lost mandatory contents with `CONTEXT-LOST` instead of a
+  verdict or a duplicate fetch. Hashes are not proof
   that the auditor read a file.
 - Inputs must be regular non-symlink files, at most 16 MiB each and 64 MiB total.
   `.env` inputs are prohibited. Changed, missing, or replaced evidence during
   execution rejects the response; hashes detect changes, not prevent writes.
 - Per-attempt paths and hashes live only in `audits.yaml` under `history[].evidence`.
-  Older records without hashes retain their session and receive a full evidence
-  pass. Every SDLC gate audit requires an audit record; standalone review does not.
+  `standards_delivered` records successful transport separately from findings.
+  Older records without the current standards contract receive a replacement
+  context and full package. Every SDLC gate audit requires an audit record;
+  standalone review does not.
 - No document cache is created. The small final-response temporary file is
   cleared before each attempt so fallback cannot reuse failed-provider output,
   then
@@ -216,7 +229,8 @@ manifest; ambient instructions or independently read files are not covered.
 
 Only validated, incident-free responses are reusable. Running attempts, timeouts,
 authentication failures and malformed responses are not cache results. Older
-entries without keys remain history and require a real audit before reuse.
+entries without the current cache key and required standards-delivery evidence
+remain history and require a real audit before reuse.
 The lookup precedes round exhaustion and native-session recovery: a recorded
 result needs no live provider session. Execution limits alone do not invalidate
 it, unless their configuration file is itself a supplied, changed input.
@@ -380,6 +394,11 @@ infrastructure failure. Known FAIL findings remain unresolved until reassessed.
 
 ## Document history
 
+Version 9 supplies mandatory standards deterministically for three audit profiles,
+isolates provider tools, rejects caller routing overrides and reuses unchanged
+contents through a context-bound delivery ledger. Caller context is limited to
+2 MiB and each complete provider prompt to 8 MiB; oversized input is rejected,
+never silently trimmed.
 Version 8 adds `--agent-spike` standalone review for hands-off spikes in SDLC
 projects.
 Version 7 adds bounded on-demand standards retrieval for tools-disabled auditors.

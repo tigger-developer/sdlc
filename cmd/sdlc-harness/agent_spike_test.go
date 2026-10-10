@@ -35,7 +35,7 @@ printf '{"type":"thread.started","thread_id":"spike-fixture"}\n'
 	// select the standalone review without requiring gate or record options.
 	args := []string{"--agent-spike", "--project", project, "--input", "go.mod", "--audit-prompts", filepath.Join(project, "src", "prompts", "audits.yaml"), "--global-config", filepath.Join(project, "absent-global.yaml"), "--harness", "codex", "--model", "fixture"}
 	var output, diagnostics bytes.Buffer
-	if err := run(args, strings.NewReader("Workflow: hands-off spike"), &output, &diagnostics); err != nil {
+	if err := runFixture(args, strings.NewReader("Workflow: hands-off spike"), &output, &diagnostics); err != nil {
 		t.Fatalf("agent spike audit failed: %v\n%s", err, diagnostics.String())
 	}
 	if !strings.Contains(diagnostics.String(), "SPIKE MODE") || strings.Contains(diagnostics.String(), "STANDALONE MODE") {
@@ -48,8 +48,8 @@ printf '{"type":"thread.started","thread_id":"spike-fixture"}\n'
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !bytes.Contains(prompt, []byte("STANDALONE-AUDIT.md")) || !bytes.Contains(prompt, []byte("go.mod")) {
-		t.Fatal("agent spike prompt omitted the standalone standard or project evidence")
+	if !bytes.Contains(prompt, []byte("SPIKE-AUDIT.md")) || !bytes.Contains(prompt, []byte("go.mod")) {
+		t.Fatal("agent spike prompt omitted the spike standard or project evidence")
 	}
 	if bytes.Contains(prompt, []byte("Audit gate:")) {
 		t.Fatal("agent spike prompt contains an SDLC gate")
@@ -68,7 +68,7 @@ func TestAgentSpikeRejectsSDLCGateOptions(t *testing.T) {
 	} {
 		args := append([]string{"--agent-spike", "--project", project, "--input", "code.go"}, extra...)
 		var output bytes.Buffer
-		err := run(args, strings.NewReader(""), &output, &output)
+		err := runFixture(args, strings.NewReader(""), &output, &output)
 		if err == nil || !strings.Contains(err.Error(), "without --gate, --audit-record, --work-item or --reset") {
 			t.Errorf("agent spike with %v error = %v", extra, err)
 		}
@@ -80,7 +80,7 @@ func TestAgentSpikeRejectsSDLCGateOptions(t *testing.T) {
 
 func TestAgentSpikeRequiresAuditPhase(t *testing.T) {
 	var output bytes.Buffer
-	err := run([]string{"--agent-spike", "--phase", "build"}, strings.NewReader(""), &output, &output)
+	err := runFixture([]string{"--agent-spike", "--phase", "build"}, strings.NewReader(""), &output, &output)
 	if err == nil || !strings.Contains(err.Error(), "--agent-spike applies only to --phase audit") {
 		t.Fatalf("agent spike outside audit phase error = %v", err)
 	}

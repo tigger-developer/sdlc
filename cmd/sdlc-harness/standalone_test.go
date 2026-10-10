@@ -2,11 +2,56 @@ package main
 
 import (
 	"bytes"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 )
+
+// runFixture injects an on-disk prompt registry at the filesystem boundary.
+// Public audit invocations cannot override their canonical routing documents.
+func runFixture(arguments []string, input io.Reader, output, diagnostics io.Writer) error {
+	var args []string
+	registry, project := "", "."
+	spike := false
+	for i := 0; i < len(arguments); i++ {
+		if arguments[i] == "--audit-prompts" && i+1 < len(arguments) {
+			registry = arguments[i+1]
+			i++
+			continue
+		}
+		if arguments[i] == "--project" && i+1 < len(arguments) {
+			project = arguments[i+1]
+		}
+		if arguments[i] == "--agent-spike" {
+			spike = true
+		}
+		args = append(args, arguments[i])
+	}
+	if registry == "" {
+		return run(args, input, output, diagnostics)
+	}
+	old := auditPromptPath
+	auditPromptPath = func(string) string { return registry }
+	defer func() { auditPromptPath = old }()
+	initialized, err := profilePresent(project)
+	if err != nil {
+		return err
+	}
+	if initialized && !spike {
+		profile := filepath.Join(project, ".sdlc", "project.yaml")
+		if _, err := os.Stat(profile); os.IsNotExist(err) {
+			if err := os.MkdirAll(filepath.Dir(profile), 0o700); err != nil {
+				return err
+			}
+			if err := os.WriteFile(profile, []byte("version: 3\nstandards:\n  technologies: []\n"), 0o600); err != nil {
+				return err
+			}
+		}
+	}
+	return run(args, input, output, diagnostics)
+}
 
 func TestMain(m *testing.M) {
 	protected, err := os.MkdirTemp("", "sdlc-protected-test-")
@@ -139,7 +184,7 @@ func TestTemporaryAuditPathRefusedBeforeProvider(t *testing.T) {
 		t.Fatal(err)
 	}
 	var output bytes.Buffer
-	err := run([]string{"--project", project, "--gate", "definition", "--audit-record", "audits.yaml", "--work-item", "W001", "--input", input}, strings.NewReader(""), &output, &output)
+	err := runFixture([]string{"--project", project, "--gate", "definition", "--audit-record", "audits.yaml", "--work-item", "W001", "--input", input}, strings.NewReader(""), &output, &output)
 	if err == nil || !strings.Contains(err.Error(), "temporary project or evidence") {
 		t.Fatalf("temporary project audit error = %v", err)
 	}
@@ -165,7 +210,7 @@ func TestTemporaryEvidenceRefusedBeforeProvider(t *testing.T) {
 	temporaryAuditRoots = func() ([]string, error) { return []string{protected}, nil }
 	t.Cleanup(func() { temporaryAuditRoots = oldRoots })
 	var output bytes.Buffer
-	err := run([]string{"--project", project, "--gate", "definition", "--audit-record", "audits.yaml", "--work-item", "W001", "--input", input}, strings.NewReader(""), &output, &output)
+	err := runFixture([]string{"--project", project, "--gate", "definition", "--audit-record", "audits.yaml", "--work-item", "W001", "--input", input}, strings.NewReader(""), &output, &output)
 	if err == nil || !strings.Contains(err.Error(), "temporary project or evidence") {
 		t.Fatalf("temporary evidence audit error = %v", err)
 	}
@@ -224,7 +269,7 @@ func TestStandaloneRejectsInputEscapingProject(t *testing.T) {
 	profilePresent = func(string) (bool, error) { return false, nil }
 	t.Cleanup(func() { profilePresent = oldProfile })
 	var output bytes.Buffer
-	err := run([]string{"--project", project, "--input", "alias.go"}, strings.NewReader(""), &output, &output)
+	err := runFixture([]string{"--project", project, "--input", "alias.go"}, strings.NewReader(""), &output, &output)
 	if err == nil || !strings.Contains(err.Error(), "outside the invocation project") {
 		t.Fatalf("escaped input error = %v", err)
 	}
@@ -280,7 +325,7 @@ printf '{"type":"thread.started","thread_id":"standalone-fixture"}\n'
 	t.Cleanup(func() { inventoryProject = oldInventory })
 	args := []string{"--project", project, "--input", "go.mod", "--audit-prompts", filepath.Join(project, "src", "prompts", "audits.yaml"), "--global-config", filepath.Join(project, "absent-global.yaml"), "--harness", "codex", "--model", "fixture"}
 	var output, diagnostics bytes.Buffer
-	if err := run(args, strings.NewReader("Review the supplied project files."), &output, &diagnostics); err != nil {
+	if err := runFixture(args, strings.NewReader("Review the supplied project files."), &output, &diagnostics); err != nil {
 		t.Fatalf("standalone audit failed: %v\n%s", err, diagnostics.String())
 	}
 	if !strings.Contains(diagnostics.String(), "STANDALONE MODE") || !strings.Contains(output.String(), "AUDIT: standalone") {

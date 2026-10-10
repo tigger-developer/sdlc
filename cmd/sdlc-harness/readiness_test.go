@@ -46,7 +46,7 @@ func TestReadinessRefusesBeforeConfigPromptOrAuditWrites(t *testing.T) {
 			gate = "test-code"
 		}
 		args := []string{"start", "--project", root, "--gate", gate, "--audit-record", "audits.yaml", "--work-item", "W001", "--global-config", root}
-		err := run(args, rejectRead{}, &out, &diagnostics)
+		err := runFixture(args, rejectRead{}, &out, &diagnostics)
 		var refusal *readinessRefusal
 		if !errors.As(err, &refusal) || !strings.Contains(out.String(), "ready: false") {
 			t.Fatalf("expected early YAML refusal: %v %s", err, out.String())
@@ -101,7 +101,7 @@ printf '{"type":"thread.started","thread_id":"retained-test-session"}\n'
 			action = "start"
 		}
 		args := []string{action, "--project", root, "--global-config", filepath.Join(root, "absent.yaml"), "--harness", "codex", "--model", "fixture", "--gate", stage, "--audit-record", record, "--work-item", "W001", "--audit-prompts", registry}
-		if err := run(args, strings.NewReader("review"), &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+		if err := runFixture(args, strings.NewReader("review"), &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
 			t.Fatal(err)
 		}
 		entry, _, err := harness.ReadAuditEntry(record, "W001", "implementation")
@@ -129,7 +129,7 @@ func TestAuditRequiresExplicitGateAndRejectsReadinessSelector(t *testing.T) {
 		{"start", "--gate", "definition", "--readiness-check", "test-code"},
 	} {
 		var output, diagnostics bytes.Buffer
-		err := run(args, rejectRead{}, &output, &diagnostics)
+		err := runFixture(args, rejectRead{}, &output, &diagnostics)
 		if err == nil || strings.Contains(err.Error(), "stdin must not be read") || output.Len() != 0 {
 			t.Fatalf("expected argument rejection: %v: %v", args, err)
 		}

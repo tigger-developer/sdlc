@@ -74,24 +74,6 @@ func TestStandaloneAuditSuppliesFullInstalledInventory(t *testing.T) {
 	}
 }
 
-func TestAuditPromptsSeparateDefinitionSchemaAndStandaloneWorkflow(t *testing.T) {
-	registry, err := readAuditPrompts(filepath.Join("..", "..", "src", "prompts", "audits.yaml"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	definition, err := registry.prompt("definition")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !strings.Contains(definition, "ORG-SCHEMA.md") || !strings.Contains(definition, "material schema violation requires FAIL") {
-		t.Fatal("definition audit does not require the Org schema")
-	}
-	standalone := registry.Profiles["standalone"].Prompt
-	if !strings.Contains(standalone, "not a licence to enforce") {
-		t.Fatal("standalone audit does not exclude SDLC workflow requirements")
-	}
-}
-
 func TestInstalledAuditDocumentsDiscoverNewStandard(t *testing.T) {
 	root := t.TempDir()
 	for _, name := range []string{"MAIN.md", "technologies/NEW.md", "prompts/reference.md"} {

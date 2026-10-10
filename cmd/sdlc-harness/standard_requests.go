@@ -50,13 +50,14 @@ func (r recoveryRun) requestedStandardPaths(response string, already map[string]
 		return nil, true, fmt.Errorf("standards request must name between one and %d documents", len(standards))
 	}
 	paths := make([]string, 0, len(names))
+	batch := map[string]bool{}
 	for _, name := range names {
 		path, allowed := standards[name]
-		if !allowed || already[name] {
+		if !allowed || already[name] || batch[name] {
 			return nil, true, fmt.Errorf("unavailable or repeated audit standard %q", name)
 		}
-		already[name] = true
 		paths = append(paths, path)
+		batch[name] = true
 	}
 	return paths, true, nil
 }

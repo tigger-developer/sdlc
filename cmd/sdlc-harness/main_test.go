@@ -59,7 +59,7 @@ printf '{"type":"thread.started","thread_id":"native-session"}\n'
 				t.Fatal(err)
 			}
 		}
-		if err := run(append([]string{action}, args...), strings.NewReader("review"), &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+		if err := runFixture(append([]string{action}, args...), strings.NewReader("review"), &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
 			t.Fatal(err)
 		}
 		directory, err := os.ReadFile(filepath.Join(root, "directory"))
@@ -80,18 +80,32 @@ printf '{"type":"thread.started","thread_id":"native-session"}\n'
 			t.Fatalf("record = %#v, %v", entry, err)
 		}
 		manifest := entry.LatestEvidence()
-		if len(manifest) != 2 || manifest[0].Path != source || len(manifest[0].SHA256) != 64 {
+		var reviewed harness.EvidenceFile
+		for _, file := range manifest {
+			if file.Path == source {
+				reviewed = file
+			}
+		}
+		if len(manifest) < 3 || reviewed.Path != source || len(reviewed.SHA256) != 64 {
 			t.Fatalf("audit evidence manifest = %#v", manifest)
 		}
-		if action == "resume" && (len(entry.History) != 2 || entry.History[0].Evidence[0].SHA256 == manifest[0].SHA256) {
+		var prior harness.EvidenceFile
+		if action == "resume" {
+			for _, file := range entry.History[0].Evidence {
+				if file.Path == source {
+					prior = file
+				}
+			}
+		}
+		if action == "resume" && (len(entry.History) != 2 || prior.SHA256 == reviewed.SHA256) {
 			t.Fatal("resume did not retain distinct per-round evidence hashes")
 		}
 		prompt, err := os.ReadFile(filepath.Join(root, "prompt"))
 		if err != nil {
 			t.Fatal(err)
 		}
-		if !bytes.Contains(prompt, []byte(source)) || bytes.Contains(prompt, []byte("corrected requirement")) {
-			t.Fatalf("expected paths, not copied contents: %s", prompt)
+		if !bytes.Contains(prompt, []byte(source)) || (action == "resume" && !bytes.Contains(prompt, []byte("corrected requirement"))) {
+			t.Fatalf("expected original path and changed verified contents: %s", prompt)
 		}
 		change := "added"
 		if action == "resume" {
@@ -110,7 +124,7 @@ printf '{"type":"thread.started","thread_id":"native-session"}\n'
 		t.Fatal(err)
 	}
 	t.Setenv("PROBE_MUTATE", "1")
-	err = run(append([]string{"resume"}, args...), strings.NewReader("review with mutation probe"), &bytes.Buffer{}, &bytes.Buffer{})
+	err = runFixture(append([]string{"resume"}, args...), strings.NewReader("review with mutation probe"), &bytes.Buffer{}, &bytes.Buffer{})
 	if err == nil || !strings.Contains(err.Error(), "changed") {
 		t.Fatalf("mutation error = %v", err)
 	}
@@ -136,7 +150,7 @@ func TestW004HelpAndVersionExitSuccessfully(t *testing.T) {
 	for _, arguments := range [][]string{{"-h"}, {"--help"}, {"start", "-h"}, {"--version"}} {
 		var output bytes.Buffer
 		var diagnostics bytes.Buffer
-		if err := run(arguments, strings.NewReader(""), &output, &diagnostics); err != nil {
+		if err := runFixture(arguments, strings.NewReader(""), &output, &diagnostics); err != nil {
 			t.Fatalf("%v returned %v: %s", arguments, err, diagnostics.String())
 		}
 		combined := output.String() + diagnostics.String()
@@ -192,7 +206,7 @@ printf '{"type":"thread.started","thread_id":"native-session"}\n'
 		arguments = append(arguments, "--audit-record", filepath.Join(project, "result.yaml"), "--work-item", "W004")
 		var output bytes.Buffer
 		var diagnostics bytes.Buffer
-		if err := run(arguments, strings.NewReader("audit this "+arguments[0]), &output, &diagnostics); err != nil {
+		if err := runFixture(arguments, strings.NewReader("audit this "+arguments[0]), &output, &diagnostics); err != nil {
 			t.Fatalf("%v returned %v: %s", arguments, err, diagnostics.String())
 		}
 		if !strings.Contains(output.String(), "VERDICT: PASS") || strings.Contains(diagnostics.String(), "SESSION_ID:") {
@@ -214,14 +228,14 @@ printf '{"type":"thread.started","thread_id":"native-session"}\n'
 
 func TestW004InternalCLIRejectsIncompleteRequests(t *testing.T) {
 	for _, arguments := range [][]string{{}, {"unknown"}, {"start", "extra"}, {"start"}} {
-		if err := run(arguments, strings.NewReader("prompt"), &bytes.Buffer{}, &bytes.Buffer{}); err == nil {
+		if err := runFixture(arguments, strings.NewReader("prompt"), &bytes.Buffer{}, &bytes.Buffer{}); err == nil {
 			t.Fatalf("%v succeeded", arguments)
 		}
 	}
 }
 
 func TestW004StartRejectsSuppliedSession(t *testing.T) {
-	err := run([]string{"start", "--session", "agent-owned-id"}, strings.NewReader("prompt"), &bytes.Buffer{}, &bytes.Buffer{})
+	err := runFixture([]string{"start", "--session", "agent-owned-id"}, strings.NewReader("prompt"), &bytes.Buffer{}, &bytes.Buffer{})
 	if err == nil || !strings.Contains(err.Error(), "flag provided but not defined: -session") {
 		t.Fatalf("start with supplied session error = %v", err)
 	}
@@ -267,7 +281,7 @@ printf '{"type":"thread.started","thread_id":"native-session"}\n'
 	}
 	arguments := []string{"start", "--phase", "AUDIT", "--gate", "definition", "--audit-prompts", prompts, "--project", project, "--global-config", filepath.Join(root, "absent.yaml"), "--input", evidence}
 	arguments = append(arguments, "--audit-record", filepath.Join(project, "result.yaml"), "--work-item", "W004")
-	if err := run(arguments, strings.NewReader("audit this"), &bytes.Buffer{}, &bytes.Buffer{}); err == nil || !strings.Contains(err.Error(), "Human intervention required") {
+	if err := runFixture(arguments, strings.NewReader("audit this"), &bytes.Buffer{}, &bytes.Buffer{}); err == nil || !strings.Contains(err.Error(), "Human intervention required") {
 		t.Fatalf("uppercase audit phase verdict validation = %v", err)
 	}
 }

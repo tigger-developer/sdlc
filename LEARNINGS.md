@@ -1,6 +1,6 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 10
+version: 11
 last-updated: 2026-10-10
 ---
 
@@ -1202,8 +1202,31 @@ reuses the existing standalone review through one opt-in flag. The SDLC gate
 path is untouched when the flag is absent. A spike answers a question; it
 never delivers behaviour, and adoption returns to normal definition.
 
+## Mandatory audit rules need guaranteed delivery
+
+A hashed inventory establishes availability, not delivery. Mandatory standards
+therefore arrive as verified text before review, independently of model-selected
+fetches. Three routing profiles separate SDLC gate obligations, non-SDLC
+engineering review and spike coding/testing scrutiny. Reading workflow text
+does not activate that workflow.
+
+Native file tools bypass a delivery ledger, so audit adapters isolate those
+tools and use one controlled reference-fetch protocol. Successful transport
+records document identities and hashes against the retained context. Unchanged
+standards are not supplied again; changed text supersedes its prior version.
+Unconfirmed delivery or context loss needs a replacement context, while cache
+reuse requires proof of mandatory delivery. This establishes supplied contents,
+not model comprehension.
+
+The earlier inventory-first design remains useful for optional references;
+it is superseded for mandatory standards. Giving every provider turn its own
+timeout also prevents a reference request from consuming the next turn's
+entire execution allowance.
+
 ## Document history
 
+- Version 11 (2026-10-10): Make mandatory audit standards delivery independent
+  of model requests, with separate mode applicability and context-bound reuse.
 - Version 10 (2026-10-10): Record the hands-off spike's reuse of standalone
   review.
 - Version 9 (2026-10-06): Keep installed audit-rule evidence under harness

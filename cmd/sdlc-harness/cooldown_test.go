@@ -83,7 +83,7 @@ func TestCooldownRouting(t *testing.T) {
 				args[0] = "resume"
 			}
 			var diagnostics bytes.Buffer
-			err := run(args, strings.NewReader("audit"), &bytes.Buffer{}, &diagnostics)
+			err := runFixture(args, strings.NewReader("audit"), &bytes.Buffer{}, &diagnostics)
 			blocked := mode == "no-fallback" || mode == "corrupt" || mode == "exhausted"
 			if (err != nil) != blocked {
 				t.Fatalf("error=%v diagnostics=%s", err, diagnostics.String())
@@ -119,7 +119,7 @@ func TestCooldownRouting(t *testing.T) {
 			}
 			if mode == "cache" {
 				args[0] = "resume"
-				if err := run(args, strings.NewReader("audit"), &bytes.Buffer{}, &diagnostics); err != nil {
+				if err := runFixture(args, strings.NewReader("audit"), &bytes.Buffer{}, &diagnostics); err != nil {
 					t.Fatal(err)
 				}
 				calls, err = os.ReadFile(filepath.Join(root, "calls"))

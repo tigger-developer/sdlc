@@ -14,6 +14,10 @@ func TestStandardsRequestUsesCapturedInventory(t *testing.T) {
 	project := t.TempDir()
 	root := t.TempDir()
 	standard := filepath.Join(root, "ORG-SCHEMA.md")
+	core := filepath.Join(root, "CODING.md")
+	if err := os.WriteFile(core, []byte("CORE_CODING_RULE\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
 	if err := os.WriteFile(standard, []byte("SCHEMA_RULE_MARKER\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
@@ -21,11 +25,11 @@ func TestStandardsRequestUsesCapturedInventory(t *testing.T) {
 	if err := os.WriteFile(spec, []byte("PROJECT_SPEC_MARKER\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	evidence, err := harness.CaptureEvidence(project, []string{spec, standard})
+	evidence, err := harness.CaptureEvidence(project, []string{spec, standard, core})
 	if err != nil {
 		t.Fatal(err)
 	}
-	runner := recoveryRun{request: harness.Request{Prompt: "Audit."}, evidence: evidence, standardsRoot: root}
+	runner := recoveryRun{request: harness.Request{Prompt: "Audit."}, evidence: evidence, standardsRoot: root, requiredStandards: []string{core}}
 	prepared, err := runner.prepare(harness.AuditEntry{}, harness.Config{Harness: "hermes"}, false, "")
 	if err != nil {
 		t.Fatal(err)
@@ -42,6 +46,7 @@ func TestStandardsRequestUsesCapturedInventory(t *testing.T) {
 	if err != nil || !strings.Contains(contents, "SCHEMA_RULE_MARKER") {
 		t.Fatalf("requested contents = %q, %v", contents, err)
 	}
+	seen["ORG-SCHEMA.md"] = true
 	for _, invalid := range []string{
 		`STANDARDS-REQUEST: ["ORG-SCHEMA.md"]`,
 		`STANDARDS-REQUEST: ["../spec.org"]`,
@@ -59,8 +64,9 @@ func TestToolsDisabledAuditFetchesStandardBeforeVerdict(t *testing.T) {
 	root := t.TempDir()
 	bin := t.TempDir()
 	standard := filepath.Join(root, "ORG-SCHEMA.md")
+	core := filepath.Join(root, "CODING.md")
 	spec := filepath.Join(project, "spec.org")
-	for path, body := range map[string]string{standard: "SCHEMA_RULE_MARKER\n", spec: "PROJECT_SPEC_MARKER\n"} {
+	for path, body := range map[string]string{standard: "SCHEMA_RULE_MARKER\n", core: "CORE_CODING_RULE\n", spec: "PROJECT_SPEC_MARKER\n"} {
 		if err := os.WriteFile(path, []byte(body), 0o600); err != nil {
 			t.Fatal(err)
 		}
@@ -86,12 +92,12 @@ esac
 	t.Setenv("PATH", bin+string(os.PathListSeparator)+os.Getenv("PATH"))
 	t.Setenv("INITIAL_PROMPT", filepath.Join(project, "initial-prompt"))
 	t.Setenv("FETCHED_PROMPT", filepath.Join(project, "fetched-prompt"))
-	evidence, err := harness.CaptureEvidence(project, []string{spec, standard})
+	evidence, err := harness.CaptureEvidence(project, []string{spec, standard, core})
 	if err != nil {
 		t.Fatal(err)
 	}
 	config := harness.Config{Harness: "hermes", Provider: "fixture", Model: "fixture", Timeout: 5 * time.Second}
-	runner := recoveryRun{request: harness.Request{Prompt: "Audit.", Directory: project}, evidence: evidence, standardsRoot: root}
+	runner := recoveryRun{request: harness.Request{Prompt: "Audit.", Directory: project}, evidence: evidence, standardsRoot: root, requiredStandards: []string{core}, diagnostics: os.Stderr}
 	request, err := runner.prepare(harness.AuditEntry{}, config, false, "")
 	if err != nil {
 		t.Fatal(err)

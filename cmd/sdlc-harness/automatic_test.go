@@ -58,7 +58,7 @@ fi
 			}
 			args := []string{"--project", root, "--global-config", config, "--audit-prompts", registry, "--gate", "definition", "--audit-record", record, "--work-item", "W019", "--input", registry}
 			var out, diagnostics bytes.Buffer
-			err := run(args, strings.NewReader("audit"), &out, &diagnostics)
+			err := runFixture(args, strings.NewReader("audit"), &out, &diagnostics)
 			if mode == "recover" && err != nil {
 				t.Fatal(err)
 			}
@@ -108,7 +108,7 @@ fi
 					t.Fatal(err)
 				}
 			}
-			_ = run(args, strings.NewReader("audit"), &out, &diagnostics)
+			_ = runFixture(args, strings.NewReader("audit"), &out, &diagnostics)
 			after, readErr := os.ReadFile(filepath.Join(root, "calls"))
 			if readErr != nil || !bytes.Equal(calls, after) {
 				t.Fatal("cached verdict or lockout invoked provider")
@@ -126,11 +126,11 @@ fi
 				}
 			}
 			reset := []string{"--reset", "--project", root, "--gate", "definition", "--audit-record", record, "--work-item", "W019"}
-			if err := run(reset, strings.NewReader(""), &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+			if err := runFixture(reset, strings.NewReader(""), &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
 				t.Fatal(err)
 			}
 			t.Setenv("AUTO_MODE", "recover")
-			if err := run(args, strings.NewReader("audit"), &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
+			if err := runFixture(args, strings.NewReader("audit"), &bytes.Buffer{}, &bytes.Buffer{}); err != nil {
 				t.Fatal(err)
 			}
 			arguments, err := os.ReadFile(filepath.Join(root, "arguments"))

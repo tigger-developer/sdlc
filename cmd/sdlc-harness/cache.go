@@ -22,7 +22,7 @@ func auditCacheKey(work, gate, prompt string, registry auditPromptDocument, evid
 		Evidence []harness.EvidenceFile
 		Primary  harness.AgentConfig
 		Fallback *harness.AgentConfig
-	}{1, work, gate, prompt, registry, evidence.Files, config.Agent(), config.Fallback}
+	}{2, work, gate, prompt, registry, evidence.Files, config.Agent(), config.Fallback}
 	encoded, err := json.Marshal(request)
 	if err != nil {
 		return "", err
@@ -31,8 +31,8 @@ func auditCacheKey(work, gate, prompt string, registry auditPromptDocument, evid
 	return "sha256:" + hex.EncodeToString(digest[:]), nil
 }
 
-func cachedAudit(entry harness.AuditEntry, key string) (harness.AuditRound, bool) {
-	if key == "" || entry.Status == "running" || entry.FailureBlocked() {
+func cachedAudit(entry harness.AuditEntry, key string, required ...harness.EvidenceFile) (harness.AuditRound, bool) {
+	if key == "" || len(required) == 0 || entry.Status == "running" || entry.FailureBlocked() {
 		return harness.AuditRound{}, false
 	}
 	for index := len(entry.History) - 1; index >= 0; index-- {
@@ -41,6 +41,20 @@ func cachedAudit(entry harness.AuditEntry, key string) (harness.AuditRound, bool
 			continue
 		}
 		if round.CacheKey != key || round.Incident != "" || round.SessionID == "" {
+			continue
+		}
+		delivered := map[string]harness.EvidenceFile{}
+		for _, file := range round.Standards {
+			delivered[file.Path] = file
+		}
+		missing := false
+		for _, want := range required {
+			if delivered[want.Path] != want {
+				missing = true
+				break
+			}
+		}
+		if missing {
 			continue
 		}
 		expectedGate := entry.Gate

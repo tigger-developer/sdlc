@@ -6,6 +6,26 @@ last-updated: 2026-10-10
 
 # Changelog
 
+## v3.7.0 - 2026-10-10
+
+- Supply mandatory standards as verified text before every auditor's first
+  review, independently of provider file tools. SDLC gates use gate and
+  technology rules; non-SDLC reviews receive the full library; agent-spike
+  reviews receive all coding and TDD/testing standards without SDLC workflow,
+  gate or documentation requirements.
+- Reject caller-selected standards and audit prompt overrides. Isolate native
+  tools on all four audit adapters and serve additional standards through one
+  hash-bound protocol. Codex audits retain credentials but ignore user configuration.
+- Record context-bound standards delivery, reject duplicate fetches and
+  invalidate cached verdicts lacking mandatory delivery evidence. Resume sends
+  changed contents only; unconfirmed delivery or context loss requires a fresh
+  package in a replacement context.
+- Give each standards-fetch provider turn its configured timeout. Reject
+  oversized caller context and provider prompts instead of trimming documents;
+  transport Claude audit prompts over stdin.
+- Resolve the executable's symlink target before locating the installed
+  standards and prompt registry, including the `sdlc-audit` command alias.
+
 ## v3.6.1 - 2026-10-10
 
 - List the hands-off spike route in the README delivery modes and the

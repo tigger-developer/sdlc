@@ -20,18 +20,27 @@ Audit options:
 
 When the selected project has no .sdlc/project.yaml, omit --gate,
 --audit-record and --work-item. The harness warns STANDALONE MODE and reviews
-the supplied original project files against CODING.md, DOCUMENTATION.md and
-STANDALONE-AUDIT.md, with other applicable installed standards available.
+the supplied original project files under STANDALONE-AUDIT.md. The entire installed
+standards library is supplied as verified text; only applicable rules are enforced.
 This review has no SDLC gate or persistent audit record.
-In an SDLC project, --agent-spike selects the same standalone review for a
+In an SDLC project, --agent-spike selects a separate SPIKE-AUDIT.md profile for a
 hands-off spike and warns SPIKE MODE. It accepts the same options and rejects
 --gate, --audit-record, --work-item, --reset and any phase other than audit.
+All coding, security, technology and TDD/testing standards apply to spike code;
+full SDLC workflow, gates and documentation requirements do not apply.
 Audits are anchored to the invocation project. --project cannot select another
 root; --input accepts only files inside that project tree. Do not pass
 ~/.agents/sdlc/MAIN.md, ARCHITECTURE.md, DOCUMENTATION.md or other installed
 SDLC standards: the harness supplies its full installed Markdown inventory,
 including mandatory gate rules and selected technology standards, automatically.
 External --input paths are rejected.
+Caller-selected standards and --audit-prompts overrides are rejected. Every
+provider receives mandatory standards and project evidence over stdin with
+native file tools disabled. Standards are delivered once per retained context;
+repeat requests are rejected. Missing mandatory contents prevent audit acceptance.
+Caller context is limited to 2 MiB; a complete provider prompt to 8 MiB.
+Oversized input is rejected rather than trimmed. Codex audit isolation ignores
+user configuration but retains credentials; custom provider definitions are unavailable.
 Project evidence and audit records must stay inside that tree. Provider
 runtime directories and tmp/temp/temporary directory variants are excluded;
 ordinary hidden project directories are allowed. System temporary directories

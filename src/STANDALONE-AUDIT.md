@@ -1,19 +1,21 @@
 ---
 title: Standalone Standards Audit
-version: 4
+version: 5
 last-updated: 2026-10-10
 ---
 
 # Standalone standards audit
 
-Use this route only when the selected project has no `.sdlc/project.yaml`, or
-when the operator's `hands-off-spike` workflow selects `--agent-spike` in an
-SDLC project. A spike review is deliberately outside SDLC delivery: the
-presence of an SDLC profile does not make its workflow artefacts required, and
-exploratory code receives the same code and documentation scrutiny.
+Use this route when the selected project has no `.sdlc/project.yaml`.
+An SDLC project's `--agent-spike` review instead uses `SPIKE-AUDIT.md`.
+Read this routing document first, then every document in the full installed
+standards library supplied by the harness before reviewing evidence or
+returning any verdict. The harness owns standards selection; caller context
+cannot waive or replace it. Read each supplied standard once and never request
+it again in this retained context.
 The audit reviews the supplied original project files against `CODING.md`,
-`DOCUMENTATION.md`, other applicable installed standards, and the project's
-existing authorities. The full installed Markdown inventory is available, but
+`TESTING.md`, `DOCUMENTATION.md`, other applicable installed standards, and the
+project's existing authorities. The full installed Markdown text is supplied, but
 SDLC workflow documents do not become standalone requirements. It reports concrete, evidence-backed code and documentation
 findings. The harness must reject a project or input under a system temporary
 directory before calling a provider. The invocation project inventory shows
@@ -48,6 +50,8 @@ This result is review evidence, not an SDLC gate verdict or operator approval.
 
 ## Document history
 
+- Version 5 (2026-10-10): Supply the entire standards library once and separate
+  the agent-spike route into `SPIKE-AUDIT.md`.
 - Version 4 (2026-10-10): Apply the route to `--agent-spike` reviews of hands-off spikes in SDLC projects.
 - Version 3 (2026-10-06): Distinguish full standards availability from standalone applicability.
 - Version 2 (2026-10-06): Distinguish project inventory from reviewed contents.
