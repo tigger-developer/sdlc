@@ -26,6 +26,7 @@ done
 printf 'AUDIT: standalone\nREVISION: candidate\nVERDICT: PASS\n' > "$output"
 printf '{"type":"thread.started","thread_id":"spike-fixture"}\n'
 `
+	// #nosec G306 -- private executable fixture never invokes a hosted provider.
 	if err := os.WriteFile(filepath.Join(bin, "codex"), []byte(script), 0o700); err != nil {
 		t.Fatal(err)
 	}

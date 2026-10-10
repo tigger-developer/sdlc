@@ -1,7 +1,7 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 11
-last-updated: 2026-10-10
+version: 12
+last-updated: 2026-10-11
 ---
 
 # SDLC Standards: Design Learnings
@@ -1223,7 +1223,26 @@ it is superseded for mandatory standards. Giving every provider turn its own
 timeout also prevents a reference request from consuming the next turn's
 entire execution allowance.
 
+## Response activity needs its own deadline
+
+Process liveness does not establish that a model has started responding.
+Separate initial-response and response-idle deadlines detect silent providers
+without treating heartbeat or retry notices as progress. A quiet CLI can conceal
+real reasoning; use its native response interface rather than inferring activity
+from arbitrary output. Hermes's Python interface justifies a small embedded
+bridge using its installed runtime, while the public audit coordinator remains Go.
+The bridge adds no runtime packages; locked Ruff is a development dependency.
+Standard-library unittest suffices for the narrow verified native-interface
+fixtures without adding a testing framework.
+
+Each provider turn retains its own limit, while one shared invocation budget
+bounds recovery, fallback and reference fetches. An individual timeout may be
+recoverable; human intervention belongs at the terminal recovery decision.
+
 ## Document history
+
+- Version 12 (2026-10-11): Distinguish response activity from liveness and bound
+  recovery with a shared invocation deadline.
 
 - Version 11 (2026-10-10): Make mandatory audit standards delivery independent
   of model requests, with separate mode applicability and context-bound reuse.

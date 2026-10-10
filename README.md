@@ -1,7 +1,7 @@
 ---
 title: Lean SDLC for Coding Agents
-version: 8
-last-updated: 2026-10-10
+version: 9
+last-updated: 2026-10-11
 ---
 
 # Lean SDLC for Coding Agents
@@ -45,7 +45,8 @@ complexity led to a separate project.
 Building and installing the SDLC commands requires Go 1.23 or later[^go],
 Git, a `trash` command on `PATH`[^trash], and at least one supported
 coding-agent harness. GitHub CLI is needed only for migrating an SDLC v1
-project's GitHub tickets.
+project's GitHub tickets. Hermes auditing also requires `uv` and a supported
+installed Hermes runtime; see the [harness guide](src/HARNESS.md).
 
 ```sh
 make install
@@ -121,7 +122,10 @@ The audit harness sends a defined evidence package to an independent reviewer,
 records its verdict against that revision, and manages bounded retries and
 recovery. It also performs local readiness checks before spending a review
 round. An audit verdict is evidence for human judgement, not human approval.
-The [audit harness guide](src/HARNESS.md) covers commands and diagnostics.
+The [audit harness guide](src/HARNESS.md) covers commands and diagnostics,
+including per-turn, overall, response-start and response-idle deadlines.
+Audit defaults are `10m`, `15m`, `3m` and `2m` respectively; duration strings
+such as `90s` support personal overrides.
 The harness supplies mandatory standards as verified text to every provider:
 SDLC gates receive gate and technology rules, non-SDLC reviews receive the full
 library, and agent-spike reviews receive all coding and TDD/testing standards
@@ -152,6 +156,9 @@ historical reference. Current commands and rules are defined by the linked
 standards, skills, and command help.
 
 ## Document history
+
+- Version 9 (2026-10-11): Document audit execution deadlines and Hermes runtime
+  requirements.
 
 - Version 7 (2026-10-10): Listed the hands-off spike route.
 - Version 6 (2026-10-06): Document invocation-project anchoring and audit

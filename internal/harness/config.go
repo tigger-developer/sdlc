@@ -13,14 +13,17 @@ import (
 
 // Config is the resolved harness configuration for one SDLC phase.
 type Config struct {
-	Harness       string
-	Provider      string
-	Model         string
-	Timeout       time.Duration
-	MaxRounds     int
-	MaxFailures   int
-	Fallback      *AgentConfig
-	CoolOffPeriod time.Duration
+	Harness              string
+	Provider             string
+	Model                string
+	Timeout              time.Duration
+	TotalTimeout         time.Duration
+	ResponseStartTimeout time.Duration
+	ResponseIdleTimeout  time.Duration
+	MaxRounds            int
+	MaxFailures          int
+	Fallback             *AgentConfig
+	CoolOffPeriod        time.Duration
 }
 
 // AgentConfig identifies a provider context, independently of its execution limits.
@@ -52,13 +55,16 @@ type ConfigOptions struct {
 }
 
 type phaseDocument struct {
-	Harness     string            `yaml:"harness"`
-	Provider    string            `yaml:"provider"`
-	Model       string            `yaml:"model"`
-	Timeout     string            `yaml:"timeout"`
-	MaxRounds   int               `yaml:"max_rounds"`
-	MaxFailures *int              `yaml:"max_failures"`
-	Fallback    *fallbackDocument `yaml:"fallback"`
+	Harness              string            `yaml:"harness"`
+	Provider             string            `yaml:"provider"`
+	Model                string            `yaml:"model"`
+	Timeout              string            `yaml:"timeout"`
+	TotalTimeout         *string           `yaml:"total_timeout"`
+	ResponseStartTimeout *string           `yaml:"response_start_timeout"`
+	ResponseIdleTimeout  *string           `yaml:"response_idle_timeout"`
+	MaxRounds            int               `yaml:"max_rounds"`
+	MaxFailures          *int              `yaml:"max_failures"`
+	Fallback             *fallbackDocument `yaml:"fallback"`
 }
 
 type fallbackDocument struct {
@@ -81,6 +87,11 @@ func ResolveConfig(options ConfigOptions) (Config, error) {
 		return Config{}, fmt.Errorf("unsupported SDLC phase %q", options.Phase)
 	}
 	config := Config{CoolOffPeriod: time.Hour, MaxFailures: 3}
+	if phase == "audit" {
+		config.TotalTimeout = 15 * time.Minute
+		config.ResponseStartTimeout = 3 * time.Minute
+		config.ResponseIdleTimeout = 2 * time.Minute
+	}
 	explicitProvider := false
 	applyDocument := func(path string) error {
 		if path == "" {
@@ -144,6 +155,9 @@ func ResolveConfig(options ConfigOptions) (Config, error) {
 		if value.MaxRounds != 0 {
 			config.MaxRounds = value.MaxRounds
 		}
+		if err := applyAuditTimeouts(&config, value, phase, path); err != nil {
+			return err
+		}
 		if value.MaxFailures != nil {
 			if *value.MaxFailures < 1 {
 				return fmt.Errorf("delivery.%s.max_failures must be a positive integer", phase)
@@ -187,6 +201,24 @@ func ResolveConfig(options ConfigOptions) (Config, error) {
 		}
 		config.Timeout = parsed
 	}
+	if phase == "audit" {
+		var limits phaseDocument
+		for _, field := range []struct {
+			key    string
+			target **string
+		}{
+			{"SDLC_AUDIT_TOTAL_TIMEOUT", &limits.TotalTimeout},
+			{"SDLC_AUDIT_RESPONSE_START_TIMEOUT", &limits.ResponseStartTimeout},
+			{"SDLC_AUDIT_RESPONSE_IDLE_TIMEOUT", &limits.ResponseIdleTimeout},
+		} {
+			if value, ok := lookup(field.key); ok && strings.TrimSpace(value) != "" {
+				*field.target = &value
+			}
+		}
+		if err := applyAuditTimeouts(&config, limits, phase, "environment"); err != nil {
+			return Config{}, err
+		}
+	}
 	if options.Harness != "" {
 		config.Harness = options.Harness
 	}
@@ -209,6 +241,9 @@ func ResolveConfig(options ConfigOptions) (Config, error) {
 	}
 	if config.Timeout == 0 {
 		config.Timeout = 5 * time.Minute
+		if phase == "audit" {
+			config.Timeout = 10 * time.Minute
+		}
 	}
 	if config.MaxRounds == 0 {
 		config.MaxRounds = 5
@@ -255,4 +290,29 @@ func ResolveConfig(options ConfigOptions) (Config, error) {
 		}
 	}
 	return config, nil
+}
+
+func applyAuditTimeouts(config *Config, value phaseDocument, phase, path string) error {
+	for _, field := range []struct {
+		name   string
+		raw    *string
+		target *time.Duration
+	}{
+		{"total_timeout", value.TotalTimeout, &config.TotalTimeout},
+		{"response_start_timeout", value.ResponseStartTimeout, &config.ResponseStartTimeout},
+		{"response_idle_timeout", value.ResponseIdleTimeout, &config.ResponseIdleTimeout},
+	} {
+		if field.raw == nil {
+			continue
+		}
+		if phase != "audit" {
+			return fmt.Errorf("delivery.%s.%s is audit-only in %s", phase, field.name, path)
+		}
+		parsed, err := time.ParseDuration(*field.raw)
+		if err != nil || parsed < time.Second {
+			return fmt.Errorf("delivery.audit.%s requires a duration of at least one second, for example 90s or 3m, in %s", field.name, path)
+		}
+		*field.target = parsed
+	}
+	return nil
 }

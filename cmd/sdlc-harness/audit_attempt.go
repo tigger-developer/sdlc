@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"strings"
 
 	"github.com/tigger-developer/sdlc/internal/harness"
 )
@@ -80,13 +79,8 @@ func lastIncident(entry harness.AuditEntry) string {
 	return entry.History[len(entry.History)-1].Incident
 }
 
-func (attempt *auditAttempt) reportTimeout(registry auditPromptDocument, output io.Writer) {
+func (attempt *auditAttempt) reportTimeout(output io.Writer) {
 	remaining := attempt.limit - attempt.entry.RoundsUsed()
 	fmt.Fprintf(output, "AUDIT TIMEOUT: no verdict; attempt %d/%d; remaining=%d; record=%s\n", attempt.entry.RoundsUsed(), attempt.limit, remaining, attempt.path)
-	if attempt.entry.SessionID == "" || remaining <= 0 {
-		fmt.Fprintln(output, strings.TrimSpace(registry.TimeoutBlockedMessage))
-		fmt.Fprintf(output, "Recovery unavailable: native_session_recorded=%t; remaining=%d\n", attempt.entry.SessionID != "", remaining)
-		return
-	}
-	fmt.Fprintf(output, "SESSION_ID: %s\n%s\n", attempt.entry.SessionID, strings.TrimSpace(registry.TimeoutMessage))
+	fmt.Fprintf(output, "Recovery decision pending; native_session_recorded=%t\n", attempt.entry.SessionID != "")
 }

@@ -228,10 +228,37 @@ fields:
   - key: SDLC_AUDIT_TIMEOUT
     path: delivery.audit.timeout
     flag: audit-timeout
-    help: External audit timeout, such as 4m or 300s
+    help: Maximum duration of one audit provider turn, such as 10m or 600s
     type: duration
     prompt: "External audit timeout:"
-    default: 5m
+    default: 10m
+    allow_global: true
+
+  - key: SDLC_AUDIT_TOTAL_TIMEOUT
+    path: delivery.audit.total_timeout
+    flag: audit-total-timeout
+    help: Overall audit deadline across recovery, fallback and standards requests
+    type: duration
+    prompt: "Overall audit deadline:"
+    default: 15m
+    allow_global: true
+
+  - key: SDLC_AUDIT_RESPONSE_START_TIMEOUT
+    path: delivery.audit.response_start_timeout
+    flag: audit-response-start-timeout
+    help: Wait for first model response activity, such as 90s or 3m
+    type: duration
+    prompt: "Audit response start timeout:"
+    default: 3m
+    allow_global: true
+
+  - key: SDLC_AUDIT_RESPONSE_IDLE_TIMEOUT
+    path: delivery.audit.response_idle_timeout
+    flag: audit-response-idle-timeout
+    help: Maximum silence after model response activity begins
+    type: duration
+    prompt: "Audit response idle timeout:"
+    default: 2m
     allow_global: true
 
   - key: SDLC_AUDIT_MAX_ROUNDS

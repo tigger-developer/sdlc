@@ -1,10 +1,25 @@
 ---
 title: Changelog
 version: 1
-last-updated: 2026-10-10
+last-updated: 2026-10-11
 ---
 
 # Changelog
+
+## v3.8.0 - 2026-10-11
+
+- Add audit-wide total_timeout (15m), response_start_timeout (3m) and
+  response_idle_timeout (2m), with unit-bearing duration strings such as 90s
+  and project/global/environment overrides. Audit turns default to 10m.
+- Bound provider recovery, fallback and reference fetches by one shared deadline;
+  persist terminal managed lockout without accepting a late response as a verdict.
+- Observe Hermes native content/reasoning callbacks through an embedded bridge
+  using its installed runtime via offline uv. Retain native credentials and
+  session persistence, disable tools/background review and clear inherited
+  ephemeral instruction overlays. Development checks use locked Ruff and local
+  native-interface fixtures, never hosted models.
+- Keep recoverable timeout diagnostics distinct from terminal human-intervention
+  messages, and document the new limits in help, standards and configuration.
 
 ## v3.7.0 - 2026-10-10
 

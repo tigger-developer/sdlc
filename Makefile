@@ -1,4 +1,4 @@
-.PHONY: build test lint install install-preview install-cli uninstall sync
+.PHONY: build test test-hermes lint install install-preview install-cli uninstall sync
 
 INSTALLER ?= bin/sdlc-install
 PROJECT_INITIALIZER ?= bin/sdlc-init
@@ -31,10 +31,16 @@ build:
 
 test: lint
 	go test ./...
+	$(MAKE) test-hermes
+
+test-hermes:
+	uv run --locked --no-config --no-env-file --no-python-downloads tests/hermes_bridge_test.py
 
 lint:
 	go vet ./...
 	golangci-lint run ./...
+	uv run --locked --no-config --no-env-file --no-python-downloads ruff check internal/harness/hermes_bridge.py tests/hermes_bridge_test.py
+	uv run --locked --no-config --no-env-file --no-python-downloads ruff format --check internal/harness/hermes_bridge.py tests/hermes_bridge_test.py
 	shellcheck hooks/agent-command-guard.sh src/libexec/load-sdlc-env.sh
 	shfmt -i 4 -d hooks/agent-command-guard.sh src/libexec/load-sdlc-env.sh
 

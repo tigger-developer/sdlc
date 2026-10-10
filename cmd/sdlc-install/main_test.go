@@ -102,6 +102,7 @@ while [ -e "$dest" ] || [ -L "$dest" ]; do dest="$dest.next"; done
 /bin/mkdir -p "${dest%/*}"
 /bin/mv "$1" "$dest"
 `
+	// #nosec G306 -- private fixture must be executable to test the Trash boundary.
 	if err := os.WriteFile(filepath.Join(bin, "trash"), []byte(script), 0o700); err != nil {
 		t.Fatal(err)
 	}

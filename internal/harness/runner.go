@@ -22,14 +22,16 @@ type Executor func(ctx context.Context, command string, args []string, directory
 
 // Request is the bounded input to one harness start or resume operation.
 type Request struct {
-	Harness    string
-	Model      string
-	Provider   string
-	Prompt     string
-	Directory  string
-	ResultFile string
-	SessionID  string
-	Evidence   []EvidenceFile
+	Harness              string
+	Model                string
+	Provider             string
+	Prompt               string
+	Directory            string
+	ResultFile           string
+	SessionID            string
+	ResponseStartTimeout time.Duration
+	ResponseIdleTimeout  time.Duration
+	Evidence             []EvidenceFile
 	// Standards identifies verified contents already delivered or supplied in this turn.
 	Standards         []EvidenceFile
 	SuppliedStandards []EvidenceFile
@@ -95,6 +97,9 @@ func NewSessionIdentity() (string, error) {
 func Execute(ctx context.Context, request Request, resume bool, evidence *Evidence, executor Executor, errorOutput io.Writer) (Result, error) {
 	if executor == nil {
 		executor = executeCommand
+		if request.Harness == "hermes" && request.ControlledReads {
+			executor = executeHermesNative
+		}
 	}
 	if errorOutput == nil {
 		errorOutput = io.Discard
@@ -116,6 +121,9 @@ func Execute(ctx context.Context, request Request, resume bool, evidence *Eviden
 		return Result{}, err
 	}
 	stdout := newSessionOutput(request, resume)
+	providerContext, watchdog := watchResponse(ctx, request)
+	defer watchdog.stop()
+	stdout.onActivity = watchdog.activity
 	stdout.progress = errorOutput
 	if err := stdout.checkpoint(); err != nil {
 		return Result{}, err
@@ -127,8 +135,9 @@ func Execute(ctx context.Context, request Request, resume bool, evidence *Eviden
 		reportHeartbeat(errorOutput, request.Harness, request.SessionID, stopHeartbeat)
 	}()
 	defer func() { <-heartbeatDone }()
-	diagnostics := &providerDiagnostics{writer: errorOutput, request: request}
-	executionErr := executor(ctx, invocation.Command, invocation.Args, invocation.Dir, strings.NewReader(invocation.Stdin), stdout, diagnostics)
+	diagnostics := &providerDiagnostics{writer: errorOutput, request: request, onActivity: watchdog.activity}
+	executionErr := executor(providerContext, invocation.Command, invocation.Args, invocation.Dir, strings.NewReader(invocation.Stdin), stdout, diagnostics)
+	responseTimeout := watchdog.stop()
 	stdout.finish(executionErr != nil)
 	if request.OnResponse != nil {
 		if err := request.OnResponse(stdout.Bytes()); err != nil {
@@ -143,6 +152,14 @@ func Execute(ctx context.Context, request Request, resume bool, evidence *Eviden
 		if diagnostics.err != nil {
 			stdout.err = diagnostics.err
 		}
+	}
+	if responseTimeout != "" {
+		close(stopHeartbeat)
+		return Result{}, responseTimeoutIncident(responseTimeout, request, stdout.identity)
+	}
+	if ctx.Err() != nil {
+		close(stopHeartbeat)
+		return Result{}, newIncident("timeout", request.Harness, stdout.identity, ctx.Err())
 	}
 	if err := executionErr; err != nil {
 		close(stopHeartbeat)
@@ -299,7 +316,7 @@ func BuildStart(request Request) (Invocation, error) {
 	case "claude":
 		invocation.Args = []string{"-p", "--output-format", "stream-json", "--verbose", "--model", request.Model, "--session-id", request.SessionID, "--tools", claudeTools(request), "--permission-mode", "plan"}
 		if request.ControlledReads {
-			invocation.Args = append(invocation.Args, "--safe-mode", "--strict-mcp-config")
+			invocation.Args = append(invocation.Args, "--safe-mode", "--strict-mcp-config", "--include-partial-messages")
 		}
 		settings, err := claudeRequestSettings(request)
 		if err != nil {
@@ -338,7 +355,7 @@ func BuildResume(request Request) (Invocation, error) {
 	case "claude":
 		invocation.Args = []string{"-p", "--output-format", "stream-json", "--verbose", "--model", request.Model, "--resume", request.SessionID, "--tools", claudeTools(request), "--permission-mode", "plan"}
 		if request.ControlledReads {
-			invocation.Args = append(invocation.Args, "--safe-mode", "--strict-mcp-config")
+			invocation.Args = append(invocation.Args, "--safe-mode", "--strict-mcp-config", "--include-partial-messages")
 		}
 		settings, err := claudeRequestSettings(request)
 		if err != nil {

@@ -1,7 +1,7 @@
 ---
 title: SDLC v3 Architecture
-version: 10
-last-updated: 2026-10-06
+version: 11
+last-updated: 2026-10-11
 ---
 
 # SDLC v3 Architecture
@@ -175,16 +175,17 @@ lock files are not removed while other processes may be waiting. No process
 search or termination is performed. Existing processes from older releases do
 not participate in this protocol and must exit before concurrent use.
 
-Codex and Claude receive original absolute paths and a metadata-only evidence
-manifest. Hermes and Copilot run without file tools and receive verified UTF-8
-project evidence initially; installed standards are fetched by validated
-relative-name requests in the retained session, without retained copies. The harness
-hashes regular files before and after execution, rejects
-mutation, and checkpoints each invocation's manifest before execution in
-`audits.yaml` under `history[].evidence`. Resume compares against that gate's
-last recorded manifest. There is no document-copy cache; hashes do not imply
-that an auditor remembers unchanged content. Provider read-only controls remain
-necessary, and additional reads outside the input list are not hash-verified.
+All audit adapters run without native file tools and receive a hash-bound
+manifest, verified UTF-8 project evidence and mandatory installed standards over
+stdin. Further installed references use validated relative-name requests within
+the retained session. Standards delivery is recorded separately from verdicts;
+unconfirmed delivery or context loss requires a replacement context and complete
+package. Unchanged contents are supplied once per retained context.
+The harness hashes regular files before and after execution, rejects mutation,
+and checkpoints each invocation's manifest in `audits.yaml` under
+`history[].evidence`. Resume compares against the last recorded manifest.
+There is no document-copy cache; hashes and transport acknowledgments establish
+supplied contents, not comprehension or continued model recall.
 
 Validated verdicts are cached per work item/gate using a versioned SHA-256 key
 over the full supplied manifest, prompt registry, caller context and effective
@@ -193,11 +194,12 @@ returned before session recovery and round admission, without any record mutatio
 Unkeyed legacy records and incomplete attempts cannot produce cache hits.
 Internal lockout is checked before cache lookup and survives configuration changes.
 
-For Claude, the captured manifest also supplies exact invocation-local Read
-permissions, including resolved path aliases. JSON settings preserve literal
-filename characters without granting directory access. The adapter retains
-Read-only built-in tools and plan mode; existing permission denials still apply.
-This is evidence-access plumbing, not a complete filesystem sandbox.
+Claude audit invocation uses an empty native tool inventory, safe mode and
+strict MCP configuration. Invocation-local settings deny installed standards
+reads rather than granting broad directory access. Codex likewise disables native
+tools and user configuration while retaining credentials. Unsupported isolation
+options fail closed. These adapter controls are not a complete OS filesystem
+sandbox.
 
 Native session identity is checkpointed as soon as the adapter observes it.
 Timeouts retain the attempt manifest without consuming the verdict budget. YAML supplies private timeout diagnostics and
@@ -238,6 +240,28 @@ record instead of discarding it. Capture is limited to 16 MiB, with an explicit
 overflow incident; provider stderr is captured privately. Event metadata is not a verdict
 or proof that the provider has finished. Tool payloads and prompts are not
 replayed as progress, and existing process deadlines still govern termination.
+
+### Audit deadline coordination
+
+The recovery coordinator owns one overall audit context (`15m` by default).
+Every provider turn, including reference fetches, derives a child deadline
+(`10m`); a response watchdog separately enforces initial activity (`3m`) and
+subsequent idle gaps (`2m`). Response activity comes from native model events,
+not heartbeat or startup output. Mutex-protected timer generations prevent a
+stopped timer from cancelling a later active generation. Overall expiry stops
+recovery and persists managed internal lockout without fabricating a verdict.
+Only the terminal stop requires human intervention.
+
+Hermes's quiet CLI hides incremental reasoning and content, so an embedded
+Python bridge uses the installed native agent interface, callbacks, credentials
+and session store. `uv` runs it offline using the existing Hermes interpreter;
+console-script and Homebrew libexec layouts are supported. This is a deliberate
+ecosystem boundary rather than a second provider implementation. Callback
+metadata exposes activity without partial prose. Safe mode suppresses ambient
+user rules, memory and configuration; an inherited ephemeral system-prompt
+overlay is cleared. Built-in Hermes instructions remain. Tool exposure and
+background review are disabled. Local interface fixtures establish adapter
+behaviour; they do not certify hosted providers.
 
 ## Initialization and migration
 
@@ -366,6 +390,9 @@ contract. Existing attempt history remains intact; only labelled valid verdicts
 are charged to an explicit gate.
 
 ## Document history
+
+- Version 11 (2026-10-11): Define audit deadline coordination and the native
+  Hermes response callback bridge.
 
 - Version 10 (2026-10-06): Serve requested standards within a bounded retained
   audit session for tools-disabled providers, without preloading their text.

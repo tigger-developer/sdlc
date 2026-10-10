@@ -22,6 +22,7 @@ type sessionOutput struct {
 	sawJSON      bool
 	plainFailure string
 	failureText  string
+	onActivity   func()
 }
 
 const maxProviderOutput = 16 * 1024 * 1024
@@ -103,6 +104,9 @@ func (output *sessionOutput) finish(failed bool) {
 // report forwards event metadata, never assistant prose, tool payloads or prompts.
 // Error messages are the only provider text exposed by this stdout adapter.
 func (output *sessionOutput) report(line []byte) {
+	if output.onActivity != nil && responseActivity(output.request.Harness, line) {
+		output.onActivity()
+	}
 	if output.request.ControlledReads {
 		if kind := controlledEventIncident(output.request.Harness, line); kind != "" {
 			output.err = newIncident(kind, output.request.Harness, output.identity, errors.New("auditor attempted a native tool or lost its supplied standards context"))

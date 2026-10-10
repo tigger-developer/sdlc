@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"strings"
@@ -86,6 +87,7 @@ case "$prompt" in
     ;;
 esac
 `
+	// #nosec G306 -- private executable fixture never invokes a hosted provider.
 	if err := os.WriteFile(filepath.Join(bin, "hermes"), []byte(script), 0o700); err != nil {
 		t.Fatal(err)
 	}
@@ -102,7 +104,10 @@ esac
 	if err != nil {
 		t.Fatal(err)
 	}
-	result, err := runner.invoke(harness.AuditEntry{}, config, request, false)
+	if err := prepareHermesSDKFixture(); err != nil {
+		t.Fatal(err)
+	}
+	result, err := runner.invoke(context.Background(), harness.AuditEntry{}, config, request, false)
 	if err != nil {
 		t.Fatal(err)
 	}

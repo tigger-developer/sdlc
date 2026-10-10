@@ -1,6 +1,9 @@
 # Build artefacts
 /bin/
 /coverage.out
+/.venv/
+__pycache__/
+/.ruff_cache/
 /.env
 
 # Editor and operating-system noise

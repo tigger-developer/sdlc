@@ -1,7 +1,7 @@
 ---
 title: Audit and Gate Standards
-version: 6
-last-updated: 2026-10-10
+version: 7
+last-updated: 2026-10-11
 ---
 
 # Audit and Gate Standards
@@ -117,6 +117,14 @@ a valid response clears that streak. Internal retry counts are not agent-facing.
 Malformed responses receive a format-clarification prompt inside the retained auditor
 context when available. Authentication failure selects fallback immediately; if
 that fallback fails, the harness stops and requires an authorized reset.
+
+Audit execution has separate per-turn (`10m`), overall (`15m`), initial
+response (`3m`) and response-idle (`2m`) defaults. Project/global YAML can
+override them with duration strings such as `90s`. The overall budget spans
+recovery and fallback; neither receives a fresh invocation budget. Heartbeats
+are not response activity. Recoverable timeout notices do not require human
+intervention; exhausting the overall budget locks a managed audit until an
+authorized reset. See `HARNESS.md` for configuration and private diagnostics.
 
 On a verdict-limit stop, obtain operator authorization before invoking `--reset`
 with the same gate, record and work item, without inputs. Reset runs no audit;
@@ -275,6 +283,9 @@ remain solely in `audits.yaml`, and operator closure remains separate.
 Append " AUDIT" (with a leading space) to the canary.
 
 ## Document history
+
+Version 7 adds shared and response deadlines and distinguishes recoverable
+timeout notices from terminal internal lockout.
 
 Version 6 deterministically supplies mandatory standards to every provider,
 separates standalone and agent-spike routing, and binds delivery evidence to

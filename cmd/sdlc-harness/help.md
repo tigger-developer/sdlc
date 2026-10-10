@@ -96,4 +96,13 @@ Goal-config options:
   --goal-max-turns N                   Continuation limit override.
   --goal-max-token-budget N            Token budget override.
 
+Audit limits are configured under delivery.audit in project .sdlc/project.yaml
+or global ~/.agents/sdlc.yaml: timeout (10m per turn), total_timeout (15m across
+recovery and fallback), response_start_timeout (3m), response_idle_timeout (2m),
+max_failures (3) and max_rounds (5). Duration strings require units and at least
+one second; 90s is accepted as a personal response-start override. Heartbeats
+and initialization do not count as model response activity. Recoverable
+timeouts do not require human intervention; overall expiry stops recovery.
+Hermes auditing requires uv and a supported installed native Hermes runtime.
+
 Operator configuration and diagnostic details: ~/.agents/sdlc/HARNESS.md

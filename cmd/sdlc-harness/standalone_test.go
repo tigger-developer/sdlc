@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -12,6 +13,9 @@ import (
 // runFixture injects an on-disk prompt registry at the filesystem boundary.
 // Public audit invocations cannot override their canonical routing documents.
 func runFixture(arguments []string, input io.Reader, output, diagnostics io.Writer) error {
+	if err := prepareHermesSDKFixture(); err != nil {
+		return err
+	}
 	var args []string
 	registry, project := "", "."
 	spike := false
@@ -51,6 +55,40 @@ func runFixture(arguments []string, input io.Reader, output, diagnostics io.Writ
 		}
 	}
 	return run(args, input, output, diagnostics)
+}
+
+// The fake uv process models the installed-runtime boundary while existing
+// synthetic Hermes providers continue to exercise model/provider/session args.
+// No Python interpreter or external model is used by these Go CLI fixtures.
+func prepareHermesSDKFixture() error {
+	path, err := exec.LookPath("hermes")
+	if err != nil {
+		return nil
+	}
+	body, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	if !strings.HasPrefix(string(body), "#!/bin/sh\n") {
+		return nil
+	}
+	root := filepath.Dir(filepath.Dir(path))
+	if !strings.HasPrefix(root, os.TempDir()) {
+		return nil
+	}
+	entry := filepath.Join(root, "libexec", "bin", "hermes")
+	if err := os.MkdirAll(filepath.Dir(entry), 0700); err != nil {
+		return err
+	}
+	interpreter := filepath.Join(root, "libexec", "bin", "python")
+	if err := os.WriteFile(interpreter, []byte("fixture runtime"), 0600); err != nil {
+		return err
+	}
+	if err := os.WriteFile(entry, []byte("#!"+interpreter+"\nfrom hermes_cli.main import main\n"), 0600); err != nil {
+		return err
+	}
+	// #nosec G306 -- executable synthetic uv boundary, entirely fixture-owned.
+	return os.WriteFile(filepath.Join(filepath.Dir(path), "uv"), []byte("#!/bin/sh\nexec \"$(dirname \"$0\")/hermes\" \"$@\"\n"), 0700)
 }
 
 func TestMain(m *testing.M) {
@@ -312,6 +350,7 @@ done
 printf 'AUDIT: standalone\nREVISION: candidate\nVERDICT: PASS\n' > "$output"
 printf '{"type":"thread.started","thread_id":"standalone-fixture"}\n'
 `
+	// #nosec G306 -- private executable fixture never invokes a hosted provider.
 	if err := os.WriteFile(filepath.Join(bin, "codex"), []byte(script), 0o700); err != nil {
 		t.Fatal(err)
 	}

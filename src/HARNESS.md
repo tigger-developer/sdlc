@@ -1,7 +1,7 @@
 ---
 title: SDLC Audit Harness Guide
-version: 9
-last-updated: 2026-10-10
+version: 10
+last-updated: 2026-10-11
 ---
 
 # SDLC audit harness guide
@@ -137,9 +137,19 @@ the same automatic audit behaviour. The old reset-session flag is replaced by re
   user configuration while retaining its credential store: custom model-provider
   definitions in that configuration are unavailable to this isolated audit route.
   The CLI must support these options; an unsupported invocation fails closed.
-- Hermes uses `chat --quiet --query-file -` with its native resume option and
-  reads native `session_id:` stderr metadata. Top-level `-z` is not used because
-  it bypasses session options; model-written session identifiers are not trusted.
+- Hermes audits use an embedded bridge into the installed native agent interface
+  to expose response callbacks hidden by quiet CLI output. The fixed
+  `chat --quiet --query-file -` argument contract and native resume identity are
+  retained. Native `session_id:` metadata is checkpointed before generation;
+  model-written identities are not trusted. The bridge requires `uv` on PATH
+  and a Hermes console script with an absolute Python shebang, or the fixed
+  Homebrew libexec layout. It runs offline using that existing interpreter and
+  packages, without downloading or modifying the Hermes runtime. Unsupported
+  layouts or missing native interfaces fail explicitly. Safe mode skips user
+  configuration, rules, context files and memory; the bridge clears an inherited
+  `HERMES_EPHEMERAL_SYSTEM_PROMPT`. Hermes built-in instructions remain.
+  Native tools and background review are disabled. Credentials and native
+  session persistence remain owned by Hermes.
 - Hermes and Copilot also run with file tools disabled. The harness selects and
   supplies mandatory standards automatically for each route. Further references
   use a bounded `STANDARDS-REQUEST` response with exact inventory names. All
@@ -182,6 +192,48 @@ the same automatic audit behaviour. The old reset-session flag is replaced by re
 - Project and global YAML configuration supply harness, provider where
   supported, model, timeout, and `delivery.audit.max_rounds`; explicit flags
   override them.
+
+## Audit execution deadlines
+
+Configure these duration strings under `delivery.audit` in project
+`.sdlc/project.yaml` or global `~/.agents/sdlc.yaml`:
+
+| Key | Default | Meaning |
+|---|---|---|
+| `timeout` | `10m` | Maximum duration of one provider turn. |
+| `total_timeout` | `15m` | Shared budget for the invocation's provider turns, reference fetches, recovery and fallback. |
+| `response_start_timeout` | `3m` | Maximum wait for the first native model response activity. |
+| `response_idle_timeout` | `2m` | Maximum gap between native response events after activity begins. |
+| `max_failures` | `3` | Consecutive unusable attempts before internal lockout. |
+| `max_rounds` | `5` | Valid verdict allowance for each managed gate. |
+
+Durations require units and must be at least one second: `90s`, `3m`, and
+`1m30s` are accepted; bare `90`, zero, negative and subsecond values are
+rejected. A personal `response_start_timeout: 90s` overrides the `3m` product
+default. Project YAML overrides global YAML; process environment overrides both.
+The additional environment keys are `SDLC_AUDIT_TOTAL_TIMEOUT`,
+`SDLC_AUDIT_RESPONSE_START_TIMEOUT` and `SDLC_AUDIT_RESPONSE_IDLE_TIMEOUT`.
+These three limits apply only to audit execution, including standalone and
+agent-spike reviews. Definition/build retain their existing timeout defaults.
+The overall budget begins when provider recovery starts; earlier local readiness,
+configuration and evidence preparation are outside it. Cached verdicts invoke no
+provider. The earliest applicable deadline wins; recovery never extends the
+shared budget, even when the provider or model changes.
+
+Only native model response events count as activity. Session initialization,
+process liveness notices, heartbeats and retry notices do not. Hermes reports
+content/reasoning callback metadata; Claude exposes partial streaming events;
+Codex and Copilot use their native assistant/reasoning events. Private progress
+metadata contains no partial Hermes prose. A provider that cannot expose events
+may hit the start deadline despite computing internally; configure limits with
+that interface in mind.
+
+A turn or response deadline produces an unusable attempt, no verdict and no
+verdict allowance consumed. It may recover or select fallback within the remaining
+budget and failure bound. A timeout notice reports recovery as pending; it does
+not itself require human intervention. Exhausting the shared budget stops all
+recovery and, for a managed audit, records internal lockout requiring an authorized
+`--reset`. Standalone reviews have no persisted lockout.
 
 ## Output and private diagnostics
 
@@ -393,6 +445,9 @@ fallback internally. Calling agents must not build a second retry loop around an
 infrastructure failure. Known FAIL findings remain unresolved until reassessed.
 
 ## Document history
+
+- Version 10 (2026-10-11): Add shared, response-start and response-idle deadlines,
+  native Hermes progress callbacks and terminal-only intervention reporting.
 
 Version 9 supplies mandatory standards deterministically for three audit profiles,
 isolates provider tools, rejects caller routing overrides and reuses unchanged

@@ -1,7 +1,7 @@
 ---
 title: SDLC Configuration and Installation Reference
-version: 1
-last-updated: 2026-10-05
+version: 2
+last-updated: 2026-10-11
 ---
 
 # SDLC configuration and installation reference
@@ -116,7 +116,10 @@ delivery:
     harness: codex
     provider: openai
     model: gpt-5.6-luna
-    timeout: 5m
+    timeout: 10m
+    total_timeout: 15m
+    response_start_timeout: 3m # A personal override can use 90s.
+    response_idle_timeout: 2m
     max_rounds: 5
     max_failures: 3
     # Optional: use when an audit attempt ends without a usable verdict.
@@ -145,6 +148,17 @@ attempts must finish or time out. Local configuration, evidence and record
 errors remain blockers. Non-audit definition and build retain
 authentication-only fallback. See the [audit harness guide](../src/HARNESS.md)
 for recovery, cooldown and diagnostics.
+
+Audit durations require units, for example `90s` or `3m`, and a minimum of
+one second. The three additional deadline keys also accept
+`SDLC_AUDIT_TOTAL_TIMEOUT`, `SDLC_AUDIT_RESPONSE_START_TIMEOUT` and
+`SDLC_AUDIT_RESPONSE_IDLE_TIMEOUT` process overrides. The earliest deadline wins;
+`total_timeout` spans provider recovery and fallback. A recoverable response
+timeout is not an instruction to intervene. See the
+[audit deadline contract](../src/HARNESS.md#audit-execution-deadlines).
+Hermes auditing additionally requires `uv` and a supported installed Hermes
+runtime; it uses existing packages offline. Development checks use the locked
+project-local Python environment through `make test-hermes` and `make lint`.
 
 Goal values above match the schema defaults. Plain positive integers and
 correctly comma-grouped thousands are accepted; periods, decimals, malformed
@@ -177,6 +191,9 @@ it.
 | `cmd/` and `internal/` | Installer, initializer, validator, harness adapters, and ledger merger |
 
 ## Document history
+
+- Version 2 (2026-10-11): Document audit deadlines, units, overrides and Hermes
+  runtime requirements.
 
 - Version 1 (2026-10-05): Moved the current installation, configuration, and
   repository-layout reference out of the archived v3.5.2 README, updated it for

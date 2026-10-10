@@ -74,6 +74,9 @@ sleep 10
 	var incident *harness.Incident
 	wantAttempts, wantVerdicts := 3, 0
 	if recovery == "success" {
+		if strings.Contains(diagnostics.String(), "Human intervention required") || strings.Contains(diagnostics.String(), "STOP_FIXTURE") {
+			t.Fatal("recoverable timeout emitted terminal intervention")
+		}
 		wantAttempts, wantVerdicts = 2, 1
 		if err != nil {
 			t.Fatal(err)

@@ -10,13 +10,14 @@ import (
 )
 
 type providerDiagnostics struct {
-	mu       sync.Mutex
-	writer   io.Writer
-	tail     string
-	request  Request
-	pending  string
-	identity string
-	err      error
+	mu         sync.Mutex
+	writer     io.Writer
+	tail       string
+	request    Request
+	pending    string
+	identity   string
+	err        error
+	onActivity func()
 }
 
 func (d *providerDiagnostics) Write(data []byte) (int, error) {
@@ -34,6 +35,12 @@ func (d *providerDiagnostics) Write(data []byte) (int, error) {
 				break
 			}
 			d.pending = rest
+			if line == "sdlc_response: content" || line == "sdlc_response: reasoning" {
+				if d.onActivity != nil {
+					d.onActivity()
+				}
+				continue
+			}
 			if !strings.HasPrefix(line, "session_id: ") {
 				continue
 			}
@@ -59,6 +66,9 @@ func (d *providerDiagnostics) Write(data []byte) (int, error) {
 func providerFailure(message string, request Request, resume bool) string {
 	for _, line := range strings.Split(message, "\n") {
 		line = strings.TrimSpace(line)
+		if request.Harness == "hermes" {
+			line = strings.TrimPrefix(line, "Hermes native adapter error: ")
+		}
 		// This native Claude diagnostic identifies the exact requested context.
 		if resume && request.Harness == "claude" && request.SessionID != "" && strings.TrimSuffix(line, ".") == "No conversation found with session ID: "+request.SessionID {
 			return "session-unavailable"
