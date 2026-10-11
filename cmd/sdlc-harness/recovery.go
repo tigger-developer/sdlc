@@ -66,7 +66,13 @@ func (r recoveryRun) executeWithinDeadline(ctx context.Context, entry harness.Au
 		if deadline.After(time.Now()) {
 			fmt.Fprintf(r.diagnostics, "AUDIT COOLDOWN: %s/%s unavailable until %s; primary skipped; no round consumed\n", r.config.Harness, r.config.Model, deadline.UTC().Format(time.RFC3339))
 			if r.config.Fallback == nil || *r.config.Fallback == r.config.Agent() {
+				if err := reportAuditStatus(r.diagnostics, "Audit primary is cooling down until "+deadline.UTC().Format(time.RFC3339)+"; no distinct fallback is configured. No provider invoked. An operator-authorized --reset clears this cooldown."); err != nil {
+					return harness.Result{}, err
+				}
 				return harness.Result{}, fmt.Errorf("primary audit route cooling down until %s; no distinct fallback configured", deadline.UTC().Format(time.RFC3339))
+			}
+			if err := reportAuditStatus(r.diagnostics, "Audit primary is cooling down until "+deadline.UTC().Format(time.RFC3339)+". Trying the configured fallback."); err != nil {
+				return harness.Result{}, err
 			}
 			selected = r.config.WithAgent(*r.config.Fallback)
 			if resume && (r.path == "" || !owns(entry, selected.Agent())) {
@@ -92,7 +98,7 @@ func (r recoveryRun) executeWithinDeadline(ctx context.Context, entry harness.Au
 			reason = "standards-delivery-unconfirmed"
 		}
 		if r.audit && (entry.FailureBlocked() || (!permanentFallback && entry.ConsecutiveFailures() >= r.config.MaxFailures)) {
-			return harness.Result{}, auditUnavailable()
+			return harness.Result{}, r.block(entry)
 		}
 		if r.path != "" && entry.RoundsUsed() >= r.config.MaxRounds {
 			return harness.Result{}, fmt.Errorf("audit verdict limit reached; operator authorization is required for --reset")
@@ -129,13 +135,6 @@ func (r recoveryRun) executeWithinDeadline(ctx context.Context, entry harness.Au
 		if _, logErr := fmt.Fprintf(r.diagnostics, "Unusable provider response: %q\n", err.Error()); logErr != nil {
 			return harness.Result{}, logErr
 		}
-		if r.audit && selected.Agent() == r.config.Agent() && r.config.Fallback != nil && *r.config.Fallback != selected.Agent() && fallbackEligible(incident, true) {
-			retryAt := time.Now().Add(r.config.CoolOffPeriod)
-			if saveErr := r.cooldowns.Record(selected.Agent(), retryAt); saveErr != nil {
-				return harness.Result{}, errors.Join(err, fmt.Errorf("saving primary audit cooldown: %w", saveErr))
-			}
-			fmt.Fprintf(r.diagnostics, "AUDIT COOLDOWN: %s/%s recorded until %s\n", selected.Harness, selected.Model, retryAt.Format(time.RFC3339))
-		}
 		if r.path != "" {
 			saved, found, readErr := harness.ReadAuditEntry(r.path, r.work, r.gate)
 			if readErr != nil {
@@ -153,24 +152,56 @@ func (r recoveryRun) executeWithinDeadline(ctx context.Context, entry harness.Au
 			entry = saved
 			entry.ReadinessCheck = r.readinessCheck
 		}
+		role := "primary"
+		if fallbackUsed {
+			role = "fallback"
+		}
+		if reportErr := reportAuditStatus(r.diagnostics, "Audit "+role+" failed: "+failureSummary(incident.Kind)+". No verdict obtained."); reportErr != nil {
+			return harness.Result{}, reportErr
+		}
+		if r.audit && incident.Kind != "request-too-large" && selected.Agent() == r.config.Agent() && r.config.Fallback != nil && *r.config.Fallback != selected.Agent() && fallbackEligible(incident, true) {
+			retryAt := time.Now().Add(r.config.CoolOffPeriod)
+			var saveErr error
+			if r.path != "" {
+				saveErr = harness.RecordAuditCooldown(r.path, entry, r.cooldowns, selected.Agent(), retryAt)
+			} else {
+				saveErr = r.cooldowns.Record(selected.Agent(), retryAt)
+			}
+			if saveErr != nil {
+				return harness.Result{}, errors.Join(err, fmt.Errorf("saving primary audit cooldown: %w", saveErr))
+			}
+			fmt.Fprintf(r.diagnostics, "AUDIT COOLDOWN: %s/%s recorded until %s\n", selected.Harness, selected.Model, retryAt.Format(time.RFC3339))
+		}
 		if r.audit && !permanentProviderFailure(incident.Kind) && (entry.FailureBlocked() || entry.ConsecutiveFailures() >= r.config.MaxFailures) {
-			return harness.Result{}, auditUnavailable()
+			return harness.Result{}, r.block(entry)
 		}
 		if r.audit && permanentFallback {
 			return harness.Result{}, r.block(entry)
 		}
 		switch {
 		case r.audit && incident.Kind == "context-lost":
+			if err := reportAuditStatus(r.diagnostics, "Starting a fresh audit context with mandatory standards and current evidence."); err != nil {
+				return harness.Result{}, err
+			}
 			reason = "context-lost"
 		case r.audit && correctableResponse(incident.Kind) && entry.SessionID != "" && !corrected[selected.Agent()]:
+			if err := reportAuditStatus(r.diagnostics, "Requesting a corrected audit response in the retained context."); err != nil {
+				return harness.Result{}, err
+			}
 			corrected[selected.Agent()] = true
 			resume, reason = true, ""
 		case fallbackEligible(incident, r.audit) && !fallbackUsed && r.config.Fallback != nil && *r.config.Fallback != selected.Agent():
+			if err := reportAuditStatus(r.diagnostics, "Trying the configured fallback."); err != nil {
+				return harness.Result{}, err
+			}
 			permanentFallback = permanentProviderFailure(incident.Kind)
 			fallbackUsed = true
 			selected = selected.WithAgent(*r.config.Fallback)
 			reason = incident.Kind + "-fallback"
 		case incident.Kind == "session-unavailable" && resume && !missingRecovered && r.path != "":
+			if err := reportAuditStatus(r.diagnostics, "Starting a replacement audit context using retained evidence and findings."); err != nil {
+				return harness.Result{}, err
+			}
 			missingRecovered = true
 			reason = "session-unavailable"
 		default:
@@ -178,9 +209,15 @@ func (r recoveryRun) executeWithinDeadline(ctx context.Context, entry harness.Au
 				return harness.Result{}, r.block(entry)
 			}
 			if r.audit && r.path != "" && fallbackEligible(incident, true) {
+				if err := reportAuditStatus(r.diagnostics, "Retrying within the remaining audit deadline and failure allowance."); err != nil {
+					return harness.Result{}, err
+				}
 				resume = entry.SessionID != ""
 				reason = ""
 				continue
+			}
+			if reportErr := reportAuditStatus(r.diagnostics, "Recovery stopped. No verdict obtained. Caller: report this blocker; do not troubleshoot the auditor or change its configuration."); reportErr != nil {
+				return harness.Result{}, reportErr
 			}
 			return harness.Result{}, err
 		}
@@ -188,11 +225,14 @@ func (r recoveryRun) executeWithinDeadline(ctx context.Context, entry harness.Au
 }
 
 func permanentProviderFailure(kind string) bool {
-	return kind == "authentication-failed" || kind == "model-unavailable" || kind == "quota-exhausted" || kind == "provider-permanent-error"
+	return kind == "authentication-failed" || kind == "model-unavailable" || kind == "quota-exhausted" || kind == "provider-permanent-error" || kind == "request-too-large" || kind == "request-rejected" || kind == "tls-verification-failed"
 }
 
 func (r recoveryRun) stopAtDeadline(entry harness.AuditEntry) error {
 	err := &harness.Incident{Kind: "total-timeout", Harness: "audit", Err: fmt.Errorf("overall audit deadline of %s exceeded; no verdict", r.config.TotalTimeout)}
+	if reportErr := reportAuditStatus(r.diagnostics, "Audit stopped: "+failureSummary(err.Kind)+". No further recovery will run."); reportErr != nil {
+		return errors.Join(err, reportErr)
+	}
 	if !r.audit || r.path == "" {
 		return err
 	}
@@ -210,6 +250,9 @@ func (r recoveryRun) stopAtDeadline(entry harness.AuditEntry) error {
 }
 
 func (r recoveryRun) block(entry harness.AuditEntry) error {
+	if err := reportAuditStatus(r.diagnostics, auditStopStatus); err != nil {
+		return err
+	}
 	if len(entry.History) != 0 {
 		entry.History[len(entry.History)-1].InternalStop = true
 		if err := harness.WriteAuditEntry(r.path, entry); err != nil {

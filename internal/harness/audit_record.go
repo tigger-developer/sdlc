@@ -155,6 +155,39 @@ func ResetAuditBudget(path, workItem, gate string, selected ...string) error {
 	})
 }
 
+// ResetAuditRecovery retires the context and clears operator-selected cooldowns
+// while holding the record lock, so obsolete invocations cannot restore them.
+func ResetAuditRecovery(path, workItem, gate, selected string, clear func(AuditEntry) error) error {
+	return withAuditRecordLock(path, func(resolved string) error {
+		entry, found, err := ReadAuditEntry(resolved, workItem, gate)
+		if err != nil {
+			return err
+		}
+		if !found {
+			return fmt.Errorf("no audit record for %s/%s", workItem, gate)
+		}
+		if err := resetAuditBudget(resolved, workItem, gate, selected); err != nil {
+			return err
+		}
+		return clear(entry)
+	})
+}
+
+// RecordAuditCooldown checks generation under the reset lock before changing
+// route state. All combined transactions acquire the record lock first.
+func RecordAuditCooldown(path string, entry AuditEntry, store CooldownStore, agent AgentConfig, deadline time.Time) error {
+	return withAuditRecordLock(path, func(resolved string) error {
+		current, found, err := ReadAuditEntry(resolved, entry.WorkItem, entry.Gate)
+		if err != nil {
+			return err
+		}
+		if !found || current.Generation != entry.Generation {
+			return ErrAuditReset
+		}
+		return store.Record(agent, deadline)
+	})
+}
+
 func resetAuditBudget(path, workItem, gate string, selected ...string) error {
 	entry, found, err := ReadAuditEntry(path, workItem, gate)
 	if err != nil {

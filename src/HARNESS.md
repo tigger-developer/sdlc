@@ -1,6 +1,6 @@
 ---
 title: SDLC Audit Harness Guide
-version: 11
+version: 12
 last-updated: 2026-10-11
 ---
 
@@ -247,6 +247,14 @@ review invalidate the audit for the changed candidate. Mutation detection occurs
 after provider execution, without immediate cancellation. Provider names,
 session IDs and internal retry counts are not part of the calling-agent contract.
 
+Failure reporting remains visible: the harness emits a safe classification
+and says whether it is trying fallback, correcting the response, replacing
+context, retrying within its bounds, or stopping. Cooldown skips report the
+deadline and next action. Terminal messages direct the caller to report the
+blocker and diagnostic reference, without troubleshooting the auditor or
+changing its configuration. These messages are generated from typed failures;
+native text cannot select public status messages, even after the private log cap.
+
 Private files under `.sdlc/audit-diagnostics/` retain provider diagnostics and
 unvalidated output, including malformed responses. Files are created with mode
 0600 in a 0700 directory with its own Git ignore rule. Each invocation log is
@@ -305,6 +313,17 @@ The selected gate's verdict allowance and failure streak reset, its provider con
 is retired, and pre-reset verdicts are not reused from cache. Findings, history and
 logs remain intact. Other gates' counters are unchanged.
 
+Reset also expires project-local cooldowns for the currently configured primary
+and the recorded primary, when different. These route cooldowns are shared
+across work items in this project; other routes and projects are unchanged.
+Reset and cooldown writes share the audit generation lock, so an obsolete
+invocation cannot restore its cooldown after reset. If configuration is invalid,
+the recorded primary can still be reset; stderr reports that the current route
+cannot be resolved and configuration must be corrected before another audit.
+Reset does not replenish provider quota, change credentials or make an oversized
+request fit a model's context window. Its confirmation distinguishes restored
+harness eligibility from provider availability.
+
 Reset accepts every recorded status, including stale or active `running` state;
 no process-name search or proof of termination is required. It advances the
 selected context's generation. Earlier invocations cannot write identity,
@@ -328,8 +347,10 @@ A valid verdict clears the streak; other gates do not. The harness owns bounded
 retries and envelope correction, not the calling agent. For an unusable response,
 it first sends a correction prompt in the retained context when available before
 trying fallback; a valid corrected verdict consumes one verdict allowance. It returns only
-"Audit unavailable: unable to obtain a valid result. Human intervention required"
-with a diagnostic reference. Further audits, including cached requests, are refused until an authorized
+the validated verdict on stdout; failures emit safe reasons and next actions on
+stderr, followed by "Audit unavailable: unable to obtain a valid result. Human
+intervention required" with a diagnostic reference when recovery is exhausted.
+Further audits, including cached requests, are refused until an authorized
 `--reset`. Operators inspect the private log before authorizing recovery.
 Authentication failure immediately selects the configured fallback, without format
 correction. If that fallback fails, or no fallback is configured, the harness locks
@@ -379,6 +400,13 @@ the managed gate stops without a verdict and retains its diagnostic reference.
 This applies even when `max_failures` is one. Hermes may perform native retries
 inside a turn; the harness does not override that provider policy.
 
+Context-limit rejection is classified as `request-too-large` rather than a
+launch failure. It does not create a primary cooldown. The harness may select
+one distinct fallback, but does not repeatedly submit the same rejected package
+to an unchanged route or silently trim required standards or project evidence.
+The 8 MiB transport limit is not proof that a package fits any model's token
+window; provider context rejection remains authoritative.
+
 For Hermes with `provider: claude` or `provider: anthropic`, use a full Anthropic
 model ID. This adapter does not expand Claude Code short aliases such as `sonnet`,
 `opus` or `haiku`; they are rejected before native initialization with a
@@ -408,6 +436,8 @@ a project-local cooldown. The deadline is the local failure time plus
 parse provider messages or infer reset dates. The policy applies to every
 supported primary harness, including launch/authentication failures, timeouts
 and unusable responses. PASS, FAIL and PROVISIONAL PASS do not trigger it.
+An oversized request does not trigger it either: request rejection is separate
+from route availability.
 Local configuration, evidence-integrity and record failures remain blockers.
 
 ```yaml
@@ -467,6 +497,9 @@ fallback internally. Calling agents must not build a second retry loop around an
 infrastructure failure. Known FAIL findings remain unresolved until reassessed.
 
 ## Document history
+
+- Version 12 (2026-10-11): Report safe failure causes and recovery transitions,
+  reset applicable primary cooldowns and distinguish context-limit rejection.
 
 - Version 11 (2026-10-11): Preserve structured Hermes failures, stop permanent
   provider recovery promptly and reject unsupported Anthropic short aliases.

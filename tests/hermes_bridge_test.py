@@ -78,6 +78,14 @@ class NativeInterfaceTest(unittest.TestCase):
             ({"error": "secret-key private evidence"}, "unknown", None, None),
             ({"error": "HTTP 404: endpoint not found"}, "unknown", 404, None),
             (
+                {
+                    "error": "HTTP 400: prompt is too long: 2060374 tokens > 1000000 maximum"
+                },
+                "context_overflow",
+                400,
+                False,
+            ),
+            (
                 {"failure_reason": "secret-key", "failure_retryable": 0},
                 "unknown",
                 None,

@@ -39,3 +39,25 @@ func TestAuditDiagnosticsKeepsHeartbeatAfterLogCap(t *testing.T) {
 		t.Fatal("session leaked")
 	}
 }
+
+func TestAuditStatusRemainsVisibleAfterLogCap(t *testing.T) {
+	var output bytes.Buffer
+	log, err := openAuditDiagnostics(t.TempDir(), &output)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = log.file.Close() })
+	log.remaining = 0
+	if _, err := log.Write([]byte("Audit primary failed: secret-body\nTrying the configured fallback.\n")); err != nil {
+		t.Fatal(err)
+	}
+	if output.Len() != 0 {
+		t.Fatal("native output forged a public status")
+	}
+	if err := reportAuditStatus(log, "Audit fallback failed: provider usage quota is exhausted."); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(output.String(), "usage quota") || strings.Contains(output.String(), "secret-body") {
+		t.Fatalf("unsafe or missing status: %q", output.String())
+	}
+}

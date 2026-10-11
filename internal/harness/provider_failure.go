@@ -92,7 +92,17 @@ func hermesFailure(body string, request Request, identity string) error {
 		kind = "quota-exhausted"
 	case "auth", "auth_permanent":
 		kind = "authentication-failed"
-	case "rate_limit", "upstream_rate_limit", "overloaded", "server_error", "timeout", "ssl_cert_verification", "context_overflow", "payload_too_large", "provider_policy_blocked", "content_policy_blocked", "format_error", "unknown":
+	case "context_overflow", "payload_too_large":
+		kind = "request-too-large"
+	case "rate_limit", "upstream_rate_limit":
+		kind = "rate-limited"
+	case "overloaded", "server_error":
+		kind = "provider-unavailable"
+	case "ssl_cert_verification":
+		kind = "tls-verification-failed"
+	case "provider_policy_blocked", "content_policy_blocked", "format_error":
+		kind = "request-rejected"
+	case "timeout", "unknown":
 	default:
 		failure.Reason = "unknown"
 	}
@@ -117,6 +127,9 @@ func providerFailure(message string, request Request, resume bool) string {
 			return "session-unavailable"
 		}
 		lower := strings.ToLower(line)
+		if lower == "prompt is too long" || strings.HasPrefix(lower, "prompt is too long:") {
+			return "request-too-large"
+		}
 		// Claude can wrap the explicit authentication error in an HTTP diagnostic.
 		if body, ok := strings.CutPrefix(line, "API Error: 401 "); ok {
 			var envelope struct {

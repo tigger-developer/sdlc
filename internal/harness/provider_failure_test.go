@@ -20,8 +20,9 @@ func TestHermesStructuredFailure(t *testing.T) {
 		{"quota_exhausted", "quota-exhausted", "false"},
 		{"billing", "quota-exhausted", "false"},
 		{"auth_permanent", "authentication-failed", "false"},
-		{"format_error", "provider-permanent-error", "false"},
-		{"server_error", "provider-rejected", "true"},
+		{"format_error", "request-rejected", "false"},
+		{"server_error", "provider-unavailable", "true"},
+		{"context_overflow", "request-too-large", "true"},
 		{"unknown", "provider-rejected", "null"},
 	} {
 		t.Run(tc.reason, func(t *testing.T) {

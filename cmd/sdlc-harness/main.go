@@ -190,10 +190,32 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		if !filepath.IsAbs(path) {
 			path = filepath.Join(projectRoot, path)
 		}
-		if err := harness.ResetAuditBudget(path, *workItem, sessionGate, readinessCheck); err != nil {
+		resetConfig, configErr := harness.ResolveConfig(harness.ConfigOptions{ProjectRoot: projectRoot, GlobalPath: *globalConfig, Phase: "audit", Harness: *harnessName, Provider: *provider, Model: *model, Timeout: *timeout})
+		store := harness.CooldownStore{Directory: filepath.Join(projectRoot, ".sdlc")}
+		if err := harness.ResetAuditRecovery(path, *workItem, sessionGate, readinessCheck, func(entry harness.AuditEntry) error {
+			routes := map[harness.AgentConfig]bool{}
+			if entry.Configured != nil {
+				routes[*entry.Configured] = true
+			} else if entry.Harness != "" && entry.Model != "" {
+				routes[harness.AgentConfig{Harness: entry.Harness, Provider: entry.Provider, Model: entry.Model}] = true
+			}
+			if configErr == nil {
+				routes[resetConfig.Agent()] = true
+			}
+			for route := range routes {
+				if err := store.Clear(route); err != nil {
+					return fmt.Errorf("audit counters reset, but clearing cooldown failed: %w", err)
+				}
+			}
+			return nil
+		}); err != nil {
 			return err
 		}
-		fmt.Fprintf(output, "AUDIT BUDGET RESET: %s/%s; history retained; no audit invoked. Run the audit without --reset.\n", *workItem, normalizedGate)
+		fmt.Fprintf(output, "AUDIT BUDGET RESET: %s/%s; primary route cooldowns reset; history retained; no audit invoked. Run the audit without --reset.\n", *workItem, normalizedGate)
+		if configErr != nil {
+			fmt.Fprintf(errorOutput, "Recorded primary cooldown reset; current configuration remains invalid: %v. Correct it before auditing.\n", configErr)
+		}
+		fmt.Fprintln(errorOutput, "Reset restores harness retry eligibility; provider quota and credential state are unchanged.")
 		return nil
 	}
 	if readinessCheck != "" {
@@ -353,6 +375,9 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		}
 		entry.ReadinessCheck = readinessCheck
 		if entry.FailureBlocked() || entry.ConsecutiveFailures() >= config.MaxFailures {
+			if err := reportAuditStatus(errorOutput, "Audit remains blocked after "+failureSummary(lastIncident(entry))+". No provider invoked. "+auditStopStatus); err != nil {
+				return err
+			}
 			for i := len(entry.History) - 1; i >= 0; i-- {
 				if entry.History[i].Diagnostic != "" {
 					fmt.Fprintf(errorOutput, "Diagnostic reference: %s\n", entry.History[i].Diagnostic)

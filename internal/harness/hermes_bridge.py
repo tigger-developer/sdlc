@@ -100,6 +100,10 @@ def reject_provider_result(result) -> None:
             r"^You've reached your [0-9]+-hour usage limit\b", match[2]
         ):
             reason, retryable = "quota_exhausted", False
+        elif status == 400 and re.match(
+            r"^prompt is too long:", match[2], re.IGNORECASE
+        ):
+            reason, retryable = "context_overflow", False
     print(
         "sdlc_failure: "
         + json.dumps(

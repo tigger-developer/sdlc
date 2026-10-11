@@ -54,6 +54,10 @@ On 'Human intervention required', stop auditing and report the diagnostic refere
 Do not troubleshoot the provider, inspect private diagnostics, or reset without authority.
 After authorization, run --reset once without --input, then audit without --reset.
 History and logs are preserved; the next audit uses a fresh context.
+Reset also expires project-local cooldowns for the current and recorded primary
+routes. Those route cooldowns are shared across this project's work items;
+other routes and projects are unchanged. Provider quota and credentials remain
+unchanged. A fresh retry is eligible; provider success is not guaranteed.
 Reset accepts running state; no process check is required. Old invocations lose
 write authority and cannot overwrite the reset or a new audit with late results.
 Other projects are unaffected; the selected gate retains its existing context scope.
@@ -61,6 +65,11 @@ Other projects are unaffected; the selected gate retains its existing context sc
 Each work item and gate has its own verdict allowance (default five).
 Unusable responses and cached results do not consume that allowance.
 Provider failures have a separate internal bound; no verdict is fabricated.
+Stderr reports safe failure reasons and each next action: fallback, response
+correction, replacement context, bounded retry or stop. Report these reasons
+with the diagnostic reference; they do not authorize auditor troubleshooting.
+Context-limit rejection selects at most one distinct fallback and does not
+cool the primary route or silently trim evidence.
 
 Test-code and delivery-code locate spec.org and validation.org beside --audit-record.
 Schema/readiness rejection returns YAML without invoking a provider.

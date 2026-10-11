@@ -1,6 +1,6 @@
 ---
 title: Audit and Gate Standards
-version: 7
+version: 8
 last-updated: 2026-10-11
 ---
 
@@ -132,6 +132,11 @@ then submit the normal audit without the flag. It preserves history, findings,
 logs and other gates' allowances; the selected context is retired and its old
 cached verdicts do not satisfy the fresh audit. Never reset autonomously or in a loop.
 Reset clears both counters and the infrastructure lockout for the selected gate.
+It also resets project-local cooldowns for the current and recorded primary
+routes. Those cooldowns are shared across this project's work items; other
+routes and projects are unchanged. Reset does not replenish provider quota or
+make an oversized request fit the configured model. Obsolete invocations cannot
+restore their cooldown after reset.
 It accepts `running` state without caller investigation. Reset invalidates the
 old context's write authority; late checkpoints and results cannot overwrite the
 reset or a subsequent audit. Other projects remain independent. Test-code and
@@ -141,6 +146,13 @@ On "Audit unavailable: unable to obtain a valid result. Human intervention requi
 reference and continue unrelated authorized work. Do not retry, inspect provider
 state or diagnose the harness. Rejected output remains in private project-local
 logs for operator investigation. See `HARNESS.md` for operator details.
+
+The harness also reports safe failure reasons and its next recovery action on
+stderr. Report those reasons with the diagnostic reference; their visibility
+does not authorize auditor troubleshooting, configuration changes or an extra
+caller retry loop. An oversized request is a request failure, not evidence that
+the provider is unavailable; the harness does not cool that route or silently
+trim required evidence.
 
 Project-local primary cooldown remains configurable through
 `delivery.audit.fallback.cool_off_period`, default one hour. The harness handles
@@ -283,6 +295,9 @@ remain solely in `audits.yaml`, and operator closure remains separate.
 Append " AUDIT" (with a leading space) to the canary.
 
 ## Document history
+
+Version 8 adds bounded failure and recovery reporting, resets applicable
+primary cooldowns and distinguishes request rejection from route availability.
 
 Version 7 adds shared and response deadlines and distinguishes recoverable
 timeout notices from terminal internal lockout.

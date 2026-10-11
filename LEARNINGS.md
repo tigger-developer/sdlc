@@ -1,10 +1,21 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 13
+version: 14
 last-updated: 2026-10-11
 ---
 
 # SDLC Standards: Design Learnings
+
+## Quiet auditors still need actionable failure reporting
+
+Caller scope restrictions must prohibit auditor repair, not conceal failure
+causes. Report safe typed reasons and the next recovery action while keeping raw
+responses and provider identities private. Separate a rejected request from an
+unavailable route: cooling a provider for a context-limit error penalizes other
+work items without making the payload fit. An operator reset must restore
+harness eligibility by clearing applicable cooldowns as well as counters and
+context. Serialize those changes with generation checks so an obsolete run
+cannot restore the state that was reset. Provider quota remains external.
 
 ## Preserve provider failure classification across adapters
 

@@ -15,7 +15,7 @@ import (
 )
 
 func TestCooldownRouting(t *testing.T) {
-	for _, mode := range []string{"active", "resume-primary", "no-state-retained", "expired", "no-fallback", "corrupt", "exhausted", "other-model", "cache"} {
+	for _, mode := range []string{"active", "resume-primary", "no-state-retained", "expired", "no-fallback", "corrupt", "exhausted", "other-model", "cache", "reset"} {
 		t.Run(mode, func(t *testing.T) {
 			root := t.TempDir()
 			t.Setenv("PATH", root+string(os.PathListSeparator)+os.Getenv("PATH"))
@@ -66,6 +66,37 @@ func TestCooldownRouting(t *testing.T) {
 			record := filepath.Join(root, "audits.yaml")
 			args := []string{"start", "--project", root, "--global-config", filepath.Join(root, "config.yaml"), "--audit-prompts", filepath.Join(root, "prompts.yaml"), "--gate", "definition", "--audit-record", record, "--work-item", "W017-cooldown"}
 			args = append(args, "--input", filepath.Join(root, "prompts.yaml"))
+			if mode == "reset" {
+				old := harness.AgentConfig{Harness: "claude", Model: "previous-model"}
+				other := harness.AgentConfig{Harness: "claude", Model: "unrelated-model"}
+				for _, route := range []harness.AgentConfig{old, other} {
+					if err := store.Record(route, deadline); err != nil {
+						t.Fatal(err)
+					}
+				}
+				entry := harness.AuditEntry{WorkItem: "W017-cooldown", Gate: "definition", SessionID: "old-session", Harness: "claude", Model: old.Model, Configured: &old, Status: "incident", ExternalRound: 1, History: []harness.AuditRound{{Round: 1, Incident: "start-failed", InternalStop: true}}}
+				if err := harness.WriteAuditEntry(record, entry); err != nil {
+					t.Fatal(err)
+				}
+				resetArgs := append([]string{"--reset"}, args[1:len(args)-2]...)
+				var resetOutput bytes.Buffer
+				if err := runFixture(resetArgs, strings.NewReader(""), &resetOutput, &bytes.Buffer{}); err != nil {
+					t.Fatal(err)
+				}
+				if !strings.Contains(resetOutput.String(), "cooldown") {
+					t.Fatalf("reset hid cooldown result: %q", resetOutput.String())
+				}
+				for _, route := range []harness.AgentConfig{agent, old} {
+					got, err := store.Deadline(route)
+					if err != nil || got.After(time.Now()) {
+						t.Fatalf("reset retained cooldown: %v %v", got, err)
+					}
+				}
+				got, err := store.Deadline(other)
+				if err != nil || !got.Equal(deadline) {
+					t.Fatal("reset changed an unrelated route")
+				}
+			}
 			if mode == "expired" || mode == "exhausted" || mode == "resume-primary" || mode == "no-state-retained" {
 				entry := harness.AuditEntry{WorkItem: "W017-cooldown", Gate: "definition", SessionID: "fallback-session", Harness: "hermes", Provider: "nous", Model: "fallback-fixture", Configured: &agent, Status: "incident", ExternalRound: 2}
 				if mode == "resume-primary" {
@@ -96,7 +127,7 @@ func TestCooldownRouting(t *testing.T) {
 				return
 			}
 			want := "hermes\n"
-			if mode == "expired" || mode == "other-model" || mode == "no-state-retained" {
+			if mode == "expired" || mode == "other-model" || mode == "no-state-retained" || mode == "reset" {
 				want = "claude\n"
 			}
 			if readErr != nil || string(calls) != want {

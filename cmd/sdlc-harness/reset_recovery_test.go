@@ -86,9 +86,9 @@ exit 2
 			if err != nil || !bytes.Equal(after, resetBytes) {
 				t.Fatal("recovery adopted or changed reset state")
 			}
-			if boundary == "provider-return" {
+			if boundary == "provider-return" || boundary == "failure-reload" {
 				deadline, err := runner.cooldowns.Deadline(config.Agent())
-				if err != nil || !deadline.IsZero() {
+				if err != nil || deadline.After(time.Now()) {
 					t.Fatalf("obsolete-generation error entered provider incident handling: %v %v", deadline, err)
 				}
 			}

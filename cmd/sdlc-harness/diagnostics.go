@@ -86,6 +86,17 @@ func (d *auditDiagnostics) capture(body []byte) error {
 	return err
 }
 
+// report is a separate trusted path: native stderr never selects public text.
+func (d *auditDiagnostics) report(message string) error {
+	if _, err := d.Write([]byte(message + "\n")); err != nil {
+		return err
+	}
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	_, err := fmt.Fprintln(d.output, message)
+	return err
+}
+
 func auditUnavailable() error {
 	return &harness.Incident{Kind: "human-intervention", Harness: "audit", Err: fmt.Errorf("Audit unavailable: unable to obtain a valid result. Human intervention required; invoke --reset only after operator authorization")}
 }

@@ -6,6 +6,18 @@ last-updated: 2026-10-11
 
 # Changelog
 
+## v3.8.2 - 2026-10-11
+
+- Report bounded failure reasons and recovery actions to callers while keeping
+  provider bodies, credentials, session identities and retry counts private.
+- Classify context-limit rejection across Claude and Hermes, select fallback
+  without repeating the oversized request, and avoid cooling a healthy route
+  because one request was too large.
+- Make authorized reset expire the current and recorded primary route
+  cooldowns as well as resetting gate counters and context. Preserve history,
+  unrelated routes and provider-owned credential state. Serialize reset and
+  cooldown writes so obsolete invocations cannot restore a reset cooldown.
+
 ## v3.8.1 - 2026-10-11
 
 - Preserve safe structured Hermes failure reasons, HTTP status and retryability

@@ -55,6 +55,16 @@ func (s CooldownStore) Deadline(agent AgentConfig) (time.Time, error) {
 // Record retains the later deadline when concurrent invocations observe limits.
 // Lock ownership ends on close or process exit; no provider runs under the lock.
 func (s CooldownStore) Record(agent AgentConfig, retryAt time.Time) (returnErr error) {
+	return s.update(agent, retryAt, false)
+}
+
+// Clear expires the selected route under the same lock used by failure writers.
+// An explicit reset may replace corrupt state; unrelated routes remain untouched.
+func (s CooldownStore) Clear(agent AgentConfig) error {
+	return s.update(agent, time.Now().UTC(), true)
+}
+
+func (s CooldownStore) update(agent AgentConfig, retryAt time.Time, reset bool) (returnErr error) {
 	if retryAt.IsZero() {
 		return errors.New("audit cooldown requires a reset deadline")
 	}
@@ -79,12 +89,14 @@ func (s CooldownStore) Record(agent AgentConfig, retryAt time.Time) (returnErr e
 	if err := syscall.Flock(int(lock.Fd()), syscall.LOCK_EX); err != nil {
 		return err
 	}
-	previous, err := s.Deadline(agent)
-	if err != nil {
-		return err
-	}
-	if !retryAt.After(previous) {
-		return nil
+	if !reset {
+		previous, err := s.Deadline(agent)
+		if err != nil {
+			return err
+		}
+		if !retryAt.After(previous) {
+			return nil
+		}
 	}
 	data, err := json.Marshal(cooldownRecord{Version: 1, Harness: agent.Harness, Provider: agent.Provider, Model: agent.Model, RetryAt: retryAt.UTC()})
 	if err != nil {
