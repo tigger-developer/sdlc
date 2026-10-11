@@ -66,7 +66,7 @@ func (attempt *auditAttempt) finish(runErr error) error {
 	}
 	round := &attempt.entry.History[len(attempt.entry.History)-1]
 	round.Incident = kind
-	if kind != "authentication-failed" && attempt.entry.ConsecutiveFailures() >= attempt.failureLimit {
+	if !permanentProviderFailure(kind) && attempt.entry.ConsecutiveFailures() >= attempt.failureLimit {
 		round.InternalStop = true
 	}
 	return harness.WriteAuditEntry(attempt.path, attempt.entry)

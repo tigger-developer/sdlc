@@ -4,6 +4,8 @@ package harness
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"strings"
 	"sync"
@@ -35,6 +37,12 @@ func (d *providerDiagnostics) Write(data []byte) (int, error) {
 				break
 			}
 			d.pending = rest
+			if body, found := strings.CutPrefix(line, "sdlc_failure: "); found {
+				if d.err == nil {
+					d.err = hermesFailure(body, d.request, d.identity)
+				}
+				continue
+			}
 			if line == "sdlc_response: content" || line == "sdlc_response: reasoning" {
 				if d.onActivity != nil {
 					d.onActivity()
@@ -61,6 +69,41 @@ func (d *providerDiagnostics) Write(data []byte) (int, error) {
 		}
 	}
 	return d.writer.Write(data)
+}
+
+func hermesFailure(body string, request Request, identity string) error {
+	var failure struct {
+		Version   int    `json:"version"`
+		Reason    string `json:"reason"`
+		Status    *int   `json:"status"`
+		Retryable *bool  `json:"retryable"`
+	}
+	if len(body) > maxDiagnostic || json.Unmarshal([]byte(body), &failure) != nil || failure.Version != 1 {
+		return newIncident("provider-rejected", request.Harness, identity, errors.New("invalid Hermes failure metadata; no verdict"))
+	}
+	kind := "provider-rejected"
+	if failure.Retryable != nil && !*failure.Retryable {
+		kind = "provider-permanent-error"
+	}
+	switch failure.Reason {
+	case "model_not_found":
+		kind = "model-unavailable"
+	case "billing", "quota_exhausted":
+		kind = "quota-exhausted"
+	case "auth", "auth_permanent":
+		kind = "authentication-failed"
+	case "rate_limit", "upstream_rate_limit", "overloaded", "server_error", "timeout", "ssl_cert_verification", "context_overflow", "payload_too_large", "provider_policy_blocked", "content_policy_blocked", "format_error", "unknown":
+	default:
+		failure.Reason = "unknown"
+	}
+	detail := "Hermes provider failure: reason=" + failure.Reason
+	if failure.Status != nil && *failure.Status >= 400 && *failure.Status <= 599 {
+		detail += fmt.Sprintf(" HTTP=%d", *failure.Status)
+	}
+	if failure.Retryable != nil {
+		detail += fmt.Sprintf(" retryable=%t", *failure.Retryable)
+	}
+	return newIncident(kind, request.Harness, identity, errors.New(detail))
 }
 
 func providerFailure(message string, request Request, resume bool) string {

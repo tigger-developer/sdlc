@@ -6,6 +6,18 @@ last-updated: 2026-10-11
 
 # Changelog
 
+## v3.8.1 - 2026-10-11
+
+- Preserve safe structured Hermes failure reasons, HTTP status and retryability
+  in audit diagnostics and typed incidents; never accept a failed native turn's
+  apparent verdict, including after context compression.
+- Select one distinct fallback for permanent model, quota and provider errors,
+  then stop failed recovery without repeated outer attempts or consuming a
+  verdict round. Preserve the fallback opportunity when max_failures is one.
+- Reject Claude Code short model aliases on Hermes Anthropic routes before
+  native initialization, with explicit full-model-ID guidance. Document the
+  separation between audit cooldowns and Hermes-owned credential exhaustion.
+
 ## v3.8.0 - 2026-10-11
 
 - Add audit-wide total_timeout (15m), response_start_timeout (3m) and

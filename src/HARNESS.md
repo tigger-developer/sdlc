@@ -1,6 +1,6 @@
 ---
 title: SDLC Audit Harness Guide
-version: 10
+version: 11
 last-updated: 2026-10-11
 ---
 
@@ -370,6 +370,28 @@ Invalid configuration, evidence-integrity failures, record errors and exhausted
 rounds stop locally; fallback does not bypass these checks or widen permissions.
 Non-audit definition/build invocations retain authentication-only fallback.
 
+Hermes failure diagnostics retain an allowlisted native reason, HTTP status
+and retryability. Provider error bodies, credentials and reasoning are not copied
+into this metadata. Model rejection, exhausted quota and non-retryable provider
+errors select the distinct fallback once, without another harness attempt on
+the failed primary. If that recovery fails, or no distinct fallback exists,
+the managed gate stops without a verdict and retains its diagnostic reference.
+This applies even when `max_failures` is one. Hermes may perform native retries
+inside a turn; the harness does not override that provider policy.
+
+For Hermes with `provider: claude` or `provider: anthropic`, use a full Anthropic
+model ID. This adapter does not expand Claude Code short aliases such as `sonnet`,
+`opus` or `haiku`; they are rejected before native initialization with a
+`model-unavailable` incident and explicit configuration guidance. Model IDs remain
+provider-specific; this rule does not rename models for other Hermes providers.
+
+The project-local `.sdlc/cooldowns/` state contains route deadlines, not
+credentials. Hermes owns its native credential pool and exhaustion state in
+its own home, which can be shared by several Hermes invocations. Resetting an
+audit record changes neither provider quota nor native credential exhaustion.
+The operator should inspect the referenced audit diagnostic before authorizing
+a reset, and verify a replacement provider/model route under audit isolation.
+
 Missing-session recovery recognizes Claude's exact `No conversation found with
 session ID: <requested ID>` diagnostic. Unknown provider messages fail closed.
 Authentication recovery recognizes explicit login, expired-OAuth and invalid-key
@@ -445,6 +467,9 @@ fallback internally. Calling agents must not build a second retry loop around an
 infrastructure failure. Known FAIL findings remain unresolved until reassessed.
 
 ## Document history
+
+- Version 11 (2026-10-11): Preserve structured Hermes failures, stop permanent
+  provider recovery promptly and reject unsupported Anthropic short aliases.
 
 - Version 10 (2026-10-11): Add shared, response-start and response-idle deadlines,
   native Hermes progress callbacks and terminal-only intervention reporting.

@@ -4,6 +4,7 @@ import argparse
 import contextlib
 import importlib.util
 import io
+import json
 import os
 import pathlib
 import sys
@@ -41,6 +42,10 @@ class NativeInterfaceTest(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "provider call failed"):
             self.invoke(failed=True)
 
+    def test_context_compression_cannot_hide_a_provider_failure(self):
+        with self.assertRaisesRegex(RuntimeError, "provider call failed"):
+            self.invoke(failed=True, compress=True)
+
     def test_resume_preserves_the_native_session_and_history(self):
         response, _ = self.invoke(resume="native-fixture")
         self.assertEqual(response, "VERDICT: PASS")
@@ -48,6 +53,64 @@ class NativeInterfaceTest(unittest.TestCase):
     def test_authentication_failure_releases_session(self):
         with self.assertRaisesRegex(RuntimeError, "Authentication failed"):
             self.invoke(authenticated=False)
+
+    def test_provider_failures_publish_safe_structured_diagnostics(self):
+        cases = [
+            ({"error": "HTTP 404: model: sonnet"}, "model_not_found", 404, False),
+            (
+                {"error": "HTTP 403: You've reached your 5-hour usage limit."},
+                "quota_exhausted",
+                403,
+                False,
+            ),
+            (
+                {"failure_reason": "billing", "failure_retryable": False},
+                "billing",
+                None,
+                False,
+            ),
+            (
+                {"failure_reason": "server_error", "failure_retryable": True},
+                "server_error",
+                None,
+                True,
+            ),
+            ({"error": "secret-key private evidence"}, "unknown", None, None),
+            ({"error": "HTTP 404: endpoint not found"}, "unknown", 404, None),
+            (
+                {"failure_reason": "secret-key", "failure_retryable": 0},
+                "unknown",
+                None,
+                None,
+            ),
+        ]
+        for result, reason, status, retryable in cases:
+            with self.subTest(reason=reason):
+                metadata = io.StringIO()
+                with contextlib.redirect_stderr(metadata):
+                    with self.assertRaisesRegex(RuntimeError, "provider call failed"):
+                        BRIDGE.reject_provider_result(result)
+                envelope = json.loads(
+                    metadata.getvalue().removeprefix("sdlc_failure: ")
+                )
+                self.assertEqual(
+                    envelope,
+                    {
+                        "version": 1,
+                        "reason": reason,
+                        "status": status,
+                        "retryable": retryable,
+                    },
+                )
+                self.assertNotIn("secret-key", metadata.getvalue())
+
+    def test_anthropic_short_alias_rejected_before_native_initialization(self):
+        args = argparse.Namespace(provider="claude", m="sonnet", check=False)
+        metadata = io.StringIO()
+        with contextlib.redirect_stderr(metadata):
+            with self.assertRaisesRegex(RuntimeError, "full Anthropic model ID"):
+                BRIDGE.run(args, "verified evidence")
+        self.assertIn('"reason": "model_not_found"', metadata.getvalue())
 
     def invoke(
         self, tools=None, compress=False, failed=False, resume=None, authenticated=True

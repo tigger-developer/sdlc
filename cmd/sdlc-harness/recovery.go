@@ -82,7 +82,7 @@ func (r recoveryRun) executeWithinDeadline(ctx context.Context, entry harness.Au
 	}
 	missingRecovered, fallbackUsed := false, selected.Agent() != r.config.Agent()
 	corrected := map[harness.AgentConfig]bool{}
-	authenticationFallback := false
+	permanentFallback := false
 	// At most one configured fallback; unusable launches share the internal bound.
 	for {
 		if ctx.Err() != nil {
@@ -91,7 +91,7 @@ func (r recoveryRun) executeWithinDeadline(ctx context.Context, entry harness.Au
 		if reason == "" && resume && r.standardsRoot != "" && entry.StandardsContract != 1 {
 			reason = "standards-delivery-unconfirmed"
 		}
-		if r.audit && (entry.FailureBlocked() || (!authenticationFallback && entry.ConsecutiveFailures() >= r.config.MaxFailures)) {
+		if r.audit && (entry.FailureBlocked() || (!permanentFallback && entry.ConsecutiveFailures() >= r.config.MaxFailures)) {
 			return harness.Result{}, auditUnavailable()
 		}
 		if r.path != "" && entry.RoundsUsed() >= r.config.MaxRounds {
@@ -153,10 +153,10 @@ func (r recoveryRun) executeWithinDeadline(ctx context.Context, entry harness.Au
 			entry = saved
 			entry.ReadinessCheck = r.readinessCheck
 		}
-		if r.audit && incident.Kind != "authentication-failed" && (entry.FailureBlocked() || entry.ConsecutiveFailures() >= r.config.MaxFailures) {
+		if r.audit && !permanentProviderFailure(incident.Kind) && (entry.FailureBlocked() || entry.ConsecutiveFailures() >= r.config.MaxFailures) {
 			return harness.Result{}, auditUnavailable()
 		}
-		if r.audit && authenticationFallback {
+		if r.audit && permanentFallback {
 			return harness.Result{}, r.block(entry)
 		}
 		switch {
@@ -166,7 +166,7 @@ func (r recoveryRun) executeWithinDeadline(ctx context.Context, entry harness.Au
 			corrected[selected.Agent()] = true
 			resume, reason = true, ""
 		case fallbackEligible(incident, r.audit) && !fallbackUsed && r.config.Fallback != nil && *r.config.Fallback != selected.Agent():
-			authenticationFallback = incident.Kind == "authentication-failed"
+			permanentFallback = permanentProviderFailure(incident.Kind)
 			fallbackUsed = true
 			selected = selected.WithAgent(*r.config.Fallback)
 			reason = incident.Kind + "-fallback"
@@ -174,7 +174,7 @@ func (r recoveryRun) executeWithinDeadline(ctx context.Context, entry harness.Au
 			missingRecovered = true
 			reason = "session-unavailable"
 		default:
-			if r.audit && incident.Kind == "authentication-failed" {
+			if r.audit && permanentProviderFailure(incident.Kind) {
 				return harness.Result{}, r.block(entry)
 			}
 			if r.audit && r.path != "" && fallbackEligible(incident, true) {
@@ -185,6 +185,10 @@ func (r recoveryRun) executeWithinDeadline(ctx context.Context, entry harness.Au
 			return harness.Result{}, err
 		}
 	}
+}
+
+func permanentProviderFailure(kind string) bool {
+	return kind == "authentication-failed" || kind == "model-unavailable" || kind == "quota-exhausted" || kind == "provider-permanent-error"
 }
 
 func (r recoveryRun) stopAtDeadline(entry harness.AuditEntry) error {

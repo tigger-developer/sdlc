@@ -1,10 +1,21 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 12
+version: 13
 last-updated: 2026-10-11
 ---
 
 # SDLC Standards: Design Learnings
+
+## Preserve provider failure classification across adapters
+
+An adapter must retain the native failure classification before discarding
+display output. Otherwise model rejection and quota exhaustion become generic
+launch failures and attract futile outer retries. Export only safe structured
+metadata, fail closed even if a failed turn contains apparent verdict text,
+and give permanent primary errors one distinct fallback opportunity. Keep
+native credential exhaustion separate from project-local audit cooldowns;
+an audit reset cannot replenish a provider allowance. Model aliases belong to
+their native entry point and must not be assumed portable between adapters.
 
 ## The journey from v1 to v3
 

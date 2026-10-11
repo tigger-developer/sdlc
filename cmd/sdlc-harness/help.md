@@ -104,5 +104,11 @@ one second; 90s is accepted as a personal response-start override. Heartbeats
 and initialization do not count as model response activity. Recoverable
 timeouts do not require human intervention; overall expiry stops recovery.
 Hermes auditing requires uv and a supported installed native Hermes runtime.
+Hermes claude/anthropic routes require full Anthropic model IDs; Claude Code
+short aliases (sonnet, opus, haiku) are rejected before native initialization.
+Permanent model, quota and non-retryable provider failures select a distinct
+fallback once, then stop if recovery fails. Private diagnostics retain reason,
+HTTP status and retryability without copying provider bodies or credentials.
+Audit reset does not restore provider quota or Hermes credential-pool state.
 
 Operator configuration and diagnostic details: ~/.agents/sdlc/HARNESS.md

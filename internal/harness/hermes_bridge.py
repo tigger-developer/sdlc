@@ -3,7 +3,9 @@
 import argparse
 import contextlib
 import io
+import json
 import os
+import re
 import sys
 import threading
 import time
@@ -60,7 +62,76 @@ def configure_audit_agent(agent) -> None:
     agent.reasoning_callback = lambda text: activity("reasoning", text)
 
 
+def reject_provider_result(result) -> None:
+    # Publish only an allowlisted classification, never error bodies, messages,
+    # reasoning, credentials or URLs. Older Hermes results omit classification.
+    if not isinstance(result, dict):
+        result = {}
+    reasons = {
+        "auth",
+        "auth_permanent",
+        "billing",
+        "rate_limit",
+        "upstream_rate_limit",
+        "overloaded",
+        "server_error",
+        "timeout",
+        "ssl_cert_verification",
+        "context_overflow",
+        "payload_too_large",
+        "model_not_found",
+        "provider_policy_blocked",
+        "content_policy_blocked",
+        "format_error",
+    }
+    reason = result.get("failure_reason")
+    if not isinstance(reason, str) or reason not in reasons:
+        reason = "unknown"
+    retryable = result.get("failure_retryable")
+    if not isinstance(retryable, bool):
+        retryable = None
+    error = str(result.get("error") or "")
+    match = re.match(r"^HTTP ([45][0-9]{2}):\s*(.*)", error, re.DOTALL)
+    status = int(match[1]) if match else None
+    if reason == "unknown" and match:
+        if status == 404 and re.match(r"^model:\s*\S+", match[2]):
+            reason, retryable = "model_not_found", False
+        elif status == 403 and re.match(
+            r"^You've reached your [0-9]+-hour usage limit\b", match[2]
+        ):
+            reason, retryable = "quota_exhausted", False
+    print(
+        "sdlc_failure: "
+        + json.dumps(
+            {
+                "version": 1,
+                "reason": reason,
+                "status": status,
+                "retryable": retryable,
+            }
+        ),
+        file=sys.stderr,
+        flush=True,
+    )
+    raise RuntimeError(
+        "Hermes native provider call failed; see structured audit diagnostic"
+    )
+
+
 def run(args: argparse.Namespace, prompt: str) -> str:
+    if (
+        not args.check
+        and args.provider.lower() in {"claude", "anthropic"}
+        and args.m.lower() in {"sonnet", "opus", "haiku"}
+    ):
+        print(
+            'sdlc_failure: {"version": 1, "reason": "model_not_found", "retryable": false}',
+            file=sys.stderr,
+            flush=True,
+        )
+        raise RuntimeError(
+            "Hermes audit requires a full Anthropic model ID; Claude Code short aliases are not expanded by this adapter"
+        )
     # Apply the native CLI's safe-mode boundary before importing Hermes modules.
     os.environ["HERMES_SAFE_MODE"] = "1"
     os.environ["HERMES_IGNORE_USER_CONFIG"] = "1"
@@ -105,17 +176,15 @@ def run(args: argparse.Namespace, prompt: str) -> str:
             user_message=prompt,
             conversation_history=cli.conversation_history,
         )
-        if agent.session_id != cli.session_id:
-            return "CONTEXT-LOST"
         if (
             not isinstance(result, dict)
             or result.get("failed")
             or result.get("partial")
             or result.get("error")
         ):
-            raise RuntimeError(
-                "Hermes native provider call failed; see native diagnostic log"
-            )
+            reject_provider_result(result)
+        if agent.session_id != cli.session_id:
+            return "CONTEXT-LOST"
         response = result.get("final_response", "")
         if not response:
             raise RuntimeError("Hermes omitted final response")
