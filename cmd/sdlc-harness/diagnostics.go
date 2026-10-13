@@ -25,17 +25,17 @@ type auditDiagnostics struct {
 }
 
 func openAuditDiagnostics(root string, output io.Writer) (*auditDiagnostics, error) {
-	directory := filepath.Join(root, ".sdlc", "audit-diagnostics")
-	return openDiagnosticsDirectory(directory, output)
+	return openDiagnosticsDirectory(root, filepath.Join(".sdlc", "audit-diagnostics"), output)
 }
 
 func openStandaloneDiagnostics(root string, output io.Writer) (*auditDiagnostics, error) {
 	// Runtime diagnostics must not create .sdlc and elect an SDLC workflow.
-	return openDiagnosticsDirectory(filepath.Join(root, ".audit-diagnostics"), output)
+	return openDiagnosticsDirectory(root, ".audit-diagnostics", output)
 }
 
-func openDiagnosticsDirectory(directory string, output io.Writer) (*auditDiagnostics, error) {
-	if err := os.MkdirAll(directory, 0o700); err != nil {
+func openDiagnosticsDirectory(root, relative string, output io.Writer) (*auditDiagnostics, error) {
+	directory, err := privateDiagnosticDirectory(root, relative)
+	if err != nil {
 		return nil, err
 	}
 	ignore, err := os.OpenFile(filepath.Join(directory, ".gitignore"), os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
@@ -56,6 +56,44 @@ func openDiagnosticsDirectory(directory string, output io.Writer) (*auditDiagnos
 		return nil, err
 	}
 	return &auditDiagnostics{file: file, output: output, remaining: 16 * 1024 * 1024}, nil
+}
+
+// Validate every runtime component before creating a child. MkdirAll would
+// follow an existing parent or leaf symlink before its destination was checked.
+func privateDiagnosticDirectory(root, relative string) (string, error) {
+	directory, err := filepath.EvalSymlinks(root)
+	if err != nil {
+		return "", err
+	}
+	var info os.FileInfo
+	for _, part := range strings.Split(relative, string(filepath.Separator)) {
+		directory = filepath.Join(directory, part)
+		info, err = os.Lstat(directory)
+		if os.IsNotExist(err) {
+			// Another local opener may create it first; validate either result.
+			if createErr := os.Mkdir(directory, 0700); createErr != nil && !os.IsExist(createErr) {
+				return "", createErr
+			}
+			info, err = os.Lstat(directory)
+		}
+		if err != nil {
+			return "", err
+		}
+		if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
+			return "", fmt.Errorf("audit diagnostic path %q must be a real directory, not a symlink", directory)
+		}
+	}
+	if info.Mode().Perm() != 0700 {
+		return "", fmt.Errorf("audit diagnostic directory %q must be private (0700); permissions were not changed", directory)
+	}
+	resolved, err := filepath.EvalSymlinks(directory)
+	if err != nil {
+		return "", err
+	}
+	if resolved != directory {
+		return "", fmt.Errorf("audit diagnostic directory %q changed while resolving", directory)
+	}
+	return directory, nil
 }
 
 func (d *auditDiagnostics) Write(data []byte) (int, error) {

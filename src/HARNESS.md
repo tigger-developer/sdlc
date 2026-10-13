@@ -275,6 +275,10 @@ investigation, never automatic upload or audit verdicts. Operators control reten
 No request prompts or input-file copies are deliberately logged.
 Standalone diagnostics never create `.sdlc` or elect its workflow. Diagnostic
 directories are excluded from audit evidence and contain their own ignore rule.
+Runtime directory components must be real directories rather than symlinks,
+and the log directory must have private `0700` permissions. Unsafe existing
+destinations are rejected before log creation; permissions are not changed
+automatically. Filesystem validation does not make project directories immutable.
 
 ## Audit example
 

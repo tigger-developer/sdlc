@@ -19,6 +19,8 @@ last-updated: 2026-10-13
 - Apply bounded recovery, fallback, response correction and safe reporting to
   SDLC, standalone and spike audits. Standalone diagnostics use an ignored
   `.audit-diagnostics/` directory without creating an SDLC project or gate record.
+- Reject symlinked diagnostic directories and non-private log-directory
+  permissions before creating logs; do not alter existing permissions.
 
 ## v3.8.2 - 2026-10-11
 

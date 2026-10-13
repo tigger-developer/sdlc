@@ -87,3 +87,17 @@ func TestHermesFindingJSONIsNotANativeToolEvent(t *testing.T) {
 		t.Fatalf("model finding interpreted as native telemetry: %v", err)
 	}
 }
+
+func TestBlankNativeEventsDoNotCrashAudit(t *testing.T) {
+	req := Request{Harness: "codex", Model: "fixture", ControlledReads: true, ResultFile: filepath.Join(t.TempDir(), "result")}
+	result, err := Execute(context.Background(), req, false, nil, func(_ context.Context, _ string, _ []string, _ string, _ io.Reader, out, _ io.Writer) error {
+		if err := os.WriteFile(req.ResultFile, []byte("GATE: definition\nREVISION: fixture\nVERDICT: PASS\n"), 0600); err != nil {
+			return err
+		}
+		_, err := io.WriteString(out, "\n \t\n"+`{"type":"thread.started","thread_id":"native"}`+"\n\n")
+		return err
+	}, io.Discard)
+	if err != nil || result.Response == "" {
+		t.Fatalf("blank native lines rejected valid audit: %v", err)
+	}
+}
