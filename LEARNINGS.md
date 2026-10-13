@@ -1,10 +1,22 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 14
-last-updated: 2026-10-11
+version: 15
+last-updated: 2026-10-13
 ---
 
 # SDLC Standards: Design Learnings
+
+## Audit execution policy is separate from persisted gate state
+
+Every audit route needs the same bounded provider recovery and safe reporting;
+only managed gates need persistent budgets and reset. Coupling those decisions
+silently weakens standalone and spike reviews. Configuration layers must not
+combine a changed harness with an inherited model from another route. Native
+error events are not tool operations, and a terminal isolation incident must
+survive later metadata. Atomic file replacement and reset generations do not
+alone establish one active context owner: claim the next round under the lock,
+then reject checkpoints from earlier rounds. Test these boundaries through local
+processes and native event doubles rather than relying on a passing broad suite.
 
 ## Quiet auditors still need actionable failure reporting
 

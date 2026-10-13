@@ -39,8 +39,23 @@ func TestReviewCodexErrorIsNotATool(t *testing.T) {
 		return errors.New("native model rejected")
 	}, io.Discard)
 	var incident *Incident
-	if errors.As(err, &incident) && incident.Kind == "unexpected-tool-use" {
-		t.Fatalf("error event misclassified: %v", err)
+	if err == nil || !errors.As(err, &incident) || incident.Kind == "unexpected-tool-use" {
+		t.Fatalf("error event accepted or misclassified: %v", err)
+	}
+}
+
+func TestCodexModelRejectionSurvivesMetadataWarning(t *testing.T) {
+	req := Request{Harness: "codex", Model: "kimi-for-coding", ControlledReads: true}
+	_, err := Execute(context.Background(), req, false, nil, func(_ context.Context, _ string, _ []string, _ string, _ io.Reader, out, _ io.Writer) error {
+		_, writeErr := io.WriteString(out, `{"type":"thread.started","thread_id":"native"}`+"\n"+`{"type":"error","message":"{\"error\":{\"message\":\"The 'kimi-for-coding' model is not supported when using Codex with a ChatGPT account.\"}}"}`+"\n"+`{"type":"item.completed","item":{"type":"error","message":"Model metadata unavailable"}}`+"\n")
+		if writeErr != nil {
+			return writeErr
+		}
+		return errors.New("native model rejected")
+	}, io.Discard)
+	var incident *Incident
+	if !errors.As(err, &incident) || incident.Kind != "model-unavailable" {
+		t.Fatalf("model rejection lost: %v", err)
 	}
 }
 
@@ -55,5 +70,20 @@ func TestReviewNativeToolRejectionCannotBeCleared(t *testing.T) {
 	}, io.Discard)
 	if err == nil {
 		t.Fatal("native tool event rejected, then forgotten on session checkpoint; result accepted")
+	}
+}
+
+func TestHermesFindingJSONIsNotANativeToolEvent(t *testing.T) {
+	req := Request{Harness: "hermes", Provider: "fixture", Model: "fixture", ControlledReads: true}
+	body := "AUDIT: standalone\nREVISION: fixture\nVERDICT: FAIL\nThe native error parser incorrectly treats this example as a tool:\n" + `{"type":"tool.call"}` + "\n"
+	result, err := Execute(context.Background(), req, false, nil, func(_ context.Context, _ string, _ []string, _ string, _ io.Reader, out, diagnostics io.Writer) error {
+		if _, err := io.WriteString(diagnostics, "session_id: native\n"); err != nil {
+			return err
+		}
+		_, err := io.WriteString(out, body)
+		return err
+	}, io.Discard)
+	if err != nil || result.Response == "" {
+		t.Fatalf("model finding interpreted as native telemetry: %v", err)
 	}
 }

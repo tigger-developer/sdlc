@@ -24,12 +24,12 @@ func TestW004ConfigResolutionUsesCLIEnvironmentProjectGlobalOrder(t *testing.T) 
 			value, ok := values[key]
 			return value, ok
 		},
-		Harness: "codex",
+		Harness: "codex", Model: "cli-model",
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if config.Harness != "codex" || config.Model != "env-model" || config.Provider != "" || config.Timeout != 3*time.Minute {
+	if config.Harness != "codex" || config.Model != "cli-model" || config.Provider != "" || config.Timeout != 3*time.Minute {
 		t.Fatalf("config = %#v", config)
 	}
 }

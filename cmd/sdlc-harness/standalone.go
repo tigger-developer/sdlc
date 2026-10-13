@@ -148,7 +148,7 @@ func requireProjectFile(project, path string) error {
 func excludedAuditDirectory(name string) bool {
 	lower := strings.ToLower(name)
 	switch lower {
-	case ".git", ".agent", ".agents", ".claude", ".codex", ".copilot", ".hermes":
+	case ".git", ".agent", ".agents", ".claude", ".codex", ".copilot", ".hermes", ".audit-diagnostics":
 		return true
 	}
 	stem := strings.TrimPrefix(lower, ".")

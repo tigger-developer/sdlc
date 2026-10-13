@@ -26,6 +26,15 @@ type auditDiagnostics struct {
 
 func openAuditDiagnostics(root string, output io.Writer) (*auditDiagnostics, error) {
 	directory := filepath.Join(root, ".sdlc", "audit-diagnostics")
+	return openDiagnosticsDirectory(directory, output)
+}
+
+func openStandaloneDiagnostics(root string, output io.Writer) (*auditDiagnostics, error) {
+	// Runtime diagnostics must not create .sdlc and elect an SDLC workflow.
+	return openDiagnosticsDirectory(filepath.Join(root, ".audit-diagnostics"), output)
+}
+
+func openDiagnosticsDirectory(directory string, output io.Writer) (*auditDiagnostics, error) {
 	if err := os.MkdirAll(directory, 0o700); err != nil {
 		return nil, err
 	}

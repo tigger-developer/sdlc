@@ -19,9 +19,6 @@ func TestResetRunningAuditRejectsLateWrites(t *testing.T) {
 			root := t.TempDir()
 			path := filepath.Join(root, "audits.yaml")
 			entry := harness.AuditEntry{WorkItem: "W020-reset", Gate: "definition", Status: "running", SessionID: identity, Findings: []string{"retained"}}
-			if err := harness.WriteAuditEntry(path, entry); err != nil {
-				t.Fatal(err)
-			}
 			attempt, err := beginAuditAttempt(path, entry, entry.WorkItem, entry.Gate, harness.Config{MaxRounds: 5, MaxFailures: 3}, harness.Evidence{}, "old-request")
 			if err != nil {
 				t.Fatal(err)

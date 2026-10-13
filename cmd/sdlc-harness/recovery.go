@@ -29,6 +29,8 @@ type recoveryRun struct {
 	diagnostics       io.Writer
 	diagnosticPath    string
 	cooldowns         harness.CooldownStore
+	transient         *harness.AuditEntry
+	ownedRound        *int
 }
 
 const maximumAuditPromptBytes = 8 * 1024 * 1024
@@ -45,6 +47,11 @@ func (r recoveryRun) execute(entry harness.AuditEntry, resume bool) (harness.Res
 
 func (r recoveryRun) executeWithinDeadline(ctx context.Context, entry harness.AuditEntry, resume bool) (harness.Result, error) {
 	entry.ReadinessCheck = r.readinessCheck
+	ownedRound := 0
+	r.ownedRound = &ownedRound
+	if r.audit && r.path == "" {
+		r.transient = &entry
+	}
 	selected := r.config
 	reason := ""
 	if resume && r.standardsRoot != "" && entry.StandardsContract != 1 {
@@ -58,7 +65,7 @@ func (r recoveryRun) executeWithinDeadline(ctx context.Context, entry harness.Au
 			reason = "configuration-changed"
 		}
 	}
-	if r.audit {
+	if r.audit && r.path != "" {
 		deadline, err := r.cooldowns.Deadline(r.config.Agent())
 		if err != nil {
 			return harness.Result{}, err
@@ -89,6 +96,7 @@ func (r recoveryRun) executeWithinDeadline(ctx context.Context, entry harness.Au
 	missingRecovered, fallbackUsed := false, selected.Agent() != r.config.Agent()
 	corrected := map[harness.AgentConfig]bool{}
 	permanentFallback := false
+	failures := entry.ConsecutiveFailures()
 	// At most one configured fallback; unusable launches share the internal bound.
 	for {
 		if ctx.Err() != nil {
@@ -97,7 +105,7 @@ func (r recoveryRun) executeWithinDeadline(ctx context.Context, entry harness.Au
 		if reason == "" && resume && r.standardsRoot != "" && entry.StandardsContract != 1 {
 			reason = "standards-delivery-unconfirmed"
 		}
-		if r.audit && (entry.FailureBlocked() || (!permanentFallback && entry.ConsecutiveFailures() >= r.config.MaxFailures)) {
+		if r.audit && (entry.FailureBlocked() || (!permanentFallback && failures >= r.config.MaxFailures)) {
 			return harness.Result{}, r.block(entry)
 		}
 		if r.path != "" && entry.RoundsUsed() >= r.config.MaxRounds {
@@ -122,8 +130,10 @@ func (r recoveryRun) executeWithinDeadline(ctx context.Context, entry harness.Au
 		if err == nil {
 			return result, nil
 		}
-		if errors.Is(err, harness.ErrAuditReset) {
-			return harness.Result{}, err
+		for _, ownershipErr := range []error{harness.ErrAuditReset, harness.ErrAuditSuperseded, harness.ErrAuditRunning} {
+			if errors.Is(err, ownershipErr) {
+				return harness.Result{}, ownershipErr
+			}
 		}
 		if ctx.Err() != nil {
 			return harness.Result{}, r.stopAtDeadline(entry)
@@ -146,11 +156,21 @@ func (r recoveryRun) executeWithinDeadline(ctx context.Context, entry harness.Au
 			if saved.Generation != entry.Generation {
 				return harness.Result{}, harness.ErrAuditReset
 			}
+			if saved.ExternalRound != entry.ExternalRound+1 {
+				return harness.Result{}, harness.ErrAuditSuperseded
+			}
 			if saved.Status == "running" {
 				return harness.Result{}, err
 			}
 			entry = saved
 			entry.ReadinessCheck = r.readinessCheck
+			failures = entry.ConsecutiveFailures()
+		} else {
+			failures++
+			if len(entry.History) == 0 {
+				entry.History = []harness.AuditRound{{}}
+			}
+			entry.History[len(entry.History)-1].Incident = incident.Kind
 		}
 		role := "primary"
 		if fallbackUsed {
@@ -159,7 +179,7 @@ func (r recoveryRun) executeWithinDeadline(ctx context.Context, entry harness.Au
 		if reportErr := reportAuditStatus(r.diagnostics, "Audit "+role+" failed: "+failureSummary(incident.Kind)+". No verdict obtained."); reportErr != nil {
 			return harness.Result{}, reportErr
 		}
-		if r.audit && incident.Kind != "request-too-large" && selected.Agent() == r.config.Agent() && r.config.Fallback != nil && *r.config.Fallback != selected.Agent() && fallbackEligible(incident, true) {
+		if r.audit && r.path != "" && incident.Kind != "request-too-large" && selected.Agent() == r.config.Agent() && r.config.Fallback != nil && *r.config.Fallback != selected.Agent() && fallbackEligible(incident, true) {
 			retryAt := time.Now().Add(r.config.CoolOffPeriod)
 			var saveErr error
 			if r.path != "" {
@@ -172,7 +192,7 @@ func (r recoveryRun) executeWithinDeadline(ctx context.Context, entry harness.Au
 			}
 			fmt.Fprintf(r.diagnostics, "AUDIT COOLDOWN: %s/%s recorded until %s\n", selected.Harness, selected.Model, retryAt.Format(time.RFC3339))
 		}
-		if r.audit && !permanentProviderFailure(incident.Kind) && (entry.FailureBlocked() || entry.ConsecutiveFailures() >= r.config.MaxFailures) {
+		if r.audit && !permanentProviderFailure(incident.Kind) && (entry.FailureBlocked() || failures >= r.config.MaxFailures) {
 			return harness.Result{}, r.block(entry)
 		}
 		if r.audit && permanentFallback {
@@ -205,10 +225,13 @@ func (r recoveryRun) executeWithinDeadline(ctx context.Context, entry harness.Au
 			missingRecovered = true
 			reason = "session-unavailable"
 		default:
+			if r.audit && !fallbackEligible(incident, true) {
+				return harness.Result{}, r.block(entry)
+			}
 			if r.audit && permanentProviderFailure(incident.Kind) {
 				return harness.Result{}, r.block(entry)
 			}
-			if r.audit && r.path != "" && fallbackEligible(incident, true) {
+			if r.audit && fallbackEligible(incident, true) {
 				if err := reportAuditStatus(r.diagnostics, "Retrying within the remaining audit deadline and failure allowance."); err != nil {
 					return harness.Result{}, err
 				}
@@ -244,12 +267,24 @@ func (r recoveryRun) stopAtDeadline(entry harness.AuditEntry) error {
 		if saved.Generation != entry.Generation {
 			return harness.ErrAuditReset
 		}
+		if r.ownedRound == nil || *r.ownedRound == 0 {
+			return err // No round was claimed by this command.
+		}
+		if saved.ExternalRound != *r.ownedRound {
+			return harness.ErrAuditSuperseded
+		}
 		return errors.Join(err, r.block(saved))
 	}
 	return err
 }
 
 func (r recoveryRun) block(entry harness.AuditEntry) error {
+	if r.path == "" {
+		if err := reportAuditStatus(r.diagnostics, "Recovery stopped. No verdict obtained. Caller: report this blocker; do not troubleshoot the auditor or change its configuration. This audit has no persistent gate lockout or --reset operation."); err != nil {
+			return err
+		}
+		return errors.New("Audit unavailable: bounded recovery exhausted; no verdict obtained")
+	}
 	if err := reportAuditStatus(r.diagnostics, auditStopStatus); err != nil {
 		return err
 	}
@@ -325,12 +360,16 @@ func (r recoveryRun) prepare(entry harness.AuditEntry, selected harness.Config, 
 		request.Prompt += "\n\n" + r.registry.TimeoutResumeInstructions
 	}
 	if resume && correctableResponse(lastIncident(entry)) {
-		request.Prompt += "\n\nThe previous response was unusable. Return exactly one unindented GATE:, REVISION:, and VERDICT: envelope for the requested gate, followed by findings. Do not repeat prior envelopes."
+		request.Prompt += "\n\nThe previous response was unusable. Return exactly one unindented audit envelope in the expected format below, followed by findings. Do not repeat prior envelopes."
 		gate := r.gate
 		if r.readinessCheck != "" {
 			gate = r.readinessCheck
 		}
-		request.Prompt += "\nExpected format (replace placeholders, choose one verdict; no Markdown around fields):\nGATE: " + gate + "\nREVISION: <audited revision>\nVERDICT: PASS | PROVISIONAL PASS | FAIL\n<findings>"
+		envelope := "GATE: " + gate
+		if r.path == "" {
+			envelope = "AUDIT: standalone"
+		}
+		request.Prompt += "\nExpected format (replace placeholders, choose one verdict; no Markdown around fields):\n" + envelope + "\nREVISION: <audited revision>\nVERDICT: PASS | PROVISIONAL PASS | FAIL\n<findings>"
 	}
 	manifest, err := r.evidence.Prompt(previous)
 	if err != nil {
@@ -404,6 +443,9 @@ func (r recoveryRun) invoke(parent context.Context, entry harness.AuditEntry, se
 		if err != nil {
 			return result, err
 		}
+		if r.ownedRound != nil {
+			*r.ownedRound = attempt.entry.ExternalRound
+		}
 		attempt.entry.History[len(attempt.entry.History)-1].Diagnostic = r.diagnosticPath
 		request.OnSession = attempt.recordIdentity
 		request.OnDelivered = func(identity string) error {
@@ -427,6 +469,14 @@ func (r recoveryRun) invoke(parent context.Context, entry harness.AuditEntry, se
 				attempt.reportTimeout(r.diagnostics)
 			}
 		}()
+	} else if r.transient != nil {
+		request.OnDelivered = func(identity string) error {
+			r.transient.SessionID = identity
+			r.transient.StandardsContract, r.transient.Standards = 1, request.Standards
+			r.transient.History = []harness.AuditRound{{Evidence: r.evidence.Files}}
+			deliveryConfirmed = true
+			return nil
+		}
 	}
 	requested := r.deliveredStandardNames(request.Standards)
 	for fetches := 0; ; fetches++ {
@@ -443,6 +493,9 @@ func (r recoveryRun) invoke(parent context.Context, entry harness.AuditEntry, se
 		if err != nil {
 			if attempt != nil && !deliveryConfirmed && (len(request.SuppliedStandards) != 0 || len(request.SuppliedEvidence) != 0) {
 				attempt.entry.StandardsContract = 0
+			}
+			if r.transient != nil && !deliveryConfirmed && (len(request.SuppliedStandards) != 0 || len(request.SuppliedEvidence) != 0) {
+				r.transient.StandardsContract = 0
 			}
 			return result, err
 		}
@@ -494,6 +547,12 @@ func (r recoveryRun) invoke(parent context.Context, entry harness.AuditEntry, se
 		}
 	}
 	if r.audit {
+		if r.path == "" {
+			if err := validateStandaloneVerdict(result.Response); err != nil {
+				return result, &harness.Incident{Kind: "response-malformed", Harness: selected.Harness, SessionID: result.SessionID, Err: err}
+			}
+			return result, nil
+		}
 		if err = harness.ValidateCompositeVerdict(result.Response); err != nil {
 			return result, err
 		}

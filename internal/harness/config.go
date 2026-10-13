@@ -117,14 +117,8 @@ func ResolveConfig(options ConfigOptions) (Config, error) {
 		case "audit":
 			value = document.Delivery.Audit
 		}
-		if value.Harness != "" {
-			config.Harness = value.Harness
-		}
-		if value.Provider != "" {
-			config.Provider = value.Provider
-		}
-		if value.Model != "" {
-			config.Model = value.Model
+		if err := applyAgentOverride(&config, value.Harness, value.Provider, value.Model, path); err != nil {
+			return err
 		}
 		// A project fallback replaces the whole tuple, never mixes providers/models.
 		// An explicit empty mapping disables an inherited fallback.
@@ -185,14 +179,11 @@ func ResolveConfig(options ConfigOptions) (Config, error) {
 		lookup = os.LookupEnv
 	}
 	prefix := map[string]string{"definition": "SPEC", "build": "BUILD", "audit": "AUDIT"}[phase]
-	if value, ok := lookup("SDLC_" + prefix + "_HARNESS"); ok && strings.TrimSpace(value) != "" {
-		config.Harness = value
-	}
-	if value, ok := lookup("SDLC_" + prefix + "_PROVIDER"); ok && strings.TrimSpace(value) != "" {
-		config.Provider = value
-	}
-	if value, ok := lookup("SDLC_" + prefix + "_MODEL"); ok && strings.TrimSpace(value) != "" {
-		config.Model = value
+	envHarness, _ := lookup("SDLC_" + prefix + "_HARNESS")
+	envProvider, _ := lookup("SDLC_" + prefix + "_PROVIDER")
+	envModel, _ := lookup("SDLC_" + prefix + "_MODEL")
+	if err := applyAgentOverride(&config, envHarness, envProvider, envModel, "environment"); err != nil {
+		return Config{}, err
 	}
 	if value, ok := lookup("SDLC_" + prefix + "_TIMEOUT"); ok && strings.TrimSpace(value) != "" {
 		parsed, err := time.ParseDuration(value)
@@ -219,16 +210,10 @@ func ResolveConfig(options ConfigOptions) (Config, error) {
 			return Config{}, err
 		}
 	}
-	if options.Harness != "" {
-		config.Harness = options.Harness
+	if err := applyAgentOverride(&config, options.Harness, options.Provider, options.Model, "command line"); err != nil {
+		return Config{}, err
 	}
-	if options.Provider != "" {
-		config.Provider = options.Provider
-		explicitProvider = true
-	}
-	if options.Model != "" {
-		config.Model = options.Model
-	}
+	explicitProvider = options.Provider != ""
 	if options.Timeout != 0 {
 		config.Timeout = options.Timeout
 	}

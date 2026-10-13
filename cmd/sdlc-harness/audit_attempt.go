@@ -32,7 +32,7 @@ func beginAuditAttempt(path string, entry harness.AuditEntry, work, gate string,
 	entry.History = append(entry.History, harness.AuditRound{Round: entry.ExternalRound, ReadinessCheck: entry.ReadinessCheck, Evidence: evidence.Files, Incident: "interrupted", Harness: config.Harness, Provider: config.Provider, Model: config.Model})
 	entry.History[len(entry.History)-1].CacheKey = cacheKey
 	attempt := &auditAttempt{path: path, entry: entry, limit: config.MaxRounds, failureLimit: config.MaxFailures}
-	return attempt, harness.WriteAuditEntry(path, entry)
+	return attempt, harness.ClaimAuditEntry(path, entry)
 }
 
 func (attempt *auditAttempt) recordIdentity(identity string) error {

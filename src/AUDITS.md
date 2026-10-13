@@ -1,7 +1,7 @@
 ---
 title: Audit and Gate Standards
-version: 8
-last-updated: 2026-10-11
+version: 9
+last-updated: 2026-10-13
 ---
 
 # Audit and Gate Standards
@@ -153,6 +153,11 @@ does not authorize auditor troubleshooting, configuration changes or an extra
 caller retry loop. An oversized request is a request failure, not evidence that
 the provider is unavailable; the harness does not cool that route or silently
 trim required evidence.
+Only one invocation may own a work item's auditor context. A concurrent request
+is refused without another provider call; report that blocker rather than
+investigating the provider or creating a caller retry loop. Standalone and spike
+reviews share bounded recovery and safe reporting but have no persistent gate
+budget or reset operation.
 
 Project-local primary cooldown remains configurable through
 `delivery.audit.fallback.cool_off_period`, default one hour. The harness handles
@@ -295,6 +300,8 @@ remain solely in `audits.yaml`, and operator closure remains separate.
 Append " AUDIT" (with a leading space) to the canary.
 
 ## Document history
+
+Version 9 records exclusive context ownership and shared recovery across modes.
 
 Version 8 adds bounded failure and recovery reporting, resets applicable
 primary cooldowns and distinguishes request rejection from route availability.

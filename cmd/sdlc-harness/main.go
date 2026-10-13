@@ -396,7 +396,7 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		}
 		if found {
 			if entry.Status == "running" {
-				return errors.New("recorded audit is running or was interrupted before recording its outcome; inspect it before resuming")
+				return errors.New("recorded audit is running or was interrupted; no provider invoked. Report this blocker; an operator-authorized --reset retires the context")
 			}
 			if entry.RoundsUsed() >= config.MaxRounds {
 				return fmt.Errorf("audit verdict limit reached for %s/%s; operator authorization is required for --reset", *workItem, normalizedGate)
@@ -414,10 +414,16 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 		recordPath = strings.TrimSpace(*auditRecord)
 	}
 	runner := recoveryRun{config: config, request: request, evidence: evidence, registry: registry,
-		path: recordPath, work: *workItem, gate: sessionGate, cacheKey: cacheKey, readinessCheck: readinessCheck, standardsRoot: standardsRoot, requiredStandards: requiredStandards, audit: normalizedPhase == "audit" && !standalone, diagnostics: errorOutput}
+		path: recordPath, work: *workItem, gate: sessionGate, cacheKey: cacheKey, readinessCheck: readinessCheck, standardsRoot: standardsRoot, requiredStandards: requiredStandards, audit: normalizedPhase == "audit", diagnostics: errorOutput}
 	if runner.audit {
-		runner.cooldowns = harness.CooldownStore{Directory: filepath.Join(projectRoot, ".sdlc")}
-		log, logErr := openAuditDiagnostics(projectRoot, errorOutput)
+		var log *auditDiagnostics
+		var logErr error
+		if standalone {
+			log, logErr = openStandaloneDiagnostics(projectRoot, errorOutput)
+		} else {
+			runner.cooldowns = harness.CooldownStore{Directory: filepath.Join(projectRoot, ".sdlc")}
+			log, logErr = openAuditDiagnostics(projectRoot, errorOutput)
+		}
 		if logErr != nil {
 			return fmt.Errorf("opening audit diagnostics: %w", logErr)
 		}
@@ -437,6 +443,12 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 	}
 	result, err := runner.execute(entry, resume)
 	if err != nil {
+		if runner.audit {
+			var incident *harness.Incident
+			if errors.As(err, &incident) && incident.Harness != "audit" {
+				return &harness.Incident{Kind: incident.Kind, Harness: "audit", Err: errors.New(failureSummary(incident.Kind))}
+			}
+		}
 		return err
 	}
 	if standalone {

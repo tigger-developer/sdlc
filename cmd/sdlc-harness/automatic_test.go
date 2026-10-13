@@ -120,9 +120,9 @@ fi
 				t.Fatal("caller saw lifetime provider attempt count")
 			}
 			if mode == "recover" {
-				prompt, err := os.ReadFile(filepath.Join(root, "prompt"))
-				if err != nil || !bytes.Contains(prompt, []byte("previous response was unusable")) || !bytes.Contains(prompt, []byte("GATE:, REVISION:, and VERDICT:")) {
-					t.Fatal("missing format clarification")
+				arguments, err := os.ReadFile(filepath.Join(root, "arguments"))
+				if err != nil || !bytes.Contains(arguments, []byte("--resume\nprivate-native-id")) {
+					t.Fatal("response correction did not use the retained native context")
 				}
 			}
 			reset := []string{"--reset", "--project", root, "--gate", "definition", "--audit-record", record, "--work-item", "W019"}

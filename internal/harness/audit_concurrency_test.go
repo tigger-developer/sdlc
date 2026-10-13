@@ -3,13 +3,92 @@
 package harness
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"sync"
 	"testing"
+	"time"
 )
+
+func TestAuditClaimProcess(t *testing.T) {
+	path := os.Getenv("SDLC_TEST_CLAIM_RECORD")
+	if path == "" {
+		return
+	}
+	err := ClaimAuditEntry(path, AuditEntry{WorkItem: "W-claim", Gate: "implementation", ExternalRound: 1, Status: "running"})
+	if err == nil {
+		fmt.Println("claimed")
+	} else if !errors.Is(err, ErrAuditRunning) {
+		t.Fatal(err)
+	}
+}
+
+func TestOnlyOneProcessClaimsSharedAuditContext(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "audits.yaml")
+	exe, err := os.Executable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	results := make(chan string, 8)
+	errs := make(chan error, 8)
+	var wg sync.WaitGroup
+	for i := 0; i < 8; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			command := exec.Command(exe, "-test.run=^TestAuditClaimProcess$")
+			command.Env = append(os.Environ(), "SDLC_TEST_CLAIM_RECORD="+path)
+			out, err := command.CombinedOutput()
+			results <- string(out)
+			errs <- err
+		}()
+	}
+	wg.Wait()
+	close(results)
+	close(errs)
+	for err := range errs {
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	claims := 0
+	for out := range results {
+		if strings.Contains(out, "claimed\n") {
+			claims++
+		}
+	}
+	if claims != 1 {
+		t.Fatalf("active owners=%d, want one", claims)
+	}
+}
+
+func TestNewAuditOwnerRejectsOldCheckpointsAndCooldown(t *testing.T) {
+	root := t.TempDir()
+	path := filepath.Join(root, "audits.yaml")
+	first := AuditEntry{WorkItem: "W-claim", Gate: "definition", ExternalRound: 1, Status: "running", SessionID: "first"}
+	if err := ClaimAuditEntry(path, first); err != nil {
+		t.Fatal(err)
+	}
+	first.Status = "incident"
+	if err := WriteAuditEntry(path, first); err != nil {
+		t.Fatal(err)
+	}
+	second := first
+	second.ExternalRound, second.Status, second.SessionID = 2, "running", "second"
+	if err := ClaimAuditEntry(path, second); err != nil {
+		t.Fatal(err)
+	}
+	if err := WriteAuditEntry(path, first); !errors.Is(err, ErrAuditSuperseded) {
+		t.Fatalf("old checkpoint: %v", err)
+	}
+	if err := RecordAuditCooldown(path, first, CooldownStore{Directory: root}, AgentConfig{Harness: "claude", Model: "fixture"}, time.Now().Add(time.Hour)); !errors.Is(err, ErrAuditSuperseded) {
+		t.Fatalf("old cooldown: %v", err)
+	}
+}
 
 func TestResetRejectsStaleSnapshotAndIsolatesProject(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "audits.yaml")

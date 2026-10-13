@@ -1,7 +1,7 @@
 ---
 title: SDLC Audit Harness Guide
-version: 12
-last-updated: 2026-10-11
+version: 13
+last-updated: 2026-10-13
 ---
 
 # SDLC audit harness guide
@@ -193,6 +193,16 @@ the same automatic audit behaviour. The old reset-session flag is replaced by re
   supported, model, timeout, and `delivery.audit.max_rounds`; explicit flags
   override them.
 
+Primary routing fields must remain compatible across layers. Changing the
+harness or a Hermes provider requires a replacement model in that same layer;
+changing to Hermes also requires its provider. File, environment and CLI
+overrides follow this rule for all phases. Model-only overrides on an unchanged
+route remain supported, and limits inherit separately. A project that should
+follow the global route must omit its partial routing override. Invalid routing
+stops before provider invocation rather than combining an inherited model with
+an unrelated harness. Native provider configuration and account state remain
+outside the harness's ownership.
+
 ## Audit execution deadlines
 
 Configure these duration strings under `delivery.audit` in project
@@ -255,13 +265,16 @@ blocker and diagnostic reference, without troubleshooting the auditor or
 changing its configuration. These messages are generated from typed failures;
 native text cannot select public status messages, even after the private log cap.
 
-Private files under `.sdlc/audit-diagnostics/` retain provider diagnostics and
+Private files under `.sdlc/audit-diagnostics/` for managed gates, or
+`.audit-diagnostics/` for standalone and spike reviews, retain provider diagnostics and
 unvalidated output, including malformed responses. Files are created with mode
 0600 in a 0700 directory with its own Git ignore rule. Each invocation log is
 bounded to 16 MiB; excess bytes are discarded without stopping liveness notices.
 Logs may contain reviewed material; they are for operator
 investigation, never automatic upload or audit verdicts. Operators control retention.
 No request prompts or input-file copies are deliberately logged.
+Standalone diagnostics never create `.sdlc` or elect its workflow. Diagnostic
+directories are excluded from audit evidence and contain their own ignore rule.
 
 ## Audit example
 
@@ -296,6 +309,13 @@ result needs no live provider session. Execution limits alone do not invalidate
 it, unless their configuration file is itself a supplied, changed input.
 
 ## Recovery
+
+All three audit modes share provider failure classification, one distinct
+fallback, bounded response correction and the shared execution deadlines.
+Standalone and spike reviews retain transport context only within the command;
+they have no gate record, persistent failure lockout or `--reset`. Exhaustion
+reports a safe reason, stop action and diagnostic reference without a verdict.
+Managed gates additionally persist their budgets and recovery history.
 
 ### Verdict budget and internal failures
 
@@ -339,6 +359,11 @@ reset retires that shared context but resets only the selected gate's counters.
 Legacy records without a generation begin at zero. Late-write protection applies
 to invocations of this release; an already-running older binary must exit before
 concurrent use because it does not implement the generation check.
+Starting a round atomically checks the recorded context and claims exactly the
+next round. A second owner is refused before another provider starts. Checkpoints
+and cooldown writes retain that round's ownership; an earlier round cannot
+overwrite a newer invocation, even without an intervening reset. Test-code and
+delivery-code share this ownership because they share an implementation context.
 
 Three consecutive unusable provider responses for a gate trigger internal lockout
 by default. Configure a positive integer as `delivery.audit.max_failures` in global
@@ -406,6 +431,13 @@ one distinct fallback, but does not repeatedly submit the same rejected package
 to an unchanged route or silently trim required standards or project evidence.
 The 8 MiB transport limit is not proof that a package fits any model's token
 window; provider context rejection remains authoritative.
+Codex error items are classified as errors rather than tool use. Unknown native
+items fail closed with a separate unrecognized-event reason. A prohibited-tool
+or context-loss incident remains latched for the invocation; later session
+metadata cannot erase it or permit a verdict.
+Hermes stdout is model review text, including any quoted JSON examples. Native
+failure, session and activity metadata come from the bridge on stderr; finding
+text is never interpreted as a native tool or provider error event.
 
 For Hermes with `provider: claude` or `provider: anthropic`, use a full Anthropic
 model ID. This adapter does not expand Claude Code short aliases such as `sonnet`,
@@ -430,7 +462,7 @@ failure bound; replacements do not reset the verdict allowance.
 
 ## Primary audit cooldown
 
-After an unusable primary audit attempt, a configured distinct fallback enables
+After an unusable managed SDLC primary audit attempt, a configured distinct fallback enables
 a project-local cooldown. The deadline is the local failure time plus
 `delivery.audit.fallback.cool_off_period`, defaulting to `1h`. It does not
 parse provider messages or infer reset dates. The policy applies to every
@@ -497,6 +529,9 @@ fallback internally. Calling agents must not build a second retry loop around an
 infrastructure failure. Known FAIL findings remain unresolved until reassessed.
 
 ## Document history
+
+- Version 13 (2026-10-13): Validate primary route overrides, latch native
+  incidents, claim exclusive rounds and share recovery/reporting across modes.
 
 - Version 12 (2026-10-11): Report safe failure causes and recovery transitions,
   reset applicable primary cooldowns and distinguish context-limit rejection.

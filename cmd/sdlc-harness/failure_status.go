@@ -56,6 +56,8 @@ func failureSummary(kind string) string {
 		return "harness invocation failed; details remain in the private diagnostic"
 	case "unexpected-tool-use":
 		return "auditor attempted a prohibited native tool operation"
+	case "unrecognized-provider-event":
+		return "harness could not recognize a native provider event; no verdict can be accepted"
 	case "response-malformed", "response-empty", "response-missing", "response-standards-request":
 		return "auditor returned an unusable response"
 	default:

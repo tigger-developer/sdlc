@@ -60,11 +60,17 @@ other routes and projects are unchanged. Provider quota and credentials remain
 unchanged. A fresh retry is eligible; provider success is not guaranteed.
 Reset accepts running state; no process check is required. Old invocations lose
 write authority and cannot overwrite the reset or a new audit with late results.
+Each work item and auditor context permits one active invocation. A concurrent
+request is refused before starting another provider; report the blocker rather
+than investigating or building a retry loop.
 Other projects are unaffected; the selected gate retains its existing context scope.
 
 Each work item and gate has its own verdict allowance (default five).
 Unusable responses and cached results do not consume that allowance.
 Provider failures have a separate internal bound; no verdict is fabricated.
+Standalone and spike reviews use the same bounded recovery and fallback, with
+no persistent gate budget or reset. Their private diagnostics live in ignored
+.audit-diagnostics/ at the project root; SDLC diagnostics use .sdlc/audit-diagnostics/.
 Stderr reports safe failure reasons and each next action: fallback, response
 correction, replacement context, bounded retry or stop. Report these reasons
 with the diagnostic reference; they do not authorize auditor troubleshooting.
@@ -112,6 +118,15 @@ max_failures (3) and max_rounds (5). Duration strings require units and at least
 one second; 90s is accepted as a personal response-start override. Heartbeats
 and initialization do not count as model response activity. Recoverable
 timeouts do not require human intervention; overall expiry stops recovery.
+Changing a primary harness or Hermes provider in a higher-precedence layer
+requires a model in that same layer. Changing to Hermes also requires its
+provider. A model-only override on the same route remains supported; limits
+inherit independently. Remove partial project route overrides to inherit the
+complete global route. Invalid route overrides fail before provider invocation.
+Operator overrides: --global-config FILE, --harness HARNESS, --model MODEL,
+--provider PROVIDER (Hermes only), and --timeout DURATION. Changing routes
+through these flags requires the replacement fields together. Their availability
+does not authorize a calling agent to change the auditor's configuration.
 Hermes auditing requires uv and a supported installed native Hermes runtime.
 Hermes claude/anthropic routes require full Anthropic model IDs; Claude Code
 short aliases (sonnet, opus, haiku) are rejected before native initialization.

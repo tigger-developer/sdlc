@@ -77,7 +77,8 @@ func (output *sessionOutput) Write(data []byte) (int, error) {
 			continue
 		}
 		output.identity = identity
-		if output.err = output.checkpoint(); output.err != nil {
+		if err := output.checkpoint(); err != nil {
+			output.err = errors.Join(output.err, err)
 			return n, output.err
 		}
 	}
@@ -104,12 +105,19 @@ func (output *sessionOutput) finish(failed bool) {
 // report forwards event metadata, never assistant prose, tool payloads or prompts.
 // Error messages are the only provider text exposed by this stdout adapter.
 func (output *sessionOutput) report(line []byte) {
+	// Hermes stdout is model prose, not a native event stream. The bridge
+	// verifies tool isolation and publishes trusted metadata on stderr.
+	if output.request.Harness == "hermes" && output.request.ControlledReads {
+		return
+	}
 	if output.onActivity != nil && responseActivity(output.request.Harness, line) {
 		output.onActivity()
 	}
 	if output.request.ControlledReads {
 		if kind := controlledEventIncident(output.request.Harness, line); kind != "" {
-			output.err = newIncident(kind, output.request.Harness, output.identity, errors.New("auditor attempted a native tool or lost its supplied standards context"))
+			if output.err == nil {
+				output.err = newIncident(kind, output.request.Harness, output.identity, errors.New("auditor attempted a native tool or lost its supplied standards context"))
+			}
 			return
 		}
 	}
@@ -124,6 +132,10 @@ func (output *sessionOutput) report(line []byte) {
 		Message json.RawMessage `json:"message"`
 		Errors  []string        `json:"errors"`
 		Error   json.RawMessage `json:"error"`
+		Item    struct {
+			Type    string `json:"type"`
+			Message string `json:"message"`
+		} `json:"item"`
 	}
 	if err := json.Unmarshal(line, &event); err != nil {
 		// Never dump an unknown structured payload. Plain-text startup failures
@@ -141,9 +153,12 @@ func (output *sessionOutput) report(line []byte) {
 		return
 	}
 	output.sawJSON = true
-	if event.IsError || event.Type == "error" || event.Type == "turn.failed" || strings.HasPrefix(event.Subtype, "error_") {
+	if event.IsError || event.Type == "error" || event.Type == "turn.failed" || event.Item.Type == "error" || strings.HasPrefix(event.Subtype, "error_") {
 		var message string
 		_ = json.Unmarshal(event.Message, &message) // Only string error messages are safe to relay.
+		if message == "" {
+			message = event.Item.Message
+		}
 		if message == "" {
 			message = event.Result
 		}
@@ -165,7 +180,12 @@ func (output *sessionOutput) report(line []byte) {
 			message = event.Type + " " + event.Subtype
 		}
 		output.diagnostic("provider error", message)
-		output.failureText = message
+		if len(output.failureText) < maxDiagnostic {
+			output.failureText += message + "\n"
+			if len(output.failureText) > maxDiagnostic {
+				output.failureText = output.failureText[:maxDiagnostic]
+			}
+		}
 		return
 	}
 	if event.Type == "" || output.notices >= maxProgressNotices {
@@ -209,8 +229,14 @@ func controlledEventIncident(provider string, line []byte) string {
 			return "unexpected-tool-use"
 		}
 	}
-	if provider == "codex" && event.Item.Type != "" && event.Item.Type != "agent_message" && event.Item.Type != "reasoning" && event.Item.Type != "plan" {
-		return "unexpected-tool-use"
+	if provider == "codex" {
+		switch event.Item.Type {
+		case "", "agent_message", "reasoning", "plan", "error":
+		case "command_execution", "file_change", "mcp_tool_call", "web_search", "collab_tool_call":
+			return "unexpected-tool-use"
+		default:
+			return "unrecognized-provider-event"
+		}
 	}
 	return ""
 }

@@ -184,6 +184,9 @@ func RecordAuditCooldown(path string, entry AuditEntry, store CooldownStore, age
 		if !found || current.Generation != entry.Generation {
 			return ErrAuditReset
 		}
+		if current.ExternalRound != entry.ExternalRound {
+			return ErrAuditSuperseded
+		}
 		return store.Record(agent, deadline)
 	})
 }
@@ -350,6 +353,9 @@ func writeAuditEntry(path string, entry AuditEntry, checkGeneration bool) error 
 		if record.Audits[index].WorkItem == entry.WorkItem && record.Audits[index].Gate == entry.Gate {
 			if checkGeneration && record.Audits[index].Generation != entry.Generation {
 				return ErrAuditReset
+			}
+			if checkGeneration && record.Audits[index].ExternalRound > entry.ExternalRound {
+				return ErrAuditSuperseded
 			}
 			record.Audits[index] = entry
 			updated = true

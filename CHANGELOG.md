@@ -1,10 +1,24 @@
 ---
 title: Changelog
 version: 1
-last-updated: 2026-10-11
+last-updated: 2026-10-13
 ---
 
 # Changelog
+
+## v3.8.3 - 2026-10-13
+
+- Reject partial primary overrides that change harness or Hermes provider
+  without a replacement model. Changing to Hermes also requires an explicit
+  provider. Remove a partial project override to inherit the global route.
+- Distinguish Codex error items from native tool operations, preserve model
+  rejection through later warnings, keep Hermes finding text separate from
+  native telemetry, and latch isolation failures until exit.
+- Atomically claim the next audit round. Reject duplicate context owners and
+  obsolete checkpoints or cooldown writes without holding locks during review.
+- Apply bounded recovery, fallback, response correction and safe reporting to
+  SDLC, standalone and spike audits. Standalone diagnostics use an ignored
+  `.audit-diagnostics/` directory without creating an SDLC project or gate record.
 
 ## v3.8.2 - 2026-10-11
 

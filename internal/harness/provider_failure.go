@@ -127,6 +127,16 @@ func providerFailure(message string, request Request, resume bool) string {
 			return "session-unavailable"
 		}
 		lower := strings.ToLower(line)
+		if request.Harness == "codex" {
+			var envelope struct {
+				Error struct {
+					Message string `json:"message"`
+				} `json:"error"`
+			}
+			if json.Unmarshal([]byte(line), &envelope) == nil && strings.HasSuffix(envelope.Error.Message, "model is not supported when using Codex with a ChatGPT account.") {
+				return "model-unavailable"
+			}
+		}
 		if lower == "prompt is too long" || strings.HasPrefix(lower, "prompt is too long:") {
 			return "request-too-large"
 		}
