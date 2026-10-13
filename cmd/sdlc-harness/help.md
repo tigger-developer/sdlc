@@ -71,6 +71,9 @@ Provider failures have a separate internal bound; no verdict is fabricated.
 Standalone and spike reviews use the same bounded recovery and fallback, with
 no persistent gate budget or reset. Their private diagnostics live in ignored
 .audit-diagnostics/ at the project root; SDLC diagnostics use .sdlc/audit-diagnostics/.
+Logging refuses symlinked runtime directories, parents writable by other users,
+or a log directory without private 0700 permissions. Existing permissions are
+not changed; report the exact refusal to the operator.
 Stderr reports safe failure reasons and each next action: fallback, response
 correction, replacement context, bounded retry or stop. Report these reasons
 with the diagnostic reference; they do not authorize auditor troubleshooting.

@@ -14,13 +14,15 @@ last-updated: 2026-10-13
 - Distinguish Codex error items from native tool operations, preserve model
   rejection through later warnings, keep Hermes finding text separate from
   native telemetry, and latch isolation failures until exit.
+  Non-fatal Codex error and todo-list items do not reject an otherwise valid turn.
 - Atomically claim the next audit round. Reject duplicate context owners and
   obsolete checkpoints or cooldown writes without holding locks during review.
 - Apply bounded recovery, fallback, response correction and safe reporting to
   SDLC, standalone and spike audits. Standalone diagnostics use an ignored
   `.audit-diagnostics/` directory without creating an SDLC project or gate record.
 - Reject symlinked diagnostic directories and non-private log-directory
-  permissions before creating logs; do not alter existing permissions.
+  permissions before creating logs. Project roots and runtime parents writable
+  by other users are refused; existing permissions are not altered.
 
 ## v3.8.2 - 2026-10-11
 

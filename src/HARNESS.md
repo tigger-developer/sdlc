@@ -276,6 +276,7 @@ No request prompts or input-file copies are deliberately logged.
 Standalone diagnostics never create `.sdlc` or elect its workflow. Diagnostic
 directories are excluded from audit evidence and contain their own ignore rule.
 Runtime directory components must be real directories rather than symlinks,
+the project root and runtime parents must not be writable by other users,
 and the log directory must have private `0700` permissions. Unsafe existing
 destinations are rejected before log creation; permissions are not changed
 automatically. Filesystem validation does not make project directories immutable.
@@ -435,7 +436,10 @@ one distinct fallback, but does not repeatedly submit the same rejected package
 to an unchanged route or silently trim required standards or project evidence.
 The 8 MiB transport limit is not proof that a package fits any model's token
 window; provider context rejection remains authoritative.
-Codex error items are classified as errors rather than tool use. Unknown native
+Codex error items are non-fatal notices rather than tool use; todo-list items
+are planning metadata. Fatal top-level errors and failed turns still reject the
+response. This follows the [upstream event contract](https://github.com/openai/codex/blob/main/codex-rs/exec/src/exec_events.rs).
+Unknown native
 items fail closed with a separate unrecognized-event reason. A prohibited-tool
 or context-loss incident remains latched for the invocation; later session
 metadata cannot erase it or permit a verdict.

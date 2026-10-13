@@ -72,6 +72,35 @@ func TestDiagnosticsRejectUnsafePermissionsWithoutChangingThem(t *testing.T) {
 	}
 }
 
+func TestDiagnosticsRejectWritableParentsBeforeCreatingLogs(t *testing.T) {
+	for _, kind := range []string{"project-root", "runtime-parent"} {
+		t.Run(kind, func(t *testing.T) {
+			root := t.TempDir()
+			parent := root
+			if kind == "runtime-parent" {
+				parent = filepath.Join(root, ".sdlc")
+				if err := os.Mkdir(parent, 0700); err != nil {
+					t.Fatal(err)
+				}
+			}
+			// #nosec G302 -- deliberately unsafe temporary directory verifies refusal.
+			if err := os.Chmod(parent, 0777); err != nil {
+				t.Fatal(err)
+			}
+			log, err := openAuditDiagnostics(root, &bytes.Buffer{})
+			if log != nil {
+				_ = log.file.Close()
+			}
+			if err == nil {
+				t.Fatal("accepted parent writable by another local user")
+			}
+			if _, err := os.Stat(filepath.Join(root, ".sdlc", "audit-diagnostics")); !os.IsNotExist(err) {
+				t.Fatalf("created logs below unsafe parent: %v", err)
+			}
+		})
+	}
+}
+
 func TestAuditDiagnosticsKeepsHeartbeatAfterLogCap(t *testing.T) {
 	var output bytes.Buffer
 	log, err := openAuditDiagnostics(t.TempDir(), &output)

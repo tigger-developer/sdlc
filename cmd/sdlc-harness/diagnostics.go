@@ -65,7 +65,13 @@ func privateDiagnosticDirectory(root, relative string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	var info os.FileInfo
+	info, err := os.Stat(directory)
+	if err != nil {
+		return "", err
+	}
+	if info.Mode().Perm()&0022 != 0 {
+		return "", fmt.Errorf("audit diagnostic parent %q must not be writable by other users; permissions were not changed", directory)
+	}
 	for _, part := range strings.Split(relative, string(filepath.Separator)) {
 		directory = filepath.Join(directory, part)
 		info, err = os.Lstat(directory)
@@ -81,6 +87,9 @@ func privateDiagnosticDirectory(root, relative string) (string, error) {
 		}
 		if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
 			return "", fmt.Errorf("audit diagnostic path %q must be a real directory, not a symlink", directory)
+		}
+		if info.Mode().Perm()&0022 != 0 {
+			return "", fmt.Errorf("audit diagnostic parent %q must not be writable by other users; permissions were not changed", directory)
 		}
 	}
 	if info.Mode().Perm() != 0700 {

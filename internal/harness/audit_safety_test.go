@@ -101,3 +101,21 @@ func TestBlankNativeEventsDoNotCrashAudit(t *testing.T) {
 		t.Fatalf("blank native lines rejected valid audit: %v", err)
 	}
 }
+
+func TestCodexNonfatalItemsDoNotRejectSuccessfulTurn(t *testing.T) {
+	for _, kind := range []string{"error", "todo_list"} {
+		t.Run(kind, func(t *testing.T) {
+			req := Request{Harness: "codex", Model: "fixture", ControlledReads: true, ResultFile: filepath.Join(t.TempDir(), "result")}
+			result, err := Execute(context.Background(), req, false, nil, func(_ context.Context, _ string, _ []string, _ string, _ io.Reader, out, _ io.Writer) error {
+				if err := os.WriteFile(req.ResultFile, []byte("GATE: definition\nREVISION: fixture\nVERDICT: PASS\n"), 0600); err != nil {
+					return err
+				}
+				_, err := io.WriteString(out, `{"type":"thread.started","thread_id":"native"}`+"\n"+`{"type":"item.completed","item":{"type":"`+kind+`","message":"native nonfatal notice","items":[]}}`+"\n")
+				return err
+			}, io.Discard)
+			if err != nil || result.Response == "" {
+				t.Fatalf("nonfatal %s item rejected usable response: %v", kind, err)
+			}
+		})
+	}
+}

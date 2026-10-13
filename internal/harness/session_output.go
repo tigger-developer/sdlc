@@ -153,7 +153,13 @@ func (output *sessionOutput) report(line []byte) {
 		return
 	}
 	output.sawJSON = true
-	if event.IsError || event.Type == "error" || event.Type == "turn.failed" || event.Item.Type == "error" || strings.HasPrefix(event.Subtype, "error_") {
+	// Codex ErrorItem is a non-fatal notification; top-level error and
+	// turn.failed events remain fatal. See the upstream exec event contract.
+	if output.request.Harness == "codex" && event.Item.Type == "error" && strings.HasPrefix(event.Type, "item.") {
+		output.diagnostic("provider notice", event.Item.Message)
+		return
+	}
+	if event.IsError || event.Type == "error" || event.Type == "turn.failed" || strings.HasPrefix(event.Subtype, "error_") {
 		var message string
 		_ = json.Unmarshal(event.Message, &message) // Only string error messages are safe to relay.
 		if message == "" {
@@ -231,7 +237,7 @@ func controlledEventIncident(provider string, line []byte) string {
 	}
 	if provider == "codex" {
 		switch event.Item.Type {
-		case "", "agent_message", "reasoning", "plan", "error":
+		case "", "agent_message", "reasoning", "plan", "todo_list", "error":
 		case "command_execution", "file_change", "mcp_tool_call", "web_search", "collab_tool_call":
 			return "unexpected-tool-use"
 		default:
