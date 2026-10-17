@@ -1,10 +1,16 @@
 ---
 title: Changelog
 version: 1
-last-updated: 2026-10-13
+last-updated: 2026-10-17
 ---
 
 # Changelog
+
+## v3.8.4 - 2026-10-17
+
+- Update the HTML-Preview submodule to upstream commit `ae3365c`, including
+  native Org and Markdown conversion, annotation improvements, portable service
+  lifecycle handling, local SVG rasterization, and diagram rendering.
 
 ## v3.8.3 - 2026-10-13
 
