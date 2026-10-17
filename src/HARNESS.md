@@ -1,7 +1,7 @@
 ---
 title: SDLC Audit Harness Guide
-version: 13
-last-updated: 2026-10-13
+version: 14
+last-updated: 2026-10-17
 ---
 
 # SDLC audit harness guide
@@ -322,6 +322,14 @@ they have no gate record, persistent failure lockout or `--reset`. Exhaustion
 reports a safe reason, stop action and diagnostic reference without a verdict.
 Managed gates additionally persist their budgets and recovery history.
 
+When an eligible invocation terminates without a usable verdict, the caller
+immediately performs the current-session internal-review fallback in `AUDITS.md`.
+No additional operator permission is required. This workflow fallback does not
+run inside the harness, reset its state, or fabricate an independent verdict.
+Record internal evidence separately and continue otherwise-authorized work after
+internal PASS. Input/readiness refusals and valid external FAIL findings remain
+binding. Human sign-off, test requirements and closure are unchanged.
+
 ### Verdict budget and internal failures
 
 Each ticket and explicit gate has its own `delivery.audit.max_rounds` allowance,
@@ -537,6 +545,9 @@ fallback internally. Calling agents must not build a second retry loop around an
 infrastructure failure. Known FAIL findings remain unresolved until reassessed.
 
 ## Document history
+
+Version 14 documents immediate caller-side internal review after terminal
+external-auditor failure, separate from harness recovery and external verdicts.
 
 - Version 13 (2026-10-13): Validate primary route overrides, latch native
   incidents, claim exclusive rounds and share recovery/reporting across modes.

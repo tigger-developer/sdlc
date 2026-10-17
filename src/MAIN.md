@@ -1,7 +1,7 @@
 ---
 title: Lean Software Delivery Standards
-version: 1
-last-updated: 2026-10-10
+version: 2
+last-updated: 2026-10-17
 ---
 
 # Lean Software Delivery Standards
@@ -146,7 +146,16 @@ Test-code audits written tests; delivery-code audits the delivered code, affecte
 tests and product documentation. They share one implementation auditor context.
 Read `AUDITS.md` before any gate; ordinary author checks are not extra audit loops.
 
-Audit findings, status, revisions, round numbers, remediation, and session IDs
+If an eligible external auditor fails or times out without a usable verdict,
+immediately perform the current-session internal-review fallback in `AUDITS.md`
+and continue authorized work. No additional operator permission is required.
+Record the internal result separately; never present it as independent review
+or alter harness-owned `audits.yaml`. Readiness refusals and valid external
+FAIL findings are not bypassed. This rule also applies to standalone and spike
+reviews, and substitutes only for the affected review prerequisite, not human
+approval, tests, scope limits or closure.
+
+External audit findings, status, revisions, round numbers, remediation, and session IDs
 are recorded only by the harness-invoked audit workflow in the work item's
 `audits.yaml`. Agents may
 read that record and link to it, but must not edit it directly or copy its audit
@@ -236,3 +245,5 @@ interaction with the operator.
 
 Version 1 records the document metadata and strengthens mandatory standards
 reading for harness audits. Earlier revisions remain in Git history.
+
+Version 2 adds standing internal review after external-auditor execution failure.

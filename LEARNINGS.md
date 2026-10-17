@@ -1,10 +1,20 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 15
-last-updated: 2026-10-13
+version: 16
+last-updated: 2026-10-17
 ---
 
 # SDLC Standards: Design Learnings
+
+## Auditor availability must not remove review or stall authorized work
+
+When an external auditor terminates without a usable verdict, perform a deliberate
+internal review in the current session immediately. Waiting for the operator to
+request that review adds a dependency without improving assurance. Record the
+internal evidence separately and disclose its lack of independence; do not
+fabricate a harness verdict or bypass a valid FAIL, readiness rejection, human
+approval or test requirement. Provider repair and reset remain outside caller
+authority. The fallback is a workflow policy, not another external model service.
 
 ## Audit execution policy is separate from persisted gate state
 

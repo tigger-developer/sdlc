@@ -35,8 +35,13 @@ Invoke the resolved absolute `~/.agents/sdlc/bin/sdlc-harness` path with
 `--gate`, `--audit-record`, `--work-item`, and the complete `--input` list.
 Use that same command for each review; do not select start/resume, pass session
 IDs, override providers, or troubleshoot the auditor. The harness manages recovery.
-Remediate every FAIL finding together. If it reports human intervention required,
-report the diagnostic reference and continue other authorized project work; do not
-inspect provider state or retry the infrastructure failure. Only after explicit
+Remediate every FAIL finding together. If the auditor fails or times out without
+a usable verdict, report the safe reason and diagnostic reference, then immediately
+perform the current-session internal-review fallback in `AUDITS.md`. Do not wait
+for operator permission, launch another reviewer, inspect provider state or retry
+the infrastructure failure. Record a separate internal result and continue the
+otherwise-authorized workflow after internal PASS; never edit `audits.yaml` or
+claim independent clearance. Readiness refusals, unresolved external FAIL findings
+and verdict-limit stops are not bypassed. Only after explicit
 operator authorization, invoke `--reset` once for the selected gate without inputs,
 then submit the normal audit without that flag. Never put resets in a retry loop.

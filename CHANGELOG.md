@@ -6,6 +6,17 @@ last-updated: 2026-10-17
 
 # Changelog
 
+## v3.8.5 - 2026-10-17
+
+- Require immediate current-session internal review when an eligible external
+  audit fails or times out without a usable verdict. Apply the fallback across
+  definition, delivery, paired, emergency, standalone and spike workflows.
+- Record internal review separately from harness-owned audit evidence and permit
+  otherwise-authorized continuation after internal PASS. Preserve readiness,
+  valid external findings, human approval, test and closure requirements.
+- Update workflow skills and caller help to prevent intervention diagnostics
+  from becoming an unnecessary wait for permission to review internally.
+
 ## v3.8.4 - 2026-10-17
 
 - Update the HTML-Preview submodule to upstream commit `ae3365c`, including

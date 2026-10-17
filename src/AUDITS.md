@@ -1,7 +1,7 @@
 ---
 title: Audit and Gate Standards
-version: 9
-last-updated: 2026-10-13
+version: 10
+last-updated: 2026-10-17
 ---
 
 # Audit and Gate Standards
@@ -16,7 +16,8 @@ the work. Use its help, supply the required evidence, and report its interventio
 authentication or model behaviour, or ask the operator to choose replacements.
 Model selection, fallback and session recovery belong to the harness and its
 configuration. If documented recovery cannot proceed, report the exact command
-and diagnostic without speculative causes; continue other authorized work.
+and diagnostic without speculative causes; immediately apply the internal-review
+fallback below and continue authorized work.
 Harness investigation requires the operator to explicitly place it in scope.
 
 An identical request may return a **cached result** from `audits.yaml`: the same
@@ -81,6 +82,8 @@ PASS approves tests only and does not mark delivery passed. Final delivery requi
 current delivery-code PASS or effective PROVISIONAL PASS; stage-specific prompts
 separate cache keys. Old unlabelled rounds remain history, not current-stage evidence.
 Execution states in validation.org are test evidence, not duplicated audit verdicts.
+An eligible internal-review fallback below satisfies the review prerequisite for
+its exact gate and candidate without manufacturing an external verdict.
 
 For every gate:
 
@@ -142,10 +145,13 @@ old context's write authority; late checkpoints and results cannot overwrite the
 reset or a subsequent audit. Other projects remain independent. Test-code and
 delivery-code retain their shared context, with separate counter boundaries.
 
-On "Audit unavailable: unable to obtain a valid result. Human intervention required", report the diagnostic
-reference and continue unrelated authorized work. Do not retry, inspect provider
-state or diagnose the harness. Rejected output remains in private project-local
-logs for operator investigation. See `HARNESS.md` for operator details.
+On "Audit unavailable: unable to obtain a valid result. Human intervention required",
+report the safe reason and diagnostic reference, then immediately perform the
+internal-review fallback below. Do not wait for the operator to authorize that
+review. Do not retry, inspect provider state or diagnose the harness. Rejected
+output remains in private project-local logs for operator investigation.
+See `HARNESS.md` for operator details. Reset authorization is required only to
+restore external auditing, not to proceed with the internal fallback.
 
 The harness also reports safe failure reasons and its next recovery action on
 stderr. Report those reasons with the diagnostic reference; their visibility
@@ -163,7 +169,7 @@ Project-local primary cooldown remains configurable through
 `delivery.audit.fallback.cool_off_period`, default one hour. The harness handles
 it internally; agents do not sleep or choose a replacement provider.
 
-Audit findings, status, revisions, round numbers, and session IDs MUST be
+External audit findings, status, revisions, round numbers, and session IDs MUST be
 recorded only in `audits.yaml`. Specifications and tickets may link to that
 record but must not duplicate its audit state. Existing duplicated text is
 historical input for migration, not a second authority.
@@ -238,6 +244,60 @@ applied. Timeout, silence, malformed output, or an unavailable provider is not
 a pass. Record findings and remediation in `audits.yaml` without deleting
 superseded evidence.
 
+## Internal review when the external auditor is unavailable
+
+If an eligible external audit terminates without a usable verdict because of
+timeout, provider quota/authentication failure, malformed output, or another
+auditor execution failure, **immediately switch to an internal audit in the
+current session**. This standing fallback applies to definition, test-code and
+delivery-code gates, paired/emergency reviews, standalone reviews and spikes.
+Let an active harness invocation finish its bounded recovery first; do not
+launch competing reviews on a transient notice. Once it terminates unsuccessfully,
+do not add external retries or wait for operator permission to review internally.
+Do not launch another model, agent or ad hoc external auditor for this fallback.
+
+This exception concerns auditor availability only. It does not bypass invalid
+inputs, caller-supplied standards rejection, schema/readiness failures, missing
+evidence, concurrent ownership, or a valid external FAIL/verdict-limit stop.
+Correct rejected requests before requesting review. Preserve unresolved external
+findings: an internal review cannot dismiss or override them.
+
+Read the applicable standards and review the complete candidate against the
+same gate/profile criteria. Inspect requirements/design where applicable, test
+quality and actual invocation boundaries, coding/security rules, execution
+evidence and required documentation. Perform a deliberate review after authoring,
+not merely a summary of work performed. Remediate every valid finding, rerun
+affected checks and review the changed candidate. Never invent test results or
+relax the normal mode's obligations. Stop for an unremediable defect or a
+human-only decision; auditor unavailability alone is not a stopping condition.
+
+For a managed work item, record this evidence in a separate `internal-review.md`
+beside `spec.org`; append dated entries rather than overwriting prior reviews.
+For a spike, use the brief's Findings section. For non-SDLC review, use the
+project's existing review record or a clearly named project-local review file.
+Record:
+
+- `Review method: internal fallback (current session; not independent)`;
+- gate/profile, reviewed revision and any identified working-tree delta;
+- safe external failure reason and diagnostic reference, without private logs;
+- standards and evidence actually reviewed, findings, remediation and checks;
+- `INTERNAL REVIEW: PASS` or `INTERNAL REVIEW: FAIL`, with limitations.
+
+Only a recorded internal PASS for the current candidate permits the next
+otherwise-authorized workflow step under this exception. It substitutes for
+that review prerequisite, including definition admission and operator handback;
+it is **not an independent external PASS**. Operator sign-off, test requirements,
+holds, closure, spike non-merge/non-deployment rules and scope limits remain.
+Candidate changes invalidate the internal result for the changed inputs just
+as they invalidate an external review. An unavailable subsequent external review
+uses this same fallback without repeatedly probing a known blocked route.
+
+Do not edit `audits.yaml`, clear its incident, forge an external envelope, or
+copy its findings into the internal record. The internal record owns only the
+internal review and links external evidence. State the fallback and its result
+at handback; do not conceal the loss of independence.
+This separately owned internal evidence is not duplicated external audit state.
+
 ## Human boundaries
 
 Only the operator may approve the definition, change signed-off behaviour or
@@ -300,6 +360,9 @@ remain solely in `audits.yaml`, and operator closure remains separate.
 Append " AUDIT" (with a leading space) to the canary.
 
 ## Document history
+
+Version 10 authorizes immediate current-session internal review after terminal
+external-auditor failure, with separate evidence and unchanged human boundaries.
 
 Version 9 records exclusive context ownership and shared recovery across modes.
 

@@ -50,7 +50,13 @@ file inventory exposes omitted paths but does not prove their contents were read
 Use the same normal command for the first audit and every remediation.
 The harness owns provider selection, context, fallback and bounded recovery.
 On FAIL, address all findings before submitting the next audit.
-On 'Human intervention required', stop auditing and report the diagnostic reference.
+On 'Human intervention required' or terminal failure without a usable verdict,
+stop external calls, report the safe reason and diagnostic reference, and immediately
+perform the current-session internal-review fallback in AUDITS.md without waiting
+for operator permission. Record the internal result separately; do not edit
+audits.yaml or claim independent PASS. Readiness/input refusals, valid FAIL findings
+and verdict-limit stops are not bypassed. Continue otherwise-authorized work after
+an eligible internal PASS; human sign-off, tests and closure requirements remain.
 Do not troubleshoot the provider, inspect private diagnostics, or reset without authority.
 After authorization, run --reset once without --input, then audit without --reset.
 History and logs are preserved; the next audit uses a fresh context.

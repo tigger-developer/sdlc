@@ -1,6 +1,6 @@
 ---
 name: hands-off-spike
-description: Run an explicitly invoked, unattended exploratory spike from a signed-off brief, with mandatory independent standalone code review and recorded findings, never merged or deployed.
+description: Run an explicitly invoked, unattended exploratory spike from a signed-off brief, with external code review or an explicitly recorded internal fallback when unavailable, never merged or deployed.
 ---
 
 Use this skill only when the operator explicitly invokes it. Paired development
@@ -77,7 +77,9 @@ criteria, or boundaries require renewed sign-off.
 
 ## 4. Audit the spike code
 
-Code produced by a spike is always independently reviewed. The harness's
+Code produced by a spike must be reviewed. Attempt independent external review;
+if it fails without a usable verdict, immediately perform the current-session
+internal-review fallback in `AUDITS.md`, without asking the operator. The harness's
 `SPIKE-AUDIT.md` profile supplies all coding, security, technology and testing
 standards; it does not require SDLC workflow or documentation artefacts.
 Before handback, invoke the resolved absolute `~/.agents/sdlc/bin/sdlc-harness` path with
@@ -89,8 +91,11 @@ Address every finding as a batch: remediate valid findings and challenge
 incorrect ones with evidence under AUDITS.md, then resubmit the same command.
 A standalone review has no harness verdict budget; stop after five verdicts
 without `PASS` or `PROVISIONAL PASS` unless the operator authorized more. On
-"Human intervention required", report the diagnostic reference and stop
-auditing.
+"Human intervention required", report the safe reason and diagnostic reference,
+stop external calls and immediately review internally under `AUDITS.md`.
+Do not launch another agent or external reviewer, troubleshoot the provider or
+wait for permission. A valid external FAIL or verdict-limit stop is not an
+availability failure and cannot be bypassed with internal review.
 
 ## 5. Record findings and hand back
 
@@ -103,6 +108,12 @@ Add a Findings section to the brief:
 - the final standalone audit verdict and its findings, quoted. A standalone
   review writes no `audits.yaml`; the spike is deliberately outside the SDLC
   gate record, so its findings section is the record.
+
+If the auditor was unavailable, record the internal-review method, reviewed
+candidate, applicable standards, findings, remediation, checks and internal
+result in that Findings section instead. Include the external failure reference
+and state that independent review was unavailable; do not invent an external
+verdict. Follow `AUDITS.md`'s internal-review evidence contract.
 
 Return to ATTENDED and present the brief. The operator decides:
 

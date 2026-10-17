@@ -9,8 +9,12 @@ signed-off `spec.org`, and its current audit evidence.
 
 Admit delivery only with explicit operator sign-off in `spec.org`, an `ACTIVE`
 work item in `docs/work.org`, and current `PASS` or effective `PROVISIONAL PASS`
-evidence for the definition gate in `audits.yaml`. Check documented dependencies
-and implementation holds; only explicit operator authority lifts a hold. If the
+evidence for the definition gate in `audits.yaml`.
+An eligible, current internal PASS in `internal-review.md` under `AUDITS.md`
+also satisfies the definition-review prerequisite when the external auditor was
+unavailable. It does not substitute for operator sign-off.
+Check documented dependencies and implementation holds; only explicit operator
+authority lifts a hold. If the
 operator now lifts a hold, move the item to `ACTIVE` before admission once the
 remaining conditions are satisfied.
 Do not trust copied gate metadata or begin by rerunning definition audits. A
@@ -107,7 +111,9 @@ preservation tests need their rationale. Mark deferred OT/UT execution AMBER wit
 a reason. Run the validator with `--spec <spec.org> --readiness-check=test-code`,
 then the audit harness with `--gate test-code`, using the work item's
 `audits.yaml`. Remediate until
-PASS or effective PROVISIONAL PASS within the configured allowance before building.
+PASS or effective PROVISIONAL PASS within the configured allowance before building,
+or obtain eligible internal PASS under `AUDITS.md` when the external auditor fails
+without a usable verdict.
 If the approved spec has no RTs, skip this audit and proceed to implementation;
 do not remove or reclassify approved RTs to bypass it.
 
@@ -123,9 +129,12 @@ remediate valid findings and challenge incorrect or out-of-scope findings with
 evidence under `~/.agents/sdlc/AUDITS.md`. Raise doubtful or unresolved disputes
 to the operator; never silently waive findings or expand scope to obtain a PASS.
 The harness handles timeouts and malformed-response recovery internally. An
-intervention diagnostic requires operator recovery, not another agent retry loop.
+intervention diagnostic requires the immediate internal-review fallback in
+`AUDITS.md`, not another agent retry loop or a wait for operator recovery.
 Do not invoke individual audit skills or re-audit the signed-off definition.
-After effective delivery-code PASS, return the results for operator validation.
+After effective delivery-code PASS or eligible current internal PASS under
+`AUDITS.md`, return the results for operator validation, explicitly naming the
+review method and any loss of independence.
 In HANDS-OFF, defer UTs until all other delivery work is delivered: leave them AMBER for the
 operator and list them at handback, alongside any genuinely blocked work. Do not
 pause otherwise executable delivery for UT participation. Return the change for
@@ -137,8 +146,13 @@ Invoke the resolved absolute `~/.agents/sdlc/bin/sdlc-harness` path with
 `--gate`, `--audit-record`, `--work-item`, and the complete `--input` list.
 Use that same command for each review; do not select start/resume, pass session
 IDs, override providers, or troubleshoot the auditor. The harness manages recovery.
-Remediate every FAIL finding together. If it reports human intervention required,
-report the diagnostic reference and continue other authorized project work; do not
-inspect provider state or retry the infrastructure failure. Only after explicit
+Remediate every FAIL finding together. If the auditor fails or times out without
+a usable verdict, report the safe reason and diagnostic reference, then immediately
+perform the current-session internal-review fallback in `AUDITS.md`. Do not wait
+for operator permission, launch another reviewer, inspect provider state or retry
+the infrastructure failure. Record a separate internal result and continue the
+otherwise-authorized workflow after internal PASS; never edit `audits.yaml` or
+claim independent clearance. Readiness refusals, unresolved external FAIL findings
+and verdict-limit stops are not bypassed. Only after explicit
 operator authorization, invoke `--reset` once for the selected gate without inputs,
 then submit the normal audit without that flag. Never put resets in a retry loop.
