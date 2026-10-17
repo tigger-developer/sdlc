@@ -1,6 +1,14 @@
 sdlc-audit: request an independent SDLC or standalone standards audit.
 Alias of sdlc-harness; both use the same interface.
 
+STANDING POLICY: external auditing is suspended until the operator explicitly
+re-enables it. At each review step, load definition-audit, test-code-audit or
+code-audit from ~/.agents/skills/ in the current session. Do not invoke this
+command first, launch another reviewer or wait for a provider failure. Follow
+AUDITS.md for internal evidence and continuation; human approval and readiness
+requirements remain. The interface below is retained for operator use after
+explicit re-enablement, not routine workflow invocation during suspension.
+
 Usage:
   sdlc-audit --input FILE [--input FILE ...] [options] < context.txt
   sdlc-audit --gate GATE --audit-record FILE --work-item ID [options] < context.txt

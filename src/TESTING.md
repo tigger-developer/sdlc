@@ -1,7 +1,7 @@
 ---
 title: Testing Standards
-version: 1
-last-updated: 2026-10-09
+version: 2
+last-updated: 2026-10-18
 ---
 
 # Testing Standards
@@ -72,25 +72,26 @@ automated regression test is justified, write or amend it before implementing
 the target production behaviour, observe it fail for the intended reason, implement the smallest
 coherent change, observe it pass, then refactor without losing evidence. When no
 automated regression test is justified, record the specific reason; urgency,
-difficulty, or inconvenience is insufficient. The definition-gate audit harness
+difficulty, or inconvenience is insufficient. The definition-audit skill
 confirms test design and traceability; it does not replace a required failing
 automated test execution.
 
 At the definition gate, audit only the proposed RT, UT, and OT definitions. Do
 not demand test code, execution results, or RED/GREEN evidence before
-implementation. At the implementation gates, the audit harness reviews the
+implementation. At the implementation gates, the in-session review skills review the
 actual test changes and current evidence against those signed-off definitions
 (or the recorded operator-authorized scope in paired and emergency delivery).
 Normal delivery first reviews the complete written RT package at the test-code
 gate, after observing RED (or justified initially GREEN preservation evidence),
 before implementing the target behaviour. After implementation and RT/OT GREEN, the
-delivery-code gate resumes the same implementation-auditor context, reviewing
-production code and changed tests. Each stage has a separate configured verdict
-allowance; unusable responses do not consume it. The author must check that RED fails for the intended reason.
+delivery-code gate uses `code-audit` in the current session to review production
+code and changed tests. Test-code uses `test-code-audit` in that same session.
+The external harness is suspended under `AUDITS.md`; no external call or
+provider context is required. The author must check that RED fails for the intended reason.
 Paired and emergency routes may go directly to delivery-code after their coherent
 change; they do not invent a retrospective pre-build test-code gate.
 Retrospective test-definition review uses the
-separate definition context, not the implementation auditor's session.
+definition-audit skill in the current session, not another provider context.
 Planned tests are not implementation evidence, and implemented tests do not
 retroactively repair an inadequate definition.
 

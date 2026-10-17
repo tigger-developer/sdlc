@@ -57,16 +57,16 @@ present. No annotation records, even resolved or empty ones, may remain at the g
 Copy the template's `#+SCHEMA:` version. Keep `Synopsis` distinct from the
 change-specific `#+TITLE:`, with its eight level-two categories and short bullets.
 Its summary must accurately and completely represent the detail below
-its section break. Invoke the composite definition audit through the installed
-audit harness with `--gate definition`, using the work item's `audits.yaml` record. Before requesting another audit, address **every** finding as a batch:
+its section break. Load `~/.agents/skills/definition-audit/SKILL.md` and conduct
+the composite review internally in this session. Address **every** finding as a batch:
 remediate valid findings and challenge incorrect or out-of-scope findings with
 evidence under `~/.agents/sdlc/AUDITS.md`. Raise doubtful or unresolved disputes
 to the operator; never silently waive findings or expand scope to obtain a PASS.
-Do not invoke individual audit skills.
+Do not launch an external reviewer.
 
-After current audit evidence in `audits.yaml` establishes `PASS` or an effective
-`PROVISIONAL PASS`, or the eligible fallback in `AUDITS.md` records current
-internal PASS in `internal-review.md`, move the work item to `REVIEW`. Never copy the verdict into
+After current internal PASS is recorded in `internal-review.md`, move the work
+item to `REVIEW`. No external verdict is required while auditing is suspended.
+Never copy the verdict into
 spec metadata. Open the specification with the previewer selected by `MAIN.md`
 and return it for operator sign-off. Preview is presentation, not a gate. After
 explicit sign-off, record `APPROVED YYYY-MM-DD` in `OPERATOR_SIGNOFF`, adding scope
@@ -75,19 +75,14 @@ Move its work item to `ACTIVE` unless the operator explicitly defers delivery;
 retain `REVIEW` and the hold in that case. Design approval never lifts a hold.
 Do not implement code.
 
-## Audit invocation boundary
+## Internal audit boundary
 
-Invoke the resolved absolute `~/.agents/sdlc/bin/sdlc-harness` path with
-`--gate`, `--audit-record`, `--work-item`, and the complete `--input` list.
-Use that same command for each review; do not select start/resume, pass session
-IDs, override providers, or troubleshoot the auditor. The harness manages recovery.
-Remediate every FAIL finding together. If the auditor fails or times out without
-a usable verdict, report the safe reason and diagnostic reference, then immediately
-perform the current-session internal-review fallback in `AUDITS.md`. Do not wait
-for operator permission, launch another reviewer, inspect provider state or retry
-the infrastructure failure. Record a separate internal result and continue the
-otherwise-authorized workflow after internal PASS; never edit `audits.yaml` or
-claim independent clearance. Readiness refusals, unresolved external FAIL findings
-and verdict-limit stops are not bypassed. Only after explicit
-operator authorization, invoke `--reset` once for the selected gate without inputs,
-then submit the normal audit without that flag. Never put resets in a retry loop.
+At each audit step, load the relevant skill in this same session:
+`~/.agents/skills/definition-audit/SKILL.md`,
+`~/.agents/skills/test-code-audit/SKILL.md` or
+`~/.agents/skills/code-audit/SKILL.md`. Apply `AUDITS.md`'s active internal-only
+mode and record its evidence separately. Do not invoke the external harness,
+launch another model/agent/context, reset the auditor or wait for a provider
+failure. Internal PASS satisfies the applicable review prerequisite; tests,
+human sign-off, scope, holds and closure requirements remain. External auditing
+requires explicit operator re-enablement.

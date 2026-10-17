@@ -1,10 +1,19 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 16
-last-updated: 2026-10-17
+version: 17
+last-updated: 2026-10-18
 ---
 
 # SDLC Standards: Design Learnings
+
+## Review criteria are separate from reviewer execution
+
+Definition, test-code and implementation reviews need explicit criteria even
+when the external execution route is suspended. Focused skills can run in the
+author's current session without pretending to provide independence. Route each
+workflow step to its skill and record internal evidence; no external failure
+is a prerequisite. Keep external protocol documentation clearly suspended so
+global instructions cannot accidentally reintroduce calls or recovery waits.
 
 ## Auditor availability must not remove review or stall authorized work
 

@@ -21,6 +21,9 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 	writeFixtureFile(t, filepath.Join(source, "skills", "audit-test-code", "SKILL.md"), "---\nname: audit-test-code\ndescription: Review implemented tests.\n---\n")
 	writeFixtureFile(t, filepath.Join(source, "skills", "audit-test-definitions", "SKILL.md"), "---\nname: audit-test-definitions\ndescription: Review test definitions.\n---\n")
 	writeFixtureFile(t, filepath.Join(source, "skills", "define-change", "SKILL.md"), "---\nname: define-change\ndescription: Define a change.\n---\n")
+	for _, skill := range []string{"definition-audit", "test-code-audit", "code-audit"} {
+		writeFixtureFile(t, filepath.Join(source, "skills", skill, "SKILL.md"), "---\nname: "+skill+"\ndescription: Internal review.\n---\n")
+	}
 	writeGuardFixture(t, filepath.Join(source, "hooks", "agent-command-guard.sh"))
 	writeFixtureFile(t, filepath.Join(source, "templates", "codex-sdlc.rules.example"), codexPythonRulesStart+"\nprefix_rule(pattern=[\"python3\"], decision=\"forbidden\")\n"+codexPythonRulesEnd+"\n")
 	writeCommandFixtures(t, source)
@@ -88,6 +91,9 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 		}
 	}
 	assertFixtureContent(t, filepath.Join(root, ".agents", "skills", "define-change", "SKILL.md"), "---\nname: define-change\ndescription: Define a change.\n---\n")
+	for _, skill := range []string{"definition-audit", "test-code-audit", "code-audit"} {
+		assertFixtureContent(t, filepath.Join(root, ".agents", "skills", skill, "SKILL.md"), "---\nname: "+skill+"\ndescription: Internal review.\n---\n")
+	}
 	for _, name := range deployedCommandNames {
 		deployed := filepath.Join(root, ".agents", "sdlc", "bin", name)
 		assertFixtureContent(t, deployed, name+" executable\n")
@@ -133,7 +139,7 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 		t.Fatalf("duplicate canonical-root skills directory remains: %v", err)
 	}
 	for _, provider := range []string{"claude", "copilot", "hermes"} {
-		for _, skill := range []string{"define-change"} {
+		for _, skill := range []string{"define-change", "definition-audit", "test-code-audit", "code-audit"} {
 			path := filepath.Join(root, "."+provider, "skills", skill)
 			target, err := os.Readlink(path)
 			if err != nil {

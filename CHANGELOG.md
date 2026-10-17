@@ -1,10 +1,23 @@
 ---
 title: Changelog
 version: 1
-last-updated: 2026-10-17
+last-updated: 2026-10-18
 ---
 
 # Changelog
+
+## v3.8.6 - 2026-10-18
+
+- Suspend external auditing until explicitly re-enabled. All audit steps now
+  run internally in the current session without an external attempt first.
+- Add definition-audit, test-code-audit and code-audit skills with explicit
+  scope, mode-specific readiness, review criteria and internal evidence contracts.
+- Route definition, delivery, paired/emergency and spike workflows through the
+  skills. Retain human gates, actual test evidence and harness-owned audit history.
+- Reconcile global workflow guidance and caller help with the suspension.
+- Document that the independent auditor is suspended and under review. A
+  separate audit can be manually invoked in a fresh session on any supported
+  agent harness through the relevant skill, without invoking the audit harness.
 
 ## v3.8.5 - 2026-10-17
 

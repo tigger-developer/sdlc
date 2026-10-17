@@ -1,3 +1,9 @@
+---
+title: Paired Development
+version: 1
+last-updated: 2026-10-18
+---
+
 # Paired Development
 
 Paired development supports work whose required outcome is refined through
@@ -71,7 +77,7 @@ For each bounded iteration:
    `AUDITS.md`; do not audit every keystroke or deliberately unfinished edit.
    First apply `ORG-SCHEMA.md` and delivery-code readiness to the recorded bounded
    scope: RT/OT GREEN, outstanding UTs AMBER. No pre-build test-code audit is required.
-   Use `--gate delivery-code`; affected product documentation must be current for
+   Use `code-audit` internally in this session; affected product documentation must be current for
    this increment, although retrospective specification consolidation may follow.
 8. Continue from the operator's next instruction.
 
@@ -92,12 +98,12 @@ duplicating CSS, templates, Markdown, YAML, or other reviewed artefacts in
 prose.
 
 After the current implementation passes its gate, run the retrospective
-definition review described by `~/.agents/sdlc/AUDITS.md`. Supply
-`Workflow: paired` in audit context. This reviews requirements, design, and test
+definition review with `definition-audit` internally under
+`~/.agents/sdlc/AUDITS.md`, using paired scope. This reviews requirements, design, and test
 definitions against the authorized outcome; it is not fictional advance
 approval. Correct documentary errors, but refer proposed behaviour or design
-changes to the operator for normal delivery. Do not invoke individual audit
-skills or reopen implementation merely to pursue optional improvements.
+changes to the operator for normal delivery. Do not invoke the suspended audit
+harness or reopen implementation merely to pursue optional improvements.
 
 At closure, present one consolidated handback containing:
 

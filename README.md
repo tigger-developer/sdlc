@@ -1,10 +1,26 @@
 ---
 title: Lean SDLC for Coding Agents
-version: 9
-last-updated: 2026-10-11
+version: 10
+last-updated: 2026-10-18
 ---
 
 # Lean SDLC for Coding Agents
+
+## Independent auditor suspended
+
+**The automatic independent audit harness is currently suspended and under
+review.** Workflow audit steps use `definition-audit`, `test-code-audit` and
+`code-audit` internally in the current session, without attempting an external
+call first. Readiness checks, review criteria and human approval remain.
+
+For a separate review, the operator may manually start a fresh session in any
+supported agent harness (Codex, Claude Code, GitHub Copilot CLI or Hermes) and
+invoke the relevant audit skill with the project and candidate revision. This
+invokes **the audit skill, not the audit harness**. The skill reviews directly
+in that session and records its actual review method and evidence under
+[AUDITS.md](src/AUDITS.md). No skill launches another reviewer or automatically
+re-enables the external harness. Re-enablement requires an explicit operator
+decision.
 
 ## What it is
 
@@ -19,7 +35,7 @@ A coding agent can write code quickly while missing a requirement, inventing a
 design choice, or mistaking its own checks for independent review. This
 framework keeps project decisions with the person, gives the agent the
 standards relevant to its task, and checks a change where review matters. Its
-balance is one definition document, focused independent audits, and a choice
+balance is one definition document, focused reviews, and a choice
 of delivery modes, proportionate to the change.
 
 ## How it got here
@@ -92,7 +108,7 @@ The process does not silently turn unfinished work into approved v3 changes.
   such as visual or editorial changes.
 - **Hands-off spike:** `$hands-off-spike` answers a signed-off exploratory
   question unattended on a never-merged branch. Its code always receives an
-  independent standalone review, and adoption returns to the standard route.
+  internal test-code and implementation reviews, and adoption returns to the standard route.
 - **Emergency:** the exact `BYPASS-GATE-7` token selects the bounded emergency
   patch process. It records the decision and verification afterwards without
   suspending safety or evidence requirements.
@@ -106,7 +122,7 @@ rules.
 
 `$define-change` prepares one `spec.org` containing the outcome, boundaries,
 acceptance criteria, test definitions, and enough solution design for another
-agent to implement it. An independent definition review checks that package.
+agent to implement it. The definition-audit skill reviews that package.
 The person signs off before standard delivery begins.
 
 ### Deliver and verify
@@ -117,6 +133,10 @@ regression tests establish RED and GREEN where applicable; operator and one-off
 tests remain separately identified.
 
 ### Understand the audit harness
+
+The automatic external route described below is **suspended**. Use the review
+skills above while the harness is under review; the retained interface is not
+an instruction to invoke it during delivery.
 
 The audit harness sends a defined evidence package to an independent reviewer,
 records its verdict against that revision, and manages bounded retries and
@@ -156,6 +176,9 @@ historical reference. Current commands and rules are defined by the linked
 standards, skills, and command help.
 
 ## Document history
+
+Version 10 records the suspended automatic auditor, internal workflow reviews
+and optional manually invoked fresh-session audits through the review skills.
 
 - Version 9 (2026-10-11): Document audit execution deadlines and Hermes runtime
   requirements.

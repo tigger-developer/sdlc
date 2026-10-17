@@ -1,10 +1,23 @@
 ---
 title: Lean Software Delivery Standards
-version: 2
-last-updated: 2026-10-17
+version: 3
+last-updated: 2026-10-18
 ---
 
 # Lean Software Delivery Standards
+
+## Standing audit mode: internal only
+
+Until the operator explicitly re-enables external auditing, conduct every audit
+internally in the current session. Use `definition-audit`, `test-code-audit` and
+`code-audit` under `~/.agents/skills/`, following `AUDITS.md`. Do not call the
+external harness first or launch another reviewer. Internal PASS satisfies the
+applicable gate's review prerequisite; operator approval, readiness, tests,
+scope and closure requirements remain. This policy supersedes external audit
+instructions below and in other standards/skills while the suspension is active.
+The operator may manually invoke the same audit skills in a fresh session on
+any supported agent harness for a separate review. This invokes the audit,
+not the audit harness; the reviewing session must not launch another reviewer.
 
 This repository is a standalone standards and delivery framework for coding
 agents. The project and human operator retain authority. SDLC v3 supports Codex,
@@ -133,10 +146,10 @@ Normal delivery has two phases and two human gates:
 1. **Define:** create one context-independent `spec.org` containing context,
    acceptance criteria, traced test definitions, edge cases, and solution
    design. The `define-change` workflow checks and corrects its own draft, runs
-   one retained external definition audit, then obtains operator sign-off.
+   the `definition-audit` skill in-session, then obtains operator sign-off.
 2. **Deliver:** write and execute the RT package, validate its records and obtain
    the test-code review. Implement, obtain RT/OT GREEN, then validate and review
-   delivery-code in the same retained implementation context. `deliver-change`
+   delivery-code through the in-session review skills. `deliver-change`
    follows `TESTING.md` and `AUDITS.md`; UTs may await the operator. Update affected
    documentation before the final delivery-code verdict and obtain operator closure.
    Follow TESTING.md for minimal test scaffolding and the no-RT skip rule.
@@ -146,9 +159,8 @@ Test-code audits written tests; delivery-code audits the delivered code, affecte
 tests and product documentation. They share one implementation auditor context.
 Read `AUDITS.md` before any gate; ordinary author checks are not extra audit loops.
 
-If an eligible external auditor fails or times out without a usable verdict,
-immediately perform the current-session internal-review fallback in `AUDITS.md`
-and continue authorized work. No additional operator permission is required.
+Load the relevant internal review skill at every gate and continue authorized
+work after its recorded internal PASS. No external attempt or failure is required.
 Record the internal result separately; never present it as independent review
 or alter harness-owned `audits.yaml`. Readiness refusals and valid external
 FAIL findings are not bypassed. This rule also applies to standalone and spike
@@ -206,8 +218,8 @@ contract, or irreversible decisions.
   collaborative route in `PAIRING.md`. Ordinary conversation does not.
 - **Hands-off spike:** only an explicit operator invocation of
   `hands-off-spike` starts an unattended exploration. It answers a signed-off
-  question on a never-merged branch, and its code receives an independent
-  `--agent-spike` standalone review. It never delivers product behaviour.
+  question on a never-merged branch, and its tests and implementation receive
+  the in-session review skills in spike mode. It never delivers product behaviour.
 - **Emergency delivery:** only the exact operator token `BYPASS-GATE-7` in the
   same request authorizes and invokes `emergency-change`, which applies
   `EMERGENCY.md`. An agent must never suggest, infer, or self-authorize it.
@@ -247,3 +259,5 @@ Version 1 records the document metadata and strengthens mandatory standards
 reading for harness audits. Earlier revisions remain in Git history.
 
 Version 2 adds standing internal review after external-auditor execution failure.
+
+Version 3 makes internal review the standing route without an external attempt.

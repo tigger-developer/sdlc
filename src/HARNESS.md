@@ -1,10 +1,17 @@
 ---
 title: SDLC Audit Harness Guide
-version: 14
-last-updated: 2026-10-17
+version: 15
+last-updated: 2026-10-18
 ---
 
 # SDLC audit harness guide
+
+**External auditing is suspended until explicitly re-enabled by the operator.**
+Workflow audit steps load `definition-audit`, `test-code-audit` or `code-audit`
+in the current session instead. No external attempt or failure is required.
+`AUDITS.md` governs internal evidence and continuation. The external interface
+and recovery protocol below are retained for restoration, not active workflow
+instructions. A separate context is not required for internal review.
 
 Internal SDLC helper for running one bounded provider context against
 original evidence files with SHA-256 integrity checks. It is installed at
@@ -545,6 +552,8 @@ fallback internally. Calling agents must not build a second retry loop around an
 infrastructure failure. Known FAIL findings remain unresolved until reassessed.
 
 ## Document history
+
+Version 15 records internal-only workflow routing and the three review skills.
 
 Version 14 documents immediate caller-side internal review after terminal
 external-auditor failure, separate from harness recovery and external verdicts.

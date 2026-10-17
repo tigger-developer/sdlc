@@ -8,11 +8,11 @@ Read `~/.agents/sdlc/MAIN.md`, `TESTING.md`, `CODING.md`, `ARCHITECTURE.md`,
 signed-off `spec.org`, and its current audit evidence.
 
 Admit delivery only with explicit operator sign-off in `spec.org`, an `ACTIVE`
-work item in `docs/work.org`, and current `PASS` or effective `PROVISIONAL PASS`
-evidence for the definition gate in `audits.yaml`.
-An eligible, current internal PASS in `internal-review.md` under `AUDITS.md`
-also satisfies the definition-review prerequisite when the external auditor was
-unavailable. It does not substitute for operator sign-off.
+work item in `docs/work.org`, and current definition internal PASS in
+`internal-review.md` under `AUDITS.md`. A still-current historical external PASS
+also remains evidence; do not repeat an accepted review merely to change its
+method. No new external verdict or failure is required. Internal review does
+not substitute for operator sign-off.
 Check documented dependencies and implementation holds; only explicit operator
 authority lifts a hold. If the
 operator now lifts a hold, move the item to `ACTIVE` before admission once the
@@ -109,11 +109,8 @@ behaviour. Only minimal execution-enabling scaffolding is permitted under
 `TESTING.md`; include it in test-code audit evidence. Record RED only for the intended observed failure; initially GREEN
 preservation tests need their rationale. Mark deferred OT/UT execution AMBER with
 a reason. Run the validator with `--spec <spec.org> --readiness-check=test-code`,
-then the audit harness with `--gate test-code`, using the work item's
-`audits.yaml`. Remediate until
-PASS or effective PROVISIONAL PASS within the configured allowance before building,
-or obtain eligible internal PASS under `AUDITS.md` when the external auditor fails
-without a usable verdict.
+then load `~/.agents/skills/test-code-audit/SKILL.md` in this session. Remediate
+findings and record current internal PASS before building.
 If the approved spec has no RTs, skip this audit and proceed to implementation;
 do not remove or reclassify approved RTs to bypass it.
 
@@ -121,18 +118,17 @@ Implement the authorized solution, obtain GREEN for every RT and execute bounded
 OTs. Keep the specification synchronized for authorized routine details, without
 changing signed-off behaviour. Finish the solution, tests and affected documentation,
 not merely one file or edit. Run `sdlc-validate --readiness-check=delivery-code`
-with the same spec, then invoke `--phase audit --gate delivery-code`: use the same normal command whether or not test-code was required. Each gate has its own verdict allowance. Include affected product
+with the same spec, then load `~/.agents/skills/code-audit/SKILL.md` in this
+session whether or not test-code was required. Include affected product
 documentation; missing or materially stale required docs block the final gate.
 A test-code PASS is not delivery approval; check `readiness_check` in audit evidence.
 Before requesting another audit either stage, address **every** finding as a batch:
 remediate valid findings and challenge incorrect or out-of-scope findings with
 evidence under `~/.agents/sdlc/AUDITS.md`. Raise doubtful or unresolved disputes
 to the operator; never silently waive findings or expand scope to obtain a PASS.
-The harness handles timeouts and malformed-response recovery internally. An
-intervention diagnostic requires the immediate internal-review fallback in
-`AUDITS.md`, not another agent retry loop or a wait for operator recovery.
-Do not invoke individual audit skills or re-audit the signed-off definition.
-After effective delivery-code PASS or eligible current internal PASS under
+External auditing is suspended; do not call the harness or launch another
+reviewer. Do not re-audit the signed-off definition without a material change.
+After current delivery-code internal PASS under
 `AUDITS.md`, return the results for operator validation, explicitly naming the
 review method and any loss of independence.
 In HANDS-OFF, defer UTs until all other delivery work is delivered: leave them AMBER for the
@@ -140,19 +136,14 @@ operator and list them at handback, alongside any genuinely blocked work. Do not
 pause otherwise executable delivery for UT participation. Return the change for
 operator validation and closure; do not claim closure yourself.
 
-## Audit invocation boundary
+## Internal audit boundary
 
-Invoke the resolved absolute `~/.agents/sdlc/bin/sdlc-harness` path with
-`--gate`, `--audit-record`, `--work-item`, and the complete `--input` list.
-Use that same command for each review; do not select start/resume, pass session
-IDs, override providers, or troubleshoot the auditor. The harness manages recovery.
-Remediate every FAIL finding together. If the auditor fails or times out without
-a usable verdict, report the safe reason and diagnostic reference, then immediately
-perform the current-session internal-review fallback in `AUDITS.md`. Do not wait
-for operator permission, launch another reviewer, inspect provider state or retry
-the infrastructure failure. Record a separate internal result and continue the
-otherwise-authorized workflow after internal PASS; never edit `audits.yaml` or
-claim independent clearance. Readiness refusals, unresolved external FAIL findings
-and verdict-limit stops are not bypassed. Only after explicit
-operator authorization, invoke `--reset` once for the selected gate without inputs,
-then submit the normal audit without that flag. Never put resets in a retry loop.
+At each audit step, load the relevant skill in this same session:
+`~/.agents/skills/definition-audit/SKILL.md`,
+`~/.agents/skills/test-code-audit/SKILL.md` or
+`~/.agents/skills/code-audit/SKILL.md`. Apply `AUDITS.md`'s active internal-only
+mode and record its evidence separately. Do not invoke the external harness,
+launch another model/agent/context, reset the auditor or wait for a provider
+failure. Internal PASS satisfies the applicable review prerequisite; tests,
+human sign-off, scope, holds and closure requirements remain. External auditing
+requires explicit operator re-enablement.

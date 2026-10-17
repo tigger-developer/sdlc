@@ -1,15 +1,46 @@
 ---
 title: Audit and Gate Standards
-version: 10
-last-updated: 2026-10-17
+version: 11
+last-updated: 2026-10-18
 ---
 
 # Audit and Gate Standards
 
-Audits provide independent findings; they do not replace operator approval,
-tests, or implementation evidence. The **audit harness** owns the prompts,
-provider invocation, timeout, round limit, and retained session. No individual
-audit skill is required or deployed.
+Audits provide review findings; they do not replace operator approval, tests,
+or implementation evidence.
+
+## Active mode: internal reviews only
+
+All audits run **in the current session**, without first attempting an external
+audit. External auditing is suspended until explicitly re-enabled by the
+operator. Do not invoke the harness, launch another agent/model, reset auditor
+state, probe provider health or wait for external recovery.
+
+Use the installed `definition-audit`, `test-code-audit` and `code-audit` skills
+for the three review purposes. These are authorized when the governing workflow
+requires a review, or when the operator requests one. Definition review applies
+to the normal specification or an authorized retrospective definition; spikes
+and non-SDLC projects use test-code/code review without a specification gate.
+The internal evidence contract below satisfies each applicable review prerequisite.
+Human sign-off, test execution, scope, holds and closure rules remain unchanged.
+
+This active mode **supersedes all external invocation and external PASS
+requirements elsewhere in the standards and skills**. The external harness
+protocol below is retained for future restoration, not an instruction to call
+it now. No successful probe automatically re-enables it.
+
+For a separate audit, the operator may manually start a fresh session on any
+supported agent harness and invoke the appropriate review skill there. The
+skill reviews directly in that session; it does not invoke the audit harness
+or create another context. Record `Review method: manual fresh-session audit`
+instead of calling it author self-review, with the candidate, evidence and
+reviewer separation actually established. Do not claim independence merely
+from a skill name. This manual route does not re-enable automatic auditing.
+
+## External harness protocol (suspended)
+
+The audit harness owns external prompts, provider invocation, deadlines,
+round limits and retained sessions when external auditing is enabled.
 
 For a client-project agent, the harness is an **external tool**, not part of
 the work. Use its help, supply the required evidence, and report its intervention diagnostic. Do not inspect or troubleshoot its internals, provider
@@ -244,23 +275,17 @@ applied. Timeout, silence, malformed output, or an unavailable provider is not
 a pass. Record findings and remediation in `audits.yaml` without deleting
 superseded evidence.
 
-## Internal review when the external auditor is unavailable
+## Internal review evidence and continuation
 
-If an eligible external audit terminates without a usable verdict because of
-timeout, provider quota/authentication failure, malformed output, or another
-auditor execution failure, **immediately switch to an internal audit in the
-current session**. This standing fallback applies to definition, test-code and
-delivery-code gates, paired/emergency reviews, standalone reviews and spikes.
-Let an active harness invocation finish its bounded recovery first; do not
-launch competing reviews on a transient notice. Once it terminates unsuccessfully,
-do not add external retries or wait for operator permission to review internally.
-Do not launch another model, agent or ad hoc external auditor for this fallback.
+Review internally from the outset for definition, test-code and delivery-code
+gates, paired/emergency reviews, standalone reviews and spikes. No external
+attempt, failure, diagnostic reference or reset is required. Do not launch
+another model, agent or ad hoc reviewer.
 
-This exception concerns auditor availability only. It does not bypass invalid
-inputs, caller-supplied standards rejection, schema/readiness failures, missing
-evidence, concurrent ownership, or a valid external FAIL/verdict-limit stop.
-Correct rejected requests before requesting review. Preserve unresolved external
-findings: an internal review cannot dismiss or override them.
+Preserve applicable schema/readiness checks and required evidence. Outstanding
+external findings remain evidence to address: remediate valid findings or record
+an evidence-backed reason for rejecting an incorrect one. Never silently discard
+them, erase history or convert a failed external result into an external PASS.
 
 Read the applicable standards and review the complete candidate against the
 same gate/profile criteria. Inspect requirements/design where applicable, test
@@ -277,9 +302,10 @@ For a spike, use the brief's Findings section. For non-SDLC review, use the
 project's existing review record or a clearly named project-local review file.
 Record:
 
-- `Review method: internal fallback (current session; not independent)`;
+- `Review method: internal (current session; not independent)`;
 - gate/profile, reviewed revision and any identified working-tree delta;
-- safe external failure reason and diagnostic reference, without private logs;
+- `External review: suspended by standing policy`, with historical failure
+  references only when applicable; no new external call is required;
 - standards and evidence actually reviewed, findings, remediation and checks;
 - `INTERNAL REVIEW: PASS` or `INTERNAL REVIEW: FAIL`, with limitations.
 
@@ -289,8 +315,8 @@ that review prerequisite, including definition admission and operator handback;
 it is **not an independent external PASS**. Operator sign-off, test requirements,
 holds, closure, spike non-merge/non-deployment rules and scope limits remain.
 Candidate changes invalidate the internal result for the changed inputs just
-as they invalidate an external review. An unavailable subsequent external review
-uses this same fallback without repeatedly probing a known blocked route.
+as they invalidate an external review. Subsequent stages also use internal
+review without probing the external route.
 
 Do not edit `audits.yaml`, clear its incident, forge an external envelope, or
 copy its findings into the internal record. The internal record owns only the
@@ -360,6 +386,9 @@ remain solely in `audits.yaml`, and operator closure remains separate.
 Append " AUDIT" (with a leading space) to the canary.
 
 ## Document history
+
+Version 11 suspends external calls and routes all reviews through three focused
+current-session audit skills until explicitly re-enabled by the operator.
 
 Version 10 authorizes immediate current-session internal review after terminal
 external-auditor failure, with separate evidence and unchanged human boundaries.

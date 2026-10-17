@@ -14,7 +14,7 @@ progresses. Documentation-only changes do not require a ticket.
 Iterate implementation with the operator. Use automated TDD wherever justified,
 and record each explicit visual, ergonomic, editorial, or operational validation
 without replacing it with artificial automation. Audit each coherent code
-increment promptly through `--gate delivery-code`, not each keystroke.
+increment promptly with `code-audit` in this session, not each keystroke.
 Before that review, follow `~/.agents/sdlc/ORG-SCHEMA.md` and run
 `~/.agents/sdlc/bin/sdlc-validate --help`, then its delivery-code readiness check.
 Every RT/OT must be GREEN; record outstanding UTs as AMBER. This route does not
@@ -24,24 +24,19 @@ require a polished retrospective specification before reviewing the code increme
 When the outcome stabilizes, consolidate `spec.org`, `validation.org`, and
 affected documentation, then run the retrospective definition review.
 
-Follow `~/.agents/sdlc/AUDITS.md` for the `Workflow: paired` audit-context marker,
-gate-specific verdict limits and harness-owned recovery. Refer proposed behaviour
+Use `definition-audit` in this session for the retrospective definition review.
+Follow `~/.agents/sdlc/AUDITS.md` for internal evidence and continuation. Refer proposed behaviour
 or design changes to the operator for normal delivery; do not redesign during
 wrap-up. Ask the operator to confirm the recorded user tests and close the work.
 
-## Audit invocation boundary
+## Internal audit boundary
 
-Invoke the resolved absolute `~/.agents/sdlc/bin/sdlc-harness` path with
-`--gate`, `--audit-record`, `--work-item`, and the complete `--input` list.
-Use that same command for each review; do not select start/resume, pass session
-IDs, override providers, or troubleshoot the auditor. The harness manages recovery.
-Remediate every FAIL finding together. If the auditor fails or times out without
-a usable verdict, report the safe reason and diagnostic reference, then immediately
-perform the current-session internal-review fallback in `AUDITS.md`. Do not wait
-for operator permission, launch another reviewer, inspect provider state or retry
-the infrastructure failure. Record a separate internal result and continue the
-otherwise-authorized workflow after internal PASS; never edit `audits.yaml` or
-claim independent clearance. Readiness refusals, unresolved external FAIL findings
-and verdict-limit stops are not bypassed. Only after explicit
-operator authorization, invoke `--reset` once for the selected gate without inputs,
-then submit the normal audit without that flag. Never put resets in a retry loop.
+At each audit step, load the relevant skill in this same session:
+`~/.agents/skills/definition-audit/SKILL.md`,
+`~/.agents/skills/test-code-audit/SKILL.md` or
+`~/.agents/skills/code-audit/SKILL.md`. Apply `AUDITS.md`'s active internal-only
+mode and record its evidence separately. Do not invoke the external harness,
+launch another model/agent/context, reset the auditor or wait for a provider
+failure. Internal PASS satisfies the applicable review prerequisite; tests,
+human sign-off, scope, holds and closure requirements remain. External auditing
+requires explicit operator re-enablement.

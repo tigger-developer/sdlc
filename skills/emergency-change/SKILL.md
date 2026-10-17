@@ -20,27 +20,22 @@ Run `~/.agents/sdlc/bin/sdlc-validate --help`, then delivery-code readiness: eve
 RT/OT GREEN, with outstanding UTs explicitly AMBER. Do not delay the emergency
 fix for a pre-build test-code audit. After the fix, update affected product
 documentation, then audit implemented tests, production code and those docs
-together with `--gate delivery-code`. Afterwards, reconcile
+together with `code-audit` in this session. Afterwards, reconcile
 the requirements, test definitions, solution design, validation, and affected
 documentation, then run the retrospective definition review. Follow
-`~/.agents/sdlc/AUDITS.md` with `Workflow: emergency` for audit-context markers,
-gate-specific verdict limits and harness-owned recovery. Refer behaviour or
+`~/.agents/sdlc/AUDITS.md` for internal evidence and use `definition-audit`
+in this session for the retrospective definition. Refer behaviour or
 design changes to the operator for normal delivery; correct documentary errors
 without inventing advance approval. Present the evidence for operator closure.
 
-## Audit invocation boundary
+## Internal audit boundary
 
-Invoke the resolved absolute `~/.agents/sdlc/bin/sdlc-harness` path with
-`--gate`, `--audit-record`, `--work-item`, and the complete `--input` list.
-Use that same command for each review; do not select start/resume, pass session
-IDs, override providers, or troubleshoot the auditor. The harness manages recovery.
-Remediate every FAIL finding together. If the auditor fails or times out without
-a usable verdict, report the safe reason and diagnostic reference, then immediately
-perform the current-session internal-review fallback in `AUDITS.md`. Do not wait
-for operator permission, launch another reviewer, inspect provider state or retry
-the infrastructure failure. Record a separate internal result and continue the
-otherwise-authorized workflow after internal PASS; never edit `audits.yaml` or
-claim independent clearance. Readiness refusals, unresolved external FAIL findings
-and verdict-limit stops are not bypassed. Only after explicit
-operator authorization, invoke `--reset` once for the selected gate without inputs,
-then submit the normal audit without that flag. Never put resets in a retry loop.
+At each audit step, load the relevant skill in this same session:
+`~/.agents/skills/definition-audit/SKILL.md`,
+`~/.agents/skills/test-code-audit/SKILL.md` or
+`~/.agents/skills/code-audit/SKILL.md`. Apply `AUDITS.md`'s active internal-only
+mode and record its evidence separately. Do not invoke the external harness,
+launch another model/agent/context, reset the auditor or wait for a provider
+failure. Internal PASS satisfies the applicable review prerequisite; tests,
+human sign-off, scope, holds and closure requirements remain. External auditing
+requires explicit operator re-enablement.

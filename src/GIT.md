@@ -1,3 +1,9 @@
+---
+title: Git and Source-Control Standards
+version: 1
+last-updated: 2026-10-18
+---
+
 # Git and Source-Control Standards
 
 Git provides recoverability and traceability. It is not a substitute for a
@@ -43,6 +49,11 @@ project explicitly adopts that behaviour. A merged change and a verified
 outcome are separate facts.
 
 ## Phase synchronization
+
+While external auditing is suspended under `AUDITS.md`, a current recorded
+internal PASS satisfies the audit prerequisite in this section. Do not call the
+external harness to obtain a PASS before creating a delivery branch or
+synchronizing phase checkpoints. Human approval and other admission rules remain.
 
 The project profile selects the implementation branch strategy:
 

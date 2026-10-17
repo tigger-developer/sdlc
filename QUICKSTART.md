@@ -1,7 +1,7 @@
 ---
 title: SDLC v3 Quickstart
-version: 4
-last-updated: 2026-10-10
+version: 5
+last-updated: 2026-10-18
 ---
 
 # SDLC v3 Quickstart
@@ -224,7 +224,9 @@ $deliver-change
 ```
 
 Delivery requires an `ACTIVE` work item whose specification records a current
-operator sign-off and whose `audits.yaml` records a current definition PASS.
+operator sign-off and whose `internal-review.md` records current definition
+internal PASS. A still-current historical external PASS remains valid evidence;
+no new external audit is required while the harness is suspended.
 It does not rerun definition audits. The sequence is written tests, observed RED,
 test-code review, implementation, RT/OT GREEN, documentation update, then delivery-code
 review. UTs may remain AMBER for operator participation and closure.
@@ -235,8 +237,11 @@ has its own verdict allowance; failed provider responses do not consume it. Only
 explicit operator authority permits `--reset`. An infrastructure-intervention
 response is a blocker to report, not an invitation to diagnose the auditor.
 
-For a separate review, use the audit harness described in
-[AUDITS.md](src/AUDITS.md), not retired individual audit skills.
+Workflow reviews load `definition-audit`, `test-code-audit` or `code-audit`
+internally in the current session under [AUDITS.md](src/AUDITS.md). The automatic
+independent auditor is suspended and under review. For a separate audit, manually
+start a fresh session on any supported harness and invoke the relevant skill;
+invoke the audit, not the suspended audit harness.
 
 ## 6. Use a variant only when selected
 
@@ -254,7 +259,7 @@ $hands-off-spike
 
 The skill first asks about anything unclear in the objective, records a brief
 for your sign-off, then works hands-off on a never-merged `spike/` branch. Its
-code receives an independent `--agent-spike` standalone review, and the
+tests and code receive in-session test-code and implementation reviews, and the
 findings return to you to adopt through `$define-change` or discard.
 
 For an emergency, include the exact token in the same instruction:

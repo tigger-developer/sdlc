@@ -1,3 +1,9 @@
+---
+title: Emergency Delivery Standards
+version: 1
+last-updated: 2026-10-18
+---
+
 # Emergency Delivery Standards
 
 This route applies only after the human invokes `BYPASS-GATE-7` exactly as
@@ -17,7 +23,7 @@ Exact token and sufficient temporary specification
   -> record RT/OT GREEN and pass deterministic delivery-code readiness
   -> pass the delivery-code gate
   -> reconcile the durable specification and design
-  -> retrospective definition review in its separate retained context
+  -> retrospective definition-audit in the current session
   -> complete outstanding user tests
   -> operator closure decision
 ```
@@ -68,8 +74,9 @@ delivery-code audit of implemented tests, production code and those docs. Remedi
 blocking findings within the configured limits. After its effective PASS,
 consolidate the actual requirements, test definitions and solution design
 without inventing advance ceremony. Run the retrospective
-definition review under `AUDITS.md`, supplying `Workflow: emergency` in audit
-context. Correct documentary errors; refer behaviour or design changes to the
+definition review with `definition-audit` under `AUDITS.md` in the current
+session, using emergency scope. Use `code-audit` for the delivery review; the
+external harness is suspended. Correct documentary errors; refer behaviour or design changes to the
 operator for normal delivery. Complete outstanding user tests against the audited
 candidate. Missing RT/OT results block audit admission; outstanding UTs block closure.
 
