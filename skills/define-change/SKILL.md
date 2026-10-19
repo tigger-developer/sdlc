@@ -33,7 +33,7 @@ multiple-choice UI.
 Allocate the next never-used project work number. Create
 `specs/WNNN-descriptor/spec.org` from
 `~/.agents/sdlc/templates/v3/spec.org`. Include context, falsifiable acceptance
-criteria, traced RT/UT/OT test definitions, edge cases, solution design,
+criteria, traced AT/RT/UT/OT test definitions, edge cases, solution design,
 mandatory security impact, and a context-independent delivery handoff. Apply
 `~/.agents/sdlc/ORG-SCHEMA.md`: every AC carries `:ac:` and every test `:testdef:`.
 Create `validation.org` by delivery admission; do not invent execution states
@@ -43,7 +43,7 @@ change-specific title, Org hierarchy, description-list, and semantic-emphasis
 requirements in `ISSUES.md`; generic titles and visually unscannable drafts are
 not ready for audit.
 
-Identify affected documentation in Delivery Handoff. Where no RT is justified,
+Identify affected documentation in Delivery Handoff. Where neither AT nor RT is justified,
 record why OT/UT evidence suffices for definition review; this permits delivery
 to skip test-code review, not to omit the final delivery-code gate.
 

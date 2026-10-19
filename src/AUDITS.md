@@ -1,7 +1,7 @@
 ---
 title: Audit and Gate Standards
-version: 11
-last-updated: 2026-10-18
+version: 12
+last-updated: 2026-10-19
 ---
 
 # Audit and Gate Standards
@@ -75,7 +75,7 @@ Definition review resolves significant design decisions and their verification;
 implementation review checks adherence without substituting the auditor's
 preferred design.
 
-The **definition gate** reviews the specification, solution design, and RT/UT/OT
+The **definition gate** reviews the specification, solution design, and AT/RT/UT/OT
 test definitions together. The **test-code gate** reviews the written tests and
 execution-enabling scaffolding before implementation of the target behaviour.
 The **delivery-code gate** reviews the production delta, affected tests, execution
@@ -90,7 +90,7 @@ reviews in one retained context: `--gate test-code` after the written
 test package has executed, then `--gate delivery-code` after the solution,
 tests and required OTs are GREEN. Review packages, not each file or edit. The test
 review must reach PASS or effective PROVISIONAL PASS before normal production work.
-If the approved spec has no RTs, skip test-code under TESTING.md; do not reclassify
+If the approved spec has neither ATs nor RTs, skip test-code under TESTING.md; do not reclassify
 tests to evade it. Paired/emergency routes retain their implement-first sequence
 and may invoke delivery-code directly. Both implementation gates may reuse context internally but have separate
 work-item/gate verdict allowances. Calling agents do not manage that context.
@@ -222,7 +222,7 @@ files. The harness persists that response in `audits.yaml`.
 
 Before delivery-code invocation, all code, tests and required documentation must
 be written, every required automated and one-off check (including applicable lint
-and vulnerability checks) must have finished and passed, and RT/OT evidence must
+and vulnerability checks) must have finished and passed, and AT/RT/OT evidence must
 be settled and GREEN. Checks must not run in parallel with the audit or be marked
 GREEN before they finish. Outstanding UTs may remain AMBER under the existing gate.
 
@@ -386,6 +386,8 @@ remain solely in `audits.yaml`, and operator closure remains separate.
 Append " AUDIT" (with a leading space) to the canary.
 
 ## Document history
+
+Version 12 includes automated ATs in gate readiness alongside retained RTs.
 
 Version 11 suspends external calls and routes all reviews through three focused
 current-session audit skills until explicitly re-enabled by the operator.

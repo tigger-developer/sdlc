@@ -8,7 +8,7 @@ This skill is usable only when the operator includes the exact token
 
 Read `~/.agents/sdlc/MAIN.md` and `EMERGENCY.md`, then the project profile and
 applicable standards. Treat the bounded request as the temporary specification.
-Select the required RT, UT, and OT evidence. For every justified automated test,
+Select the required AT, RT, UT, and OT evidence. For every justified automated test,
 write it first and observe RED. Implement, observe GREEN, and run immediate
 checks. Then reuse or create the durable work item: its ID, directory, bounded
 request, actual change, and evidence must exist before the implementation audit.
@@ -17,7 +17,7 @@ changes do not require a ticket.
 
 Before audit, structure that scope and evidence under `~/.agents/sdlc/ORG-SCHEMA.md`.
 Run `~/.agents/sdlc/bin/sdlc-validate --help`, then delivery-code readiness: every
-RT/OT GREEN, with outstanding UTs explicitly AMBER. Do not delay the emergency
+AT/RT/OT GREEN, with outstanding UTs explicitly AMBER. Do not delay the emergency
 fix for a pre-build test-code audit. After the fix, update affected product
 documentation, then audit implemented tests, production code and those docs
 together with `code-audit` in this session. Afterwards, reconcile

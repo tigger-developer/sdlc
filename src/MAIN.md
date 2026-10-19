@@ -1,7 +1,7 @@
 ---
 title: Lean Software Delivery Standards
-version: 3
-last-updated: 2026-10-18
+version: 4
+last-updated: 2026-10-19
 ---
 
 # Lean Software Delivery Standards
@@ -147,12 +147,12 @@ Normal delivery has two phases and two human gates:
    acceptance criteria, traced test definitions, edge cases, and solution
    design. The `define-change` workflow checks and corrects its own draft, runs
    the `definition-audit` skill in-session, then obtains operator sign-off.
-2. **Deliver:** write and execute the RT package, validate its records and obtain
-   the test-code review. Implement, obtain RT/OT GREEN, then validate and review
+2. **Deliver:** write and execute the AT/RT package, validate its records and obtain
+   the test-code review. Implement, obtain AT/RT/OT GREEN, then validate and review
    delivery-code through the in-session review skills. `deliver-change`
    follows `TESTING.md` and `AUDITS.md`; UTs may await the operator. Update affected
    documentation before the final delivery-code verdict and obtain operator closure.
-   Follow TESTING.md for minimal test scaffolding and the no-RT skip rule.
+   Follow TESTING.md for minimal test scaffolding; skip test-code only when neither ATs nor RTs apply.
 
 The definition gate combines specification, design, and test-definition audits.
 Test-code audits written tests; delivery-code audits the delivered code, affected
@@ -261,3 +261,5 @@ reading for harness audits. Earlier revisions remain in Git history.
 Version 2 adds standing internal review after external-auditor execution failure.
 
 Version 3 makes internal review the standing route without an external attempt.
+
+Version 4 includes ATs in automated-test readiness and the test-code admission rule.

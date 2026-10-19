@@ -13,13 +13,17 @@ Options:
 
 Checks:
   Both: validate headings, tags, unique IDs and declared execution states.
-  test-code: every RT is RED or GREEN; OT/UT may be AMBER. All need state evidence.
-  delivery-code: additionally require every RT and OT GREEN. UTs may be AMBER.
+  test-code: every AT/RT is RED or GREEN; OT/UT may be AMBER. All need state evidence.
+  delivery-code: additionally require every AT, RT and OT GREEN. UTs may be AMBER.
   A missing state is schema-valid but never audit-ready. Schema errors prevent
   readiness evaluation. Unsupported checks (including test-spec) are errors.
 
 stdout: YAML under audit-readiness, with schema, selected check and inventory.
 Includes AC/test counts, IDs, titles, states and diagnostics with file/line.
+AC identifies an acceptance criterion, not a test. Test types are AT (Automated
+Test), RT (Regression Test), OT (One-off Test) and UT (User Test); inventory
+counts report each separately. RED/GREEN AT/RT records require COMMAND,
+REVISION and EVIDENCE; AMBER records require REASON.
 Exit: 0 ready; 1 ineligible; 2 invalid schema; 3 invocation/read/write error.
 
 Examples:
@@ -27,4 +31,6 @@ Examples:
   sdlc-validate --spec specs/WNNN-descriptor/spec.org --readiness-check=delivery-code
 
 The validator checks recorded evidence, not its truth or behavioural adequacy.
+Definition review does not require execution readiness; neither check is a
+definition gate or an instruction to execute tests during specification writing.
 Org record contract: ~/.agents/sdlc/ORG-SCHEMA.md

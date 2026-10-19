@@ -31,7 +31,7 @@ authoring summary or changed lines.
 Select the mode explicitly:
 
 - **SDLC ticket:** assess the approved requirements and design. Before review,
-  required checks must have finished and passed, required RT/OT records must be
+  required checks must have finished and passed, required AT/RT/OT records must be
   GREEN and the installed validator's delivery-code readiness check must pass.
   UTs may remain AMBER for the operator. Review affected product documentation.
 - **Paired/emergency:** use recorded operator-authorized scope without imposing

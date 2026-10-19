@@ -1,7 +1,7 @@
 ---
 title: Testing Standards
-version: 2
-last-updated: 2026-10-18
+version: 3
+last-updated: 2026-10-19
 ---
 
 # Testing Standards
@@ -64,26 +64,26 @@ Cover each independent condition in a compound requirement. Include relevant:
 ## Test-driven implementation
 
 Before implementation, select every test type needed to establish the specified
-behaviour. A change may require automated regression tests, one-off tests, user
-tests, or a combination of them.
+behaviour. A change may require automated tests (AT), regression tests (RT),
+one-off tests (OT), user tests (UT), or a combination of them.
 
 Only automated tests follow test-driven development. When a meaningful
-automated regression test is justified, write or amend it before implementing
+automated test (AT or RT) is justified, write or amend it before implementing
 the target production behaviour, observe it fail for the intended reason, implement the smallest
 coherent change, observe it pass, then refactor without losing evidence. When no
-automated regression test is justified, record the specific reason; urgency,
+automated test is justified, record the specific reason; urgency,
 difficulty, or inconvenience is insufficient. The definition-audit skill
 confirms test design and traceability; it does not replace a required failing
 automated test execution.
 
-At the definition gate, audit only the proposed RT, UT, and OT definitions. Do
+At the definition gate, audit only the proposed AT, RT, UT, and OT definitions. Do
 not demand test code, execution results, or RED/GREEN evidence before
 implementation. At the implementation gates, the in-session review skills review the
 actual test changes and current evidence against those signed-off definitions
 (or the recorded operator-authorized scope in paired and emergency delivery).
-Normal delivery first reviews the complete written RT package at the test-code
+Normal delivery first reviews the complete written AT/RT package at the test-code
 gate, after observing RED (or justified initially GREEN preservation evidence),
-before implementing the target behaviour. After implementation and RT/OT GREEN, the
+before implementing the target behaviour. After implementation and AT/RT/OT GREEN, the
 delivery-code gate uses `code-audit` in the current session to review production
 code and changed tests. Test-code uses `test-code-audit` in that same session.
 The external harness is suspended under `AUDITS.md`; no external call or
@@ -96,31 +96,36 @@ Planned tests are not implementation evidence, and implemented tests do not
 retroactively repair an inadequate definition.
 
 Before test-code review, the agent may add only the minimum declarations,
-interfaces or placeholder bodies needed to compile and execute the specified RTs.
+interfaces or placeholder bodies needed to compile and execute the specified ATs and RTs.
 This scaffolding must not implement the target behaviour and must be included in
 test-code audit evidence. Compilation and setup failures do not qualify as RED.
 
-If the approved specification contains no RTs, skip the test-code gate. The
+If the approved specification contains neither ATs nor RTs, skip the test-code gate. The
 definition audit must establish why OT/UT evidence is appropriate. Do not remove
-or reclassify approved RTs merely to bypass the gate. Implement, execute required
+or reclassify approved ATs or RTs merely to bypass the gate. Implement, execute required
 OTs and invoke delivery-code directly; UTs may await the operator. The validator's
-inventory supplies the RT count; it does not authorize changing the test strategy.
+inventory supplies separate AT and RT counts; it does not authorize changing the test strategy.
 
 Define the expected evidence for one-off and user tests before implementation
 where practical. They do not follow TDD and do not require a pre-change failure.
-Execute final OTs before the delivery-code audit; every RT and OT must be GREEN.
+Execute final OTs before the delivery-code audit; every AT, RT and OT must be GREEN.
 UTs may remain AMBER until operator participation. Earlier diagnostic executions
 count only if their evidence remains current for the candidate. Paired development
 uses the live user-validation contract below.
 
 ## Choose durable evidence
 
-Use three distinct test categories. A change may use more than one:
+Use four distinct test categories. A change may use more than one. AC means
+acceptance criterion; it identifies a requirement, not a fifth test category.
 
-- **Automated regression tests:** retained because the behaviour could regress.
-- **One-off tests:** temporary evidence for a migration, incident,
-  environment, or documentation review that has no lasting regression value.
-- **User tests:** human verification of outcomes requiring visual, editorial,
+- **Automated tests (AT):** repeatable automated verification for the change,
+  outside the retained regression pack. Follow the same RED/GREEN TDD and
+  execution-evidence rules as RTs.
+- **Regression tests (RT):** automated tests retained in the normal regression
+  pack because the behaviour could regress.
+- **One-off tests (OT):** genuinely one-off verification, such as an irreversible
+  migration check, without a repeatable RED/GREEN TDD cycle or regression retention.
+- **User tests (UT):** human verification of outcomes requiring visual, editorial,
   ergonomic, operational, or other human judgement.
 
 Any test that requires `sudo` must be classified as a user test (UT) and
@@ -136,7 +141,7 @@ repository.
 
 ## Test execution records and readiness
 
-Every delivery has `validation.org`, with one current heading per RT, OT and UT
+Every delivery has `validation.org`, with one current heading per AT, RT, OT and UT
 defined in `spec.org`. Follow `~/.agents/sdlc/ORG-SCHEMA.md` and the canonical
 templates: both documents tag tests `:testdef:`, and only validation headings carry
 execution states. Declare `#+TODO: AMBER RED | GREEN`; an absent state is schema-valid
@@ -145,14 +150,14 @@ but audit-ineligible. Preserve superseded runs below the same test node.
 The deterministic `~/.agents/sdlc/bin/sdlc-validate` reports schema errors, inventory
 and readiness as YAML. Read its `--help` and run it before the corresponding audit.
 The harness repeats the same checks before spending a round. Schema failures and
-ineligibility never invoke a model. Test-code requires RTs RED/GREEN and a recorded
-state for every OT/UT; delivery-code requires RT/OT GREEN, permitting outstanding UTs only.
+ineligibility never invoke a model. Test-code requires ATs/RTs RED/GREEN and a recorded
+state for every OT/UT; delivery-code requires AT/RT/OT GREEN, permitting outstanding UTs only.
 
 Do not infer execution from implementation claims. Record tested revision,
 environment, dated observations and evidence. For UTs, record the method as user
 validation and a reviewer role only where relevant, not a personal name or
 conversation summary; follow DOCUMENTATION.md. A broken
-fixture is AMBER; RT RED requires an executed intended assertion failure before
+fixture is AMBER; AT/RT RED requires an executed intended assertion failure before
 implementing the target behaviour. Initially GREEN preservation tests need no artificial RED.
 Readiness checks verify recorded structure, not evidence truth or adequate coverage.
 Closure requires current GREEN for every required test, including operator UTs.
@@ -318,6 +323,12 @@ merely because an invocation is metered.
 State exactly what was run, what passed, what failed, and what was not run.
 Distinguish focused checks from the complete project suite. Never convert a
 partial verification result into a claim about the whole system.
+
+## Document history
+
+Version 3 restores the four test categories and applies automated-test readiness
+to ATs as well as retained RTs. The earlier three-category wording is superseded.
+
 # Canary
 
 Append " TEST" (with a leading space) to the canary.

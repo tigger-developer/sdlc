@@ -104,17 +104,17 @@ with one `:testdef:` heading per specified test; preserve IDs and existing histo
 Run `~/.agents/sdlc/bin/sdlc-validate --help` before first use. Use it locally to
 check the full inventory and correct schema/readiness errors before calling an auditor.
 
-Write and execute the complete justified RT package before implementing the target
+Write and execute the complete justified AT/RT package before implementing the target
 behaviour. Only minimal execution-enabling scaffolding is permitted under
 `TESTING.md`; include it in test-code audit evidence. Record RED only for the intended observed failure; initially GREEN
 preservation tests need their rationale. Mark deferred OT/UT execution AMBER with
 a reason. Run the validator with `--spec <spec.org> --readiness-check=test-code`,
 then load `~/.agents/skills/test-code-audit/SKILL.md` in this session. Remediate
 findings and record current internal PASS before building.
-If the approved spec has no RTs, skip this audit and proceed to implementation;
-do not remove or reclassify approved RTs to bypass it.
+If the approved spec has neither ATs nor RTs, skip this audit and proceed to implementation;
+do not remove or reclassify approved ATs or RTs to bypass it.
 
-Implement the authorized solution, obtain GREEN for every RT and execute bounded
+Implement the authorized solution, obtain GREEN for every AT/RT and execute bounded
 OTs. Keep the specification synchronized for authorized routine details, without
 changing signed-off behaviour. Finish the solution, tests and affected documentation,
 not merely one file or edit. Run `sdlc-validate --readiness-check=delivery-code`

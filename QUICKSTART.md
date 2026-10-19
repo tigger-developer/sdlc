@@ -1,7 +1,7 @@
 ---
 title: SDLC v3 Quickstart
-version: 5
-last-updated: 2026-10-18
+version: 6
+last-updated: 2026-10-19
 ---
 
 # SDLC v3 Quickstart
@@ -228,7 +228,7 @@ operator sign-off and whose `internal-review.md` records current definition
 internal PASS. A still-current historical external PASS remains valid evidence;
 no new external audit is required while the harness is suspended.
 It does not rerun definition audits. The sequence is written tests, observed RED,
-test-code review, implementation, RT/OT GREEN, documentation update, then delivery-code
+test-code review, implementation, AT/RT/OT GREEN, documentation update, then delivery-code
 review. UTs may remain AMBER for operator participation and closure.
 
 The skill calls one normal audit command with the work item, record, gate and
@@ -277,3 +277,8 @@ retrospectively reviewing the consolidated specification, design, and test
 definitions in the separate definition context. Design or behaviour changes
 require an operator decision and normal delivery. Documentation-only edits do
 not require a ticket.
+
+## Document history
+
+Version 6 includes AT in automated-test readiness and delivery evidence.
+Earlier versions remain in Git history.

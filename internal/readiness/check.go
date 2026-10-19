@@ -31,6 +31,7 @@ type Record struct {
 type Counts struct {
 	ACs   int `yaml:"acceptance-criteria"`
 	Tests int `yaml:"tests"`
+	AT    int `yaml:"at"`
 	RT    int `yaml:"rt"`
 	OT    int `yaml:"ot"`
 	UT    int `yaml:"ut"`
@@ -120,6 +121,8 @@ func Check(specPath, validationPath, mode string) (Report, error) {
 	for i := range inv.Tests {
 		test := &inv.Tests[i]
 		switch test.ID[:2] {
+		case "AT":
+			inv.Counts.AT++
 		case "RT":
 			inv.Counts.RT++
 		case "OT":
@@ -149,7 +152,7 @@ func Check(specPath, validationPath, mode string) (Report, error) {
 		fields := []string{"REVISION", "EVIDENCE"}
 		if result.State == "AMBER" {
 			fields = []string{"REASON"}
-		} else if strings.HasPrefix(test.ID, "RT") {
+		} else if automated(test.ID) {
 			fields = append(fields, "COMMAND")
 		}
 		for _, field := range fields {
@@ -157,16 +160,21 @@ func Check(specPath, validationPath, mode string) (Report, error) {
 				check.Errors = append(check.Errors, issue("MISSING_EVIDENCE", result, "State requires a non-empty "+field+" property."))
 			}
 		}
-		if mode == "test-code" && strings.HasPrefix(test.ID, "RT") && result.State == "AMBER" {
-			check.Errors = append(check.Errors, issue("RT_EXECUTION_REQUIRED", result, "RT results must be RED or GREEN before test-code audit; AMBER is not executed test evidence."))
+		if mode == "test-code" && automated(test.ID) && result.State == "AMBER" {
+			category := test.ID[:2]
+			check.Errors = append(check.Errors, issue(category+"_EXECUTION_REQUIRED", result, category+" results must be RED or GREEN before test-code audit; AMBER is not executed test evidence."))
 		}
 		if mode == "delivery-code" && !strings.HasPrefix(test.ID, "UT") && result.State != "GREEN" {
-			check.Errors = append(check.Errors, issue("GREEN_REQUIRED", result, "RT and OT results must be GREEN before delivery-code audit."))
+			check.Errors = append(check.Errors, issue("GREEN_REQUIRED", result, "AT, RT and OT results must be GREEN before delivery-code audit."))
 		}
 	}
 	check.Ready = len(check.Errors) == 0
 	r.Audit.Checks[mode] = check
 	return r, nil
+}
+
+func automated(id string) bool {
+	return strings.HasPrefix(id, "AT") || strings.HasPrefix(id, "RT")
 }
 
 func issue(code string, record Record, message string) Issue {
@@ -176,8 +184,8 @@ func issue(code string, record Record, message string) Issue {
 var (
 	headline   = regexp.MustCompile(`^\*+ (.+)$`)
 	tagSuffix  = regexp.MustCompile(`\s+(:[A-Za-z0-9_@#%:~-]+:)\s*$`)
-	identifier = regexp.MustCompile(`^((?:AC|RT|UT|OT)-?[0-9]+(?:[.-][0-9]+)*)(?:\s+|$)(.*)$`)
-	candidate  = regexp.MustCompile(`(?i)^(?:\S+\s+)?(?:AC|RT|UT|OT)-?[0-9]`)
+	identifier = regexp.MustCompile(`^((?:AC|AT|RT|UT|OT)-?[0-9]+(?:[.-][0-9]+)*)(?:\s+|$)(.*)$`)
+	candidate  = regexp.MustCompile(`(?i)^(?:\S+\s+)?(?:AC|AT|RT|UT|OT)-?[0-9]`)
 	property   = regexp.MustCompile(`^:([A-Za-z0-9_]+):\s*(.*)$`)
 )
 
@@ -262,7 +270,7 @@ func parse(path string, validation bool) ([]Record, []Issue, error) {
 				state, id = first, identifier.FindStringSubmatch(strings.TrimSpace(rest))
 			}
 			if len(id) == 0 {
-				add("INVALID_ID", "Tagged heading requires an AC/RT/OT/UT numeric ID and title.")
+				add("INVALID_ID", "Tagged heading requires a numeric AC (acceptance criterion) or AT/RT/OT/UT (test) ID and title.")
 				continue
 			}
 			record := Record{ID: id[1], Title: strings.TrimSpace(strings.TrimPrefix(id[2], "-")), State: state, File: path, Line: line, Properties: map[string]string{}}

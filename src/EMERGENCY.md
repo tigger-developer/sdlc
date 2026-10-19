@@ -1,7 +1,7 @@
 ---
 title: Emergency Delivery Standards
-version: 1
-last-updated: 2026-10-18
+version: 2
+last-updated: 2026-10-19
 ---
 
 # Emergency Delivery Standards
@@ -20,7 +20,7 @@ Exact token and sufficient temporary specification
   -> observe GREEN and run immediate checks
   -> reuse or create the durable work item and record the bounded change
   -> update product documentation affected by the fix
-  -> record RT/OT GREEN and pass deterministic delivery-code readiness
+  -> record AT/RT/OT GREEN and pass deterministic delivery-code readiness
   -> pass the delivery-code gate
   -> reconcile the durable specification and design
   -> retrospective definition-audit in the current session
@@ -67,7 +67,7 @@ definition or prior definition PASS is not required. Documentation-only changes
 need no ticket. Never delay the fix for ticket creation.
 
 Before audit, structure the bounded AC/test inventory and validation results under
-`ORG-SCHEMA.md`; use delivery-code readiness with RT/OT GREEN and outstanding UTs
+`ORG-SCHEMA.md`; use delivery-code readiness with AT/RT/OT GREEN and outstanding UTs
 AMBER. This does not require a pre-build test-code audit or advance definition
 approval. After the fix, update affected product documentation and run the
 delivery-code audit of implemented tests, production code and those docs. Remediate all
@@ -78,7 +78,7 @@ definition review with `definition-audit` under `AUDITS.md` in the current
 session, using emergency scope. Use `code-audit` for the delivery review; the
 external harness is suspended. Correct documentary errors; refer behaviour or design changes to the
 operator for normal delivery. Complete outstanding user tests against the audited
-candidate. Missing RT/OT results block audit admission; outstanding UTs block closure.
+candidate. Missing AT/RT/OT results block audit admission; outstanding UTs block closure.
 
 If a one-off or user test exposes a defect and remediation changes code, the
 earlier audit remains evidence for its audited revision but is no longer current
@@ -97,6 +97,11 @@ evidence requirements. It does not authorize unrelated work or scope expansion.
 The closure handback must identify the temporary specification, reconciled
 durable artefacts, test evidence, audit result, assumptions, and anything left
 undone for the operator's decision.
+
+## Document history
+
+Version 2 includes AT evidence in delivery readiness; earlier wording remains in Git history.
+
 # Canary
 
 Append " EMERGENCY" (with a leading space) to the canary.

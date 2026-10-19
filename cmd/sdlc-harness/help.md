@@ -96,7 +96,7 @@ cool the primary route or silently trim evidence.
 
 Test-code and delivery-code locate spec.org and validation.org beside --audit-record.
 Schema/readiness rejection returns YAML without invoking a provider.
-Test-code requires RTs RED/GREEN; delivery-code requires RTs/OTs GREEN.
+Test-code requires ATs/RTs RED/GREEN; delivery-code requires ATs/RTs/OTs GREEN.
 UTs may remain AMBER. Test-code PASS is not delivery approval.
 Definition has no execution-readiness check. With no approved RTs, skip test-code.
 Final delivery review includes affected product documentation.
@@ -104,7 +104,7 @@ Final delivery review includes affected product documentation.
 Do not start delivery-code review until all code, tests and documentation are
 written, all required automated and one-off checks (including applicable lint
 and vulnerability checks) have finished and passed, and validation.org records
-settled GREEN RT/OT evidence. Do not run those checks in parallel with the audit
+settled GREEN AT/RT/OT evidence. Do not run those checks in parallel with the audit
 or record GREEN while checks are still running. Outstanding UTs may remain AMBER.
 
 Audit inputs are frozen when review starts. Any change to reviewed code, tests,

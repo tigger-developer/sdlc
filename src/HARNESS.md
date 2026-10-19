@@ -1,7 +1,7 @@
 ---
 title: SDLC Audit Harness Guide
-version: 15
-last-updated: 2026-10-18
+version: 16
+last-updated: 2026-10-19
 ---
 
 # SDLC audit harness guide
@@ -79,7 +79,7 @@ YAML on stdout and consumes no audit round. See `ORG-SCHEMA.md` for the contract
 
 Use `--gate test-code` to review written tests and minimal execution-enabling
 scaffolding before implementing the target behaviour. Resume that context with
-`--gate delivery-code` after RTs and OTs are GREEN and affected product docs are
+`--gate delivery-code` after ATs, RTs and OTs are GREEN and affected product docs are
 current. UTs may remain AMBER. With no approved RTs, skip test-code and start
 delivery-code directly. Paired/emergency routes also start at delivery-code.
 
@@ -258,7 +258,7 @@ An audit writes only its validated response or readiness report to stdout;
 `--reset` instead writes a reset confirmation and exits. Stderr carries
 an input-freeze and delivery-readiness reminder at each provider start, anonymous
 start and 30-second liveness notices and, on failure, a diagnostic reference. The
-reminder requires completed checks and settled GREEN RT/OT evidence before
+reminder requires completed checks and settled GREEN AT/RT/OT evidence before
 delivery-code review, and warns that edits to reviewed inputs during or after
 review invalidate the audit for the changed candidate. Mutation detection occurs
 after provider execution, without immediate cancellation. Provider names,
@@ -552,6 +552,8 @@ fallback internally. Calling agents must not build a second retry loop around an
 infrastructure failure. Known FAIL findings remain unresolved until reassessed.
 
 ## Document history
+
+Version 16 includes AT in the shared validator's automated-test readiness rules.
 
 Version 15 records internal-only workflow routing and the three review skills.
 

@@ -1,7 +1,7 @@
 ---
 title: Paired Development
-version: 1
-last-updated: 2026-10-18
+version: 2
+last-updated: 2026-10-19
 ---
 
 # Paired Development
@@ -76,7 +76,7 @@ For each bounded iteration:
    reviewable, before moving to unrelated work. Remediate findings under
    `AUDITS.md`; do not audit every keystroke or deliberately unfinished edit.
    First apply `ORG-SCHEMA.md` and delivery-code readiness to the recorded bounded
-   scope: RT/OT GREEN, outstanding UTs AMBER. No pre-build test-code audit is required.
+   scope: AT/RT/OT GREEN, outstanding UTs AMBER. No pre-build test-code audit is required.
    Use `code-audit` internally in this session; affected product documentation must be current for
    this increment, although retrospective specification consolidation may follow.
 8. Continue from the operator's next instruction.
@@ -123,6 +123,11 @@ behaviour it materially affects.
 Do not merge, deploy, or describe the paired result as delivered unless the
 operator has authorized that action and every applicable project requirement is
 satisfied.
+
+## Document history
+
+Version 2 includes AT evidence in delivery readiness; earlier wording remains in Git history.
+
 # Canary
 
 Append " PAIR" (with a leading space) to the canary.

@@ -206,7 +206,8 @@ workflow checkpoints into product ACs. Link exact design contracts where needed.
 :END:
 
 - Criterion :: Given [context], the system [required observable state].
-- Proven by :: [[#rt-nnn-1][RTNNN.1 - Descriptive regression test]]
+- Proven by :: [[#rt-nnn-1][RTNNN.1 - Descriptive regression test]] and
+  [[#at-nnn-1][ATNNN.1 - Descriptive automated test]]
 
 ** ACNNN.2 - Descriptive boundary :ac:
 :PROPERTIES:
@@ -228,14 +229,15 @@ Use the test classifications and automated TDD rule resurrected from SDLC v1.
 Classify each test honestly:
 
 - RT is a persistent automated regression test included in the normal suite.
+- AT is repeatable automated verification for this change, outside that suite.
 - UT is a human user test whose result is recorded, with no artificial test file.
 - OT is a bounded one-off check that is not retained in the regression suite.
 
-Automated RTs for new behaviour follow TDD and must fail for the expected reason
-before implementation. An initially GREEN preservation RT is legitimate with
+ATs and RTs for new behaviour follow TDD and must fail for the expected reason
+before implementation. An initially GREEN preservation AT/RT is legitimate with
 its purpose recorded; do not manufacture RED by breaking working code.
 TESTING.md permits only minimal execution-enabling scaffolding before test-code
-review, not target behaviour. If no RT is justified, record why OT/UT evidence
+review, not target behaviour. If neither AT nor RT is justified, record why OT/UT evidence
 suffices; that approved choice skips test-code, not the delivery-code gate.
 A test must earn its place, exercise the relevant boundary, and
 be defined well enough to reproduce. Do not simulate an undocumented third-party
@@ -251,6 +253,18 @@ to reformat cases. Optional table layout:
 |------+-----------------+----------------------------+----|
 | [Descriptive case] | [Bounded action] | [Concrete outcome] | [AC link] |
 #+end_comment
+
+** ATNNN.1 - Descriptive automated test :testdef:
+:PROPERTIES:
+:CUSTOM_ID: at-nnn-1
+:END:
+
+- Covers :: [[#ac-nnn-1][ACNNN.1 - Descriptive outcome]]
+- Boundary :: [Public interface or system boundary exercised.]
+- Setup :: [Only the state required for the test.]
+- Action :: [One reproducible automated action.]
+- Expected :: [Observable result that proves the criterion.]
+- Retention :: Ticket-specific evidence; not part of the persistent regression suite.
 
 ** RTNNN.1 - Descriptive regression test :testdef:
 :PROPERTIES:
@@ -436,8 +450,8 @@ requires additional treatment; do not fill a checklist with repetitive N/A text.
 - Entry conditions :: [Explicit delivery authority and applicable
   [[#constraints-and-dependencies][prerequisites]], with their preflight evidence.
   Read the current definition gate from =audits.yaml=, not copied spec metadata.]
-- First implementation step :: [Write the specified RTs and observe meaningful
-  RED, with only permitted scaffolding. For an approved no-RT change, implement
+- First implementation step :: [Write the specified ATs/RTs and observe meaningful
+  RED, with only permitted scaffolding. For an approved change without ATs/RTs, implement
   against its OT/UT plan instead. Link the applicable definitions.]
 - Definition evidence :: [[file:audits.yaml][=audits.yaml=]]
 - Validation evidence :: [[file:validation.org][=validation.org=]]; one tagged

@@ -1,10 +1,22 @@
 ---
 title: Changelog
 version: 1
-last-updated: 2026-10-18
+last-updated: 2026-10-19
 ---
 
 # Changelog
+
+## v3.8.7 - 2026-10-19
+
+- Recognize Automated Test (AT) records in the local validator and report a
+  separate AT inventory count. Acceptance criteria remain distinct from tests.
+- Require ATs and RTs to have RED/GREEN execution evidence, including COMMAND,
+  before test-code review; require AT/RT/OT GREEN before delivery review.
+  Preserve existing IDs, RT diagnostics and UT deferral rules.
+- Align the four test categories across testing standards, schema, templates,
+  workflow skills and CLI help. An AT-only change still requires test-code review.
+- Exercise the compiled validator with AT-only and mixed-category records,
+  readiness failures and schema errors; verify input files remain unchanged.
 
 ## v3.8.6 - 2026-10-18
 

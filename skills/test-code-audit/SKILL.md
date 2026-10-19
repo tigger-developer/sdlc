@@ -29,7 +29,7 @@ scaffolding, relevant existing implementation and recorded test observations.
 Select the mode explicitly:
 
 - **SDLC ticket:** use the approved specification and test definitions. Run the
-  `ORG-SCHEMA.md` test-code readiness check using the installed validator. RTs
+  `ORG-SCHEMA.md` test-code readiness check using the installed validator. ATs and RTs
   must have observed intended RED or justified preservation GREEN; compilation
   and setup failures do not establish useful RED. OT/UT may remain AMBER.
 - **Spike:** use the approved brief and current exploratory intent. Audit after

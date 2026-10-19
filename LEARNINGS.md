@@ -1,10 +1,19 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 17
-last-updated: 2026-10-18
+version: 18
+last-updated: 2026-10-19
 ---
 
 # SDLC Standards: Design Learnings
+
+## Test categories must agree across validation and workflow routing
+
+Recognizing an identifier is only part of supporting a test category. Parsing,
+inventory counts, evidence requirements, readiness checks and workflow skip
+rules must agree. Automated tests outside the retained regression pack still
+require meaningful execution evidence; zero RTs does not mean zero automated
+tests. Acceptance criteria are requirement records and must never be counted
+as tests. Verify the complete contract through the validator executable.
 
 ## Review criteria are separate from reviewer execution
 

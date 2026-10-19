@@ -17,7 +17,7 @@ without replacing it with artificial automation. Audit each coherent code
 increment promptly with `code-audit` in this session, not each keystroke.
 Before that review, follow `~/.agents/sdlc/ORG-SCHEMA.md` and run
 `~/.agents/sdlc/bin/sdlc-validate --help`, then its delivery-code readiness check.
-Every RT/OT must be GREEN; record outstanding UTs as AMBER. This route does not
+Every AT/RT/OT must be GREEN; record outstanding UTs as AMBER. This route does not
 require a pre-build test-code audit.
 Update affected product documentation before that final delivery verdict; do not
 require a polished retrospective specification before reviewing the code increment.

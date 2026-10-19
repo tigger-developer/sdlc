@@ -87,9 +87,9 @@ gates:
       when the prose or design otherwise looks sound. Apply MARKDOWN.md when reviewing
       Markdown evidence. Inspect other applicable standards in the installed inventory.
       Apply all three criteria together: requirements and traceability; solution design and architecture fit;
-      and RT, UT, and OT test definitions, coverage, classification, and TDD suitability. Read the named
+      and AT, RT, UT, and OT test definitions, coverage, classification, and TDD suitability. Read the named
       authorities and current implementation evidence, but do not expand the scope or rewrite the artefacts.
-      If no RT is specified, verify why OT/UT evidence is appropriate; never demand artificial RTs.
+      If neither AT nor RT is specified, verify why OT/UT evidence is appropriate; never demand artificial automated tests.
       Identify affected documentation in the handoff; do not demand the delivered updates at this gate.
       Apply the supplied DOCUMENTATION.md to the specification: factual impersonal language,
       appropriate document purpose and concise approval metadata, not conversation narration or
@@ -146,7 +146,7 @@ gates:
       Do not write them into the specification, ticket, or any duplicate audit document.
   delivery-code:
     prompt: |
-      This is the delivery-code stage. RTs and OTs must have current GREEN evidence;
+      This is the delivery-code stage. ATs, RTs and OTs must have current GREEN evidence;
       UTs may remain explicitly AMBER for operator validation. The deterministic
       readiness check verifies records, not truth, freshness or completeness of
       behavioural coverage. Reassess changed tests and affected dependencies even
@@ -203,10 +203,10 @@ gates:
       For explicitly paired/emergency work, use recorded operator scope instead.
       Check all specified cases are actually covered, meaningful behavioural assertions,
       appropriate boundaries, determinism, credible doubles and no gaming or source greps.
-      Inspect observed RT RED evidence: the intended assertion must fail, not compilation
+      Inspect observed AT/RT RED evidence: the intended assertion must fail, not compilation
       or setup. Initially GREEN preservation tests are legitimate with an explanation.
-      Preflight requires RTs RED or GREEN; AMBER is eligible only for OT/UT.
-      Missing/unexecuted RTs still require FAIL if recorded states misrepresent them.
+      Preflight requires ATs/RTs RED or GREEN; AMBER is eligible only for OT/UT.
+      Missing/unexecuted ATs/RTs still require FAIL if recorded states misrepresent them.
       Deferred OT/UT execution is expected before production implementation;
       verify their recorded plan without requiring automated substitutes.
       Deterministic preflight verifies the inventory and evidence fields, not their truth.
