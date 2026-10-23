@@ -18,6 +18,13 @@ applicable project-local `AGENTS.md` or `CLAUDE.md`, not by the instruction sets
 being maintained here. Inspect source files as required by the authorized
 maintenance task, not as a session bootstrap.
 
+You should already have read the global instructions supplied from your
+current harness's home directory. If you have not, read the deployed global
+instructions there before proceeding. Do not reload instructions already read
+in full. The deployed version may differ from the source maintained in this
+repository; follow that deployed version, not a source copy or a newly built
+replacement.
+
 ## Release discipline
 
 Every SDLC modification ends with a versioned release unless the operator

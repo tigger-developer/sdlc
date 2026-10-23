@@ -1,6 +1,6 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 19
+version: 20
 last-updated: 2026-10-23
 ---
 
@@ -14,6 +14,11 @@ imperative wording do not give source files session authority. Inspecting or
 editing instruction source must not activate the workflows described in it.
 State this boundary in the project-local instructions so it applies before
 source inspection begins.
+
+The governing global instructions are the version deployed to the current
+harness's home directory. They may differ from the source under maintenance.
+Use instructions already supplied in full, or read the deployed copy there
+when missing; do not substitute repository source or reload it as authority.
 
 ## Test categories must agree across validation and workflow routing
 

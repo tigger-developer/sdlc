@@ -6,6 +6,12 @@ last-updated: 2026-10-23
 
 # Changelog
 
+## v3.8.9 - 2026-10-23
+
+- Identify the current harness's home directory as the authority for deployed
+  global instructions. Read them there only if not already read, and preserve
+  their authority when the repository maintains a different source version.
+
 ## v3.8.8 - 2026-10-23
 
 - Clarify the repository's role as maintainer of deployable agent instruction
