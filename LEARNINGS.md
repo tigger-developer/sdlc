@@ -1,10 +1,19 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 18
-last-updated: 2026-10-19
+version: 19
+last-updated: 2026-10-23
 ---
 
 # SDLC Standards: Design Learnings
+
+## Instruction source code is distinct from session authority
+
+A repository maintaining agent instruction sets must distinguish the source
+code it deploys from the instructions governing its maintainers. Markdown and
+imperative wording do not give source files session authority. Inspecting or
+editing instruction source must not activate the workflows described in it.
+State this boundary in the project-local instructions so it applies before
+source inspection begins.
 
 ## Test categories must agree across validation and workflow routing
 
