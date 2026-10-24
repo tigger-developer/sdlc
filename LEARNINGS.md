@@ -1,10 +1,25 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 21
+version: 22
 last-updated: 2026-10-24
 ---
 
 # SDLC Standards: Design Learnings
+
+## Review isolation includes transitive instructions
+
+Excluding MAIN from a review package is insufficient when shared testing,
+documentation or Git standards still route to delivery actions. Keep technical
+criteria available to both author and reviewer; put scheduling, record mutation,
+branch operations and closure in an author-only document. Preserve the rules at
+their new owner rather than weakening them to reduce context.
+
+Self-review skills should have one role. A fresh reviewer instead receives one
+independent entry, original evidence and a bounded task without author history.
+The caller owns isolation, invocation limits, remediation and acceptance; the
+reviewer owns findings only. A native isolated sub-agent and an external harness
+are different invocation routes and need distinct authorization. Context
+separation is observable; independence from shared model biases is not promised.
 
 ## Select the agent's role before loading its workflow
 

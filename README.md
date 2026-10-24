@@ -1,6 +1,6 @@
 ---
 title: Lean SDLC for Coding Agents
-version: 11
+version: 12
 last-updated: 2026-10-24
 ---
 
@@ -13,16 +13,15 @@ review.** Workflow audit steps use `definition-audit`, `test-code-audit` and
 `code-audit` internally in the current session, without attempting an external
 call first. Readiness checks, review criteria and human approval remain.
 
-For a separate review, the operator may manually start a fresh session in any
-supported agent harness (Codex, Claude Code, GitHub Copilot CLI or Hermes) and
-invoke the relevant audit skill with the project and candidate revision. This
-invokes **the audit skill, not the audit harness**. The skill reviews directly
-in that fresh context through [AUDIT.md](src/AUDIT.md), without loading MAIN or
-the delivery workflow. The author uses [SELF-AUDIT.md](src/SELF-AUDIT.md) for
-current-session review, explicitly recorded as non-independent. Both use the
-same [review criteria](src/REVIEW.md). No skill launches another reviewer or automatically
-re-enables the external harness. Re-enablement requires an explicit operator
-decision.
+The three audit skills perform **self-audit only**. For an explicitly requested
+independent review, start a fresh session or an authorized isolated native
+sub-agent at [INDEPENDENT-AUDITOR.md](src/INDEPENDENT-AUDITOR.md), with a bounded
+brief and original candidate evidence. Do not pass the author's conversation
+or use a self-audit skill. [AUDITS.md](src/AUDITS.md) defines the caller's
+isolation and evidence responsibilities. The reviewer loads engineering
+criteria, without MAIN or delivery orchestration. Both methods use the same
+[review criteria](src/REVIEW.md); self-review is labelled non-independent.
+Neither route re-enables the external audit harness.
 
 ## What it is
 
@@ -179,6 +178,9 @@ historical reference. Current commands and rules are defined by the linked
 standards, skills, and command help.
 
 ## Document history
+
+This revision separates independent review, author self-audit and delivery-only
+responsibilities. Earlier rules remain in their canonical owners and Git history.
 
 - Version 11 (2026-10-24): Separate independent and self-audit routes, with shared
   criteria and retained-context reuse.

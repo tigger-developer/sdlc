@@ -1,7 +1,7 @@
 ---
 title: Git and Source-Control Standards
-version: 1
-last-updated: 2026-10-18
+version: 2
+last-updated: 2026-10-24
 ---
 
 # Git and Source-Control Standards
@@ -47,66 +47,6 @@ specification or verification evidence.
 Do not rely on commit-message keywords to close work automatically unless the
 project explicitly adopts that behaviour. A merged change and a verified
 outcome are separate facts.
-
-## Phase synchronization
-
-While external auditing is suspended under `AUDITS.md`, a current recorded
-internal PASS satisfies the audit prerequisite in this section. Do not call the
-external harness to obtain a PASS before creating a delivery branch or
-synchronizing phase checkpoints. Human approval and other admission rules remain.
-
-The project profile selects the implementation branch strategy:
-
-- `current` keeps implementation on the operator-selected branch; and
-- `feature` uses one published implementation branch per approved change.
-
-The initializer resolves this value from command line, process environment,
-project `.sdlc/project.yaml`, user `~/.agents/sdlc.yaml`, then the schema
-default. It persists only explicit project overrides. Agents never read `.env`.
-
-Normal delivery has two synchronized phases: definition and delivery. The
-definition phase always remains on the operator-selected branch. The branch
-strategy applies only after definition-gate PASS and operator sign-off admit
-the change to delivery.
-
-At the start of each phase:
-
-1. Inspect the repository and working tree.
-2. Pull the active branch through its configured upstream and pull strategy
-   before changing that phase's artefacts.
-
-At the start of the delivery phase only, under `feature`:
-
-1. Pull the project's recorded primary branch.
-2. Create one project-convention feature branch for the approved change.
-3. Synchronize and publish that feature branch before implementation.
-
-Do not create, switch, merge, or delete a feature branch during definition.
-
-At the end of each phase, after its artefacts have an effective audit PASS and
-are committed:
-
-1. Pull the active branch through its configured upstream and pull strategy.
-2. Push every committed phase checkpoint to that upstream.
-
-Selecting `feature` authorizes creation and first publication of the
-implementation branch through an existing configured remote. It does not
-authorize creating or changing a remote, guessing a primary branch, or
-rewriting history. Follow the project's established branch naming and
-integration policy.
-
-A push may run asynchronously while independent non-Git work continues, but it
-must remain tracked and only one synchronization operation may be in flight.
-Collect its result before another Git operation or operator handback. A
-transient synchronization failure does not invalidate a local audit PASS or
-require idle waiting: record it, continue safe independent work, and retry at
-the next boundary. A divergence that makes the phase baseline or resulting
-history ambiguous is a blocker; never hide it through stashing, force, or
-history rewriting.
-
-When no upstream exists, report the exact missing relationship. Do not invent a
-remote. Phase synchronization operates on coherent commits and must not stage
-unrelated worktree content.
 
 ## Make synchronization
 

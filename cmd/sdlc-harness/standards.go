@@ -77,7 +77,7 @@ func managedRequiredStandards(project, gate, standardsRoot string, inputs ...str
 	if err != nil {
 		return nil, err
 	}
-	names := []string{"AUDIT.md", "READING.md", "REVIEW.md", "ARCHITECTURE.md", "TESTING.md"}
+	names := []string{"INDEPENDENT-AUDITOR.md", "READING.md", "REVIEW.md", "ARCHITECTURE.md", "TESTING.md"}
 	switch gate {
 	case "definition":
 		names = append(names, "ISSUES.md", "CODING.md", "SECURITY.md", "DOCUMENTATION.md", "ORGMODE.md", "ORG-SCHEMA.md")
@@ -219,7 +219,7 @@ func installedAuditDocuments(root string) ([]string, error) {
 }
 
 func standaloneAuditStandards(standardsRoot string, inputs []string) ([]string, error) {
-	names := []string{"AUDIT.md", "READING.md", "REVIEW.md", "STANDALONE-AUDIT.md", "CODING.md", "TESTING.md", "ARCHITECTURE.md", "SECURITY.md", "GIT.md", "DOCUMENTATION.md"}
+	names := []string{"INDEPENDENT-AUDITOR.md", "READING.md", "REVIEW.md", "CODING.md", "TESTING.md", "ARCHITECTURE.md", "SECURITY.md", "GIT.md", "DOCUMENTATION.md"}
 	paths, err := selectedReviewStandards(standardsRoot, names, nil, inputs)
 	if err != nil {
 		return nil, fmt.Errorf("required standalone audit standard: %w", err)
@@ -230,7 +230,7 @@ func standaloneAuditStandards(standardsRoot string, inputs []string) ([]string, 
 // spikeAuditStandards deliberately excludes workflow and documentation artefacts.
 // Only declared and evidence-selected technologies are mandatory.
 func spikeAuditStandards(root string, inputs []string, technologies ...string) ([]string, error) {
-	names := []string{"AUDIT.md", "READING.md", "REVIEW.md", "SPIKE-AUDIT.md", "CODING.md", "ARCHITECTURE.md", "SECURITY.md", "GIT.md", "TESTING.md"}
+	names := []string{"INDEPENDENT-AUDITOR.md", "READING.md", "REVIEW.md", "CODING.md", "ARCHITECTURE.md", "SECURITY.md", "GIT.md", "TESTING.md"}
 	paths, err := selectedReviewStandards(root, names, technologies, inputs)
 	if err != nil {
 		return nil, err
@@ -245,7 +245,7 @@ func isReviewReference(name string) bool {
 		return true
 	}
 	switch name {
-	case "AUDIT.md", "READING.md", "REVIEW.md", "STANDALONE-AUDIT.md", "SPIKE-AUDIT.md",
+	case "INDEPENDENT-AUDITOR.md", "READING.md", "REVIEW.md",
 		"CODING.md", "TESTING.md", "ARCHITECTURE.md", "SECURITY.md", "GIT.md",
 		"DOCUMENTATION.md", "ISSUES.md", "ORGMODE.md", "ORG-SCHEMA.md", "MARKDOWN.md":
 		return true

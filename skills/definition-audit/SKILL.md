@@ -1,15 +1,14 @@
 ---
 name: definition-audit
-description: Review a specification, test definitions and solution design; use self-audit in delivery or findings-only independent audit when explicitly invoked in a fresh context.
+description: Self-review a specification, design and test definitions in the current author context; never launch or act as an independent auditor.
 ---
 
-Invoke only for a required definition review or an explicit request. Select the
-method before reading standards: an explicitly invoked independent fresh-context
-auditor reads `~/.agents/sdlc/AUDIT.md`; a delivery author reads
-`~/.agents/sdlc/SELF-AUDIT.md`. Neither skill path loads MAIN. Never launch a
-reviewer or invoke the suspended harness. Use READING's retained-context reuse
-and REVIEW's definition profile, including the complete specification, project
-authorities and processed feedback, not the authoring summary alone.
+Use only for a workflow-required or explicitly requested self-audit. Review in
+the author's current context; do not delegate or select an independent role.
+Read ~/.agents/sdlc/SELF-AUDIT.md and REVIEW.md's definition criteria, with
+READING's retained-context reuse. Inspect original candidate evidence rather
+than only the authoring summary. This skill never loads the independent-auditor
+entry point or launches the suspended audit harness.
 
 Review the whole package:
 
@@ -29,14 +28,9 @@ Review the whole package:
 - For paired/emergency retrospective review, assess the recorded authorized
   outcome and actual design; do not invent an advance-approval requirement.
 
-List every concrete blocking finding together, with file/section, violated
-requirement/standard or demonstrated defect, evidence and required correction.
-Separate optional suggestions and unresolved human decisions. An independent
-auditor returns findings only. A self-auditing author may remediate within
-authorized scope and reassess; neither may waive findings or redesign beyond
-authority.
-
-Return the definition result under AUDIT or record it under SELF-AUDIT, using
-the actual method and shared verdict criteria. It supports the workflow's
-operator sign-off step, not approval or implementation. Do not write
-`audits.yaml` or describe self-review as independent clearance.
+List every concrete blocking finding together with location, violated criterion,
+evidence and correction. Remediate within authority, rerun affected checks and
+reassess. Record the actual internal method and result under SELF-AUDIT. Refer
+human-only decisions to the operator; never waive findings or expand scope.
+A current internal PASS supports operator sign-off, not implementation approval.
+Never write audits.yaml or claim independence.

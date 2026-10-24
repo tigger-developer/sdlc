@@ -3,7 +3,7 @@ name: useful-be
 description: Load the minimum project and engineering context needed for useful work.
 ---
 
-1. Follow `~/.agents/sdlc/READING.md` for advisory routing and reuse. Ensure MAIN
+1. Follow `~/.agents/sdlc/ADVICE.md` for advisory routing and reuse. Ensure MAIN
    is read only for an initialized SDLC project, not for non-SDLC orientation.
 2. Read the project's primary README and agent or contributor instructions.
 3. Read `.sdlc/project.yaml` when present, then read the project's **Vision and

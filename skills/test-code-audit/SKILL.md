@@ -1,21 +1,19 @@
 ---
 name: test-code-audit
-description: Review written tests before implementation; use self-audit in delivery or findings-only independent audit when explicitly invoked in a fresh context.
+description: Self-review written tests before implementation in the current author context; never launch or act as an independent auditor.
 ---
 
-Invoke at the required test-code step or on explicit request. An explicitly
-invoked independent fresh-context auditor reads `~/.agents/sdlc/AUDIT.md`;
-the author uses `~/.agents/sdlc/SELF-AUDIT.md`. Neither path loads MAIN or
-launches another reviewer. Apply READING's reuse rule and REVIEW's test-code
-profile. Inspect actual tests, helpers, execution-enabling scaffolding, relevant
-existing implementation and recorded observations.
+Use only for a workflow-required or explicitly requested self-audit. Review in
+the author's current context; do not delegate or select an independent role.
+Read ~/.agents/sdlc/SELF-AUDIT.md and REVIEW.md's test-code criteria, with
+READING's retained-context reuse. Inspect original candidate evidence rather
+than only the authoring summary. This skill never loads the independent-auditor
+entry point or launches the suspended audit harness.
 
 Select the mode explicitly:
 
 - **SDLC ticket:** use the approved specification and test definitions. Run the
-  `ORG-SCHEMA.md` test-code readiness check using the installed validator when
-  authorized to execute it, or inspect its supplied result as a restricted
-  independent auditor. ATs and RTs
+  `ORG-SCHEMA.md` test-code readiness check using the installed validator. ATs and RTs
   must have observed intended RED or justified preservation GREEN; compilation
   and setup failures do not establish useful RED. OT/UT may remain AMBER.
 - **Spike:** use the approved brief and current exploratory intent. Audit after
@@ -40,8 +38,7 @@ reopen approved requirements. Refer material design/scope questions to the
 operator rather than silently changing them.
 
 Report every blocking finding together with location, evidence and correction.
-Independent auditors return findings only under AUDIT. Self-auditing authors
-may remediate within scope, rerun affected tests, reassess and record under
-SELF-AUDIT. PASS approves tests only; the author may continue otherwise-authorized
-implementation, not claim delivery approval. Never write `audits.yaml` or label
-self-review independent.
+Remediate within scope, rerun affected checks and reassess under SELF-AUDIT.
+Record an explicitly internal result; never write audits.yaml or claim
+independence. PASS approves the test package for otherwise-authorized implementation,
+not closure, merge or deployment.

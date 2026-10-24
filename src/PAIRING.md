@@ -1,7 +1,7 @@
 ---
 title: Paired Development
-version: 2
-last-updated: 2026-10-19
+version: 3
+last-updated: 2026-10-24
 ---
 
 # Paired Development
@@ -27,7 +27,7 @@ Bounded objective
   -> delivery-code audit of each coherent code increment
   -> repeat as directed
   -> consolidate the durable specification and validation record
-  -> retrospective definition review in its separate retained context
+  -> retrospective definition self-review in the current context
   -> operator closure decision
 ```
 
@@ -125,6 +125,9 @@ operator has authorized that action and every applicable project requirement is
 satisfied.
 
 ## Document history
+
+This revision separates independent review, author self-audit and delivery-only
+responsibilities. Earlier rules remain in their canonical owners and Git history.
 
 Version 2 includes AT evidence in delivery readiness; earlier wording remains in Git history.
 

@@ -1,6 +1,6 @@
 ---
-title: Instruction Loading and Advisory Routing
-version: 1
+title: Instruction Loading and Shared Safeguards
+version: 2
 last-updated: 2026-10-24
 ---
 
@@ -67,24 +67,3 @@ mutation or activate a delivery workflow.
   or equivalent shortcuts.
 - Do not use SSH, SCP, SFTP or remote deployment commands without explicit
   authority for the exact operation and target.
-
-## Advisory skills
-
-Advice and orientation do not authorize mutation, initialization, delivery or
-an audit. Establish the original invocation project's scope; visible files or
-a changed cwd do not widen it. Preserve human edits, access boundaries and
-current-evidence requirements. Never read `.env`.
-
-- Explicit independent auditors use `AUDIT.md`, never `MAIN.md`.
-- In an initialized SDLC project, ensure `MAIN.md` and the task's selected
-  standards have been read. Advice does not invoke its delivery workflows.
-- Without `.sdlc/`, use existing project authorities and only applicable
-  engineering standards. Do not load `MAIN.md`, invent SDLC artefacts or impose
-  gates. Apply relevant coding/testing, architecture, security and documentation
-  criteria directly, with only the technologies actually involved.
-- If `.sdlc/` exists without a readable `project.yaml`, report the incomplete
-  state. Read-only diagnosis may inspect it; do not initialize or silently
-  switch to ungoverned delivery.
-
-Questions remain questions. A standard's availability does not make it relevant,
-and reading a standard does not activate the workflow discussed in it.

@@ -1,6 +1,6 @@
 ---
 title: Specification Standards
-version: 1
+version: 2
 last-updated: 2026-10-24
 ---
 
@@ -12,18 +12,11 @@ an issue lifecycle or a delivery workflow.
 Follow `~/.agents/sdlc/ORG-SCHEMA.md` for machine-checkable AC/test headings and
 their matching execution records. Keep test definitions here, results in
 `validation.org`, and harness-owned external audit verdicts solely in
-`audits.yaml`. Self-audit evidence belongs in the separate record defined by
-`SELF-AUDIT.md`; a manual fresh auditor returns its result under `AUDIT.md`.
+`audits.yaml`. Author and independent review evidence is separately labelled
+and never inserted into harness-owned state.
 Reviewing a specification does not authorize adopting or executing its workflow.
 
 ## Defined specifications
-
-Every code or script change requires a work item; documentation-only changes do
-not. Reuse an applicable item or allocate one under the project's numbering
-scheme. Normal delivery requires the agreed durable specification before code.
-Paired delivery creates a skeleton before code; emergency delivery creates it
-immediately after the bounded fix. Their operator-authorized working
-specifications follow `PAIRING.md` and `EMERGENCY.md`.
 
 A specification is defined when it identifies:
 
@@ -145,7 +138,7 @@ scheme and must not acquire a new prefix. The document contains, in order:
   boundaries, edge cases, decisions, and next step;
 - context, scope, authorities, constraints, decisions, and blockers;
 - acceptance criteria;
-- traced RT, UT, and OT test definitions;
+- traced AT, RT, UT, and OT test definitions;
 - edge cases;
 - solution design and architecture impact, including security; and
 - a context-independent delivery handoff.
@@ -174,8 +167,8 @@ actually conform to the chosen template revision and preserve history.
 
 - **Audit state:** only the harness creates or updates `audits.yaml`; no
   `DEFINITION_GATE` or other copied audit status belongs in `spec.org`.
-- **Author review:** SELF-AUDIT's separate internal record; manual independent
-  results remain separately labelled under AUDIT. Neither writes harness state.
+- **Author review:** separate internal records; independent results retain their
+  actual method and separation. Neither writes harness state.
 - **Human approval:** only explicit sign-off sets `OPERATOR_SIGNOFF` to
   `APPROVED YYYY-MM-DD`; add scope only where limited, not personal attribution
   or conversation narration. It is not an audit verdict or permission to lift a hold.
@@ -196,32 +189,19 @@ to the annotation tool's documented format; do not invent markers or classify
 ordinary Org comments, quoted examples or mentions of annotations as feedback.
 If the encoding cannot be interpreted safely, preserve it and ask for clarification.
 
-During definition, process annotations as one coherent batch. Check the referenced
-revision and passage, answer questions as questions, and apply authorized changes
-to the detailed requirements, tests, design and derived Synopsis. Explain rejected
-suggestions; never silently reject an explicit operator instruction or infer new
-authority from an annotation. Conflicting or ambiguous feedback remains unresolved.
-
-For each resolved annotation, preserve its stable identity, author, original text,
-referenced passage and reviewed revision in `feedback.yaml`. Record the disposition
-(applied, answered or rejected), reason, processing date, affected sections and
-resulting specification hash. Retain earlier entries; create this file only when
-feedback is processed. This defines required information, not a finalized YAML
-schema. Do not fabricate missing provenance or design a competing annotation format.
-
-Record the disposition before removing the resolved annotation from `spec.org`.
-Verify the files have not changed underneath the agent and commit the document
-and log together. On interruption, reconcile recorded identities and actual edits
-before continuing; never apply the same annotation twice or drop new feedback.
-Unresolved annotations stay visible. The previewer writes annotations only;
-the drafting agent reconciles them into the specification body.
-
 Before audit or sign-off, `spec.org` must contain no annotation records or blocks,
 including resolved or empty ones. Removing feedback without preserving its
 disposition is not resolution. Supply `feedback.yaml` as audit evidence when
 present; it must not duplicate findings, verdicts or session state from `audits.yaml`.
 Audit the revised definition as one package, not once per annotation. Material
 changes to an approved specification require renewed operator approval.
+
+Processed feedback evidence retains each annotation's stable identity, author,
+original text, referenced passage and reviewed revision, plus its disposition
+(applied, answered or rejected), reason, date, affected sections and resulting
+specification hash. Earlier entries remain available. Missing provenance must
+be disclosed, not fabricated; unresolved or conflicting dispositions block
+acceptance. These are evidence criteria, not authority for a reviewer to edit.
 
 ### One detailed home
 

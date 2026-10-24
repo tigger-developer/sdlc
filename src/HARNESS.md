@@ -1,6 +1,6 @@
 ---
 title: SDLC Audit Harness Guide
-version: 17
+version: 18
 last-updated: 2026-10-24
 ---
 
@@ -10,7 +10,7 @@ last-updated: 2026-10-24
 Workflow audit steps load `definition-audit`, `test-code-audit` or `code-audit`
 in the current session instead. No external attempt or failure is required.
 `SELF-AUDIT.md` governs internal evidence; `AUDITS.md` governs delivery gates.
-A manually started fresh auditor enters through `AUDIT.md`, without MAIN or
+A manually started fresh auditor enters through `INDEPENDENT-AUDITOR.md`, without MAIN or
 the delivery workflow. The external interface
 and recovery protocol below are retained for restoration, not active workflow
 instructions. A separate context is not required for internal review.
@@ -32,7 +32,7 @@ SDLC skills continue to use the resolved absolute harness path.
 When `--project` has no `.sdlc/project.yaml`, `sdlc-audit` runs a standalone
 code and documentation standards review. Supply at least one original project
 file with `--input`; omit `--gate`, `--audit-record`, `--work-item` and `--reset`.
-The harness prints a `STANDALONE MODE` warning and supplies `AUDIT.md`, the
+The harness prints a `STANDALONE MODE` warning and supplies `INDEPENDENT-AUDITOR.md`, the
 standalone review profile and applicable engineering standards as verified text.
 Selected standards must be read in full; unchanged retained text is reused.
 Delivery and transport documents, including MAIN, are excluded. It asks for an
@@ -48,7 +48,7 @@ supports independent spike review without entering an SDLC gate, budget, or
 profile supplies no technology declarations; evidence still selects standards.
 The harness prints a `SPIKE MODE` warning instead of
 `STANDALONE MODE`. The flag accepts only the audit phase and the standalone
-options above; every path, anchor and verdict check is unchanged. `SPIKE-AUDIT.md`
+options above; every path, anchor and verdict check is unchanged. REVIEW's spike profile
 routes the review against coding, architecture, security, Git, applicable technology
 and TDD/testing standards. Full SDLC workflow, gates and documentation requirements
 do not apply. The response retains the `AUDIT: standalone` envelope for compatibility.
@@ -182,7 +182,7 @@ the same automatic audit behaviour. The old reset-session flag is replaced by re
   execution rejects the response; hashes detect changes, not prevent writes.
 - Per-attempt paths and hashes live only in `audits.yaml` under `history[].evidence`.
   `standards_delivered` records successful transport separately from findings.
-  Older records, including the full-library version-1 standards contract, receive
+  Older records, including the broader version-1 and version-2 standards contracts, receive
   a replacement context and the narrow current package. History and review
   budgets are preserved. Every SDLC gate audit requires an audit record;
   standalone review does not.
@@ -558,6 +558,9 @@ fallback internally. Calling agents must not build a second retry loop around an
 infrastructure failure. Known FAIL findings remain unresolved until reassessed.
 
 ## Document history
+
+This revision separates independent review, author self-audit and delivery-only
+responsibilities. Earlier rules remain in their canonical owners and Git history.
 
 - Version 17 (2026-10-24): Narrow auditor standards selection and distinguish
   suspended transport, manual independent audit and self-audit.

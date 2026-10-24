@@ -1,7 +1,7 @@
 ---
 title: Specification and Validation Record Schema
-version: 1
-last-updated: 2026-10-19
+version: 2
+last-updated: 2026-10-24
 ---
 
 # Specification and validation record schema
@@ -80,7 +80,7 @@ Rerun affected tests after changes; keep unaffected evidence with its rationale.
 
 ## Deterministic checks
 
-Run `~/.agents/sdlc/bin/sdlc-validate --help` for usage. It reads both documents,
+`~/.agents/sdlc/bin/sdlc-validate --help` describes usage. The validator reads both documents,
 outputs YAML under `audit-readiness`, and never runs tests or writes files.
 
 - Schema errors prevent readiness evaluation and force `ready: false`.
@@ -102,11 +102,14 @@ unclosed blocks/drawers and duplicate properties. It validates this record subse
 not every Org feature or the quality of prose. It cannot prove evidence is true,
 current or exhaustive; those remain author obligations and model-review checks.
 
-Before the next implementation audit, adapt older sheets to this structure without
-renumbering, losing history or inventing results. Definition-only review does not
+Implementation-review evidence must conform to this structure without
+renumbering, lost history or invented results. Definition-only review does not
 require execution states. Existing documents are never rewritten by the validator.
 
 ## Document history
+
+This revision separates independent review, author self-audit and delivery-only
+responsibilities. Earlier rules remain in their canonical owners and Git history.
 
 Version 1 adds AT recognition, automated-test readiness and separate inventory
 counts. AC remains an acceptance-criterion record; earlier schema text is

@@ -10,13 +10,13 @@ Read `~/.agents/sdlc/MAIN.md`, `TESTING.md`, `CODING.md`, `ARCHITECTURE.md`,
 `DOCUMENTATION.md`, `GIT.md`, the project profile, selected standards, the
 signed-off `spec.org`, and its current audit evidence.
 
-Admit delivery only with explicit operator sign-off in `spec.org`, an `ACTIVE`
-work item in `docs/work.org`, and current definition internal PASS in
-`internal-review.md` under `AUDITS.md`, or an accepted current manual independent
-result under that contract. A still-current historical external PASS also
-remains evidence; do not repeat an accepted review merely to change its
-method. No new external verdict or failure is required. Internal review does
-not substitute for operator sign-off.
+Admit delivery only when all three prerequisites hold: explicit operator
+sign-off in `spec.org`, an `ACTIVE` work item in `docs/work.org`, and accepted
+current definition-review evidence under `AUDITS.md`. That evidence may be
+internal PASS in `internal-review.md`, an accepted isolated independent result,
+or a still-current historical external PASS. Review method never substitutes
+for sign-off or ACTIVE state. Do not repeat an accepted review merely to change
+its method; no new external verdict or failure is required.
 Check documented dependencies and implementation holds; only explicit operator
 authority lifts a hold. If the
 operator now lifts a hold, move the item to `ACTIVE` before admission once the
@@ -45,7 +45,7 @@ workflow, and it does not authorize changes to signed-off behaviour or other
 human-only decisions.
 
 Include any required per-ticket live OT budget in that preflight, following
-`TESTING.md`'s **Hands-off OT budget** rule. Record the approved bounds and
+`DELIVERY.md`'s **Hands-off one-off test budget** rule. Record the approved bounds and
 conservative expenditure estimates in the hands-off decision log; no billing
 integration is needed. UTs and configured SDLC audits are outside this budget.
 

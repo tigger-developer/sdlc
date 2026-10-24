@@ -48,7 +48,8 @@ The brief states:
   approaches, each with the evidence that will decide it.
 - **Boundaries:** the spike branch, files in scope, and prohibited actions.
 - **Budget:** native goal limits and any approved live OT spend under
-  TESTING.md's hands-off OT budget.
+  DELIVERY.md's Hands-off one-off test budget section. Read only that section
+  for the spike; it does not activate the delivery workflow or its other duties.
 - **Stop conditions:** when the spike ends without an answer.
 
 Present the brief and wait for explicit sign-off. Record `Approved YYYY-MM-DD`

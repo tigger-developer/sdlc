@@ -3,7 +3,7 @@ name: summarize-issues
 description: Summarize a project's open work against its specifications and architecture. Advisory only; no file changes.
 ---
 
-Follow `~/.agents/sdlc/READING.md` for advisory routing and reuse. In an SDLC
+Follow `~/.agents/sdlc/ADVICE.md` for advisory routing and reuse. In an SDLC
 project read ISSUES and the project's work ledger, active specs, profile and
 architecture. Otherwise use its established issue/requirement sources and
 architecture; do not load MAIN, invent a ledger or impose SDLC lifecycle rules.

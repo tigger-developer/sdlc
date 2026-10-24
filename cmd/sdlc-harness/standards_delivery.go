@@ -11,8 +11,8 @@ import (
 	"github.com/tigger-developer/sdlc/internal/harness"
 )
 
-// Version 2 excludes delivery workflows, including from retained contexts.
-const reviewStandardsContract = 2
+// Version 3 uses the independent-only entry and process-free shared standards.
+const reviewStandardsContract = 3
 
 func evidenceFiles(evidence harness.Evidence, paths []string) []harness.EvidenceFile {
 	wanted := map[string]bool{}

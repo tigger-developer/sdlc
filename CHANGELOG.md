@@ -6,6 +6,22 @@ last-updated: 2026-10-24
 
 # Changelog
 
+## v3.8.11 - 2026-10-24
+
+- Make definition-audit, test-code-audit and code-audit self-audit skills only.
+  Rewrite independent review as INDEPENDENT-AUDITOR.md, usable in a manual
+  fresh session or an explicitly authorized isolated native sub-agent without
+  inherited author conversation. The external audit harness remains suspended.
+- Move delivery execution, record and closure instructions from shared
+  standards into DELIVERY.md, and advisory routing into ADVICE.md. Keep shared
+  engineering criteria free of routes into those workflows.
+- Preserve former entry names as compatibility redirects. Select only the new
+  independent entry and criteria in harness evidence; contract version 3
+  replaces broader retained contexts without resetting review budgets.
+- Reconcile the public quickstart, provider example, caller contract, skills
+  and specification-template review evidence. Increment template schema to 9;
+  do not rewrite existing specifications merely to update the version.
+
 ## v3.8.10 - 2026-10-24
 
 - Select the explicitly independent fresh-context auditor before delivery

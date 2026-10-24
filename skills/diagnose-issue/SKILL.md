@@ -3,7 +3,7 @@ name: diagnose-issue
 description: Diagnose an observed software problem and recommend a fix without making file changes.
 ---
 
-Follow `~/.agents/sdlc/READING.md` for advisory routing and reuse. Read the
+Follow `~/.agents/sdlc/ADVICE.md` for advisory routing and reuse. Read the
 system's applicable standards and authorities. Do not load MAIN in a non-SDLC
 project, initialize a workflow or modify files.
 

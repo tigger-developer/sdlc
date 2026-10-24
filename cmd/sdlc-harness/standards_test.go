@@ -33,12 +33,12 @@ func TestManagedAuditSuppliesCanonicalStandardsWithoutCallerInputs(t *testing.T)
 			for _, file := range evidence.Files {
 				present[file.Path] = true
 			}
-			for _, name := range []string{"AUDIT.md", "READING.md", "REVIEW.md", "ARCHITECTURE.md", "TESTING.md"} {
+			for _, name := range []string{"INDEPENDENT-AUDITOR.md", "READING.md", "REVIEW.md", "ARCHITECTURE.md", "TESTING.md"} {
 				if !present[filepath.Join(root, name)] {
 					t.Errorf("%s audit omitted %s", gate, name)
 				}
 			}
-			for _, name := range []string{"MAIN.md", "AUDITS.md", "SELF-AUDIT.md", "EXTERNAL-AUDIT.md", "HARNESS.md", "PAIRING.md", "EMERGENCY.md"} {
+			for _, name := range []string{"AUDIT.md", "STANDALONE-AUDIT.md", "SPIKE-AUDIT.md", "MAIN.md", "DELIVERY.md", "ADVICE.md", "AUDITS.md", "SELF-AUDIT.md", "EXTERNAL-AUDIT.md", "HARNESS.md", "PAIRING.md", "EMERGENCY.md"} {
 				if present[filepath.Join(root, name)] {
 					t.Errorf("%s audit exposed delivery or transport document %s", gate, name)
 				}
@@ -59,12 +59,12 @@ func TestStandaloneAuditSelectsEvidenceStandardsWithoutDelivery(t *testing.T) {
 	if paths[0] != "project.go" {
 		t.Fatal("project input was not preserved")
 	}
-	for _, name := range []string{"AUDIT.md", "READING.md", "REVIEW.md", "STANDALONE-AUDIT.md", "CODING.md", "TESTING.md", "technologies/GO.md"} {
+	for _, name := range []string{"INDEPENDENT-AUDITOR.md", "READING.md", "REVIEW.md", "CODING.md", "TESTING.md", "technologies/GO.md"} {
 		if !strings.Contains(strings.Join(paths, "\n"), filepath.Join(root, name)) {
 			t.Fatalf("standalone inventory omitted %s", name)
 		}
 	}
-	for _, name := range []string{"MAIN.md", "AUDITS.md", "SELF-AUDIT.md", "EXTERNAL-AUDIT.md", "HARNESS.md", "technologies/RUST.md", "MARKDOWN.md"} {
+	for _, name := range []string{"AUDIT.md", "STANDALONE-AUDIT.md", "SPIKE-AUDIT.md", "MAIN.md", "DELIVERY.md", "ADVICE.md", "AUDITS.md", "SELF-AUDIT.md", "EXTERNAL-AUDIT.md", "HARNESS.md", "technologies/RUST.md", "MARKDOWN.md"} {
 		if strings.Contains(strings.Join(paths, "\n"), filepath.Join(root, name)) {
 			t.Errorf("standalone review unnecessarily loaded %s", name)
 		}

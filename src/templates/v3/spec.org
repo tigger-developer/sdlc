@@ -1,5 +1,5 @@
 #+TITLE: WNNN - [Concise change-specific title]
-#+SCHEMA: 8
+#+SCHEMA: 9
 #+SUBTITLE: Unified change specification
 #+STARTUP: overview
 #+OPTIONS: toc:2 num:nil
@@ -61,7 +61,10 @@ The Synopsis and explicit test expectations are intentional repetitions. Preserv
 material detail without imposing a word limit or creating a second summary file.
 
 The work item's TODO keyword in =docs/work.org= is its sole lifecycle state.
-Only the harness creates or updates =audits.yaml=; read the current gate there.
+Only the harness creates or updates =audits.yaml=; it owns external harness results.
+Current self-review evidence lives in =internal-review.md=; accepted independent
+results retain their separate method and evidence. Follow AUDITS.md for gate
+acceptance. Never require a new harness verdict while that route is suspended.
 Do not copy audit findings, verdicts or session state into this specification.
 Follow annotation review in =ISSUES.md=: preserve resolved feedback and its
 disposition in =feedback.yaml= before removing its annotation. Unresolved feedback

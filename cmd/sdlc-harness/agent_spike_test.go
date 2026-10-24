@@ -49,7 +49,7 @@ printf '{"type":"thread.started","thread_id":"spike-fixture"}\n'
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !bytes.Contains(prompt, []byte("SPIKE-AUDIT.md")) || !bytes.Contains(prompt, []byte("go.mod")) {
+	if !bytes.Contains(prompt, []byte("INDEPENDENT-AUDITOR.md")) || !bytes.Contains(prompt, []byte("go.mod")) {
 		t.Fatal("agent spike prompt omitted the spike standard or project evidence")
 	}
 	if bytes.Contains(prompt, []byte("Audit gate:")) {

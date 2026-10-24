@@ -28,11 +28,11 @@ Audit options:
 
 When the selected project has no .sdlc/project.yaml, omit --gate,
 --audit-record and --work-item. The harness warns STANDALONE MODE and reviews
-the supplied original project files through AUDIT.md and STANDALONE-AUDIT.md.
+the supplied original project files through INDEPENDENT-AUDITOR.md and REVIEW.md's standalone criteria.
 Applicable review standards are supplied as verified text; MAIN and delivery
 workflow documents are excluded, including from optional references.
 This review has no SDLC gate or persistent audit record.
-In an SDLC project, --agent-spike selects a separate SPIKE-AUDIT.md profile for a
+In an SDLC project, --agent-spike selects REVIEW.md's spike profile for a
 hands-off spike and warns SPIKE MODE. It accepts the same options and rejects
 --gate, --audit-record, --work-item, --reset and any phase other than audit.
 All coding, security, technology and TDD/testing standards apply to spike code;

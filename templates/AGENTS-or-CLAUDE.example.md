@@ -1,6 +1,6 @@
 ---
 title: Provider-Level Agent Instructions Example
-version: 1
+version: 2
 last-updated: 2026-10-24
 ---
 
@@ -28,7 +28,7 @@ unchanged text already read in full and retained in context. Report an absent
 required document's exact path; never search for another SDLC installation.
 
 - An explicitly invoked independent auditor in a fresh context reads
-  `~/.agents/sdlc/AUDIT.md`, not `MAIN.md`, regardless of `.sdlc/`. Return
+  `~/.agents/sdlc/INDEPENDENT-AUDITOR.md`, not `MAIN.md`, regardless of `.sdlc/`. Return
   findings only. A delivery agent's self-audit retains the delivery role.
 - Conversation unrelated to project work does not inspect project markers or
   load MAIN merely because cwd is a checkout.
@@ -41,7 +41,7 @@ required document's exact path; never search for another SDLC installation.
 - Otherwise, when writing or changing code or scripts, read
   `~/.agents/sdlc/CODING.md` and the technology standards it selects. The SDLC
   workflow, gates, and automatic audits do not apply. Explicit standalone review
-  uses AUDIT in a fresh context or SELF-AUDIT in the author's context.
+  uses INDEPENDENT-AUDITOR in a fresh context or SELF-AUDIT in the author's context.
 
 Do not load the SDLC for conversation, research, creative work, or unrelated
 documentation. The presence of filesystem tools, Git integration, technical

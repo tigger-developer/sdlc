@@ -1,6 +1,6 @@
 ---
 title: Shared Review Criteria and Profiles
-version: 1
+version: 2
 last-updated: 2026-10-24
 ---
 
@@ -68,12 +68,12 @@ not replaced with invented requirements or a full PASS.
   phantom helper calls and assertions mirroring implementation are not product
   evidence. Passing tests alone establish neither coverage nor design fit.
 - Candidate inputs freeze for review. Changed code, tests, docs or validation
-  invalidate the result for those changed inputs. Rerun affected checks and
-  settle evidence before reassessment; preserve earlier results as history.
+  invalidate the result for those changed inputs. Current affected checks and
+  settled evidence are required before reassessment; preserve earlier results as history.
 - Harness audit findings/state belong only to harness-owned `audits.yaml`.
   Duplicated audit state in reviewed artefacts is a blocking finding. Internal
   review evidence is separately owned and links, rather than copies, external
-  findings. Manual fresh-context results are returned under AUDIT for separate
+  findings. Independent results are returned to the caller for separate
   recording, never inserted into harness-owned state. Never forge an external
   verdict or erase unresolved findings.
 - Definition fails for any semantically identified annotation record/block,
@@ -99,7 +99,6 @@ Refer unresolved scope/design disputes and immediate safety risks to the operato
 
 PASS requires no unresolved blocking findings for the reviewed candidate.
 Independent PROVISIONAL PASS is effective only after its exact mechanical
-conditions are applied and verified. Self-audit records PASS or FAIL, resolving
-mechanical conditions before PASS. Timeout, silence, malformed output, unavailable
+conditions are applied and verified. An unconditional PASS requires those conditions to have been resolved. Timeout, silence, malformed output, unavailable
 providers or incomplete access are never PASS. Review provides evidence, not
 human approval, a lifted hold or authority to close work.

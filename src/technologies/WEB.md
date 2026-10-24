@@ -126,8 +126,7 @@ Per `~/.agents/sdlc/TESTING.md`, the real-user test question still applies: *wha
 
 ## Paired visual development
 
-When the operator explicitly selects paired development, follow
-`~/.agents/sdlc/PAIRING.md`. Hugo Markdown and YAML may carry accepted content
+For explicitly selected paired visual work, Hugo Markdown and YAML may carry accepted content
 and configuration, while CSS, templates, and rendered pages carry the design
 under review. A separate detailed design document is not required merely to
 restate those artefacts.

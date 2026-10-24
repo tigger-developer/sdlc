@@ -1,6 +1,6 @@
 ---
 title: SDLC v3 Architecture
-version: 12
+version: 13
 last-updated: 2026-10-24
 ---
 
@@ -54,10 +54,11 @@ optional auditor references. Callers provide
 only project files; external SDLC standard paths are not accepted as inputs.
 
 `~/.agents/sdlc/MAIN.md` is the delivery-agent bootstrap. An explicitly independent
-fresh-context auditor enters through `AUDIT.md` before project-marker routing
+fresh-context auditor enters through `INDEPENDENT-AUDITOR.md` before project-marker routing
 and must not load MAIN. The author uses `SELF-AUDIT.md` for non-independent review.
 Both select criteria through `REVIEW.md`; `READING.md` governs complete reads,
-reuse of unchanged retained text and advisory scope. Automatic external auditing
+reuse of unchanged retained text. ADVICE owns advisory routing; DELIVERY owns
+author execution and records. Neither is an auditor reference. Automatic external auditing
 remains suspended; manual fresh-context audits do not re-enable it.
 Skills are global and refer to the canonical root, so a standards update does
 not require every initialized project to be refreshed.
@@ -396,6 +397,9 @@ contract. Existing attempt history remains intact; only labelled valid verdicts
 are charged to an explicit gate.
 
 ## Document history
+
+This revision separates independent review, author self-audit and delivery-only
+responsibilities. Earlier rules remain in their canonical owners and Git history.
 
 - Version 12 (2026-10-24): Separate delivery and review entry points and restrict
   auditor evidence to applicable review standards.

@@ -1,28 +1,52 @@
 ---
 title: Delivery Review Gates
-version: 13
+version: 14
 last-updated: 2026-10-24
 ---
 
 # Delivery review gates
 
 This is the delivery agent's gate contract. An explicitly invoked independent
-fresh-context auditor stops here and follows `AUDIT.md`, without loading MAIN
+fresh-context auditor stops here and follows `INDEPENDENT-AUDITOR.md`, without loading MAIN
 or delivery workflows. Read `READING.md` and reuse retained standards.
 
 ## Active invocation policy
 
 Automatic external auditing is suspended until explicitly re-enabled. Delivery
 reviews use `definition-audit`, `test-code-audit` and `code-audit` in the current
-session through `SELF-AUDIT.md`. Do not call the harness first, launch another
-agent/model, probe provider health, reset auditor state or wait for recovery.
+session through `SELF-AUDIT.md`. These three skills are self-audit only; none
+launches or acts as an independent reviewer. Do not call the suspended harness,
+probe provider health, reset auditor state or wait for recovery.
 These skills are authorized by a required workflow review or an explicit audit
 request, not by their mere availability in a non-SDLC project.
 
-The operator may manually start an independent fresh-context auditor through
-`AUDIT.md`. That reviewer returns findings directly and launches no further
-reviewer. Its actual separation must be established, not inferred from a skill
-name. This manual route does not re-enable the automatic harness.
+An explicitly requested independent audit uses INDEPENDENT-AUDITOR.md directly,
+not one of the self-audit skills. A manual fresh session or an isolated native
+sub-agent may perform it. This does not re-enable the external audit harness.
+
+### Calling an independent reviewer
+
+Only an explicit independent-audit request or an expressly authorized workflow
+permits this route. Ordinary self-audit requirements do not. The caller:
+
+- Starts one fresh reviewer with no inherited author conversation or reasoning.
+  Supplies the entry-point path, review purpose/profile, permitted project paths,
+  exact candidate, requirements/brief and original evidence. Includes unresolved
+  prior findings as evidence, not the desired verdict or a coached conclusion.
+- Uses a native isolation control only when available and authorized. If it
+  cannot avoid inherited author context, reports that limitation and uses an
+  authorized self-review without calling it independent. It does not launch a
+  child CLI or bypass a harness restriction to simulate isolation.
+- Settles required checks and freezes the candidate before review. The reviewer
+  receives read-only scope; the caller owns remediation, records and workflow
+  progression. No reviewer launches another reviewer.
+- Records actual separation, findings and limitations separately from internal
+  review and harness-owned state. Rechecks affected evidence after remediation.
+  Re-review uses the same authorized scope and configured review allowance; a
+  standalone invocation is one review unless further rounds were authorized.
+
+The reviewer reads none of this caller orchestration. Its complete operating
+instructions are in INDEPENDENT-AUDITOR; it selects engineering criteria only.
 
 Read `REVIEW.md` for shared criteria, candidate validity, evidence ownership and
 verdict semantics. Read `SELF-AUDIT.md` for internal records, continuation and
@@ -112,6 +136,9 @@ Append " AUDIT" to the governing delivery canary after reading this contract.
 This is not a claim of independent review.
 
 ## Document history
+
+This revision separates independent review, author self-audit and delivery-only
+responsibilities. Earlier rules remain in their canonical owners and Git history.
 
 Version 13 separates independent audit, self-audit and transport from delivery
 orchestration. Every prior version-12 provision and its document history is

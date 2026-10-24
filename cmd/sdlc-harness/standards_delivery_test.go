@@ -69,18 +69,21 @@ func TestMandatoryStandardsDeliveredToEveryProviderOnce(t *testing.T) {
 }
 
 func TestLegacyWorkflowContextIsReplacedBeforeReview(t *testing.T) {
-	project, root, bin := t.TempDir(), t.TempDir(), t.TempDir()
-	standard := filepath.Join(root, "TESTING.md")
-	if err := os.WriteFile(standard, []byte("CURRENT_REVIEW_RULE"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	probe := filepath.Join(project, "arguments")
-	if err := os.WriteFile(filepath.Join(project, "result"), nil, 0o600); err != nil {
-		t.Fatal(err)
-	}
-	t.Setenv("REVIEW_ARGUMENTS", probe)
-	t.Setenv("PATH", bin+string(os.PathListSeparator)+os.Getenv("PATH"))
-	script := `#!/bin/sh
+	for name, contract := range map[string]int{"full-library": 1, "mixed-shared-standards": 2} {
+		t.Run(name, func(t *testing.T) {
+
+			project, root, bin := t.TempDir(), t.TempDir(), t.TempDir()
+			standard := filepath.Join(root, "TESTING.md")
+			if err := os.WriteFile(standard, []byte("CURRENT_REVIEW_RULE"), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			probe := filepath.Join(project, "arguments")
+			if err := os.WriteFile(filepath.Join(project, "result"), nil, 0o600); err != nil {
+				t.Fatal(err)
+			}
+			t.Setenv("REVIEW_ARGUMENTS", probe)
+			t.Setenv("PATH", bin+string(os.PathListSeparator)+os.Getenv("PATH"))
+			script := `#!/bin/sh
 printf '%s\n' "$@" > "$REVIEW_ARGUMENTS"
 output=
 previous=
@@ -92,33 +95,36 @@ done
 printf 'AUDIT: standalone\nREVISION: candidate\nVERDICT: PASS\n' > "$output"
 printf '{"type":"thread.started","thread_id":"new-review-context"}\n'
 `
-	// #nosec G306 -- private synthetic provider never contacts a hosted model.
-	if err := os.WriteFile(filepath.Join(bin, "codex"), []byte(script), 0o700); err != nil {
-		t.Fatal(err)
-	}
-	evidence, err := harness.CaptureEvidence(project, []string{standard})
-	if err != nil {
-		t.Fatal(err)
-	}
-	var diagnostics bytes.Buffer
-	runner := recoveryRun{audit: true, evidence: evidence, standardsRoot: root,
-		requiredStandards: []string{standard}, diagnostics: &diagnostics,
-		request: harness.Request{Prompt: "Audit.", Directory: project, ResultFile: filepath.Join(project, "result")},
-		config:  harness.Config{Harness: "codex", Model: "fixture", Timeout: time.Second, MaxFailures: 1}}
-	legacy := harness.AuditEntry{SessionID: "old-workflow-context", StandardsContract: 1, Standards: evidence.Files}
-	result, err := runner.execute(legacy, true)
-	if err != nil || !strings.Contains(result.Response, "VERDICT: PASS") {
-		t.Fatalf("replacement review: %v, %s", err, diagnostics.String())
-	}
-	arguments, err := os.ReadFile(probe)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if bytes.Contains(arguments, []byte("old-workflow-context")) || bytes.Contains(arguments, []byte("resume")) {
-		t.Fatalf("legacy context was resumed: %s", arguments)
-	}
-	if !strings.Contains(diagnostics.String(), "round budget unchanged") {
-		t.Fatal("replacement did not report preserved budget")
+			// #nosec G306 -- private synthetic provider never contacts a hosted model.
+			if err := os.WriteFile(filepath.Join(bin, "codex"), []byte(script), 0o700); err != nil {
+				t.Fatal(err)
+			}
+			evidence, err := harness.CaptureEvidence(project, []string{standard})
+			if err != nil {
+				t.Fatal(err)
+			}
+			var diagnostics bytes.Buffer
+			runner := recoveryRun{audit: true, evidence: evidence, standardsRoot: root,
+				requiredStandards: []string{standard}, diagnostics: &diagnostics,
+				request: harness.Request{Prompt: "Audit.", Directory: project, ResultFile: filepath.Join(project, "result")},
+				config:  harness.Config{Harness: "codex", Model: "fixture", Timeout: time.Second, MaxFailures: 1}}
+			legacy := harness.AuditEntry{SessionID: "old-workflow-context", StandardsContract: contract, Standards: evidence.Files}
+			result, err := runner.execute(legacy, true)
+			if err != nil || !strings.Contains(result.Response, "VERDICT: PASS") {
+				t.Fatalf("replacement review: %v, %s", err, diagnostics.String())
+			}
+			arguments, err := os.ReadFile(probe)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if bytes.Contains(arguments, []byte("old-workflow-context")) || bytes.Contains(arguments, []byte("resume")) {
+				t.Fatalf("legacy context was resumed: %s", arguments)
+			}
+			if !strings.Contains(diagnostics.String(), "round budget unchanged") {
+				t.Fatal("replacement did not report preserved budget")
+			}
+
+		})
 	}
 }
 
@@ -260,12 +266,12 @@ func TestSpikePackageSelectsEvidenceTechnologyWithoutWorkflowDocs(t *testing.T) 
 	for _, path := range paths {
 		present[path] = true
 	}
-	for _, name := range []string{"AUDIT.md", "READING.md", "REVIEW.md", "SPIKE-AUDIT.md", "CODING.md", "GIT.md", "TESTING.md", "SECURITY.md", "ARCHITECTURE.md", "technologies/GO.md"} {
+	for _, name := range []string{"INDEPENDENT-AUDITOR.md", "READING.md", "REVIEW.md", "CODING.md", "GIT.md", "TESTING.md", "SECURITY.md", "ARCHITECTURE.md", "technologies/GO.md"} {
 		if !present[filepath.Join(root, name)] {
 			t.Fatalf("spike omitted %s", name)
 		}
 	}
-	for _, name := range []string{"MAIN.md", "AUDITS.md", "SELF-AUDIT.md", "EXTERNAL-AUDIT.md", "HARNESS.md", "ISSUES.md", "DOCUMENTATION.md", "technologies/RUST.md"} {
+	for _, name := range []string{"AUDIT.md", "STANDALONE-AUDIT.md", "SPIKE-AUDIT.md", "MAIN.md", "DELIVERY.md", "ADVICE.md", "AUDITS.md", "SELF-AUDIT.md", "EXTERNAL-AUDIT.md", "HARNESS.md", "ISSUES.md", "DOCUMENTATION.md", "technologies/RUST.md"} {
 		if present[filepath.Join(root, name)] {
 			t.Fatalf("spike included workflow/documentation standard %s", name)
 		}

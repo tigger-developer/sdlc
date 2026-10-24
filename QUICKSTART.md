@@ -1,7 +1,7 @@
 ---
 title: SDLC v3 Quickstart
-version: 6
-last-updated: 2026-10-19
+version: 7
+last-updated: 2026-10-24
 ---
 
 # SDLC v3 Quickstart
@@ -231,17 +231,18 @@ It does not rerun definition audits. The sequence is written tests, observed RED
 test-code review, implementation, AT/RT/OT GREEN, documentation update, then delivery-code
 review. UTs may remain AMBER for operator participation and closure.
 
-The skill calls one normal audit command with the work item, record, gate and
-evidence. Session selection and bounded recovery belong to the harness. Each gate
-has its own verdict allowance; failed provider responses do not consume it. Only
-explicit operator authority permits `--reset`. An infrastructure-intervention
-response is a blocker to report, not an invitation to diagnose the auditor.
+The former automatic-command procedure is suspended. Its session selection,
+recovery, verdict allowance and operator-only reset contract remain documented
+in the harness guide for explicitly authorized future use; delivery does not
+invoke that route or diagnose the auditor.
 
 Workflow reviews load `definition-audit`, `test-code-audit` or `code-audit`
 internally in the current session under [AUDITS.md](src/AUDITS.md). The automatic
-independent auditor is suspended and under review. For a separate audit, manually
-start a fresh session on any supported harness and invoke the relevant skill;
-invoke the audit, not the suspended audit harness.
+audit harness is suspended and under review. Those skills perform self-audit
+only. An explicitly requested independent review uses
+[INDEPENDENT-AUDITOR.md](src/INDEPENDENT-AUDITOR.md) in a manual fresh session or
+an authorized native isolated sub-agent, without inherited author conversation.
+It does not use a self-audit skill or re-enable the external audit harness.
 
 ## 6. Use a variant only when selected
 

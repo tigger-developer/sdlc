@@ -1,6 +1,6 @@
 ---
 title: Testing Standards
-version: 4
+version: 5
 last-updated: 2026-10-24
 ---
 
@@ -34,8 +34,8 @@ requirement or test identifier an adjacent descriptor.
 Never reuse a test identifier within its established namespace. A removed,
 abandoned, retired, or superseded test permanently reserves its identifier. For
 sequential identifiers, consult active records, archives, and version history
-and allocate above the highest value ever assigned. Preserve superseded entries
-in `validation.org` rather than recycling them.
+and allocate above the highest value ever assigned. Preserve superseded execution
+entries in the applicable evidence record rather than recycling them.
 
 ### Regression packs as brownfield evidence
 
@@ -72,39 +72,14 @@ automated test (AT or RT) is justified, write or amend it before implementing
 the target production behaviour, observe it fail for the intended reason, implement the smallest
 coherent change, observe it pass, then refactor without losing evidence. When no
 automated test is justified, record the specific reason; urgency,
-difficulty, or inconvenience is insufficient. The definition-audit skill
-confirms test design and traceability; it does not replace a required failing
-automated test execution.
+difficulty, or inconvenience is insufficient. Review of test design and
+traceability does not replace a required failing automated test execution.
 
-`REVIEW.md` defines gate-specific criteria: definition assesses proposed tests;
-test-code assesses the written AT/RT package and intended RED or justified
-preservation GREEN; delivery-code assesses production code, changed tests and
-settled AT/RT/OT GREEN. The author must verify the reason for RED. Planned tests
-are not implementation evidence; implemented tests do not retroactively repair
-an inadequate definition. Paired/emergency review uses recorded authorized scope
-without inventing a retrospective pre-build gate. Delivery authors follow
-`AUDITS.md` for sequence and skills; independent auditors use `AUDIT.md` and do
-not load delivery orchestration. During automatic-harness suspension the author
-uses SELF-AUDIT, including retrospective definition review, without an external
-attempt or provider context.
-
-Before test-code review, the agent may add only the minimum declarations,
-interfaces or placeholder bodies needed to compile and execute the specified ATs and RTs.
-This scaffolding must not implement the target behaviour and must be included in
-test-code audit evidence. Compilation and setup failures do not qualify as RED.
-
-If the approved specification contains neither ATs nor RTs, skip the test-code gate. The
-definition audit must establish why OT/UT evidence is appropriate. Do not remove
-or reclassify approved ATs or RTs merely to bypass the gate. Implement, execute required
-OTs and invoke delivery-code directly; UTs may await the operator. The validator's
-inventory supplies separate AT and RT counts; it does not authorize changing the test strategy.
-
-Define the expected evidence for one-off and user tests before implementation
-where practical. They do not follow TDD and do not require a pre-change failure.
-Execute final OTs before the delivery-code audit; every AT, RT and OT must be GREEN.
-UTs may remain AMBER until operator participation. Earlier diagnostic executions
-count only if their evidence remains current for the candidate. Paired development
-uses the live user-validation contract below.
+Compilation/setup failures do not establish intended RED. Execution-enabling
+scaffolding must not implement the target behaviour. Planned tests are not
+execution evidence, and implementation cannot retroactively establish adequate
+test definitions. Expected OT/UT evidence should be defined before implementation
+where practical; neither category requires a pre-change failure.
 
 ## Choose durable evidence
 
@@ -132,67 +107,19 @@ Do not create permanent test code solely to satisfy a test-count rule. Record
 one-off or user-test evidence durably, then remove temporary files from the
 repository.
 
-## Test execution records and readiness
+## Execution evidence
 
-Every delivery has `validation.org`, with one current heading per AT, RT, OT and UT
-defined in `spec.org`. Follow `~/.agents/sdlc/ORG-SCHEMA.md` and the canonical
-templates: both documents tag tests `:testdef:`, and only validation headings carry
-execution states. Declare `#+TODO: AMBER RED | GREEN`; an absent state is schema-valid
-but audit-ineligible. Preserve superseded runs below the same test node.
+Evidence identifies the tested candidate, environment, method, dated observations
+and actual result. An implementation claim is not execution evidence. A broken
+fixture is inconclusive, not an intended test failure. Initially passing
+preservation tests need no artificial failure. Historical results apply only
+to the unchanged behaviour they assessed; changed candidates need current
+evidence. Report missing or stale evidence instead of inferring success.
 
-The deterministic `~/.agents/sdlc/bin/sdlc-validate` reports schema errors, inventory
-and readiness as YAML. Read its `--help` and run it before the corresponding audit.
-When explicitly re-enabled, the harness repeats the same checks before spending
-a round. Schema failures and
-ineligibility never invoke a model. Test-code requires ATs/RTs RED/GREEN and a recorded
-state for every OT/UT; delivery-code requires AT/RT/OT GREEN, permitting outstanding UTs only.
-
-Do not infer execution from implementation claims. Record tested revision,
-environment, dated observations and evidence. For UTs, record the method as user
-validation and a reviewer role only where relevant, not a personal name or
-conversation summary; follow DOCUMENTATION.md. A broken
-fixture is AMBER; AT/RT RED requires an executed intended assertion failure before
-implementing the target behaviour. Initially GREEN preservation tests need no artificial RED.
-Readiness checks verify recorded structure, not evidence truth or adequate coverage.
-Closure requires current GREEN for every required test, including operator UTs.
-
-The explicit legacy ticket-migration skill has one historical-record
-exception. It may infer delivery when either its near-complete rule has at least
-one recorded pass and leaves at most two unrecorded unit or operator tests, or a
-ticket without recorded passing evidence retains at least one RT in the
-maintained passing harness. It must mark every AC supported only by inference,
-identify the applicable heuristic in a
-footnote, and distinguish an assumed migration pass from contemporaneous test
-evidence. This creates no precedent for active delivery.
-
-An audit verdict remains historical evidence for the revision and scope it
-assessed. If later remediation changes relevant code, the earlier implementation
-gate PASS is no longer current for completion. Rerun the affected automated tests
-and affected one-off tests before the delivery-code audit; repeat materially affected
-user tests when the operator is available. Unaffected results remain current.
-
-## Paired user validation
-
-Explicit operator validation during paired development is first-class user-test
-evidence. Do not replace it with an automated imitation of the visual or
-subjective judgement that just occurred.
-
-Maintain a provisional ledger during the session. For each validation, retain:
-
-- a plain-language description of the observed behaviour;
-- the revision or working-tree state reviewed;
-- material viewing conditions such as viewport, browser, or device; and
-- whether a later iteration superseded it.
-
-At closure, present the current ledger once and ask whether it may be recorded
-as the user tests for the change. On approval, write it to the active change's
-`validation.org`. A later change invalidates only entries whose observed behaviour it
-materially affects.
-
-Add automated regression coverage only when the behaviour is objective and
-stable, regression risk justifies retention, the test uses an appropriate user
-boundary, and it adds evidence beyond the paired validation. Report useful gaps
-at closure; do not create brittle tests merely to eliminate the report.
+Live human judgement is first-class UT evidence. Do not replace it with an
+automated imitation. Record the observed behaviour, reviewed candidate, material
+viewing conditions and whether a later iteration superseded it. Human approval
+is required before recording provisional paired observations as accepted UTs.
 
 ## Test architecture
 
@@ -261,28 +188,6 @@ One authorization covers only those recorded bounds. Do not poll, broaden the
 operation, or repeat it beyond them. Metered checks remain prohibited from
 persistent regression suites and repeatedly triggered automation.
 
-### Hands-off OT budget
-
-When hands-off delivery needs cost-incurring live OTs, establish one
-**operator-approved total budget for the ticket** during preflight. Reuse an
-existing explicit authorization covering those operations; otherwise ask once,
-not per call. Record the amount, currency, covered operations, retry and resource
-lifetime limits, and estimated expenditure in the spec's hands-off decision log.
-Resuming delivery does not reset the allowance.
-
-**Conservative estimates are sufficient**, using expected unit costs and
-operation counts, including retries and resource lifetime. Do not build billing
-integrations, query account balances, or add budget-management tooling. Never
-start an operation whose cost cannot reasonably be bounded within the remaining
-allowance. If the budget is missing, exhausted or insufficient, defer that OT,
-continue other unblocked work, and report outstanding verification at handback.
-Do not imply a deferred test passed or authorize further spending yourself.
-
-**UTs are outside this budget and hands-off execution**: leave them AMBER for
-operator participation after all other delivery work, or report any genuine
-remaining blockers. Configured SDLC audits remain separately authorized under
-their existing limits. An OT budget never permits metered checks in RT packs.
-
 ## Coverage and quality
 
 Coverage reports locate unexercised code; they do not prove useful assertions.
@@ -319,6 +224,9 @@ Distinguish focused checks from the complete project suite. Never convert a
 partial verification result into a claim about the whole system.
 
 ## Document history
+
+This revision separates independent review, author self-audit and delivery-only
+responsibilities. Earlier rules remain in their canonical owners and Git history.
 
 Version 4 centralizes review criteria and delivery orchestration while retaining
 the testing contract and distinguishing independent review from self-audit.

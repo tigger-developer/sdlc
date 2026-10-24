@@ -1,6 +1,6 @@
 ---
 title: SDLC Configuration and Installation Reference
-version: 3
+version: 4
 last-updated: 2026-10-24
 ---
 
@@ -182,8 +182,10 @@ it.
 | Path | Purpose |
 |---|---|
 | `src/MAIN.md` | Delivery-agent rules and progressive workflow routing |
-| `src/READING.md` | Full-read reuse and advisory routing |
-| `src/AUDIT.md` | Independent fresh-context auditor entry; no MAIN |
+| `src/READING.md` | Full-read reuse and shared safeguards |
+| `src/ADVICE.md` | Advisory project routing, excluded from auditor reads |
+| `src/DELIVERY.md` | Author execution, record and closure responsibilities |
+| `src/INDEPENDENT-AUDITOR.md` | Independent fresh-context auditor entry; no MAIN |
 | `src/REVIEW.md` | Shared substantive review criteria and profiles |
 | `src/SELF-AUDIT.md` | Non-independent author review and evidence |
 | `src/AUDITS.md` | Delivery gate orchestration |
@@ -197,6 +199,9 @@ it.
 | `cmd/` and `internal/` | Installer, initializer, validator, harness adapters, and ledger merger |
 
 ## Document history
+
+This revision separates independent review, author self-audit and delivery-only
+responsibilities. Earlier rules remain in their canonical owners and Git history.
 
 - Version 3 (2026-10-24): Separate delivery, independent-audit and self-audit entry points.
 

@@ -3,7 +3,7 @@ name: recommendations-please
 description: Provide concrete expert recommendations for a technical decision without making file changes.
 ---
 
-Follow `~/.agents/sdlc/READING.md` for advisory routing and reuse. Read only the
+Follow `~/.agents/sdlc/ADVICE.md` for advisory routing and reuse. Read only the
 decision's applicable standards and project authorities. Do not load MAIN in a
 non-SDLC project, initialize a workflow or modify files.
 

@@ -1,6 +1,6 @@
 ---
 title: Documentation Standards
-version: 2
+version: 3
 last-updated: 2026-10-24
 ---
 
@@ -106,31 +106,6 @@ Keep scratch notes outside tracked documentation unless the project explicitly
 uses a tracked decision log. Convert durable findings into the appropriate
 specification, plan, architecture record, or reference document.
 
-## Delivery closure
-
-This section governs SDLC-managed delivery. A standalone standards audit uses
-the review criteria below and does not require gate, validation, sign-off or
-closure records.
-
-Definition identifies affected documentation in the handoff. Update it during
-delivery and include it in the final delivery-code audit: verify usage,
-configuration, interfaces and architecture wherever the change affects them,
-and compliance with this document's voice, purpose and presentation rules.
-Missing or materially stale required documentation blocks that gate; optional
-editorial improvements do not. Test-code review does not require completed product
-documentation. Paired/emergency work updates product docs after the code change
-but before the final delivery verdict; retrospective spec consolidation may follow.
-
-Before closing normal, paired, or `BYPASS-GATE-7` work, reconcile every
-document made inaccurate, incomplete, or misleading by the change. Record the
-documentation outcome as updated or not affected, with the reason when it is
-not affected. Known stale documentation blocks closure.
-
-For an emergency change, replace the temporary specification with durable
-project authority after verification. Update the specification, design,
-operational guidance, and user documentation only where the delivered change
-affects them; do not create duplicative prose that merely restates the code.
-
 ## Review
 
 Review documentation for document-purpose fit, impersonal factual voice, technical
@@ -144,6 +119,9 @@ appropriate.
 Append " DOC" (with a leading space) to the canary.
 
 ## Document history
+
+This revision separates independent review, author self-audit and delivery-only
+responsibilities. Earlier rules remain in their canonical owners and Git history.
 
 Version 2 consolidates metadata applicability here and leaves its field schema
 in MARKDOWN. Version 1 remains in Git history.

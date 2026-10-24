@@ -220,7 +220,7 @@ printf '{"type":"thread.started","thread_id":"native-session"}\n'
 		for _, file := range entry.LatestEvidence() {
 			standards[filepath.Base(file.Path)] = true
 		}
-		if !standards["AUDIT.md"] || standards["MAIN.md"] || standards["AUDITS.md"] || !standards["ARCHITECTURE.md"] || !standards["DOCUMENTATION.md"] {
+		if !standards["INDEPENDENT-AUDITOR.md"] || standards["MAIN.md"] || standards["AUDITS.md"] || !standards["ARCHITECTURE.md"] || !standards["DOCUMENTATION.md"] {
 			t.Fatalf("managed audit omitted canonical standards: %#v", entry.LatestEvidence())
 		}
 	}

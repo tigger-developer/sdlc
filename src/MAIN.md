@@ -1,13 +1,13 @@
 ---
 title: Lean Software Delivery Standards
-version: 5
+version: 6
 last-updated: 2026-10-24
 ---
 
 # Lean Software Delivery Standards
 
 **Independent auditor: stop reading here.** If explicitly invoked in a fresh
-context solely to audit, read `~/.agents/sdlc/AUDIT.md` instead. Do not load the
+context solely to audit, read `~/.agents/sdlc/INDEPENDENT-AUDITOR.md` instead. Do not load the
 rest of this document or activate delivery, even when `.sdlc/` exists. A
 delivery agent's self-audit does not select that role.
 
@@ -19,8 +19,9 @@ does not restart the loading chain. Missing/lost text must be read, not guessed.
 
 Automatic external auditing is suspended. `AUDITS.md` owns delivery review
 orchestration and routes current-session review through `SELF-AUDIT.md` and the
-three review skills. No external attempt or new reviewer is authorized. A
-manually invoked fresh-context auditor uses AUDIT instead. Review prerequisites
+three review skills. The three review skills never launch another reviewer. An explicitly requested
+independent review follows AUDITS' caller contract and INDEPENDENT-AUDITOR.
+The suspended external harness is not invoked. Review prerequisites
 never replace human approval, readiness, tests, scope, holds or closure.
 
 This repository is a standalone standards and delivery framework for coding
@@ -46,8 +47,10 @@ They apply in full to this route as well as to advice and review.
 ## Progressive loading
 
 Read this file first, then only the standards relevant to the work.
+For feature definition, delivery, paired or emergency work also read DELIVERY.md; it
+owns the execution, record and closure duties moved out of shared standards.
 
-Independent audit selection belongs to AUDIT/REVIEW, not this workflow table.
+Independent audit selection belongs to INDEPENDENT-AUDITOR/REVIEW, not this workflow table.
 Do not supply this document or the full library as an auditor preamble.
 
 | Work | Additional standards |
@@ -83,8 +86,8 @@ defaults and the installed SDLC release live in `~/.agents/sdlc.yaml`. The
 schema `version` and deployed `release` are separate values. Project profiles do
 not pin the globally installed SDLC. Agents never read `.env`.
 
-For non-SDLC advice use READING's advisory route. For an explicit review choose
-AUDIT (fresh independent context) or SELF-AUDIT (current author context), using
+For non-SDLC advice use ADVICE's advisory route. For an explicit review choose
+INDEPENDENT-AUDITOR (fresh independent context) or SELF-AUDIT (current author context), using
 the standalone profile. Neither initializes SDLC or requires its artefacts.
 
 When a document must be presented outside the terminal, use the executable named
@@ -178,6 +181,9 @@ and every applicable reference suffix in the canary greeting for every
 interaction with the operator.
 
 ## Document history
+
+This revision separates independent review, author self-audit and delivery-only
+responsibilities. Earlier rules remain in their canonical owners and Git history.
 
 Version 5 redirects independent auditors before workflow loading, standardizes
 reading reuse and delegates audit/mode details to their canonical owners.
