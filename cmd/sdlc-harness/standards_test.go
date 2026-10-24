@@ -19,10 +19,6 @@ func TestManagedAuditSuppliesCanonicalStandardsWithoutCallerInputs(t *testing.T)
 		t.Fatal(err)
 	}
 	root := installedStandardsRoot()
-	all, err := installedAuditDocuments(root)
-	if err != nil {
-		t.Fatal(err)
-	}
 	for _, gate := range []string{"definition", "test-code", "delivery-code"} {
 		t.Run(gate, func(t *testing.T) {
 			paths, err := managedAuditStandards(project, gate, root, nil)
@@ -37,14 +33,14 @@ func TestManagedAuditSuppliesCanonicalStandardsWithoutCallerInputs(t *testing.T)
 			for _, file := range evidence.Files {
 				present[file.Path] = true
 			}
-			for _, name := range []string{"MAIN.md", "AUDITS.md", "ARCHITECTURE.md", "TESTING.md"} {
+			for _, name := range []string{"AUDIT.md", "READING.md", "REVIEW.md", "ARCHITECTURE.md", "TESTING.md"} {
 				if !present[filepath.Join(root, name)] {
 					t.Errorf("%s audit omitted %s", gate, name)
 				}
 			}
-			for _, path := range all {
-				if !present[path] {
-					t.Errorf("%s audit omitted installed document %s", gate, path)
+			for _, name := range []string{"MAIN.md", "AUDITS.md", "SELF-AUDIT.md", "EXTERNAL-AUDIT.md", "HARNESS.md", "PAIRING.md", "EMERGENCY.md"} {
+				if present[filepath.Join(root, name)] {
+					t.Errorf("%s audit exposed delivery or transport document %s", gate, name)
 				}
 			}
 			if !present[profile] || !present[filepath.Join(root, "technologies", "GO.md")] {
@@ -54,22 +50,23 @@ func TestManagedAuditSuppliesCanonicalStandardsWithoutCallerInputs(t *testing.T)
 	}
 }
 
-func TestStandaloneAuditSuppliesFullInstalledInventory(t *testing.T) {
+func TestStandaloneAuditSelectsEvidenceStandardsWithoutDelivery(t *testing.T) {
 	root := installedStandardsRoot()
-	all, err := installedAuditDocuments(root)
-	if err != nil {
-		t.Fatal(err)
-	}
 	paths, err := standaloneAuditStandards(root, []string{"project.go"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(paths) != len(all)+1 || paths[0] != "project.go" {
-		t.Fatalf("standalone evidence count = %d; want %d", len(paths), len(all)+1)
+	if paths[0] != "project.go" {
+		t.Fatal("project input was not preserved")
 	}
-	for _, name := range []string{"ORG-SCHEMA.md", "MARKDOWN.md", "technologies/GO.md"} {
+	for _, name := range []string{"AUDIT.md", "READING.md", "REVIEW.md", "STANDALONE-AUDIT.md", "CODING.md", "TESTING.md", "technologies/GO.md"} {
 		if !strings.Contains(strings.Join(paths, "\n"), filepath.Join(root, name)) {
 			t.Fatalf("standalone inventory omitted %s", name)
+		}
+	}
+	for _, name := range []string{"MAIN.md", "AUDITS.md", "SELF-AUDIT.md", "EXTERNAL-AUDIT.md", "HARNESS.md", "technologies/RUST.md", "MARKDOWN.md"} {
+		if strings.Contains(strings.Join(paths, "\n"), filepath.Join(root, name)) {
+			t.Errorf("standalone review unnecessarily loaded %s", name)
 		}
 	}
 }
@@ -102,6 +99,29 @@ func TestStandaloneAuditRequiresItsCoreStandards(t *testing.T) {
 	_, err := standaloneAuditStandards(root, []string{"project.go"})
 	if err == nil || !strings.Contains(err.Error(), "required standalone audit standard") {
 		t.Fatalf("missing core standard error = %v", err)
+	}
+}
+
+func TestReviewSelectionCombinesDeclaredAndEvidenceStandards(t *testing.T) {
+	root := installedStandardsRoot()
+	paths, err := spikeAuditStandards(root, []string{"experiment.rs", "brief.org"}, "NODE", "HUGO")
+	if err != nil {
+		t.Fatal(err)
+	}
+	present := map[string]bool{}
+	for _, path := range paths {
+		if present[path] {
+			t.Fatalf("duplicate review input %s", path)
+		}
+		present[path] = true
+	}
+	for _, name := range []string{"technologies/NODE.md", "technologies/JAVASCRIPT.md", "technologies/HUGO.md", "technologies/WEB.md", "technologies/RUST.md", "DOCUMENTATION.md", "ORGMODE.md"} {
+		if !present[filepath.Join(root, name)] {
+			t.Errorf("review selection omitted applicable standard %s", name)
+		}
+	}
+	if present[filepath.Join(root, "MAIN.md")] || present[filepath.Join(root, "technologies/GO.md")] {
+		t.Fatal("review selection loaded workflow or an unrelated technology")
 	}
 }
 

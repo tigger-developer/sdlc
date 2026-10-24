@@ -1,12 +1,12 @@
 ---
 title: Lean SDLC for Coding Agents
-version: 10
-last-updated: 2026-10-18
+version: 11
+last-updated: 2026-10-24
 ---
 
 # Lean SDLC for Coding Agents
 
-## Independent auditor suspended
+## Automatic audit harness suspended
 
 **The automatic independent audit harness is currently suspended and under
 review.** Workflow audit steps use `definition-audit`, `test-code-audit` and
@@ -17,8 +17,10 @@ For a separate review, the operator may manually start a fresh session in any
 supported agent harness (Codex, Claude Code, GitHub Copilot CLI or Hermes) and
 invoke the relevant audit skill with the project and candidate revision. This
 invokes **the audit skill, not the audit harness**. The skill reviews directly
-in that session and records its actual review method and evidence under
-[AUDITS.md](src/AUDITS.md). No skill launches another reviewer or automatically
+in that fresh context through [AUDIT.md](src/AUDIT.md), without loading MAIN or
+the delivery workflow. The author uses [SELF-AUDIT.md](src/SELF-AUDIT.md) for
+current-session review, explicitly recorded as non-independent. Both use the
+same [review criteria](src/REVIEW.md). No skill launches another reviewer or automatically
 re-enables the external harness. Re-enablement requires an explicit operator
 decision.
 
@@ -147,9 +149,10 @@ including per-turn, overall, response-start and response-idle deadlines.
 Audit defaults are `10m`, `15m`, `3m` and `2m` respectively; duration strings
 such as `90s` support personal overrides.
 The harness supplies mandatory standards as verified text to every provider:
-SDLC gates receive gate and technology rules, non-SDLC reviews receive the full
-library, and agent-spike reviews receive all coding and TDD/testing standards
-without workflow, gate or documentation requirements. Native file tools are
+each profile receives its review criteria and applicable technologies, selected
+from project declarations and evidence. Optional references contain only review
+standards; MAIN and delivery/transport instructions are excluded. Spike review
+adds no workflow, gate or product-documentation requirements. Native file tools are
 disabled; unchanged standards are supplied once per retained context.
 For a project without SDLC initialization, `sdlc-audit --input FILE` instead
 reviews the supplied original project files against the installed coding and
@@ -176,6 +179,9 @@ historical reference. Current commands and rules are defined by the linked
 standards, skills, and command help.
 
 ## Document history
+
+- Version 11 (2026-10-24): Separate independent and self-audit routes, with shared
+  criteria and retained-context reuse.
 
 Version 10 records the suspended automatic auditor, internal workflow reviews
 and optional manually invoked fresh-session audits through the review skills.

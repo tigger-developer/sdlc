@@ -1,416 +1,119 @@
 ---
-title: Audit and Gate Standards
-version: 12
-last-updated: 2026-10-19
+title: Delivery Review Gates
+version: 13
+last-updated: 2026-10-24
 ---
 
-# Audit and Gate Standards
+# Delivery review gates
 
-Audits provide review findings; they do not replace operator approval, tests,
-or implementation evidence.
+This is the delivery agent's gate contract. An explicitly invoked independent
+fresh-context auditor stops here and follows `AUDIT.md`, without loading MAIN
+or delivery workflows. Read `READING.md` and reuse retained standards.
 
-## Active mode: internal reviews only
+## Active invocation policy
 
-All audits run **in the current session**, without first attempting an external
-audit. External auditing is suspended until explicitly re-enabled by the
-operator. Do not invoke the harness, launch another agent/model, reset auditor
-state, probe provider health or wait for external recovery.
+Automatic external auditing is suspended until explicitly re-enabled. Delivery
+reviews use `definition-audit`, `test-code-audit` and `code-audit` in the current
+session through `SELF-AUDIT.md`. Do not call the harness first, launch another
+agent/model, probe provider health, reset auditor state or wait for recovery.
+These skills are authorized by a required workflow review or an explicit audit
+request, not by their mere availability in a non-SDLC project.
 
-Use the installed `definition-audit`, `test-code-audit` and `code-audit` skills
-for the three review purposes. These are authorized when the governing workflow
-requires a review, or when the operator requests one. Definition review applies
-to the normal specification or an authorized retrospective definition; spikes
-and non-SDLC projects use test-code/code review without a specification gate.
-The internal evidence contract below satisfies each applicable review prerequisite.
-Human sign-off, test execution, scope, holds and closure rules remain unchanged.
+The operator may manually start an independent fresh-context auditor through
+`AUDIT.md`. That reviewer returns findings directly and launches no further
+reviewer. Its actual separation must be established, not inferred from a skill
+name. This manual route does not re-enable the automatic harness.
 
-This active mode **supersedes all external invocation and external PASS
-requirements elsewhere in the standards and skills**. The external harness
-protocol below is retained for future restoration, not an instruction to call
-it now. No successful probe automatically re-enables it.
-
-For a separate audit, the operator may manually start a fresh session on any
-supported agent harness and invoke the appropriate review skill there. The
-skill reviews directly in that session; it does not invoke the audit harness
-or create another context. Record `Review method: manual fresh-session audit`
-instead of calling it author self-review, with the candidate, evidence and
-reviewer separation actually established. Do not claim independence merely
-from a skill name. This manual route does not re-enable automatic auditing.
-
-## External harness protocol (suspended)
-
-The audit harness owns external prompts, provider invocation, deadlines,
-round limits and retained sessions when external auditing is enabled.
-
-For a client-project agent, the harness is an **external tool**, not part of
-the work. Use its help, supply the required evidence, and report its intervention diagnostic. Do not inspect or troubleshoot its internals, provider
-authentication or model behaviour, or ask the operator to choose replacements.
-Model selection, fallback and session recovery belong to the harness and its
-configuration. If documented recovery cannot proceed, report the exact command
-and diagnostic without speculative causes; immediately apply the internal-review
-fallback below and continue authorized work.
-Harness investigation requires the operator to explicitly place it in scope.
-
-An identical request may return a **cached result** from `audits.yaml`: the same
-PASS, FAIL or PROVISIONAL PASS and findings, without a model call or another
-round. The harness checks all supplied file paths/hashes, work item, gate,
-prompts, caller context and primary/fallback model configuration. The harness
-includes the full installed SDLC Markdown inventory in its hashed evidence.
-Gate-specific core standards and project-selected technologies are mandatory;
-technologies identified from supplied source files supplement the profile.
-Markdown and Org evidence add their documentation and format standards.
-The harness supplies their complete verified contents before review. The auditor
-must read every mandatory standard before returning any verdict and determines
-which further listed standards apply. Callers supply project files only;
-independently read files are not covered.
-Cache hits retain all verdict conditions. Incidents are not verdicts, and old
-records without a request key are not cache entries. Changing or omitting an
-input invalidates the key; do not alter inputs merely to evade a cached FAIL.
+Read `REVIEW.md` for shared criteria, candidate validity, evidence ownership and
+verdict semantics. Read `SELF-AUDIT.md` for internal records, continuation and
+review limits. The current contracts supersede historical external invocation
+and PASS requirements. Preserve still-current historical external verdicts;
+do not repeat a review merely to change its method. A successful provider probe
+never re-enables external auditing.
 
 ## Composite gates
 
-Apply `~/.agents/sdlc/ARCHITECTURE.md` at all three gates. The harness supplies
-that installed standard; the caller supplies the relevant project architecture.
-Definition review resolves significant design decisions and their verification;
-implementation review checks adherence without substituting the auditor's
-preferred design.
+| Gate | Candidate and prerequisite | Next otherwise-authorized step |
+|---|---|---|
+| Definition | Complete specification, design and traced AT/RT/UT/OT definitions; shared definition criteria | Operator sign-off, not implementation |
+| Test-code | Written AT/RT package and minimal execution scaffolding; intended RED or justified preservation GREEN; recorded OT/UT state | Implementation within signed-off scope |
+| Delivery-code | Production delta, affected tests, settled AT/RT/OT GREEN and required current product docs; UT may be AMBER | Operator validation, not closure |
 
-The **definition gate** reviews the specification, solution design, and AT/RT/UT/OT
-test definitions together. The **test-code gate** reviews the written tests and
-execution-enabling scaffolding before implementation of the target behaviour.
-The **delivery-code gate** reviews the production delta, affected tests, execution
-evidence and required product documentation. These two gates share one retained
-implementation context. Normal delivery uses the signed-off definition; paired and
-emergency delivery use the recorded operator-authorized scope. Neither implementation
-review reopens a signed-off definition or demands advance definition approval
-from a valid paired or emergency route.
+Apply ARCHITECTURE at all gates. Review a coherent package, not each file or
+keystroke. Ordinary author checks are not additional review rounds. Before an
+implementation review, read the installed validator's `--help` once and run the
+matching readiness check under `ORG-SCHEMA.md`. Readiness refusals and historical
+valid FAIL findings are not bypassed. Definition has no execution-readiness gate.
 
-Test definitions belong to the definition context. Normal implementation has two
-reviews in one retained context: `--gate test-code` after the written
-test package has executed, then `--gate delivery-code` after the solution,
-tests and required OTs are GREEN. Review packages, not each file or edit. The test
-review must reach PASS or effective PROVISIONAL PASS before normal production work.
-If the approved spec has neither ATs nor RTs, skip test-code under TESTING.md; do not reclassify
-tests to evade it. Paired/emergency routes retain their implement-first sequence
-and may invoke delivery-code directly. Both implementation gates may reuse context internally but have separate
-work-item/gate verdict allowances. Calling agents do not manage that context.
+If the approved specification has neither AT nor RT, the definition review must
+justify OT/UT evidence; skip test-code but retain delivery-code. Never remove or
+reclassify approved tests to evade review. A test-code PASS approves tests only;
+old unlabelled implementation rounds are not current-stage evidence.
 
-Before invoking either stage, use `~/.agents/sdlc/bin/sdlc-validate --help` and run
-its selected readiness check. `ORG-SCHEMA.md` defines the record contract. The
-harness repeats this deterministic check before config/provider startup, cache
-lookup or audit-record mutation. It locates `spec.org` and `validation.org` beside
-the required `--audit-record` and includes them in hashed evidence. Schema errors
-or missing results return YAML and nonzero without a model call or round consumed.
-The explicit gate selects its readiness check automatically. There is no default
-audit gate. `--readiness-check` belongs to the standalone validator, not the audit
-command. Definition review has no deterministic execution-readiness check.
+Normal delivery uses the signed-off definition. Paired work records a skeleton
+before code and reviews each coherent increment; emergency work fixes first,
+records the durable scope/evidence, then reviews. Both may proceed directly to
+delivery-code and consolidate a retrospective definition afterwards. Do not
+invent advance definition approval or retrospective pre-build test-code gates.
+Required product documentation is current before delivery-code in every route;
+the later retrospective specification does not defer it.
 
-For history compatibility, the harness retains `gate: implementation` as the
-shared session key and `readiness_check` as the selected test-code/delivery-code
-gate on the entry and each attempt. Returned GATE names use the explicit audit
-gate. These are storage details, not additional CLI selectors. A test-code
-PASS approves tests only and does not mark delivery passed. Final delivery requires
-current delivery-code PASS or effective PROVISIONAL PASS; stage-specific prompts
-separate cache keys. Old unlabelled rounds remain history, not current-stage evidence.
-Execution states in validation.org are test evidence, not duplicated audit verdicts.
-An eligible internal-review fallback below satisfies the review prerequisite for
-its exact gate and candidate without manufacturing an external verdict.
+## Findings, continuation and human boundaries
 
-For every gate:
+Address every finding as a batch: remediate valid findings and substantiate
+challenges to incorrect or out-of-scope findings. Reassess changed candidates
+and rerun affected checks. Do not expand scope to obtain PASS, split known
+findings across rounds, silently waive them or replace a reviewer to evade FAIL.
+Refer unresolved disputes or behaviour/design changes to the operator. Correct
+retrospective documentary defects within the existing review allowance without
+redesigning the delivered behaviour. Report immediate safety risks promptly.
 
-1. Invoke `~/.agents/sdlc/bin/sdlc-harness` with the gate and exact evidence.
-2. On `FAIL`, address **every** finding before resuming: remediate all valid
-   findings together and supply an evidence-backed challenge for each disputed one.
-3. Never split known findings across remediation rounds or manually create a
-   replacement session. Unchanged artefacts may be
-   resubmitted with a substantive challenge, not merely to seek another verdict.
-4. Stop after the configured maximum rounds, or for a decision that cannot be
-   made safely from the authorities.
+A recorded current internal PASS under SELF-AUDIT satisfies that exact review
+prerequisite, including definition admission to operator review. It is not an
+independent external PASS. Continue safe authorized work after it; provider
+unavailability alone is not a blocker. Stop for a human-only decision that no
+safe reversible assumption resolves, an unremediable mandatory failure or the
+applicable review limit. Human sign-off, holds, test evidence, scope, closure
+and spike non-merge/non-deployment boundaries remain unchanged.
 
-An auditor can be wrong. Challenge incorrect findings or scope overreach in the
-resumed audit's caller context, citing the authorized scope, applicable standard
-or concrete evidence. Do not implement unauthorized expansion to obtain a PASS.
-If unsure, or the dispute remains unresolved, raise it to the operator. A challenge
-does not itself dismiss a finding or change the verdict; only the harness records
-the auditor's reassessment in `audits.yaml`.
+Only the operator approves definitions, changes signed-off behaviour/architecture
+and closes delivered work. `BYPASS-GATE-7` waives only advance definition
+admission, retaining applicable TDD, delivery review and retrospective evidence.
 
-Invoke the resolved absolute harness path with `--gate`, `--audit-record`,
-`--work-item`, and the complete project `--input` list. Do not pass paths under
-`~/.agents/sdlc` as inputs: the harness loads its own installed rules. Supply
-extra review context on
-stdin. Use the same command after remediation. Do not select start/resume, pass
-session IDs, or override providers. The harness owns context selection, cooldown,
-fallback, bounded retries and response-envelope correction.
+## Evidence ownership and transport
 
-Each work item and explicit gate has a separate `delivery.audit.max_rounds`
-allowance, default five. Only validated PASS, PROVISIONAL PASS and FAIL results
-consume it. Cached results, timeouts, malformed output and failed provider calls
-do not. Consecutive unusable responses trigger a separate internal lockout at the configured
-`delivery.audit.max_failures` bound (default three);
-a valid response clears that streak. Internal retry counts are not agent-facing.
-Malformed responses receive a format-clarification prompt inside the retained auditor
-context when available. Authentication failure selects fallback immediately; if
-that fallback fails, the harness stops and requires an authorized reset.
+Self-audit records belong in the locations defined by SELF-AUDIT. Manual
+fresh-context findings are returned for recording as a separate manual review,
+with actual separation, candidate, evidence and limitations; never relabel them
+as author self-review. Managed manual-review records live beside the spec, not
+in harness-owned `audits.yaml`. Workflow consumption still checks current
+readiness and applicable gate criteria before accepting any result.
+An operator-requested manual independent PASS that meets those same criteria
+satisfies the review prerequisite. Apply and verify any mechanical conditions
+before accepting PROVISIONAL PASS. Workflow references to internal PASS describe
+the default suspended-harness route; they do not require a duplicate self-audit
+of an already accepted manual result. No method replaces human sign-off.
 
-Audit execution has separate per-turn (`10m`), overall (`15m`), initial
-response (`3m`) and response-idle (`2m`) defaults. Project/global YAML can
-override them with duration strings such as `90s`. The overall budget spans
-recovery and fallback; neither receives a fresh invocation budget. Heartbeats
-are not response activity. Recoverable timeout notices do not require human
-intervention; exhausting the overall budget locks a managed audit until an
-authorized reset. See `HARNESS.md` for configuration and private diagnostics.
+Only the harness writes external findings, verdicts, revisions, round numbers,
+remediation and session identities to `audits.yaml`. Other artefacts link that
+record, never duplicate its state. Do not clear incidents, forge envelopes or
+rewrite external history. Candidate changes invalidate relevant results;
+previous verdicts remain historical evidence only for their reviewed candidate.
 
-On a verdict-limit stop, obtain operator authorization before invoking `--reset`
-with the same gate, record and work item, without inputs. Reset runs no audit;
-then submit the normal audit without the flag. It preserves history, findings,
-logs and other gates' allowances; the selected context is retired and its old
-cached verdicts do not satisfy the fresh audit. Never reset autonomously or in a loop.
-Reset clears both counters and the infrastructure lockout for the selected gate.
-It also resets project-local cooldowns for the current and recorded primary
-routes. Those cooldowns are shared across this project's work items; other
-routes and projects are unchanged. Reset does not replenish provider quota or
-make an oversized request fit the configured model. Obsolete invocations cannot
-restore their cooldown after reset.
-It accepts `running` state without caller investigation. Reset invalidates the
-old context's write authority; late checkpoints and results cannot overwrite the
-reset or a subsequent audit. Other projects remain independent. Test-code and
-delivery-code retain their shared context, with separate counter boundaries.
-
-On "Audit unavailable: unable to obtain a valid result. Human intervention required",
-report the safe reason and diagnostic reference, then immediately perform the
-internal-review fallback below. Do not wait for the operator to authorize that
-review. Do not retry, inspect provider state or diagnose the harness. Rejected
-output remains in private project-local logs for operator investigation.
-See `HARNESS.md` for operator details. Reset authorization is required only to
-restore external auditing, not to proceed with the internal fallback.
-
-The harness also reports safe failure reasons and its next recovery action on
-stderr. Report those reasons with the diagnostic reference; their visibility
-does not authorize auditor troubleshooting, configuration changes or an extra
-caller retry loop. An oversized request is a request failure, not evidence that
-the provider is unavailable; the harness does not cool that route or silently
-trim required evidence.
-Only one invocation may own a work item's auditor context. A concurrent request
-is refused without another provider call; report that blocker rather than
-investigating the provider or creating a caller retry loop. Standalone and spike
-reviews share bounded recovery and safe reporting but have no persistent gate
-budget or reset operation.
-
-Project-local primary cooldown remains configurable through
-`delivery.audit.fallback.cool_off_period`, default one hour. The harness handles
-it internally; agents do not sleep or choose a replacement provider.
-
-External audit findings, status, revisions, round numbers, and session IDs MUST be
-recorded only in `audits.yaml`. Specifications and tickets may link to that
-record but must not duplicate its audit state. Existing duplicated text is
-historical input for migration, not a second authority.
-
-If supplied artefacts duplicate audit findings or state, the auditor MUST return
-`FAIL` and require the duplicate to be removed before rerun.
-
-The definition audit MUST return `FAIL` if `spec.org` contains any semantically
-identified annotation record or block, even resolved or empty. Apply the annotation
-tool's documented format, not keyword matching against ordinary prose, examples
-or Org comments. Check processed-feedback evidence in `feedback.yaml` when present;
-missing dispositions or conflicts between recorded outcomes and the revised spec
-also fail. Annotation removal without recorded resolution is not remediation.
-The feedback log records human review, not a duplicate audit verdict. This rule
-also applies to retrospective definition reviews.
-
-The external auditor returns its envelope and findings only; it does not edit
-files. The harness persists that response in `audits.yaml`.
-
-Before delivery-code invocation, all code, tests and required documentation must
-be written, every required automated and one-off check (including applicable lint
-and vulnerability checks) must have finished and passed, and AT/RT/OT evidence must
-be settled and GREEN. Checks must not run in parallel with the audit or be marked
-GREEN before they finish. Outstanding UTs may remain AMBER under the existing gate.
-
-Reviewed inputs are frozen at invocation. Any change to reviewed code, tests,
-documentation or validation records during or after review immediately invalidates
-the audit for the changed candidate. A previous verdict remains historical evidence
-for its unchanged candidate only. Affected checks must be rerun and the evidence
-settled before the changed candidate is submitted again. The harness detects
-changed inputs after provider execution; it does not immediately cancel the provider.
-
-At each provider start, the harness emits the input-freeze and delivery-readiness
-reminder to stderr. While waiting, it emits anonymous start and 30-second liveness
-notices to stderr: `Audit in progress.` A heartbeat is not provider progress, a verdict, or
-evidence that the audit has completed.
-
-All four providers run with native file tools disabled. The harness supplies
-hash-verified UTF-8 project evidence and mandatory standards over stdin.
-Additional installed references may be requested once through the harness.
-Caller-selected standards and audit prompt overrides are rejected. Unknown,
-duplicate and previously supplied standard requests are rejected before another
-document delivery. It stores paths and hashes, never document copies.
-Supply
-the complete input list on each invocation; the per-attempt manifest in
-`audits.yaml` identifies added, changed, unchanged, and omitted inputs on resume.
-Unchanged standards are supplied once per retained context; added or changed
-contents are supplied on resume. Successful transport is recorded separately
-from the verdict as `standards_delivered`. Unconfirmed delivery or context loss
-requires a replacement context with a fresh package; never request unchanged
-standards again in the retained context. Old cached verdicts lacking required
-delivery evidence cannot be reused. Transport proves delivery, not comprehension.
-Omission never
-resolves a finding. Attempts and native IDs are checkpointed before a verdict,
-so a timeout retains its evidence baseline. The harness verifies supplied files before and after the
-provider runs and rejects changed evidence. Hashes detect mutation; read-only
-provider controls remain necessary. Additional files read outside the supplied
-list are not covered by the manifest checks.
-
-## Verdict contract
-
-The harness response contains exactly one envelope:
-
-```text
-GATE: definition | test-code | delivery-code
-REVISION: <audited revision or SHA-256>
-VERDICT: PASS | PROVISIONAL PASS | FAIL
-```
-
-`PROVISIONAL PASS` is effective only after its exact mechanical conditions are
-applied. Timeout, silence, malformed output, or an unavailable provider is not
-a pass. Record findings and remediation in `audits.yaml` without deleting
-superseded evidence.
-
-## Internal review evidence and continuation
-
-Review internally from the outset for definition, test-code and delivery-code
-gates, paired/emergency reviews, standalone reviews and spikes. No external
-attempt, failure, diagnostic reference or reset is required. Do not launch
-another model, agent or ad hoc reviewer.
-
-Preserve applicable schema/readiness checks and required evidence. Outstanding
-external findings remain evidence to address: remediate valid findings or record
-an evidence-backed reason for rejecting an incorrect one. Never silently discard
-them, erase history or convert a failed external result into an external PASS.
-
-Read the applicable standards and review the complete candidate against the
-same gate/profile criteria. Inspect requirements/design where applicable, test
-quality and actual invocation boundaries, coding/security rules, execution
-evidence and required documentation. Perform a deliberate review after authoring,
-not merely a summary of work performed. Remediate every valid finding, rerun
-affected checks and review the changed candidate. Never invent test results or
-relax the normal mode's obligations. Stop for an unremediable defect or a
-human-only decision; auditor unavailability alone is not a stopping condition.
-
-For a managed work item, record this evidence in a separate `internal-review.md`
-beside `spec.org`; append dated entries rather than overwriting prior reviews.
-For a spike, use the brief's Findings section. For non-SDLC review, use the
-project's existing review record or a clearly named project-local review file.
-Record:
-
-- `Review method: internal (current session; not independent)`;
-- gate/profile, reviewed revision and any identified working-tree delta;
-- `External review: suspended by standing policy`, with historical failure
-  references only when applicable; no new external call is required;
-- standards and evidence actually reviewed, findings, remediation and checks;
-- `INTERNAL REVIEW: PASS` or `INTERNAL REVIEW: FAIL`, with limitations.
-
-Only a recorded internal PASS for the current candidate permits the next
-otherwise-authorized workflow step under this exception. It substitutes for
-that review prerequisite, including definition admission and operator handback;
-it is **not an independent external PASS**. Operator sign-off, test requirements,
-holds, closure, spike non-merge/non-deployment rules and scope limits remain.
-Candidate changes invalidate the internal result for the changed inputs just
-as they invalidate an external review. Subsequent stages also use internal
-review without probing the external route.
-
-Do not edit `audits.yaml`, clear its incident, forge an external envelope, or
-copy its findings into the internal record. The internal record owns only the
-internal review and links external evidence. State the fallback and its result
-at handback; do not conceal the loss of independence.
-This separately owned internal evidence is not duplicated external audit state.
-
-## Human boundaries
-
-Only the operator may approve the definition, change signed-off behaviour or
-architecture, and close delivered work. A hands-off workflow may continue with
-reversible assumptions, but must stop for an unsafe or irreversible decision,
-an unremediable mandatory test failure, or the configured round limit.
-
-`BYPASS-GATE-7` skips definition admission for an emergency change. It still
-requires TDD where practicable, the delivery-code gate, and a wrap-up that
-backfills the specification, design, validation, and documentation evidence.
-
-## Brownfield evidence
-
-A brownfield change must consult the relevant requirements, design, project
-authorities, historical records, regression tests, and affected implementation.
-The delta need not copy the baseline; material conflicts and omitted authorities
-must be reported.
-
-## Variant workflows
-
-Paired work creates a skeleton ticket before code and audits each coherent code
-increment promptly, not every live edit. Emergency work fixes first, records the
-durable ticket, then audits implementation. Both consolidate and retrospectively
-review the definition after the delivery-code gate has an effective PASS.
-For all routes, affected product documentation must be current at the final
-delivery-code verdict. The harness includes `~/.agents/sdlc/DOCUMENTATION.md`
-in definition and delivery-code audit evidence. Review the changed documentation
-against its voice,
-document-purpose and presentation rules as well as technical accuracy; cite concrete
-violations, not editorial preferences. The test-code gate does not demand
-those updates. A paired/emergency retrospective specification may follow code
-review; this does not defer updates to affected product documentation.
-
-Run `~/.agents/sdlc/bin/sdlc-harness --help` before first use. In its stdin audit
-context, supply `Workflow: paired` or `Workflow: emergency` for an operator-invoked
-variant. For the subsequent `--gate definition` invocation, also supply
-`Review: retrospective`. These are prompt instructions, not new CLI flags;
-normal delivery omits them. Include the recorded operator scope as evidence.
-The YAML prompts select the review contract from these explicit markers, never
-from the mere presence of code. Keep the same work ID and audit record:
-implementation and definition have separate retained sessions; each gate resumes
-its own session on subsequent rounds.
-
-Retrospective review checks fidelity to the authorized outcome, requirement and
-test-definition traceability, accurate design and limitations, architecture fit,
-and material standards or security defects. It must not fail solely because the
-definition was written after implementation, demand an imagined advance plan,
-or turn optional improvements into requirements. Code is evidence, not approval
-of unrequested behaviour.
-
-Correct documentary defects within the existing audit allowance. Findings that
-require changed behaviour or design must be raised to the operator and, if
-authorized, handled through normal delivery; do not redesign during wrap-up.
-Report immediate safety risks promptly. Unresolved blocking findings remain
-blocking; operator review does not manufacture an audit PASS. Audit outcomes
-remain solely in `audits.yaml`, and operator closure remains separate.
+The preserved invocation, cache, timeout, reset, transport and recovery details
+are in `EXTERNAL-AUDIT.md` and `HARNESS.md`, loaded only for authorized transport
+maintenance or re-enablement. They are not part of the active review package.
+External test-code/delivery-code context reuse and counters remain transport
+responsibilities; self-audit never operates those controls.
 
 # Canary
 
-Append " AUDIT" (with a leading space) to the canary.
+Append " AUDIT" to the governing delivery canary after reading this contract.
+This is not a claim of independent review.
 
 ## Document history
 
-Version 12 includes automated ATs in gate readiness alongside retained RTs.
-
-Version 11 suspends external calls and routes all reviews through three focused
-current-session audit skills until explicitly re-enabled by the operator.
-
-Version 10 authorizes immediate current-session internal review after terminal
-external-auditor failure, with separate evidence and unchanged human boundaries.
-
-Version 9 records exclusive context ownership and shared recovery across modes.
-
-Version 8 adds bounded failure and recovery reporting, resets applicable
-primary cooldowns and distinguishes request rejection from route availability.
-
-Version 7 adds shared and response deadlines and distinguishes recoverable
-timeout notices from terminal internal lockout.
-
-Version 6 deterministically supplies mandatory standards to every provider,
-separates standalone and agent-spike routing, and binds delivery evidence to
-the retained context and cache contract.
-Version 5 serves installed standards on demand to tools-disabled auditors rather
-than preloading their complete text.
-Version 4 makes the full installed Markdown inventory available to the auditor,
-with gate-specific mandatory standards and provider-appropriate transport.
-Version 3 makes the harness responsible for supplying installed SDLC standards;
-callers provide only project evidence.
-Version 2 replaces caller-managed recovery and shared attempt budgets with automatic
-audits, separate verdict allowances and private internal-failure handling.
+Version 13 separates independent audit, self-audit and transport from delivery
+orchestration. Every prior version-12 provision and its document history is
+preserved in EXTERNAL-AUDIT; shared active safeguards now reside in REVIEW and
+SELF-AUDIT. The former full-library auditor route is superseded by narrow profiles.

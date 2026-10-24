@@ -1,10 +1,28 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 20
-last-updated: 2026-10-23
+version: 21
+last-updated: 2026-10-24
 ---
 
 # SDLC Standards: Design Learnings
+
+## Select the agent's role before loading its workflow
+
+An independent auditor needs engineering criteria and evidence, not the author's
+delivery workflow. Route the explicit fresh-context role before project-marker
+checks, and enforce the same boundary in the evidence transport and optional
+reference inventory. A warning in MAIN is only a fallback, not the primary route.
+Retained contexts from an older broader contract must be replaced; merely
+omitting the old documents from the next request does not remove them from context.
+
+Separate substantive criteria, review method, delivery gates and transport.
+Self-audit preserves the criteria when independent execution is unavailable,
+but must disclose its lack of independence. Share universal safeguards without
+requiring the auditor to read delivery orchestration. Reuse unchanged fully read
+text rather than restarting every skill's reading chain. Preserve superseded
+rules and history outside active paths; measure selected paths, not repository
+size, when assessing context cost. These changes do not establish a runtime
+speedup without observations from the deployed harnesses.
 
 ## Instruction source code is distinct from session authority
 

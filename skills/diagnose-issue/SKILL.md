@@ -3,11 +3,9 @@ name: diagnose-issue
 description: Diagnose an observed software problem and recommend a fix without making file changes.
 ---
 
-If `~/.agents/sdlc/MAIN.md` is absent or unreadable, report that exact path;
-never search for another copy.
-
-Read `~/.agents/sdlc/MAIN.md` and only the standards relevant to the system
-under diagnosis. Do not modify files.
+Follow `~/.agents/sdlc/READING.md` for advisory routing and reuse. Read the
+system's applicable standards and authorities. Do not load MAIN in a non-SDLC
+project, initialize a workflow or modify files.
 
 Reproduce or otherwise isolate the observation when safe. Separate observed
 facts from hypotheses. Trace the failure to its root cause, identify the

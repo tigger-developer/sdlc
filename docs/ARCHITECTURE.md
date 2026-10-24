@@ -1,7 +1,7 @@
 ---
 title: SDLC v3 Architecture
-version: 11
-last-updated: 2026-10-11
+version: 12
+last-updated: 2026-10-24
 ---
 
 # SDLC v3 Architecture
@@ -46,14 +46,20 @@ both routes bind the audit to the invocation Git root or non-Git directory,
 reject evidence outside that root and in runtime or scratch directories, and
 reject system temporary directories including resolved aliases. A bounded
 inventory of eligible project paths exposes omissions without copying content.
-For every audit, the harness adds its full installed SDLC Markdown inventory
-to hashed evidence. Gate-specific core rules and profile-selected technologies
-are mandatory; the auditor selects other applicable documents. Callers provide
+For every audit, the harness adds its review-only reference inventory to hashed
+evidence. Profile-specific core rules and technologies selected by declarations
+and original evidence are mandatory; optional review standards remain available.
+MAIN, workflow and transport documents are excluded from both mandatory and
+optional auditor references. Callers provide
 only project files; external SDLC standard paths are not accepted as inputs.
 
-`~/.agents/sdlc/MAIN.md` is the only standards bootstrap. It routes an agent to
-the minimum relevant universal, domain, technology, and workflow documents.
-Skills are global and refer to that canonical root, so a standards update does
+`~/.agents/sdlc/MAIN.md` is the delivery-agent bootstrap. An explicitly independent
+fresh-context auditor enters through `AUDIT.md` before project-marker routing
+and must not load MAIN. The author uses `SELF-AUDIT.md` for non-independent review.
+Both select criteria through `REVIEW.md`; `READING.md` governs complete reads,
+reuse of unchanged retained text and advisory scope. Automatic external auditing
+remains suspended; manual fresh-context audits do not re-enable it.
+Skills are global and refer to the canonical root, so a standards update does
 not require every initialized project to be refreshed.
 
 The installer exposes the canonical global skills through the native skill
@@ -390,6 +396,9 @@ contract. Existing attempt history remains intact; only labelled valid verdicts
 are charged to an explicit gate.
 
 ## Document history
+
+- Version 12 (2026-10-24): Separate delivery and review entry points and restrict
+  auditor evidence to applicable review standards.
 
 - Version 11 (2026-10-11): Define audit deadline coordination and the native
   Hermes response callback bridge.

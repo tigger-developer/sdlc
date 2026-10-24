@@ -1,7 +1,7 @@
 ---
 title: Documentation Standards
-version: 1
-last-updated: 2026-09-16
+version: 2
+last-updated: 2026-10-24
 ---
 
 # Documentation Standards
@@ -75,11 +75,12 @@ without turning Vision or Architecture into a session journal.
 Use the native syntax for the document format. For Markdown documents, read and
 follow `MARKDOWN.md`; do not write raw HTML document markup. For Org documents,
 read and follow `ORGMODE.md`; do not write Markdown syntax in an Org document.
-New and materially updated Markdown documents must begin with YAML frontmatter
-containing the fields defined by `MARKDOWN.md`, except for Markdown sources
-embedded verbatim in executable help. Existing documents may adopt the metadata
-when they are next updated. Org documents must use the Org-native metadata
-syntax defined by `ORGMODE.md`.
+New and materially updated Markdown documents require the frontmatter defined
+by `MARKDOWN.md`, except sources embedded verbatim in executable help. Existing
+documents adopt it when next updated; no fleet-wide migration is required.
+The version is the document version, not the Git/product/SDLC release. Significant
+revisions increment it and retain a concise document changelog. Org uses the
+native metadata defined by `ORGMODE.md`.
 
 ## Accuracy and maintenance
 
@@ -91,14 +92,6 @@ syntax defined by `ORGMODE.md`.
   rather than silently erasing why it existed.
 - Report major contradictions that affect the work instead of choosing one
   silently.
-
-New and materially updated Markdown documents must begin with YAML frontmatter
-containing `title`, `version`, and `last-updated`. Include `author` when an
-operator or other author identifier is applicable, and `schema` when the
-document follows a named schema. The version is the document version, not the
-Git, product, or SDLC release version. Significant revisions increment that
-version and retain a concise document changelog. This standard does not require
-a fleet-wide migration of existing documents.
 
 ## Public documentation
 
@@ -149,3 +142,8 @@ appropriate.
 # Canary
 
 Append " DOC" (with a leading space) to the canary.
+
+## Document history
+
+Version 2 consolidates metadata applicability here and leaves its field schema
+in MARKDOWN. Version 1 remains in Git history.

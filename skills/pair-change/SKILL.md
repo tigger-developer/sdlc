@@ -3,6 +3,9 @@ name: pair-change
 description: Run explicitly selected paired development with live operator validation and lean closure records.
 ---
 
+Follow `~/.agents/sdlc/READING.md`; reuse required documents already read in
+full, unchanged and retained in context. A skill transition does not reload them.
+
 Read `~/.agents/sdlc/MAIN.md` and `PAIRING.md`, then the project profile and
 applicable standards. The operator's bounded objective and explicit iteration
 instructions are the working specification. A question remains a question.
@@ -29,14 +32,5 @@ Follow `~/.agents/sdlc/AUDITS.md` for internal evidence and continuation. Refer 
 or design changes to the operator for normal delivery; do not redesign during
 wrap-up. Ask the operator to confirm the recorded user tests and close the work.
 
-## Internal audit boundary
-
-At each audit step, load the relevant skill in this same session:
-`~/.agents/skills/definition-audit/SKILL.md`,
-`~/.agents/skills/test-code-audit/SKILL.md` or
-`~/.agents/skills/code-audit/SKILL.md`. Apply `AUDITS.md`'s active internal-only
-mode and record its evidence separately. Do not invoke the external harness,
-launch another model/agent/context, reset the auditor or wait for a provider
-failure. Internal PASS satisfies the applicable review prerequisite; tests,
-human sign-off, scope, holds and closure requirements remain. External auditing
-requires explicit operator re-enablement.
+Review orchestration and evidence ownership follow `AUDITS.md`; current-session
+review uses `SELF-AUDIT.md`. No external call or new reviewer is authorized.

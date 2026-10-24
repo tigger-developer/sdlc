@@ -3,11 +3,9 @@ name: recommendations-please
 description: Provide concrete expert recommendations for a technical decision without making file changes.
 ---
 
-If `~/.agents/sdlc/MAIN.md` is absent or unreadable, report that exact path;
-never search for another copy.
-
-Read `~/.agents/sdlc/MAIN.md` and only the standards relevant to the decision.
-Do not modify files.
+Follow `~/.agents/sdlc/READING.md` for advisory routing and reuse. Read only the
+decision's applicable standards and project authorities. Do not load MAIN in a
+non-SDLC project, initialize a workflow or modify files.
 
 Recommend the best one to three approaches. State the preferred choice first,
 the evidence and assumptions behind it, its material trade-offs and risks, and

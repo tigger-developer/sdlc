@@ -290,7 +290,14 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 			prompt = append([]byte(base+"\n\n"+registry.EvidenceInstructions+"\n\nOperator-supplied audit context:\n"), prompt...)
 			standardsRoot = installedStandardsRoot()
 			if *agentSpike {
-				inputs, loadErr = spikeAuditStandards(standardsRoot, inputs)
+				technologies, profileErr := projectReviewTechnologies(projectRoot)
+				if profileErr != nil && !errors.Is(profileErr, os.ErrNotExist) {
+					return profileErr
+				}
+				if profileErr == nil {
+					inputs = appendUniqueAuditPaths(projectRoot, inputs, []string{filepath.Join(projectRoot, ".sdlc", "project.yaml")})
+				}
+				inputs, loadErr = spikeAuditStandards(standardsRoot, inputs, technologies...)
 			} else {
 				inputs, loadErr = standaloneAuditStandards(standardsRoot, inputs)
 			}
@@ -302,6 +309,11 @@ func run(arguments []string, input io.Reader, output, errorOutput io.Writer) (re
 					requiredStandards = append(requiredStandards, path)
 				}
 			}
+			references, referenceErr := reviewReferenceDocuments(standardsRoot)
+			if referenceErr != nil {
+				return referenceErr
+			}
+			inputs = appendUniqueAuditPaths(projectRoot, inputs, references)
 		} else {
 			base, loadErr := registry.prompt(normalizedGate)
 			if loadErr != nil {

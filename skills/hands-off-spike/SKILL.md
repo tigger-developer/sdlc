@@ -8,12 +8,12 @@ Use this skill only when the operator explicitly invokes it. Paired development
 unattended counterpart. It answers a bounded question with evidence. It never
 delivers product behaviour.
 
-If `~/.agents/sdlc/MAIN.md` is absent or unreadable, report that exact path;
-never search for another copy.
+Follow `~/.agents/sdlc/READING.md`; reuse unchanged, fully read retained texts.
 
 Read `~/.agents/sdlc/MAIN.md`, `CODING.md`, `TESTING.md`, `GIT.md`,
 `DOCUMENTATION.md`, and `AUDITS.md`, then the project profile when present and the technology
-standards it selects. Apply MAIN's **Delivery modes** HANDS-OFF rules and
+standards it selects. Read only the **Delivery modes and continuation** section
+of `~/.agents/skills/deliver-change/SKILL.md` as the shared HANDS-OFF contract and
 `~/.agents/skills/deliver-change/references/native-goal.md` by reference; do not
 restate them here.
 
@@ -65,7 +65,7 @@ criteria, or boundaries require renewed sign-off.
   `native-goal.md`, and continue until a stop condition, the budget, or a
   permitted HANDS-OFF stopping condition is reached.
 - Record routine reversible assumptions in the brief's `Hands-off mode
-  decision log`, as MAIN defines it.
+  decision log`, as the shared continuation contract defines it.
 - Record each experiment as an OT in the brief's Evidence section: action,
   revision, observation, and the criterion it informs. Follow TESTING.md for
   bounded live checks. A check requiring `sudo` or human judgement is a UT:
@@ -89,7 +89,7 @@ invoking each review at the stated stage; no model can prove that timing.
 External auditing is suspended. Do not call the harness, first provoke an
 external failure, or launch another model/agent/context. Address all findings
 as a batch, rerun affected checks and reassess the candidate. Record each review
-under `AUDITS.md`'s internal evidence contract in the brief's Findings section.
+under `SELF-AUDIT.md`'s evidence contract in the brief's Findings section.
 Stop for an unremediable defect, exhausted invocation budget or human-only
 decision, not for the absence of an external reviewer.
 

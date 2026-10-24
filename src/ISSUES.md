@@ -1,3 +1,9 @@
+---
+title: Specification Standards
+version: 1
+last-updated: 2026-10-24
+---
+
 # Specification Standards
 
 This document governs requirements and acceptance criteria. It does not define
@@ -5,7 +11,10 @@ an issue lifecycle or a delivery workflow.
 
 Follow `~/.agents/sdlc/ORG-SCHEMA.md` for machine-checkable AC/test headings and
 their matching execution records. Keep test definitions here, results in
-`validation.org`, and audit verdicts solely in `audits.yaml`.
+`validation.org`, and harness-owned external audit verdicts solely in
+`audits.yaml`. Self-audit evidence belongs in the separate record defined by
+`SELF-AUDIT.md`; a manual fresh auditor returns its result under `AUDIT.md`.
+Reviewing a specification does not authorize adopting or executing its workflow.
 
 ## Defined specifications
 
@@ -165,6 +174,8 @@ actually conform to the chosen template revision and preserve history.
 
 - **Audit state:** only the harness creates or updates `audits.yaml`; no
   `DEFINITION_GATE` or other copied audit status belongs in `spec.org`.
+- **Author review:** SELF-AUDIT's separate internal record; manual independent
+  results remain separately labelled under AUDIT. Neither writes harness state.
 - **Human approval:** only explicit sign-off sets `OPERATOR_SIGNOFF` to
   `APPROVED YYYY-MM-DD`; add scope only where limited, not personal attribution
   or conversation narration. It is not an audit verdict or permission to lift a hold.

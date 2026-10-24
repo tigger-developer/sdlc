@@ -16,6 +16,10 @@ func TestStandardsRequestUsesCapturedInventory(t *testing.T) {
 	root := t.TempDir()
 	standard := filepath.Join(root, "ORG-SCHEMA.md")
 	core := filepath.Join(root, "CODING.md")
+	workflow := filepath.Join(root, "MAIN.md")
+	if err := os.WriteFile(workflow, []byte("DELIVERY_WORKFLOW_MARKER\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
 	if err := os.WriteFile(core, []byte("CORE_CODING_RULE\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
@@ -26,7 +30,7 @@ func TestStandardsRequestUsesCapturedInventory(t *testing.T) {
 	if err := os.WriteFile(spec, []byte("PROJECT_SPEC_MARKER\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	evidence, err := harness.CaptureEvidence(project, []string{spec, standard, core})
+	evidence, err := harness.CaptureEvidence(project, []string{spec, standard, core, workflow})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -37,6 +41,9 @@ func TestStandardsRequestUsesCapturedInventory(t *testing.T) {
 	}
 	if !strings.Contains(prepared.Prompt, "PROJECT_SPEC_MARKER") || strings.Contains(prepared.Prompt, "SCHEMA_RULE_MARKER") {
 		t.Fatal("initial prompt failed to separate project content from available standards")
+	}
+	if strings.Contains(prepared.Prompt, "DELIVERY_WORKFLOW_MARKER") || strings.Contains(prepared.Prompt, "- MAIN.md sha256:") {
+		t.Fatal("captured workflow escaped into the auditor prompt or optional inventory")
 	}
 	seen := map[string]bool{}
 	paths, requested, err := runner.requestedStandardPaths(`STANDARDS-REQUEST: ["ORG-SCHEMA.md"]`, seen)

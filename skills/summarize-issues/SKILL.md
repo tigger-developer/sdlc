@@ -3,13 +3,11 @@ name: summarize-issues
 description: Summarize a project's open work against its specifications and architecture. Advisory only; no file changes.
 ---
 
-If `~/.agents/sdlc/MAIN.md` is absent or unreadable, report that exact path;
-never search for another copy.
-
-Read `~/.agents/sdlc/MAIN.md` and
-`~/.agents/sdlc/ISSUES.md` in full. Read the project's `docs/work.org`, active
-specifications, project profile, architecture, and other open-work sources
-without modifying them.
+Follow `~/.agents/sdlc/READING.md` for advisory routing and reuse. In an SDLC
+project read ISSUES and the project's work ledger, active specs, profile and
+architecture. Otherwise use its established issue/requirement sources and
+architecture; do not load MAIN, invent a ledger or impose SDLC lifecycle rules.
+Read other relevant open-work sources without modifying files.
 
 Summarize each open item with its identifier and descriptor, intended outcome,
 dependencies, and verified current state. Then identify missing specification

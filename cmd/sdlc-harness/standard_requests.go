@@ -28,6 +28,9 @@ func (r recoveryRun) standardInventory() (map[string]string, []string, string, e
 			continue
 		}
 		name := filepath.ToSlash(relative)
+		if !isReviewReference(name) {
+			continue
+		}
 		standards[name] = file.Path
 		fmt.Fprintf(&listing, "- %s sha256:%s\n", name, file.SHA256)
 	}

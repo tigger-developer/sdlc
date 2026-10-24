@@ -3,6 +3,9 @@ name: migrate-legacy-acs-to-sdlc-v1
 description: Archive and close a brownfield project's legacy GitHub tickets while reconciling its SDLC v1 acceptance-criteria ledger and documentation before SDLC v3 initialization. Invoke only when the operator requests this migration.
 ---
 
+Follow `~/.agents/sdlc/READING.md`; reuse required documents already read in
+full, unchanged and retained in context. A skill transition does not reload them.
+
 # Prepare an SDLC v1 project for SDLC v3
 
 `sdlc-init` invokes this writing migration with the configured

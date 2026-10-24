@@ -54,7 +54,7 @@ func (r recoveryRun) executeWithinDeadline(ctx context.Context, entry harness.Au
 	}
 	selected := r.config
 	reason := ""
-	if resume && r.standardsRoot != "" && entry.StandardsContract != 1 {
+	if resume && r.standardsRoot != "" && entry.StandardsContract != reviewStandardsContract {
 		reason = "standards-delivery-unconfirmed"
 	}
 	if resume && r.path != "" {
@@ -102,7 +102,7 @@ func (r recoveryRun) executeWithinDeadline(ctx context.Context, entry harness.Au
 		if ctx.Err() != nil {
 			return harness.Result{}, r.stopAtDeadline(entry)
 		}
-		if reason == "" && resume && r.standardsRoot != "" && entry.StandardsContract != 1 {
+		if reason == "" && resume && r.standardsRoot != "" && entry.StandardsContract != reviewStandardsContract {
 			reason = "standards-delivery-unconfirmed"
 		}
 		if r.audit && (entry.FailureBlocked() || (!permanentFallback && failures >= r.config.MaxFailures)) {
@@ -450,7 +450,7 @@ func (r recoveryRun) invoke(parent context.Context, entry harness.AuditEntry, se
 		request.OnSession = attempt.recordIdentity
 		request.OnDelivered = func(identity string) error {
 			if r.standardsRoot != "" {
-				attempt.entry.StandardsContract, attempt.entry.Standards = 1, request.Standards
+				attempt.entry.StandardsContract, attempt.entry.Standards = reviewStandardsContract, request.Standards
 				attempt.entry.History[len(attempt.entry.History)-1].Standards = request.Standards
 			}
 			if err := attempt.recordIdentity(identity); err != nil {
@@ -472,7 +472,7 @@ func (r recoveryRun) invoke(parent context.Context, entry harness.AuditEntry, se
 	} else if r.transient != nil {
 		request.OnDelivered = func(identity string) error {
 			r.transient.SessionID = identity
-			r.transient.StandardsContract, r.transient.Standards = 1, request.Standards
+			r.transient.StandardsContract, r.transient.Standards = reviewStandardsContract, request.Standards
 			r.transient.History = []harness.AuditRound{{Evidence: r.evidence.Files}}
 			deliveryConfirmed = true
 			return nil
@@ -503,7 +503,7 @@ func (r recoveryRun) invoke(parent context.Context, entry harness.AuditEntry, se
 			return result, &harness.Incident{Kind: "context-lost", Harness: selected.Harness, SessionID: result.SessionID, Err: errors.New("auditor reports loss of mandatory standards context")}
 		}
 		if attempt != nil && r.standardsRoot != "" {
-			attempt.entry.StandardsContract, attempt.entry.Standards = 1, request.Standards
+			attempt.entry.StandardsContract, attempt.entry.Standards = reviewStandardsContract, request.Standards
 			attempt.entry.History[len(attempt.entry.History)-1].Standards = request.Standards
 			if err := attempt.recordIdentity(result.SessionID); err != nil {
 				return result, err

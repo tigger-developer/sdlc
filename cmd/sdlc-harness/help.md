@@ -5,7 +5,7 @@ STANDING POLICY: external auditing is suspended until the operator explicitly
 re-enables it. At each review step, load definition-audit, test-code-audit or
 code-audit from ~/.agents/skills/ in the current session. Do not invoke this
 command first, launch another reviewer or wait for a provider failure. Follow
-AUDITS.md for internal evidence and continuation; human approval and readiness
+SELF-AUDIT.md for internal evidence and AUDITS.md for delivery gates; human approval and readiness
 requirements remain. The interface below is retained for operator use after
 explicit re-enablement, not routine workflow invocation during suspension.
 
@@ -28,8 +28,9 @@ Audit options:
 
 When the selected project has no .sdlc/project.yaml, omit --gate,
 --audit-record and --work-item. The harness warns STANDALONE MODE and reviews
-the supplied original project files under STANDALONE-AUDIT.md. The entire installed
-standards library is supplied as verified text; only applicable rules are enforced.
+the supplied original project files through AUDIT.md and STANDALONE-AUDIT.md.
+Applicable review standards are supplied as verified text; MAIN and delivery
+workflow documents are excluded, including from optional references.
 This review has no SDLC gate or persistent audit record.
 In an SDLC project, --agent-spike selects a separate SPIKE-AUDIT.md profile for a
 hands-off spike and warns SPIKE MODE. It accepts the same options and rejects
@@ -39,8 +40,8 @@ full SDLC workflow, gates and documentation requirements do not apply.
 Audits are anchored to the invocation project. --project cannot select another
 root; --input accepts only files inside that project tree. Do not pass
 ~/.agents/sdlc/MAIN.md, ARCHITECTURE.md, DOCUMENTATION.md or other installed
-SDLC standards: the harness supplies its full installed Markdown inventory,
-including mandatory gate rules and selected technology standards, automatically.
+SDLC standards: the harness supplies mandatory review rules and selected
+technology standards, with an optional review-only reference inventory.
 External --input paths are rejected.
 Caller-selected standards and --audit-prompts overrides are rejected. Every
 provider receives mandatory standards and project evidence over stdin with
@@ -60,7 +61,7 @@ The harness owns provider selection, context, fallback and bounded recovery.
 On FAIL, address all findings before submitting the next audit.
 On 'Human intervention required' or terminal failure without a usable verdict,
 stop external calls, report the safe reason and diagnostic reference, and immediately
-perform the current-session internal-review fallback in AUDITS.md without waiting
+perform the current-session internal-review fallback in SELF-AUDIT.md without waiting
 for operator permission. Record the internal result separately; do not edit
 audits.yaml or claim independent PASS. Readiness/input refusals, valid FAIL findings
 and verdict-limit stops are not bypassed. Continue otherwise-authorized work after
@@ -98,7 +99,7 @@ Test-code and delivery-code locate spec.org and validation.org beside --audit-re
 Schema/readiness rejection returns YAML without invoking a provider.
 Test-code requires ATs/RTs RED/GREEN; delivery-code requires ATs/RTs/OTs GREEN.
 UTs may remain AMBER. Test-code PASS is not delivery approval.
-Definition has no execution-readiness check. With no approved RTs, skip test-code.
+Definition has no execution-readiness check. With neither approved ATs nor RTs, skip test-code.
 Final delivery review includes affected product documentation.
 
 Do not start delivery-code review until all code, tests and documentation are

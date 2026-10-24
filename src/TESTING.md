@@ -1,7 +1,7 @@
 ---
 title: Testing Standards
-version: 3
-last-updated: 2026-10-19
+version: 4
+last-updated: 2026-10-24
 ---
 
 # Testing Standards
@@ -76,24 +76,17 @@ difficulty, or inconvenience is insufficient. The definition-audit skill
 confirms test design and traceability; it does not replace a required failing
 automated test execution.
 
-At the definition gate, audit only the proposed AT, RT, UT, and OT definitions. Do
-not demand test code, execution results, or RED/GREEN evidence before
-implementation. At the implementation gates, the in-session review skills review the
-actual test changes and current evidence against those signed-off definitions
-(or the recorded operator-authorized scope in paired and emergency delivery).
-Normal delivery first reviews the complete written AT/RT package at the test-code
-gate, after observing RED (or justified initially GREEN preservation evidence),
-before implementing the target behaviour. After implementation and AT/RT/OT GREEN, the
-delivery-code gate uses `code-audit` in the current session to review production
-code and changed tests. Test-code uses `test-code-audit` in that same session.
-The external harness is suspended under `AUDITS.md`; no external call or
-provider context is required. The author must check that RED fails for the intended reason.
-Paired and emergency routes may go directly to delivery-code after their coherent
-change; they do not invent a retrospective pre-build test-code gate.
-Retrospective test-definition review uses the
-definition-audit skill in the current session, not another provider context.
-Planned tests are not implementation evidence, and implemented tests do not
-retroactively repair an inadequate definition.
+`REVIEW.md` defines gate-specific criteria: definition assesses proposed tests;
+test-code assesses the written AT/RT package and intended RED or justified
+preservation GREEN; delivery-code assesses production code, changed tests and
+settled AT/RT/OT GREEN. The author must verify the reason for RED. Planned tests
+are not implementation evidence; implemented tests do not retroactively repair
+an inadequate definition. Paired/emergency review uses recorded authorized scope
+without inventing a retrospective pre-build gate. Delivery authors follow
+`AUDITS.md` for sequence and skills; independent auditors use `AUDIT.md` and do
+not load delivery orchestration. During automatic-harness suspension the author
+uses SELF-AUDIT, including retrospective definition review, without an external
+attempt or provider context.
 
 Before test-code review, the agent may add only the minimum declarations,
 interfaces or placeholder bodies needed to compile and execute the specified ATs and RTs.
@@ -149,7 +142,8 @@ but audit-ineligible. Preserve superseded runs below the same test node.
 
 The deterministic `~/.agents/sdlc/bin/sdlc-validate` reports schema errors, inventory
 and readiness as YAML. Read its `--help` and run it before the corresponding audit.
-The harness repeats the same checks before spending a round. Schema failures and
+When explicitly re-enabled, the harness repeats the same checks before spending
+a round. Schema failures and
 ineligibility never invoke a model. Test-code requires ATs/RTs RED/GREEN and a recorded
 state for every OT/UT; delivery-code requires AT/RT/OT GREEN, permitting outstanding UTs only.
 
@@ -325,6 +319,9 @@ Distinguish focused checks from the complete project suite. Never convert a
 partial verification result into a claim about the whole system.
 
 ## Document history
+
+Version 4 centralizes review criteria and delivery orchestration while retaining
+the testing contract and distinguishing independent review from self-audit.
 
 Version 3 restores the four test categories and applies automated-test readiness
 to ATs as well as retained RTs. The earlier three-category wording is superseded.

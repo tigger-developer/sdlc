@@ -1,6 +1,14 @@
+---
+title: Native Goal Activation for Delivery and Spikes
+version: 1
+last-updated: 2026-10-24
+---
+
 # Native goal activation for delivery
 
-Apply only when `deliver-change` enters **HANDS-OFF**. Use the harness hosting
+Apply only when an authorized `deliver-change` or signed-off `hands-off-spike`
+enters **HANDS-OFF**. A spike's goal answers its brief; it never authorizes merge
+or deployment. Follow READING's reuse contract. Use the harness hosting
 this conversation, not the separately configured external auditor. This skill
 requests native goal-backed delivery; obey any additional authorization rule
 imposed by that harness before creating a goal.

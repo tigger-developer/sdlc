@@ -3,6 +3,9 @@ name: define-change
 description: Define and audit one lean SDLC v3 change through operator sign-off, without implementing it.
 ---
 
+Follow `~/.agents/sdlc/READING.md`; reuse required documents already read in
+full, unchanged and retained in context. A skill transition does not reload them.
+
 Read `~/.agents/sdlc/MAIN.md`, `ISSUES.md`, `TESTING.md`, `CODING.md`,
 `ARCHITECTURE.md`, `GIT.md`, `DOCUMENTATION.md`, and `ORGMODE.md`, then the project
 profile and its selected standards and authorities.
@@ -75,14 +78,5 @@ Move its work item to `ACTIVE` unless the operator explicitly defers delivery;
 retain `REVIEW` and the hold in that case. Design approval never lifts a hold.
 Do not implement code.
 
-## Internal audit boundary
-
-At each audit step, load the relevant skill in this same session:
-`~/.agents/skills/definition-audit/SKILL.md`,
-`~/.agents/skills/test-code-audit/SKILL.md` or
-`~/.agents/skills/code-audit/SKILL.md`. Apply `AUDITS.md`'s active internal-only
-mode and record its evidence separately. Do not invoke the external harness,
-launch another model/agent/context, reset the auditor or wait for a provider
-failure. Internal PASS satisfies the applicable review prerequisite; tests,
-human sign-off, scope, holds and closure requirements remain. External auditing
-requires explicit operator re-enablement.
+Review orchestration and evidence ownership follow `AUDITS.md`; current-session
+review uses `SELF-AUDIT.md`. No external call or new reviewer is authorized.

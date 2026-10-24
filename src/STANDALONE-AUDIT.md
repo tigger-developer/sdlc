@@ -1,22 +1,23 @@
 ---
 title: Standalone Standards Audit
-version: 5
-last-updated: 2026-10-10
+version: 6
+last-updated: 2026-10-24
 ---
 
 # Standalone standards audit
 
 Use this route when the selected project has no `.sdlc/project.yaml`.
 An SDLC project's `--agent-spike` review instead uses `SPIKE-AUDIT.md`.
-Read this routing document first, then every document in the full installed
-standards library supplied by the harness before reviewing evidence or
-returning any verdict. The harness owns standards selection; caller context
-cannot waive or replace it. Read each supplied standard once and never request
-it again in this retained context.
+An independent fresh-context reviewer enters through `AUDIT.md`, then uses
+REVIEW's standalone profile and READING's reuse contract. A self-auditing author
+uses SELF-AUDIT with the same criteria. Never load MAIN, delivery workflows or
+the full installed library. The harness selects applicable review standards;
+caller context cannot waive or replace them. Read each selected standard in
+full once per retained context, refreshing changed or lost text.
 The audit reviews the supplied original project files against `CODING.md`,
 `TESTING.md`, `DOCUMENTATION.md`, other applicable installed standards, and the
-project's existing authorities. The full installed Markdown text is supplied, but
-SDLC workflow documents do not become standalone requirements. It reports concrete, evidence-backed code and documentation
+project's existing authorities. Only the selected review standards are supplied;
+SDLC workflow documents are excluded. It reports concrete, evidence-backed code and documentation
 findings. The harness must reject a project or input under a system temporary
 directory before calling a provider. The invocation project inventory shows
 eligible paths, not their contents. Identify relevant files absent from the
@@ -37,7 +38,7 @@ applicable standards. Name the exact file and concrete evidence for each
 finding. Distinguish a verified defect from an optional improvement or an
 unknown project decision. Do not edit the reviewed files.
 
-Return one compact result:
+An independent auditor returns one compact result:
 
 ```text
 AUDIT: standalone
@@ -47,9 +48,13 @@ VERDICT: PASS | PROVISIONAL PASS | FAIL
 ```
 
 This result is review evidence, not an SDLC gate verdict or operator approval.
+Self-audit instead records its non-independent result under SELF-AUDIT; it does
+not use an independent envelope.
 
 ## Document history
 
+- Version 6 (2026-10-24): Supersede full-library loading with the narrow independent
+  auditor route and a separately labelled self-audit route; retain substantive criteria.
 - Version 5 (2026-10-10): Supply the entire standards library once and separate
   the agent-spike route into `SPIKE-AUDIT.md`.
 - Version 4 (2026-10-10): Apply the route to `--agent-spike` reviews of hands-off spikes in SDLC projects.

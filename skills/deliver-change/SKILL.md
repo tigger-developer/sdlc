@@ -3,14 +3,18 @@ name: deliver-change
 description: Deliver a signed-off SDLC v3 specification through TDD and validation, using native goal-backed hands-off continuation where available.
 ---
 
+Follow `~/.agents/sdlc/READING.md`; reuse required texts already read in full,
+unchanged and retained in context. Reading lists do not request duplicate loads.
+
 Read `~/.agents/sdlc/MAIN.md`, `TESTING.md`, `CODING.md`, `ARCHITECTURE.md`,
 `DOCUMENTATION.md`, `GIT.md`, the project profile, selected standards, the
 signed-off `spec.org`, and its current audit evidence.
 
 Admit delivery only with explicit operator sign-off in `spec.org`, an `ACTIVE`
 work item in `docs/work.org`, and current definition internal PASS in
-`internal-review.md` under `AUDITS.md`. A still-current historical external PASS
-also remains evidence; do not repeat an accepted review merely to change its
+`internal-review.md` under `AUDITS.md`, or an accepted current manual independent
+result under that contract. A still-current historical external PASS also
+remains evidence; do not repeat an accepted review merely to change its
 method. No new external verdict or failure is required. Internal review does
 not substitute for operator sign-off.
 Check documented dependencies and implementation holds; only explicit operator
@@ -22,11 +26,11 @@ material specification change requires current audit evidence and renewed
 operator approval: reset sign-off to `PENDING` and move the item to `REVIEW`,
 preserving history. Never edit `audits.yaml` or copy its state into the spec.
 
-In **HANDS-OFF** mode, a user-facing progress report is not a permitted
-response boundary. Do not end the turn after reporting progress, checkpoints,
-warnings, or partial completion. Continue with the next executable action in
-the same invocation. Ending the turn while executable work remains is a
-HANDS-OFF contract violation.
+## Delivery modes and continuation
+
+This section is the canonical continuation contract for delivery and, by
+explicit reference, signed-off hands-off spikes. It does not activate either
+workflow by itself. Definition keeps its own interruption rules.
 
 At the beginning of delivery, determine whether any information is required
 from the operator before implementation can safely start. Ask that one bounded
@@ -56,41 +60,37 @@ silently substituting instructions for native continuation. ATTENDED skips
 goal activation. Goal completion means ready for the agreed operator gate,
 not permission to close the work item.
 
-HANDS-OFF is the autonomous coding state. A final response, approval request,
-decision request, blocker handback, or other transfer of control is prohibited
-while safe, authorized, executable work remains. Progress and status reports
-are non-terminal; after reporting one, continue with the next executable item.
-An in-scope correction or instruction leaves HANDS-OFF active: incorporate it
-and continue.
+HANDS-OFF assumes no human is available. Do not end the turn, request approval,
+wait for an answer or otherwise transfer control while safe, authorized,
+executable work remains. Questions, uncertainty, routine interpretation,
+progress reports, commits, warnings, test/audit results and partial milestones
+are not stopping conditions. Continue after them through TDD, remediation,
+documentation, validation and evidence recording. Routine in-scope corrections
+leave the mode active; incorporate them and continue. Premature handback is a
+contract violation with a material cost, not a safer default.
 
-Hands-off delivery is a continuation contract. The cost of stopping
-prematurely is high, especially when the operator may be unavailable for the
-delivery window. A question, uncertainty, or routine interpretation is not a
-terminal handback: make a sensible, reversible assumption within the signed-
-off specification, design, standards, and safety boundaries and record it in
-the specification's `Hands-off mode decision log` section. Add one level-two
-Org subtree for this invocation, headed by its exact ISO 8601 timestamp and
-tagged `:hands-off:review:`; put each material decision at level three beneath
-that heading. A
-progress report, commit, warning, completed test, audit result, or partial
-milestone is likewise not terminal while safe, authorized, executable work
-remains. Continue through TDD, remediation, documentation, validation, and
-evidence recording.
+Make sensible reversible assumptions only within the signed-off specification
+or brief, design, standards and safety boundaries. Never infer new product
+behaviour, scope, architecture, security, access, persisted data, external
+contracts or irreversible decisions. Record material assumptions in the
+`Hands-off mode decision log`: one level-two Org subtree per invocation, headed
+by its exact ISO 8601 timestamp and tagged `:hands-off:review:`, with each
+decision at level three.
 
-Assume that no human is available during the hands-off delivery window. Do not
-pause to wait for an answer; continue until a permitted stopping condition is
-actually reached.
-
-Before any final handback, re-read the signed-off specification, completion
-state, decision log, audit evidence, and validation record. An unchecked item
+Before any final handback, re-read the signed-off specification (or spike brief),
+completion state, decision log, review evidence and applicable validation record.
+A spike uses its brief's Evidence and Findings rather than delivery artefacts. An unchecked item
 with an executable next action means delivery remains active.
 
 Valid reasons to stop are limited to a human-only decision that no sensible
 reversible assumption can avoid, a genuine blocker, a failed mandatory test or
 verification that cannot be safely remediated, or reaching the configured
-maximum number of audit rounds without `PASS` or `PROVISIONAL PASS`. In those cases
+review limit without an effective PASS under `SELF-AUDIT.md` or the explicitly
+enabled external contract. In those cases
 return the exact state, evidence, assumptions, and next human action; do not
 imply completion.
+
+## Deliver the approved change
 
 After admission, apply the implementation branch strategy from the project and
 global configuration. Under `current`, remain on the operator-selected branch.
@@ -135,15 +135,3 @@ In HANDS-OFF, defer UTs until all other delivery work is delivered: leave them A
 operator and list them at handback, alongside any genuinely blocked work. Do not
 pause otherwise executable delivery for UT participation. Return the change for
 operator validation and closure; do not claim closure yourself.
-
-## Internal audit boundary
-
-At each audit step, load the relevant skill in this same session:
-`~/.agents/skills/definition-audit/SKILL.md`,
-`~/.agents/skills/test-code-audit/SKILL.md` or
-`~/.agents/skills/code-audit/SKILL.md`. Apply `AUDITS.md`'s active internal-only
-mode and record its evidence separately. Do not invoke the external harness,
-launch another model/agent/context, reset the auditor or wait for a provider
-failure. Internal PASS satisfies the applicable review prerequisite; tests,
-human sign-off, scope, holds and closure requirements remain. External auditing
-requires explicit operator re-enablement.

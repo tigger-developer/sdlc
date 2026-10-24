@@ -1,7 +1,7 @@
 ---
 title: SDLC Configuration and Installation Reference
-version: 2
-last-updated: 2026-10-11
+version: 3
+last-updated: 2026-10-24
 ---
 
 # SDLC configuration and installation reference
@@ -181,7 +181,13 @@ it.
 
 | Path | Purpose |
 |---|---|
-| `src/MAIN.md` | Universal rules and progressive routing |
+| `src/MAIN.md` | Delivery-agent rules and progressive workflow routing |
+| `src/READING.md` | Full-read reuse and advisory routing |
+| `src/AUDIT.md` | Independent fresh-context auditor entry; no MAIN |
+| `src/REVIEW.md` | Shared substantive review criteria and profiles |
+| `src/SELF-AUDIT.md` | Non-independent author review and evidence |
+| `src/AUDITS.md` | Delivery gate orchestration |
+| `src/EXTERNAL-AUDIT.md` | Preserved suspended transport procedure |
 | `src/*.md` | Requirements, testing, auditing, coding, Git, documentation, security, paired, emergency, Org, and Markdown standards |
 | `src/technologies/` | Automatically discoverable technology standards |
 | `src/templates/v3/` | Unified specification, work, audit, and validation templates |
@@ -191,6 +197,8 @@ it.
 | `cmd/` and `internal/` | Installer, initializer, validator, harness adapters, and ledger merger |
 
 ## Document history
+
+- Version 3 (2026-10-24): Separate delivery, independent-audit and self-audit entry points.
 
 - Version 2 (2026-10-11): Document audit deadlines, units, overrides and Hermes
   runtime requirements.

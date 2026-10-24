@@ -46,7 +46,7 @@ func managedAuditStandards(project, gate, standardsRoot string, inputs []string)
 	if err != nil {
 		return nil, err
 	}
-	inventory, err := installedAuditDocuments(standardsRoot)
+	inventory, err := reviewReferenceDocuments(standardsRoot)
 	if err != nil {
 		return nil, err
 	}
@@ -73,6 +73,25 @@ func managedAuditStandards(project, gate, standardsRoot string, inputs []string)
 }
 
 func managedRequiredStandards(project, gate, standardsRoot string, inputs ...string) ([]string, error) {
+	technologies, err := projectReviewTechnologies(project)
+	if err != nil {
+		return nil, err
+	}
+	names := []string{"AUDIT.md", "READING.md", "REVIEW.md", "ARCHITECTURE.md", "TESTING.md"}
+	switch gate {
+	case "definition":
+		names = append(names, "ISSUES.md", "CODING.md", "SECURITY.md", "DOCUMENTATION.md", "ORGMODE.md", "ORG-SCHEMA.md")
+	case "test-code":
+		names = append(names, "CODING.md", "GIT.md", "SECURITY.md", "ORG-SCHEMA.md")
+	case "delivery-code":
+		names = append(names, "CODING.md", "GIT.md", "DOCUMENTATION.md", "SECURITY.md", "ORG-SCHEMA.md")
+	default:
+		return nil, fmt.Errorf("unknown managed audit gate %q", gate)
+	}
+	return selectedReviewStandards(standardsRoot, names, technologies, inputs)
+}
+
+func projectReviewTechnologies(project string) ([]string, error) {
 	profilePath := filepath.Join(project, ".sdlc", "project.yaml")
 	contents, err := os.ReadFile(profilePath)
 	if err != nil {
@@ -86,17 +105,12 @@ func managedRequiredStandards(project, gate, standardsRoot string, inputs ...str
 	if err := yaml.Unmarshal(contents, &profile); err != nil {
 		return nil, fmt.Errorf("parsing audit project profile: %w", err)
 	}
-	names := []string{"MAIN.md", "AUDITS.md", "ARCHITECTURE.md", "TESTING.md"}
-	switch gate {
-	case "definition":
-		names = append(names, "ISSUES.md", "DOCUMENTATION.md", "ORGMODE.md", "ORG-SCHEMA.md")
-	case "test-code":
-		names = append(names, "CODING.md", "GIT.md", "SECURITY.md")
-	case "delivery-code":
-		names = append(names, "CODING.md", "GIT.md", "DOCUMENTATION.md", "SECURITY.md")
-	default:
-		return nil, fmt.Errorf("unknown managed audit gate %q", gate)
-	}
+	return profile.Standards.Technologies, nil
+}
+
+// Selection is shared by managed, standalone and spike reviews. Evidence adds
+// technologies even when a project's declaration omitted them.
+func selectedReviewStandards(standardsRoot string, names, selected, inputs []string) ([]string, error) {
 	var paths []string
 	seen := map[string]bool{}
 	add := func(path string) error {
@@ -135,7 +149,7 @@ func managedRequiredStandards(project, gate, standardsRoot string, inputs ...str
 			}
 		}
 	}
-	technologies := append([]string(nil), profile.Standards.Technologies...)
+	technologies := append([]string(nil), selected...)
 	for _, path := range inputs {
 		technologies = append(technologies, evidenceTechnologies(path)...)
 	}
@@ -205,48 +219,78 @@ func installedAuditDocuments(root string) ([]string, error) {
 }
 
 func standaloneAuditStandards(standardsRoot string, inputs []string) ([]string, error) {
-	paths, err := installedAuditDocuments(standardsRoot)
+	names := []string{"AUDIT.md", "READING.md", "REVIEW.md", "STANDALONE-AUDIT.md", "CODING.md", "TESTING.md", "ARCHITECTURE.md", "SECURITY.md", "GIT.md", "DOCUMENTATION.md"}
+	paths, err := selectedReviewStandards(standardsRoot, names, nil, inputs)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("required standalone audit standard: %w", err)
 	}
-	present := make(map[string]bool, len(paths))
-	for _, path := range paths {
-		present[path] = true
-	}
-	for _, name := range []string{"STANDALONE-AUDIT.md", "CODING.md", "DOCUMENTATION.md"} {
-		path := filepath.Join(standardsRoot, name)
-		if !present[path] {
-			return nil, fmt.Errorf("required standalone audit standard %q is missing", path)
-		}
-	}
-	ordered := append(append([]string(nil), inputs...), filepath.Join(standardsRoot, "STANDALONE-AUDIT.md"))
-	for _, path := range paths {
-		if filepath.Base(path) != "STANDALONE-AUDIT.md" {
-			ordered = append(ordered, path)
-		}
-	}
-	return ordered, nil
+	return append(append([]string(nil), inputs...), paths...), nil
 }
 
 // spikeAuditStandards deliberately excludes workflow and documentation artefacts.
-// Every installed technology standard is delivered; applicability remains subject-specific.
-func spikeAuditStandards(root string, inputs []string) ([]string, error) {
-	names := []string{"SPIKE-AUDIT.md", "CODING.md", "ARCHITECTURE.md", "SECURITY.md", "GIT.md", "TESTING.md"}
-	paths := append([]string(nil), inputs...)
-	for _, name := range names {
-		path := filepath.Join(root, name)
-		info, err := os.Stat(path)
-		if err != nil || !info.Mode().IsRegular() {
-			if err == nil {
-				err = errors.New("not a regular file")
-			}
-			return nil, fmt.Errorf("required spike audit standard %q: %w", path, err)
-		}
-		paths = append(paths, path)
-	}
-	technologies, err := installedAuditDocuments(filepath.Join(root, "technologies"))
+// Only declared and evidence-selected technologies are mandatory.
+func spikeAuditStandards(root string, inputs []string, technologies ...string) ([]string, error) {
+	names := []string{"AUDIT.md", "READING.md", "REVIEW.md", "SPIKE-AUDIT.md", "CODING.md", "ARCHITECTURE.md", "SECURITY.md", "GIT.md", "TESTING.md"}
+	paths, err := selectedReviewStandards(root, names, technologies, inputs)
 	if err != nil {
 		return nil, err
 	}
-	return append(paths, technologies...), nil
+	return append(append([]string(nil), inputs...), paths...), nil
+}
+
+// Delivery and transport documents are not even optional auditor references.
+// New technology standards remain discoverable without loading every technology.
+func isReviewReference(name string) bool {
+	if strings.HasPrefix(name, "technologies/") && strings.HasSuffix(name, ".md") {
+		return true
+	}
+	switch name {
+	case "AUDIT.md", "READING.md", "REVIEW.md", "STANDALONE-AUDIT.md", "SPIKE-AUDIT.md",
+		"CODING.md", "TESTING.md", "ARCHITECTURE.md", "SECURITY.md", "GIT.md",
+		"DOCUMENTATION.md", "ISSUES.md", "ORGMODE.md", "ORG-SCHEMA.md", "MARKDOWN.md":
+		return true
+	default:
+		return false
+	}
+}
+
+func reviewReferenceDocuments(root string) ([]string, error) {
+	paths, err := installedAuditDocuments(root)
+	if err != nil {
+		return nil, err
+	}
+	var references []string
+	for _, path := range paths {
+		name, err := filepath.Rel(root, path)
+		if err != nil {
+			return nil, err
+		}
+		if isReviewReference(filepath.ToSlash(name)) {
+			references = append(references, path)
+		}
+	}
+	if len(references) == 0 {
+		return nil, errors.New("installed audit review reference inventory is empty")
+	}
+	return references, nil
+}
+
+func appendUniqueAuditPaths(project string, paths, additions []string) []string {
+	seen := map[string]bool{}
+	key := func(path string) string {
+		if !filepath.IsAbs(path) {
+			path = filepath.Join(project, path)
+		}
+		return filepath.Clean(path)
+	}
+	for _, path := range paths {
+		seen[key(path)] = true
+	}
+	for _, path := range additions {
+		if !seen[key(path)] {
+			paths = append(paths, path)
+			seen[key(path)] = true
+		}
+	}
+	return paths
 }

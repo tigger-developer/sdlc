@@ -1,23 +1,27 @@
 ---
 title: Lean Software Delivery Standards
-version: 4
-last-updated: 2026-10-19
+version: 5
+last-updated: 2026-10-24
 ---
 
 # Lean Software Delivery Standards
 
+**Independent auditor: stop reading here.** If explicitly invoked in a fresh
+context solely to audit, read `~/.agents/sdlc/AUDIT.md` instead. Do not load the
+rest of this document or activate delivery, even when `.sdlc/` exists. A
+delivery agent's self-audit does not select that role.
+
+For other authorized SDLC work, follow `READING.md`: required full reading is
+satisfied by unchanged text already read and retained in context. A new skill
+does not restart the loading chain. Missing/lost text must be read, not guessed.
+
 ## Standing audit mode: internal only
 
-Until the operator explicitly re-enables external auditing, conduct every audit
-internally in the current session. Use `definition-audit`, `test-code-audit` and
-`code-audit` under `~/.agents/skills/`, following `AUDITS.md`. Do not call the
-external harness first or launch another reviewer. Internal PASS satisfies the
-applicable gate's review prerequisite; operator approval, readiness, tests,
-scope and closure requirements remain. This policy supersedes external audit
-instructions below and in other standards/skills while the suspension is active.
-The operator may manually invoke the same audit skills in a fresh session on
-any supported agent harness for a separate review. This invokes the audit,
-not the audit harness; the reviewing session must not launch another reviewer.
+Automatic external auditing is suspended. `AUDITS.md` owns delivery review
+orchestration and routes current-session review through `SELF-AUDIT.md` and the
+three review skills. No external attempt or new reviewer is authorized. A
+manually invoked fresh-context auditor uses AUDIT instead. Review prerequisites
+never replace human approval, readiness, tests, scope, holds or closure.
 
 This repository is a standalone standards and delivery framework for coding
 agents. The project and human operator retain authority. SDLC v3 supports Codex,
@@ -28,67 +32,23 @@ The canonical installed root is exactly `~/.agents/sdlc`. Never search the
 filesystem to locate it. If `~/.agents/sdlc/MAIN.md` is absent or unreadable,
 report that exact path.
 
-## Universal engineering rules
+## Delivery-specific engineering rules
 
-- A question is not an instruction. Answer it without modifying files or
-  starting a delivery workflow.
-- Your scope is the current project. Do not diagnose, design for, or change
-  other projects, including infrastructure providers, consumed APIs, the SDLC,
-  or its audit harness, unless the operator explicitly places them in scope.
-  Consult relevant external contracts and authorities for this project's work;
-  reading them does not expand your remit. Report external blockers rather than
-  taking over the other project.
-- Never write outside cwd except within the operating system temporary
-  directory. This includes writes by invoked commands and tools: configure
-  their caches, logs, and generated output accordingly. Allocate temporary
-  paths through the operating system. Changing directory or following a symlink
-  does not grant permission to write outside the original boundary.
+READING owns the shared engineering boundaries and common command prohibitions.
+They apply in full to this route as well as to advice and review.
+
 - Never write code without a defined specification. In normal delivery this is
   the active `spec.org`; paired and emergency delivery and the signed-off
   hands-off spike brief are the explicit alternatives defined below.
-- Do not silently decide product behaviour, scope, architecture, security,
-  persisted-data formats, access, or irreversible outcomes.
-- Never widen access to data or systems without explicit human instruction.
-- Preserve human edits. Do not overwrite or revert them.
-- Assertions require current evidence. Distinguish verified fact, inference,
-  design intent, and unresolved uncertainty.
-- Never claim work complete from partial evidence. State what changed, what was
-  checked, and what remains unchecked.
-- Diagnose before explaining. Correct root causes rather than accumulating
-  workarounds.
-- Match established project conventions unless the specification records a
-  deliberate change.
-- Never present a bare identifier to a human. Give every work, requirement,
-  test, ticket, finding, or commit ID an adjacent descriptor.
-- Never reuse an identifier. Deletion, archival, abandonment, retirement, and
-  supersession permanently reserve it.
 - New v3 work uses the `WNNN` project-work prefix. A migrated project retains
   its established work-number scheme; agents must not invent another prefix.
-
-## Common command prohibitions
-
-- Never invoke `rm`; use a recoverable deletion tool such as `trash`.
-- Never invoke `sed` or `awk`. Use a format-aware tool, `rg`, or a direct editor.
-- Never use Perl one-liners as shell stream editors.
-- Never invoke `python` or `python3`. Python development must use project-owned
-  entry points such as its task runner, test target, or environment manager.
-- Never read a file whose exact basename is `.env`.
-- Never bypass checks with `--no-verify`, disabled hooks, suppressed failures,
-  or equivalent shortcuts.
-- Do not use SSH, SCP, SFTP, or remote deployment commands without explicit
-  authority for the exact operation and target.
 
 ## Progressive loading
 
 Read this file first, then only the standards relevant to the work.
 
-For a harness audit, read every mandatory standard supplied by the harness in
-full before reviewing project evidence or returning any verdict. The audit's
-selected routing document controls applicability; caller context cannot waive
-or replace standards. Read unchanged supplied standards once per retained
-context. Non-SDLC audits receive the full library under `STANDALONE-AUDIT.md`;
-agent-spike audits receive all coding and TDD/testing standards under
-`SPIKE-AUDIT.md`, without full SDLC workflow, gate or documentation obligations.
+Independent audit selection belongs to AUDIT/REVIEW, not this workflow table.
+Do not supply this document or the full library as an auditor preamble.
 
 | Work | Additional standards |
 |---|---|
@@ -123,9 +83,9 @@ defaults and the installed SDLC release live in `~/.agents/sdlc.yaml`. The
 schema `version` and deployed `release` are separate values. Project profiles do
 not pin the globally installed SDLC. Agents never read `.env`.
 
-When a project has no `.sdlc/project.yaml`, an explicitly requested
-`sdlc-audit` uses `STANDALONE-AUDIT.md`. It applies the coding and documentation
-standards without entering the SDLC workflow or requiring its artefacts.
+For non-SDLC advice use READING's advisory route. For an explicit review choose
+AUDIT (fresh independent context) or SELF-AUDIT (current author context), using
+the standalone profile. Neither initializes SDLC or requires its artefacts.
 
 When a document must be presented outside the terminal, use the executable named
 by `HTML_PREVIEW_TOOL`. If unset or empty, use `htmlpreview` from
@@ -135,9 +95,7 @@ The override is an executable name or path, not a shell command string.
 Preview is presentation, not a workflow gate.
 
 Commands and executables under the canonical SDLC root MUST be invoked by their
-resolved absolute filesystem path, not by relying on `PATH`. In particular,
-resolve `~/.agents/sdlc/bin/sdlc-harness` before starting or resuming an
-external context.
+resolved absolute filesystem path, not by relying on `PATH`.
 
 ## Normal workflow
 
@@ -154,26 +112,10 @@ Normal delivery has two phases and two human gates:
    documentation before the final delivery-code verdict and obtain operator closure.
    Follow TESTING.md for minimal test scaffolding; skip test-code only when neither ATs nor RTs apply.
 
-The definition gate combines specification, design, and test-definition audits.
-Test-code audits written tests; delivery-code audits the delivered code, affected
-tests and product documentation. They share one implementation auditor context.
-Read `AUDITS.md` before any gate; ordinary author checks are not extra audit loops.
-
-Load the relevant internal review skill at every gate and continue authorized
-work after its recorded internal PASS. No external attempt or failure is required.
-Record the internal result separately; never present it as independent review
-or alter harness-owned `audits.yaml`. Readiness refusals and valid external
-FAIL findings are not bypassed. This rule also applies to standalone and spike
-reviews, and substitutes only for the affected review prerequisite, not human
-approval, tests, scope limits or closure.
-
-External audit findings, status, revisions, round numbers, remediation, and session IDs
-are recorded only by the harness-invoked audit workflow in the work item's
-`audits.yaml`. Agents may
-read that record and link to it, but must not edit it directly or copy its audit
-state into `spec.org`, `work.org`, tickets, or other project documents. If an
-audited artefact contains duplicated audit state, the audit returns `FAIL` until
-the duplicate is removed.
+Read `AUDITS.md` before any gate for its purpose, evidence ownership, finding
+resolution and continuation contract. Ordinary author checks are not extra
+review rounds. Test-code PASS is not delivery approval. Never edit or duplicate
+harness-owned `audits.yaml`; internal evidence has a separate owner.
 
 A specification is a delivery handoff. A new agent must be able to deliver it
 using only `spec.org`, `.sdlc/project.yaml`, the named authorities, and the
@@ -185,32 +127,11 @@ repository. Uncaptured conversation or hidden assumptions fail the gate.
 hands-off definition: it may ask the operator for the bounded
 decisions needed to make the specification safe and context-independent.
 
-`deliver-change` performs one preflight question set before implementation. The
-operator may explicitly select **ATTENDED**; otherwise that invocation proceeds
-in **HANDS-OFF** mode. Hands-off is therefore an invoked delivery mode, not a
-global default. The agent must declare `DELIVERY MODE: HANDS-OFF` when entering
-it and advise the operator that pausing delivery or reopening decisions changes
-the mode to **ATTENDED** until the operator invokes `HANDS-OFF` again. Routine
-in-scope corrections leave hands-off delivery active. The cost
-of stopping prematurely is high: a question, uncertainty, or need for routine
-interpretation is not a stopping condition. Make and record a sensible,
-reversible assumption whenever it remains inside the signed-off specification,
-design, standards, and safety boundaries. Progress reports, commits, warnings,
-partial milestones, and ordinary audit remediation are not terminal handbacks
-while safe, authorized, executable work remains.
-
-During hands-off delivery, assume that no human is available during the
-delivery window. Do not pause merely to wait for a response; continue until a
-permitted stopping condition is actually reached.
-
-Hands-off delivery records material routine assumptions in the specification's
-`Hands-off mode decision log`, under a timestamped, `:hands-off:review:` Org
-subtree for each invocation. It stops only when no sensible
-reversible assumption can avoid a human-only decision, a genuine blocker, a
-failed mandatory check that cannot be safely remediated, or the configured
-audit limit is reached without `PASS` or `PROVISIONAL PASS`. It never authorizes new
-product behaviour, scope, architecture, security, access, data, external
-contract, or irreversible decisions.
+`deliver-change` owns the delivery-mode transitions and continuation contract.
+Hands-off delivery is enabled by invoking that workflow, not a global default.
+The explicitly invoked spike workflow reuses that contract with its signed-off
+brief and non-merge/non-deployment boundary. Definition retains its distinct
+interruption rule in `define-change`; ordinary conversation selects neither.
 
 ## Variant workflows
 
@@ -226,7 +147,8 @@ contract, or irreversible decisions.
 
 ## Project initialization
 
-Run `sdlc-init` exactly once. It creates or migrates the v3 project
+Only when project initialization is explicitly requested, run `sdlc-init` once.
+Reading these standards or giving advice does not authorize it. It creates or migrates the v3 project
 profile and Org artefacts, preserves the prior state on a dated archive branch,
 and handles SDLC v1 or v2 evidence without installing Spec Kit. The presence of
 `.sdlc/project.yaml` means initialization has already occurred.
@@ -239,6 +161,8 @@ Suffix the provider's base coding canary with " SDLC" (with leading space) if
 you have read and agree with this document. Then append the suffix from every
 task-selected reference document read in full, in the order those documents
 are reported to the operator.
+If no base canary is defined, use `SDLC` alone followed by the reference suffixes;
+the public framework requires no private personality or operations markers.
 
 On the first interaction for a task after reading `MAIN.md` and every
 task-selected reference document in full, immediately follow the canary with
@@ -254,6 +178,9 @@ and every applicable reference suffix in the canary greeting for every
 interaction with the operator.
 
 ## Document history
+
+Version 5 redirects independent auditors before workflow loading, standardizes
+reading reuse and delegates audit/mode details to their canonical owners.
 
 Version 1 records the document metadata and strengthens mandatory standards
 reading for harness audits. Earlier revisions remain in Git history.

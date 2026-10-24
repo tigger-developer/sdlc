@@ -1,0 +1,90 @@
+---
+title: Instruction Loading and Advisory Routing
+version: 1
+last-updated: 2026-10-24
+---
+
+# Instruction loading
+
+The installed public root is exactly `~/.agents/sdlc`. Read required documents
+in full before applying them. Full text already supplied and read in the
+current context satisfies this requirement. Reuse unchanged, retained contents;
+read again only when changed, missing or lost from context. A path, summary,
+hash or claim of loading is not comprehension. Do not restart a reading chain
+when another skill names the same document. An explicit final-evidence reread
+or harness-specific compaction requirement still applies.
+
+Use the deployed version, not source from an instruction-maintainer checkout.
+If a required document is absent or unreadable, report its exact path and stop
+the dependent action. Never search other filesystems or provider homes for an
+alternate SDLC root. Required executable paths under that root are resolved
+absolute paths, not commands found incidentally on `PATH`.
+
+## Shared engineering boundaries
+
+These safeguards apply to delivery, advice and review; they do not authorize
+mutation or activate a delivery workflow.
+
+- A question is not an instruction. Answer it without modifying files or
+  starting a delivery workflow.
+- Your scope is the original invocation project. Do not diagnose, design for,
+  or change other projects, including infrastructure providers, consumed APIs,
+  the SDLC or its audit harness, unless the operator explicitly places them in
+  scope. Consult relevant external contracts and authorities for this project's
+  work; reading them does not expand your remit. Report external blockers
+  rather than taking over the other project.
+- Never write outside cwd except within the operating system temporary
+  directory. This includes writes by invoked commands and tools: configure
+  their caches, logs and generated output accordingly. Allocate temporary
+  paths through the operating system. Changing directory or following a symlink
+  does not grant permission to write outside the original boundary.
+- Do not silently decide product behaviour, scope, architecture, security,
+  persisted-data formats, access or irreversible outcomes.
+- Never widen access to data or systems without explicit human instruction.
+- Preserve human edits. Do not overwrite or revert them.
+- Assertions require current evidence. Distinguish verified fact, inference,
+  design intent and unresolved uncertainty.
+- Never claim work complete from partial evidence. State what changed, what was
+  checked and what remains unchecked.
+- Diagnose before explaining. Correct root causes rather than accumulating
+  workarounds.
+- Match established project conventions unless the specification records a
+  deliberate change.
+- Never present a bare identifier to a human. Give every work, requirement,
+  test, ticket, finding or commit ID an adjacent descriptor.
+- Never reuse an identifier. Deletion, archival, abandonment, retirement and
+  supersession permanently reserve it.
+
+## Common command prohibitions
+
+- Never invoke `rm`; use a recoverable deletion tool such as `trash`.
+- Never invoke `sed` or `awk`. Use a format-aware tool, `rg` or a direct editor.
+- Never use Perl one-liners as shell stream editors.
+- Never invoke `python` or `python3`. Python development must use project-owned
+  entry points such as its task runner, test target or environment manager.
+- Never read a file whose exact basename is `.env`.
+- Never bypass checks with `--no-verify`, disabled hooks, suppressed failures
+  or equivalent shortcuts.
+- Do not use SSH, SCP, SFTP or remote deployment commands without explicit
+  authority for the exact operation and target.
+
+## Advisory skills
+
+Advice and orientation do not authorize mutation, initialization, delivery or
+an audit. Establish the original invocation project's scope; visible files or
+a changed cwd do not widen it. Preserve human edits, access boundaries and
+current-evidence requirements. Never read `.env`.
+
+- Explicit independent auditors use `AUDIT.md`, never `MAIN.md`.
+- In an initialized SDLC project, ensure `MAIN.md` and the task's selected
+  standards have been read. Advice does not invoke its delivery workflows.
+- Without `.sdlc/`, use existing project authorities and only applicable
+  engineering standards. Do not load `MAIN.md`, invent SDLC artefacts or impose
+  gates. Apply relevant coding/testing, architecture, security and documentation
+  criteria directly, with only the technologies actually involved.
+- If `.sdlc/` exists without a readable `project.yaml`, report the incomplete
+  state. Read-only diagnosis may inspect it; do not initialize or silently
+  switch to ungoverned delivery.
+
+Questions remain questions. A standard's availability does not make it relevant,
+and reading a standard does not activate the workflow discussed in it.

@@ -3,6 +3,9 @@ name: define-project-foundation
 description: Define and review the Vision and Architecture for a new greenfield project before feature work begins.
 ---
 
+Follow `~/.agents/sdlc/READING.md`; reuse required documents already read in
+full, unchanged and retained in context. A skill transition does not reload them.
+
 Use this skill only for a **greenfield** project that does not yet have an
 approved project foundation. Do not regenerate or overwrite an established
 brownfield project's Vision or Architecture; report that the existing

@@ -1,15 +1,17 @@
 ---
 title: SDLC Audit Harness Guide
-version: 16
-last-updated: 2026-10-19
+version: 17
+last-updated: 2026-10-24
 ---
 
 # SDLC audit harness guide
 
-**External auditing is suspended until explicitly re-enabled by the operator.**
+**Automatic external auditing is suspended until explicitly re-enabled by the operator.**
 Workflow audit steps load `definition-audit`, `test-code-audit` or `code-audit`
 in the current session instead. No external attempt or failure is required.
-`AUDITS.md` governs internal evidence and continuation. The external interface
+`SELF-AUDIT.md` governs internal evidence; `AUDITS.md` governs delivery gates.
+A manually started fresh auditor enters through `AUDIT.md`, without MAIN or
+the delivery workflow. The external interface
 and recovery protocol below are retained for restoration, not active workflow
 instructions. A separate context is not required for internal review.
 
@@ -30,22 +32,24 @@ SDLC skills continue to use the resolved absolute harness path.
 When `--project` has no `.sdlc/project.yaml`, `sdlc-audit` runs a standalone
 code and documentation standards review. Supply at least one original project
 file with `--input`; omit `--gate`, `--audit-record`, `--work-item` and `--reset`.
-The harness prints a `STANDALONE MODE` warning and supplies `STANDALONE-AUDIT.md`
-first, followed by the entire installed Markdown standards library as verified
-text. Every document must be read once before review; only applicable engineering
-rules are enforced. Reading workflow documents does not elect that workflow. It asks for an
+The harness prints a `STANDALONE MODE` warning and supplies `AUDIT.md`, the
+standalone review profile and applicable engineering standards as verified text.
+Selected standards must be read in full; unchanged retained text is reused.
+Delivery and transport documents, including MAIN, are excluded. It asks for an
 `AUDIT: standalone` result. This route does not create SDLC project state or
 apply ticket readiness, gate budgets, or closure rules. Supply relevant
 project authorities as additional inputs when needed; installed technology
 standards are harness-owned.
 
 `--agent-spike` selects a separate spike profile in a project that has
-`.sdlc/project.yaml`. The `hands-off-spike` skill uses it so exploratory code
-is always independently reviewed without entering an SDLC gate, budget, or
-`audits.yaml` record. The harness prints a `SPIKE MODE` warning instead of
+`.sdlc/project.yaml`. When the operator re-enables automatic auditing, this
+supports independent spike review without entering an SDLC gate, budget, or
+`audits.yaml` record. During suspension, the skill uses SELF-AUDIT. A missing
+profile supplies no technology declarations; evidence still selects standards.
+The harness prints a `SPIKE MODE` warning instead of
 `STANDALONE MODE`. The flag accepts only the audit phase and the standalone
 options above; every path, anchor and verdict check is unchanged. `SPIKE-AUDIT.md`
-routes the review against all coding, architecture, security, Git, technology
+routes the review against coding, architecture, security, Git, applicable technology
 and TDD/testing standards. Full SDLC workflow, gates and documentation requirements
 do not apply. The response retains the `AUDIT: standalone` envelope for compatibility.
 
@@ -125,12 +129,13 @@ the same automatic audit behaviour. The old reset-session flag is replaced by re
 
 ## Evidence and instruction
 
-- For SDLC gates, supply project evidence only. The harness adds its full installed
-  SDLC Markdown inventory to the hashed manifest. Gate-specific core standards
+- For SDLC gates, supply project evidence only. The harness adds its review-only
+  reference inventory to the hashed manifest. Gate-specific core standards
   and the technologies selected in `.sdlc/project.yaml` are mandatory. Source
   extensions supplement technology selection; Markdown and Org evidence add
   their format rules. Node includes JavaScript; Hugo includes Web. The
-  auditor judges which other documents apply. Do not pass `~/.agents/sdlc` files as `--input`;
+  auditor judges which optional review references apply. MAIN, delivery workflows
+  and transport instructions are never auditor references. Do not pass `~/.agents/sdlc` files as `--input`;
   external caller-supplied paths are rejected. The harness also includes the
   project profile. Supply relevant project authorities separately.
 - Repeat `--input <file>` for every exact evidence file.
@@ -177,8 +182,9 @@ the same automatic audit behaviour. The old reset-session flag is replaced by re
   execution rejects the response; hashes detect changes, not prevent writes.
 - Per-attempt paths and hashes live only in `audits.yaml` under `history[].evidence`.
   `standards_delivered` records successful transport separately from findings.
-  Older records without the current standards contract receive a replacement
-  context and full package. Every SDLC gate audit requires an audit record;
+  Older records, including the full-library version-1 standards contract, receive
+  a replacement context and the narrow current package. History and review
+  budgets are preserved. Every SDLC gate audit requires an audit record;
   standalone review does not.
 - No document cache is created. The small final-response temporary file is
   cleared before each attempt so fallback cannot reuse failed-provider output,
@@ -552,6 +558,9 @@ fallback internally. Calling agents must not build a second retry loop around an
 infrastructure failure. Known FAIL findings remain unresolved until reassessed.
 
 ## Document history
+
+- Version 17 (2026-10-24): Narrow auditor standards selection and distinguish
+  suspended transport, manual independent audit and self-audit.
 
 Version 16 includes AT in the shared validator's automated-test readiness rules.
 

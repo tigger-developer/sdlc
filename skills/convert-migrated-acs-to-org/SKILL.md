@@ -6,6 +6,9 @@ metadata:
   preferred_model: gpt-5.6-luna
 ---
 
+Follow `~/.agents/sdlc/READING.md`; reuse required documents already read in
+full, unchanged and retained in context. A skill transition does not reload them.
+
 # Convert a completed migration ledger to Org
 
 If `~/.agents/sdlc/MAIN.md` is absent or unreadable, report that exact path;

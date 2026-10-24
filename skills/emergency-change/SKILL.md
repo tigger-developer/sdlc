@@ -3,6 +3,9 @@ name: emergency-change
 description: Execute an operator-authorized BYPASS-GATE-7 emergency change and reconcile durable evidence afterwards.
 ---
 
+Follow `~/.agents/sdlc/READING.md`; reuse required documents already read in
+full, unchanged and retained in context. A skill transition does not reload them.
+
 This skill is usable only when the operator includes the exact token
 `BYPASS-GATE-7` in the same request. Never infer, suggest, or self-authorize it.
 
@@ -28,14 +31,5 @@ in this session for the retrospective definition. Refer behaviour or
 design changes to the operator for normal delivery; correct documentary errors
 without inventing advance approval. Present the evidence for operator closure.
 
-## Internal audit boundary
-
-At each audit step, load the relevant skill in this same session:
-`~/.agents/skills/definition-audit/SKILL.md`,
-`~/.agents/skills/test-code-audit/SKILL.md` or
-`~/.agents/skills/code-audit/SKILL.md`. Apply `AUDITS.md`'s active internal-only
-mode and record its evidence separately. Do not invoke the external harness,
-launch another model/agent/context, reset the auditor or wait for a provider
-failure. Internal PASS satisfies the applicable review prerequisite; tests,
-human sign-off, scope, holds and closure requirements remain. External auditing
-requires explicit operator re-enablement.
+Review orchestration and evidence ownership follow `AUDITS.md`; current-session
+review uses `SELF-AUDIT.md`. No external call or new reviewer is authorized.

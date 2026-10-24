@@ -1,10 +1,28 @@
 ---
 title: Changelog
 version: 1
-last-updated: 2026-10-23
+last-updated: 2026-10-24
 ---
 
 # Changelog
+
+## v3.8.10 - 2026-10-24
+
+- Select the explicitly independent fresh-context auditor before delivery
+  routing. AUDIT loads shared safeguards and applicable review criteria without
+  MAIN or workflow orchestration; SELF-AUDIT retains author review with an
+  explicitly non-independent result. Automatic external auditing stays suspended.
+- Reuse required text already read in full and retained unchanged. Route advice
+  by project mode; keep non-SDLC advice and review outside delivery workflows.
+- Centralize review criteria, gate orchestration, internal evidence, delivery
+  continuation and documentation metadata. Preserve the former AUDITS body and
+  history in a separately selected suspended transport reference.
+- Restrict harness evidence to review references and select technologies from
+  project declarations and original files. Exclude workflow documents from
+  optional requests; replace legacy retained contexts without resetting budgets.
+- Validate selection, forbidden reference requests, technology prerequisites,
+  retained-context reuse and legacy-context replacement with local fixtures.
+  Record preservation and verification boundaries in docs/instruction-routing.md.
 
 ## v3.8.9 - 2026-10-23
 
