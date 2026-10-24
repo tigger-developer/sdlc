@@ -6,6 +6,14 @@ last-updated: 2026-10-24
 
 # SDLC Standards: Design Learnings
 
+## Independent review is a role, not a transport dependency
+
+An independently invoked agent can own review under the public auditor entry
+without the old audit harness. Keep that role contract separate from invocation,
+retry, scheduling and host choices. A workflow promising independence must leave
+an unavailable review unresolved rather than silently substitute self-review.
+Authorization to deliver is distinct from initiation of execution.
+
 ## Decision authority follows the execution mode
 
 Hands-off delivery can permit bounded minor departures without permitting changes

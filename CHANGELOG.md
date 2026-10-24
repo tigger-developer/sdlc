@@ -6,6 +6,17 @@ last-updated: 2026-10-24
 
 # Changelog
 
+## v3.8.13 - 2026-10-24
+
+- Abandon the old audit harness as the unattended profile's execution path.
+  Define independent CI review as an agent job using the public auditor entry,
+  specification and candidate evidence, without private configuration.
+- Prohibit silent self-review fallback where independence is promised. Separate
+  delivery authorization from dispatch; preserve overriding holds, affected-evidence
+  revalidation and combined human acceptance of UTs and logged departures.
+- Preserve historical harness code and other internal-review routes. No runtime
+  deployment, CI implementation or audit invocation is part of this change.
+
 ## v3.8.12 - 2026-10-24
 
 - Permit evidenced, localized minor departures only during hands-off delivery of

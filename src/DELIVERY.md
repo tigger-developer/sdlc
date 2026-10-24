@@ -1,6 +1,6 @@
 ---
 title: Delivery Execution and Record Responsibilities
-version: 2
+version: 3
 last-updated: 2026-10-24
 ---
 
@@ -12,6 +12,24 @@ were moved from shared standards without removing their obligations. Use AUDITS
 for review orchestration and TESTING, DOCUMENTATION, GIT and ISSUES for criteria.
 The three audit skills perform self-review only. An authorized independent review
 uses INDEPENDENT-AUDITOR instead and returns evidence to the caller.
+
+## Unattended authorization and acceptance
+
+For an explicitly selected unattended delivery profile, definition sign-off
+authorizes delivery but does not initiate execution. The execution environment
+owns discovery and dispatch. Recheck current authority before starting work and
+before acceptance or publication. Holds, cancellation and superseding definitions
+override earlier approval; stop affected work and preserve its evidence rather
+than continue under stale authority. This is not permission to cancel unrelated
+work or undo human changes.
+
+A profile promising independent review must satisfy AUDITS' independence contract;
+it cannot silently fall back to self-review. Present current UT evidence and
+recorded departures together for explicit final operator acceptance. Changes from
+remediation or integration invalidate affected checks, reviews and UTs; repeat
+those affected, not automatically every prior approval. Validate the actual
+integration candidate before authorized merge. Readiness, acceptance, merge and
+deployment remain distinct authorities.
 
 ## Hands-off delivery decision authority
 

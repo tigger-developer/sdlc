@@ -1,6 +1,6 @@
 ---
 title: Delivery Review Gates
-version: 15
+version: 16
 last-updated: 2026-10-24
 ---
 
@@ -24,6 +24,20 @@ An explicitly requested independent audit uses INDEPENDENT-AUDITOR.md directly,
 not one of the self-audit skills. A manual fresh session or an isolated native
 sub-agent may perform it. This does not re-enable the external audit harness.
 
+### Unattended profile requiring independence
+
+The old audit harness is abandoned as this profile's execution path. An expressly
+authorized independent agent job uses INDEPENDENT-AUDITOR.md with the specification
+and frozen candidate evidence. Infrastructure owns execution, not review criteria.
+This contract neither enables the old harness nor starts a job by itself.
+
+When the selected workflow promises independent review, lack of isolation or
+review availability leaves that requirement unresolved. Continue other safe work
+and bounded recovery; do not silently substitute self-review or report readiness
+for human acceptance without the required independent verdict. Internal-review
+routes remain available for other profiles. Changing mode requires explicit human
+authority and disclosure of the reduced assurance.
+
 ### Calling an independent reviewer
 
 Only an explicit independent-audit request or an expressly authorized workflow
@@ -35,7 +49,8 @@ permits this route. Ordinary self-audit requirements do not. The caller:
   prior findings as evidence, not the desired verdict or a coached conclusion.
 - Uses a native isolation control only when available and authorized. If it
   cannot avoid inherited author context, reports that limitation and uses an
-  authorized self-review without calling it independent. It does not launch a
+  authorized self-review without calling it independent, only where the selected
+  profile permits that fallback. An independence-required profile stays unresolved. It does not launch a
   child CLI or bypass a harness restriction to simulate isolation.
 - Settles required checks and freezes the candidate before review. The reviewer
   receives read-only scope; the caller owns remediation, records and workflow
