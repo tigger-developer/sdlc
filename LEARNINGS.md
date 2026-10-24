@@ -1,10 +1,19 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 23
+version: 24
 last-updated: 2026-10-24
 ---
 
 # SDLC Standards: Design Learnings
+
+## Audit limits are process policy
+
+Count candidate assessments, not agent messages. Each ticket and phase has its
+own finite allowance, retained across retries and context changes. Rejecting an
+unfinished submission must not become free implementation planning. Transport
+failures remain distinct from findings and need their own bounded recovery.
+Both the requester and auditor enforce live-supervision eligibility for a
+provisional result; initiation by a human is not continuing human supervision.
 
 ## Independent review is a role, not a transport dependency
 

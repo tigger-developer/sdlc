@@ -1,6 +1,6 @@
 ---
 title: Self-Audit in the Current Context
-version: 1
+version: 2
 last-updated: 2026-10-24
 ---
 
@@ -58,15 +58,16 @@ internal without testing the suspended route.
 
 ## Review limits
 
-For managed work retain the effective `delivery.audit.max_rounds` limit
-(explicit authorized override, process environment, project, global configuration,
-then the schema default of five) separately per work item and gate. Count
-completed internal PASS/FAIL reviews in the dated internal record, not ordinary
-author checks, readiness refusals, cached reuse or provider incidents. Do not
-reset the count on skill re-entry or compaction. Historical external rounds
-remain in their own record and are not rewritten or silently replenished.
-At the internal limit without PASS, report evidence and obtain explicit operator
-authority for further rounds; do not call the harness's reset command. Standalone
-and spike profiles retain their bounded invocation/brief budgets without
-inventing persistent managed-gate state. Harness failure/retry counters apply
-only to external transport and are not self-audit prerequisites.
+Managed work follows REVIEW's five-round ceiling per ticket and gate, not a
+configuration value that permits additional rounds. Count deliberate completed
+reviews, including rejection of an incomplete submitted package. Ordinary author
+checks and local pre-submission readiness checks do not consume rounds. Preserve
+dated history across skill re-entry, compaction and reviewer/method changes;
+changing method does not replenish the gate's allowance or relabel independent
+evidence as internal. Keep each record's ownership and provenance intact.
+
+At round five without effective PASS, record the hard gate failure and alert the
+operator; do not run round six, reset the count or call the old harness. Standalone
+and spike profiles retain their bounded invocation/brief budgets without inventing
+managed gates. Transport incidents have their own bounded recovery and are not
+semantic review rounds. Infrastructure configuration cannot raise the ceiling.

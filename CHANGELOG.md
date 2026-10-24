@@ -6,6 +6,20 @@ last-updated: 2026-10-24
 
 # Changelog
 
+## v3.8.16 - 2026-10-24
+
+- Set a hard five-round audit ceiling per ticket and gate: define, write-tests
+  and deliver. Preserve counts across sessions and candidate/reviewer changes;
+  no effective PASS by round five requires a hard gate failure and operator alert.
+  Infrastructure owns timeouts and bounded transport recovery, not the ceiling.
+- Reject phase-incomplete submissions with FAIL rather than using reviewers as
+  next-step planners. Auditor rejections consume rounds; pre-submission checks do not.
+- Require requester and auditor to confirm live operator supervision before
+  PROVISIONAL PASS. Without it, the auditor returns FAIL and the requester also
+  rejects any provisional response as FAIL. Preserve the original response.
+- Reconcile internal review limits without changing or re-enabling legacy harness
+  code. These are rules and caller/reviewer contracts, not new runtime enforcement.
+
 ## v3.8.15 - 2026-10-24
 
 - Describe provisional-verdict eligibility as a live operator-initiated build,

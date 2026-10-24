@@ -1,6 +1,6 @@
 ---
 title: Delivery Review Gates
-version: 18
+version: 19
 last-updated: 2026-10-24
 ---
 
@@ -52,12 +52,20 @@ permits this route. Ordinary self-audit requirements do not. The caller:
   authorized self-review without calling it independent, only where the selected
   profile permits that fallback. An independence-required profile stays unresolved. It does not launch a
   child CLI or bypass a harness restriction to simulate isolation.
+- Finishes and self-reviews the phase-specific package before submission. An
+  incomplete package is not a request for the auditor to plan the next work.
+- States whether a human is currently supervising the work live in the session.
+  Requires the auditor to confirm that status before issuing PROVISIONAL PASS.
+  On receipt, independently treats a provisional result without current live
+  supervision as FAIL, preserving the original response and recording why it
+  was rejected. Missing or ambiguous supervision never permits advancement.
 - Settles required checks and freezes the candidate before review. The reviewer
   receives read-only scope; the caller owns remediation, records and workflow
   progression. No reviewer launches another reviewer.
 - Records actual separation, findings and limitations separately from internal
   review and harness-owned state. Rechecks affected evidence after remediation.
-  Re-review uses the same authorized scope and configured review allowance; a
+  Re-review uses the same authorized scope and REVIEW's five-round ceiling per
+  ticket and gate; a
   standalone invocation is one review unless further rounds were authorized.
 
 The reviewer reads none of this caller orchestration. Its complete operating
@@ -69,6 +77,16 @@ review limits. The current contracts supersede historical external invocation
 and PASS requirements. Preserve still-current historical external verdicts;
 do not repeat a review merely to change its method. A successful provider probe
 never re-enables external auditing.
+
+## Audit rounds and readiness
+
+REVIEW owns the five-round process limit independently for each ticket's define,
+write-tests and deliver gates (definition, test-code and delivery-code in existing
+records). Supply the current round and preserved history to the auditor; record
+assessments durably. Count auditor rejections of incomplete submissions, but not
+local checks that prevent submission. No effective PASS after round five means a
+hard gate failure and operator alert; do not dispatch round six or reset counters.
+Infrastructure determines timeouts and bounded recovery, not a larger audit limit.
 
 ## Composite gates
 
@@ -133,9 +151,10 @@ in harness-owned `audits.yaml`. Workflow consumption still checks current
 readiness and applicable gate criteria before accepting any result.
 An operator-requested manual independent PASS that meets those same criteria
 satisfies the review prerequisite. Apply and verify any mechanical conditions
-before accepting PROVISIONAL PASS, which is permitted only if the delivery is a
-live operator-initiated build. Automated delivery accepts only PASS or FAIL; an otherwise
-provisional result is FAIL under REVIEW, not permission to progress. Workflow references to internal PASS describe
+before accepting PROVISIONAL PASS, which requires live operator supervision
+confirmed by requester and auditor under REVIEW. Without supervision, the auditor
+must return FAIL for a would-be provisional result and the requester must reject
+any provisional response as FAIL; it is not permission to progress. Workflow references to internal PASS describe
 the default suspended-harness route; they do not require a duplicate self-audit
 of an already accepted manual result. No method replaces human sign-off.
 

@@ -1,6 +1,6 @@
 ---
 title: Shared Review Criteria and Profiles
-version: 5
+version: 6
 last-updated: 2026-10-24
 ---
 
@@ -37,6 +37,17 @@ record, test colour, traceability matrix or closure. Spike review requires no
 definition gate, fixed-spec readiness, full workflow or product documentation.
 Neither profile authorizes merge or deployment. Missing context is reported,
 not replaced with invented requirements or a full PASS.
+
+## Reject incomplete submissions
+
+Before substantive review, independently establish that the supplied candidate
+and evidence meet the named profile's prerequisites below. Reject an incomplete
+submission with FAIL, identifying the missing prerequisites; do not become the
+author's next-step planner, implement missing work or grant provisional success
+for an unfinished package. Completeness is phase-specific: definition needs no
+implementation, test-code needs no target production behaviour or final product
+docs, and delivery-code may leave human UTs pending. A complete package may still
+contain defects. A requester claim alone does not establish readiness.
 
 ## Candidate, readiness and review boundaries
 
@@ -105,6 +116,36 @@ ecosystems, databases or services require prior approved amendment, including
 when introduced transitively by a package. A non-merge branch does not waive
 these boundaries. Neither profile grants the other profile's permissions.
 
+## Five-round limit per ticket and gate
+
+For managed work, each ticket has a separate allowance of at most five audit
+rounds for each gate: define (definition), write-tests (test-code) and deliver
+(delivery-code). The initial assessment is round one, leaving at most four
+further assessments. Counts do not carry between gates or between tickets.
+They do persist across sessions, reviewer changes, candidate revisions, retries
+and re-entry into the same gate; returning to a gate does not replenish it.
+
+A round is a submitted candidate receiving a substantive assessment, including
+an auditor's rejection of an incomplete submission. It is not an agent message
+or tool call. Ordinary author checks, local readiness refusals that prevent
+submission, and transport failures without an assessment are not semantic audit
+rounds. PROVISIONAL PASS, where allowed, consumes a round; its exact mechanical
+conditions must be verified before it is effective. A new substantive assessment
+is another round, not a free clarification or renamed verification.
+
+If there is no effective PASS at the fifth round, record a terminal gate failure,
+halt progression through that gate and alert the operator with the ticket, gate,
+candidate, findings and review history. Do not start a sixth round, reset the
+count, change reviewers or relabel the ticket to evade the limit. Preserve the
+failure pending operator direction; it is not automatic abandonment of the ticket.
+
+The five-round ceiling is process policy, not an infrastructure override. The
+implementing project may choose timeouts and bounded transport recovery, which
+must not create a semantic verdict or replenish review rounds. Exhausted recovery
+also requires an actionable operator alert; never retry indefinitely because no
+assessment has arrived. Standalone reviews and spikes retain their separately
+authorized bounds without inventing these managed-ticket gates.
+
 ## Findings and verdicts
 
 Report all concrete blocking findings together: location, violated requirement,
@@ -122,13 +163,19 @@ Refer unresolved scope/design disputes, departures outside the bounded permissio
 above and immediate safety risks to the operator.
 
 PASS requires no unresolved blocking findings for the reviewed candidate.
-If the delivery is a live operator-initiated build, PROVISIONAL PASS is allowed. State exact mechanical conditions; it is not effective
-as PASS until those conditions are applied and verified. It is not human
-acceptance or permission to merge.
-Automated delivery permits only PASS or FAIL as semantic audit verdicts. A
-would-be PROVISIONAL PASS must be FAIL, with the outstanding corrections and
-verification stated as findings. After remediation, reassess the candidate before
-returning PASS; do not promote the conditional result automatically. Being online
-or monitoring an automated job does not make it a live operator-initiated build. Timeout, silence, malformed output, unavailable
+PROVISIONAL PASS is allowed only for work under live operator supervision: a
+human is present in the session and supervising the work, regardless of who
+initiated the build or audit. Both requester and auditor must confirm this status.
+The requester supplies it; the auditor acknowledges it when issuing the verdict.
+Missing, ambiguous or ended supervision means provisional success is unavailable.
+
+Without live supervision, only PASS or FAIL semantic verdicts are permitted. The
+auditor returns FAIL for a would-be PROVISIONAL PASS and lists the outstanding
+corrections and verification. The requester independently rejects any provisional
+result received without current supervision as FAIL, preserving the original
+response and recording the effective disposition. Never advance on it or promote
+it automatically. Under live supervision, exact mechanical conditions must still
+be applied and verified before effective PASS. Provisional review is not human
+acceptance or merge authority. Timeout, silence, malformed output, unavailable
 providers or incomplete access are never PASS. Review provides evidence, not
 human approval, a lifted hold or authority to close work.
