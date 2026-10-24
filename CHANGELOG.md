@@ -1,10 +1,16 @@
 ---
 title: Changelog
 version: 1
-last-updated: 2026-10-24
+last-updated: 2026-10-25
 ---
 
 # Changelog
+
+## v3.8.17 - 2026-10-25
+
+- Permit explicitly disclosed answers from retained context or memory without
+  automatic rereading. Preserve applicable evidence for consequential state,
+  mandatory instruction reads and authorization; disclosures cannot replace them.
 
 ## v3.8.16 - 2026-10-24
 

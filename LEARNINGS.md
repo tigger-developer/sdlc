@@ -1,10 +1,17 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 24
-last-updated: 2026-10-24
+version: 25
+last-updated: 2026-10-25
 ---
 
 # SDLC Standards: Design Learnings
+
+## Disclosure and verification serve different purposes
+
+Clearly identified recollection can answer an ordinary question without repeated
+source reads. It cannot establish successful execution, a test result, approval
+or deployment, or authorize an action. Preserve mandatory loading and meaningful
+evidence checks while avoiding verification rituals for disclosed recollection.
 
 ## Audit limits are process policy
 

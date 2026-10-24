@@ -1,7 +1,7 @@
 ---
 title: Instruction Loading and Shared Safeguards
-version: 3
-last-updated: 2026-10-24
+version: 4
+last-updated: 2026-10-25
 ---
 
 # Instruction loading
@@ -44,8 +44,15 @@ mutation or activate a delivery workflow.
   operator-acceptance evidence; they do not expand that delegation.
 - Never widen access to data or systems without explicit human instruction.
 - Preserve human edits. Do not overwrite or revert them.
-- Assertions require current evidence. Distinguish verified fact, inference,
-  design intent and unresolved uncertainty.
+- Distinguish verified fact, recollection, inference, design intent and unresolved
+  uncertainty. Answers may use retained context or memory without rechecking,
+  provided the unverified claims are explicitly identified, for example: "From
+  the context I have, ...; I have not independently verified this." Disclose
+  possible staleness. Never present recollection as a verified observation.
+  Successful execution, test results, approval, deployment and other consequential
+  state require applicable evidence; a disclaimer cannot satisfy a check or
+  authorize action. This does not waive required instruction reading or permit
+  fabricated facts or quotations.
 - Never claim work complete from partial evidence. State what changed, what was
   checked and what remains unchecked.
 - Diagnose before explaining. Correct root causes rather than accumulating
