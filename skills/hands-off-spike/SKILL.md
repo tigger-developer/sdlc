@@ -29,8 +29,10 @@ Before creating a brief, branch, or work item:
   conditions. If nothing is unclear, say so explicitly rather than asking for
   the sake of it.
 
-This is the only question set. Every decision a human must make belongs here,
-while the operator is present.
+This is the planned preflight question set. Resolve foreseeable human decisions
+while the operator is present. A newly evidenced need to cross the agreed stack
+or architectural boundary later requires an explicit brief amendment; this rule
+does not authorize silently crossing it to avoid another question.
 
 ## 2. Record the brief and obtain sign-off
 
@@ -47,6 +49,9 @@ The brief states:
 - **Evaluation criteria:** falsifiable measures that distinguish the
   approaches, each with the evidence that will decide it.
 - **Boundaries:** the spike branch, files in scope, and prohibited actions.
+- **Agreed stack and architecture:** languages, runtimes, package/build ecosystems,
+  databases and services; established architectural boundaries and the narrow
+  choices explicitly open to exploration. Agree these before execution.
 - **Budget:** native goal limits and any approved live OT spend under
   DELIVERY.md's Hands-off one-off test budget section. Read only that section
   for the spike; it does not activate the delivery workflow or its other duties.
@@ -54,7 +59,7 @@ The brief states:
 
 Present the brief and wait for explicit sign-off. Record `Approved YYYY-MM-DD`
 in the brief, following DOCUMENTATION.md. Material changes to the question,
-criteria, or boundaries require renewed sign-off.
+criteria, stack, architecture or boundaries require renewed sign-off.
 
 ## 3. Work unattended
 
@@ -75,6 +80,14 @@ criteria, or boundaries require renewed sign-off.
   entering full SDLC delivery, gates or documentation requirements. Write an
   automated test first wherever it is the evidence for a criterion.
 - Stay inside the question. Record new questions as findings, not new work.
+- A package within the agreed stack is permitted when it supports the brief and
+  meets dependency/security standards. Adding npm, a runtime, language, database,
+  service or build ecosystem requires an explicitly approved brief amendment
+  before proceeding. A package that introduces such a dependency crosses the
+  same boundary. Architectural exploration is limited to the choices explicitly
+  opened by the brief; otherwise preserve the agreed architecture. The non-merge
+  branch restriction does not grant architectural freedom. Log package choices
+  and exploratory decisions with their evidence and consequences.
 
 ## 4. Audit the spike code
 

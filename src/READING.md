@@ -1,6 +1,6 @@
 ---
 title: Instruction Loading and Shared Safeguards
-version: 2
+version: 3
 last-updated: 2026-10-24
 ---
 
@@ -39,7 +39,9 @@ mutation or activate a delivery workflow.
   paths through the operating system. Changing directory or following a symlink
   does not grant permission to write outside the original boundary.
 - Do not silently decide product behaviour, scope, architecture, security,
-  persisted-data formats, access or irreversible outcomes.
+  persisted-data formats, access or irreversible outcomes. Explicitly delegated
+  minor decisions require a recorded rationale and the applicable review and
+  operator-acceptance evidence; they do not expand that delegation.
 - Never widen access to data or systems without explicit human instruction.
 - Preserve human edits. Do not overwrite or revert them.
 - Assertions require current evidence. Distinguish verified fact, inference,

@@ -1,6 +1,6 @@
 ---
 title: Delivery Execution and Record Responsibilities
-version: 1
+version: 2
 last-updated: 2026-10-24
 ---
 
@@ -12,6 +12,58 @@ were moved from shared standards without removing their obligations. Use AUDITS
 for review orchestration and TESTING, DOCUMENTATION, GIT and ISSUES for criteria.
 The three audit skills perform self-review only. An authorized independent review
 uses INDEPENDENT-AUDITOR instead and returns evidence to the caller.
+
+## Hands-off delivery decision authority
+
+This permission applies only to HANDS-OFF delivery of an agreed, signed-off
+specification. It does not apply to definition, attended or paired delivery,
+emergency work, or spikes. Spikes have their own approved brief and stack limits.
+
+Follow the approved design. A departure is permitted only when evidence establishes
+an implementation blocker and reasonable conforming alternatives have been
+investigated. Difficulty, effort, inconvenience, unfamiliarity, aesthetic
+preference, an easier alternative, deadline pressure or an exhausted allowance
+are not grounds for deviation and do not expand authority. Do not confuse a failed
+first attempt or a tool/setup fault with an infeasible design.
+
+Choose the smallest localized, reversible adjustment that resolves the blocker.
+A minor product decision is permitted only when it preserves the agreed purpose,
+required outcomes and architecture. Judge significance by consequences, not code
+size or implementation effort. Do not weaken acceptance criteria or tests to make
+a failing candidate appear conformant.
+
+Two red lines require operator agreement before the affected work proceeds:
+
+- Architectural change: changing established component responsibilities, system
+  or trust boundaries, state ownership, deployment topology, technology stack or
+  fundamental integration contracts.
+- Major product decisions: changing intended users, principal workflows,
+  promised capabilities, required outcomes or material compatibility commitments.
+
+Security, access, irreversible-data and spending restrictions remain binding.
+Assess every departure together with all previous departures against the original
+approved baseline, not a progressively rewritten design. Several minor decisions
+must not cumulatively cross a red line. If they do, or their significance cannot
+be established, stop the affected work for operator direction and continue other
+safe authorized work. Do not implement a red-line change pending later approval.
+
+Before implementation, append to the specification's Hands-off mode decision log:
+identifier and timestamp; original design reference; blocker and evidence;
+conforming alternatives investigated; chosen departure and rationale; user-visible
+and compatibility effects; reversibility; and the cumulative assessment against
+both red lines. Mark operator acceptance PENDING. Add affected tests, verification
+results and review findings as they become available. Preserve the signed-off
+baseline and earlier entries; do not rewrite approval to cover the departure.
+
+Supply that log and the original baseline with the review candidate. REVIEW owns
+assessment criteria. A permitted logged departure does not invalidate admission
+or require renewed definition sign-off merely because it differs from the design.
+A departure outside this permission requires the normal definition amendment and
+renewed approval. Before final acceptance, merge or closure, obtain and record
+explicit operator acceptance or rejection of every departure. Rejected departures
+require remediation and affected checks/review before acceptance; audit PASS is
+not operator acceptance. Reconcile accepted decisions into the current design
+with links to preserved decision history.
 
 ## Delivery branch and phase synchronization
 

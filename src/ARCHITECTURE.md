@@ -110,8 +110,11 @@ For each important design decision, identify appropriate verification:
 
 Implement the approved solution design. Resolve only routine details it leaves
 unspecified, within its constraints. If an approved decision cannot reasonably
-be followed, explain the conflict and obtain operator approval before departing
-from it. Convenience or an auditor's preference does not authorize redesign.
+be followed, prior operator approval is required unless an explicitly delegated
+hands-off delivery permission covers the minor departure. REVIEW defines how
+reviewers assess that recorded authority without loading workflow instructions.
+Architectural changes always require prior operator approval. Convenience,
+difficulty, effort or an auditor's preference does not authorize redesign.
 Paired and emergency work follow their recorded operator-authorized scope and
 existing approval rules; this standard adds no advance gate to either route.
 

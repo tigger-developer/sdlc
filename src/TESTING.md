@@ -1,6 +1,6 @@
 ---
 title: Testing Standards
-version: 5
+version: 6
 last-updated: 2026-10-24
 ---
 
@@ -120,6 +120,18 @@ Live human judgement is first-class UT evidence. Do not replace it with an
 automated imitation. Record the observed behaviour, reviewed candidate, material
 viewing conditions and whether a later iteration superseded it. Human approval
 is required before recording provisional paired observations as accepted UTs.
+
+## Required human acceptance in specifications
+
+Every managed change specification must define at least one meaningful UT with
+an observable outcome and explicit human assessment. This includes internal
+changes: a representative supported workflow may establish preserved behaviour.
+Confirming that automated checks reported success is not a UT. Resolve an absent
+credible UT during definition; do not waive the minimum or invent observations.
+All required UTs must be GREEN before final acceptance, merge or closure. They
+may remain AMBER during unattended delivery and delivery-code review. This
+minimum applies to specifications, not exploratory spike briefs or standalone
+code reviews, and does not invent advance gates for paired/emergency work.
 
 ## Test architecture
 

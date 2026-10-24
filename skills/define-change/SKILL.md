@@ -36,7 +36,8 @@ multiple-choice UI.
 Allocate the next never-used project work number. Create
 `specs/WNNN-descriptor/spec.org` from
 `~/.agents/sdlc/templates/v3/spec.org`. Include context, falsifiable acceptance
-criteria, traced AT/RT/UT/OT test definitions, edge cases, solution design,
+criteria, traced AT/RT/UT/OT test definitions (including at least one meaningful
+UT under TESTING.md), edge cases, solution design,
 mandatory security impact, and a context-independent delivery handoff. Apply
 `~/.agents/sdlc/ORG-SCHEMA.md`: every AC carries `:ac:` and every test `:testdef:`.
 Create `validation.org` by delivery admission; do not invent execution states

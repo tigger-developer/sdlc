@@ -29,7 +29,8 @@ Select the mode explicitly:
 
 Review implemented tests first, then production code. Check correctness,
 security, regressions, real invocation boundaries, meaningful assertions,
-coverage, dependency risks, maintainability and approved design conformance.
+coverage, dependency risks, maintainability and approved design conformance,
+including REVIEW's criteria for recorded hands-off departures.
 Check state ownership, failure handling, concurrency and compatibility where
 relevant. Passing tests do not prove design conformance or adequate coverage.
 Do not use source-grep tests as behavioural evidence.

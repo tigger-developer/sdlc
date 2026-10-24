@@ -1,6 +1,6 @@
 ---
 title: Specification Standards
-version: 2
+version: 3
 last-updated: 2026-10-24
 ---
 
@@ -138,7 +138,8 @@ scheme and must not acquire a new prefix. The document contains, in order:
   boundaries, edge cases, decisions, and next step;
 - context, scope, authorities, constraints, decisions, and blockers;
 - acceptance criteria;
-- traced AT, RT, UT, and OT test definitions;
+- traced AT, RT, UT, and OT test definitions, including at least one meaningful
+  UT under TESTING.md;
 - edge cases;
 - solution design and architecture impact, including security; and
 - a context-independent delivery handoff.

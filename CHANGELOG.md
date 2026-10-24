@@ -6,6 +6,22 @@ last-updated: 2026-10-24
 
 # Changelog
 
+## v3.8.12 - 2026-10-24
+
+- Permit evidenced, localized minor departures only during hands-off delivery of
+  an agreed specification. Preserve architectural and major-product red lines,
+  prohibit effort/difficulty shortcuts, assess cumulative effects against the
+  original baseline, and require a decision log and final operator acceptance.
+- Reconcile delivery, architecture and review rules without routing independent
+  auditors into delivery workflow. Spikes retain separate authority within an
+  upfront agreed stack; new ecosystems require an approved brief amendment.
+- Require at least one meaningful UT per managed specification and all required
+  UTs GREEN before acceptance, merge or closure. Update template schema to 10.
+  This is a standards/review requirement; no new deterministic validator check
+  or automatic migration of historical specifications is introduced.
+- Keep the audit harness suspended. These changes do not introduce a rules engine,
+  cloud execution or a replacement audit transport.
+
 ## v3.8.11 - 2026-10-24
 
 - Make definition-audit, test-code-audit and code-audit self-audit skills only.

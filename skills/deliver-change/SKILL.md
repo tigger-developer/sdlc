@@ -22,7 +22,8 @@ authority lifts a hold. If the
 operator now lifts a hold, move the item to `ACTIVE` before admission once the
 remaining conditions are satisfied.
 Do not trust copied gate metadata or begin by rerunning definition audits. A
-material specification change requires current audit evidence and renewed
+material specification change outside DELIVERY.md's Hands-off delivery decision
+authority requires current audit evidence and renewed
 operator approval: reset sign-off to `PENDING` and move the item to `REVIEW`,
 preserving history. Never edit `audits.yaml` or copy its state into the spec.
 
@@ -41,8 +42,9 @@ advise the operator that pausing delivery or reopening decisions changes the
 mode to **ATTENDED** until the operator invokes `HANDS-OFF` again; routine in-scope
 corrections do not. Hands-off
 mode is not a global default: it is activated only by invoking this delivery
-workflow, and it does not authorize changes to signed-off behaviour or other
-human-only decisions.
+workflow. Delivery-only departure authority is defined in DELIVERY.md; spikes
+do not inherit it. Human-only decisions remain outside the shared continuation
+contract.
 
 Include any required per-ticket live OT budget in that preflight, following
 `DELIVERY.md`'s **Hands-off one-off test budget** rule. Record the approved bounds and
@@ -70,9 +72,12 @@ leave the mode active; incorporate them and continue. Premature handback is a
 contract violation with a material cost, not a safer default.
 
 Make sensible reversible assumptions only within the signed-off specification
-or brief, design, standards and safety boundaries. Never infer new product
-behaviour, scope, architecture, security, access, persisted data, external
-contracts or irreversible decisions. Record material assumptions in the
+or brief, design, standards and safety boundaries. Do not infer new authority over
+product behaviour, scope, architecture, security,
+access, persisted data, external contracts or irreversible decisions. For delivery
+of an agreed specification, apply DELIVERY.md's Hands-off delivery decision
+authority as the sole limited-departure exception. Spikes instead apply their
+skill's agreed-stack and exploration boundaries. Record material assumptions in the
 `Hands-off mode decision log`: one level-two Org subtree per invocation, headed
 by its exact ISO 8601 timestamp and tagged `:hands-off:review:`, with each
 decision at level three.

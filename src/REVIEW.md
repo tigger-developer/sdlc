@@ -1,6 +1,6 @@
 ---
 title: Shared Review Criteria and Profiles
-version: 2
+version: 3
 last-updated: 2026-10-24
 ---
 
@@ -43,6 +43,8 @@ not replaced with invented requirements or a full PASS.
 - Assess the authorized scope and existing architecture, not a preferred
   redesign. Paired/emergency work uses recorded operator-authorized scope;
   do not demand an advance definition gate or retrospective pre-build review.
+- Definition requires at least one meaningful UT under TESTING.md; a ceremonial
+  check of automated results does not satisfy it.
 - Definition reviews requirements, solution design and AT/RT/UT/OT definitions
   together. Do not demand execution results at that stage. Assess scope,
   over-engineering and template inflation, not length or aesthetic preferences.
@@ -82,6 +84,27 @@ not replaced with invented requirements or a full PASS.
   also fail. Removing annotations without preserved resolution is not a remedy.
   This applies to retrospective definitions too.
 
+## Assessing recorded hands-off departures
+
+For hands-off delivery of an agreed specification only, assess the original
+approved design and cumulative decision log. A localized reversible departure
+may resolve an evidenced implementation blocker while preserving required
+outcomes and architecture. Difficulty, effort, convenience, preference or budget
+pressure alone do not justify it. Require investigated conforming alternatives,
+consequences, verification and an explicit pending operator disposition.
+Architectural changes and major product decisions are outside that permission;
+security, access, irreversible-data and spending restrictions still apply.
+Assess combined effects against the original baseline. Do not reject an otherwise
+permitted departure solely because it differs from that baseline, or award PASS
+when its authority or evidence is missing. Reviewer acceptance of compliance is
+not human acceptance of the decision. Do not load delivery workflow to assess it.
+
+For spikes, assess the agreed stack and architecture in the brief. Packages within
+that stack may support exploration; new runtimes, languages, package/build
+ecosystems, databases or services require prior approved amendment, including
+when introduced transitively by a package. A non-merge branch does not waive
+these boundaries. Neither profile grants the other profile's permissions.
+
 ## Findings and verdicts
 
 Report all concrete blocking findings together: location, violated requirement,
@@ -95,7 +118,8 @@ Evaluate evidence-backed challenges and explicitly withdraw unsupported or
 out-of-scope findings; explain why retained findings remain valid. A challenge
 alone is not remediation. Do not split known findings across rounds, omit
 evidence to evade a finding or seek another reviewer merely for a better result.
-Refer unresolved scope/design disputes and immediate safety risks to the operator.
+Refer unresolved scope/design disputes, departures outside the bounded permission
+above and immediate safety risks to the operator.
 
 PASS requires no unresolved blocking findings for the reviewed candidate.
 Independent PROVISIONAL PASS is effective only after its exact mechanical

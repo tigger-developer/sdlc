@@ -1,5 +1,5 @@
 #+TITLE: WNNN - [Concise change-specific title]
-#+SCHEMA: 9
+#+SCHEMA: 10
 #+SUBTITLE: Unified change specification
 #+STARTUP: overview
 #+OPTIONS: toc:2 num:nil
@@ -74,7 +74,8 @@ semantics, not guessed syntax. Ordinary authoring comments are not annotations.
 Only explicit operator sign-off may replace =OPERATOR_SIGNOFF= with
 =APPROVED YYYY-MM-DD=; add scope only where approval is limited. Do not name or
 paraphrase the approver. Design approval does not override an implementation hold.
-A material specification change requires renewed operator approval and current
+A material specification change outside DELIVERY.md's Hands-off delivery decision
+authority requires renewed operator approval and current
 audit evidence: reset operator sign-off to PENDING and move the work item to
 REVIEW, preserving history. Never edit the audit record directly.
 #+end_comment
@@ -234,6 +235,7 @@ Classify each test honestly:
 - RT is a persistent automated regression test included in the normal suite.
 - AT is repeatable automated verification for this change, outside that suite.
 - UT is a human user test whose result is recorded, with no artificial test file.
+  Every specification requires at least one meaningful UT under TESTING.md.
 - OT is a bounded one-off check that is not retained in the regression suite.
 
 ATs and RTs for new behaviour follow TDD and must fail for the expected reason
@@ -480,8 +482,12 @@ Keep this optional log at the end, folded. Add entries only for actual hands-off
 invocations; no fictional date or empty decision record belongs in a live spec.
 Use a level-two invocation heading with its exact ISO 8601 timestamp and
 :hands-off:review: tags, and level-three material decisions beneath it. Preserve
-superseded entries. This records reversible assumptions within authorized scope,
-not new requirements, architecture, security, access or irreversible decisions.
+superseded entries. Record reversible assumptions and permitted minor departures
+under DELIVERY.md's Hands-off delivery decision authority. Include the original
+design reference, blocker evidence, alternatives investigated, consequences,
+reversibility, cumulative assessment, verification and operator disposition
+(initially PENDING). Preserve the approved baseline; architectural and major
+product changes require prior operator agreement.
 
 Example layout only; unindent it when recording a real invocation:
 

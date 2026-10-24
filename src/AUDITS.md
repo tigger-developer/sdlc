@@ -1,6 +1,6 @@
 ---
 title: Delivery Review Gates
-version: 14
+version: 15
 last-updated: 2026-10-24
 ---
 
@@ -88,8 +88,10 @@ Address every finding as a batch: remediate valid findings and substantiate
 challenges to incorrect or out-of-scope findings. Reassess changed candidates
 and rerun affected checks. Do not expand scope to obtain PASS, split known
 findings across rounds, silently waive them or replace a reviewer to evade FAIL.
-Refer unresolved disputes or behaviour/design changes to the operator. Correct
-retrospective documentary defects within the existing review allowance without
+Refer unresolved disputes or behaviour/design changes outside DELIVERY.md's
+Hands-off delivery decision authority to the operator. Apply REVIEW's departure
+criteria to permitted logged changes; do not require the auditor to load DELIVERY.
+Correct retrospective documentary defects within the existing review allowance without
 redesigning the delivered behaviour. Report immediate safety risks promptly.
 
 A recorded current internal PASS under SELF-AUDIT satisfies that exact review
@@ -100,8 +102,10 @@ safe reversible assumption resolves, an unremediable mandatory failure or the
 applicable review limit. Human sign-off, holds, test evidence, scope, closure
 and spike non-merge/non-deployment boundaries remain unchanged.
 
-Only the operator approves definitions, changes signed-off behaviour/architecture
-and closes delivered work. `BYPASS-GATE-7` waives only advance definition
+Only the operator approves definitions, accepts departures, authorizes architectural
+or major product changes and closes delivered work. DELIVERY.md permits bounded
+minor departures during hands-off delivery pending final operator acceptance.
+`BYPASS-GATE-7` waives only advance definition
 admission, retaining applicable TDD, delivery review and retrospective evidence.
 
 ## Evidence ownership and transport

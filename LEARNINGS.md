@@ -1,10 +1,21 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 22
+version: 23
 last-updated: 2026-10-24
 ---
 
 # SDLC Standards: Design Learnings
+
+## Decision authority follows the execution mode
+
+Hands-off delivery can permit bounded minor departures without permitting changes
+in architecture or major product outcomes. Judge their cumulative consequences
+against the original approved baseline, not their effort or diff size. Record
+blocker evidence and operator disposition rather than rewriting prior approval.
+A spike's non-merge branch is not architectural freedom: agree its technology
+stack upfront and distinguish packages within it from new ecosystems. Keep these
+permissions out of the continuation contract shared by both modes. Reviewers need
+assessment criteria, not the author's delivery workflow.
 
 ## Review isolation includes transitive instructions
 
