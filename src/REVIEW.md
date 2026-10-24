@@ -1,6 +1,6 @@
 ---
 title: Shared Review Criteria and Profiles
-version: 4
+version: 5
 last-updated: 2026-10-24
 ---
 
@@ -122,14 +122,13 @@ Refer unresolved scope/design disputes, departures outside the bounded permissio
 above and immediate safety risks to the operator.
 
 PASS requires no unresolved blocking findings for the reviewed candidate.
-PROVISIONAL PASS is permitted only for explicitly paired delivery in a live
-session with the human. State exact mechanical conditions; it is not effective
+If the delivery is a live operator-initiated build, PROVISIONAL PASS is allowed. State exact mechanical conditions; it is not effective
 as PASS until those conditions are applied and verified. It is not human
 acceptance or permission to merge.
 Automated delivery permits only PASS or FAIL as semantic audit verdicts. A
 would-be PROVISIONAL PASS must be FAIL, with the outstanding corrections and
 verification stated as findings. After remediation, reassess the candidate before
 returning PASS; do not promote the conditional result automatically. Being online
-or monitoring an automated job does not make it paired delivery. Timeout, silence, malformed output, unavailable
+or monitoring an automated job does not make it a live operator-initiated build. Timeout, silence, malformed output, unavailable
 providers or incomplete access are never PASS. Review provides evidence, not
 human approval, a lifted hold or authority to close work.

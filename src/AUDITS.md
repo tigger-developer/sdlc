@@ -1,6 +1,6 @@
 ---
 title: Delivery Review Gates
-version: 17
+version: 18
 last-updated: 2026-10-24
 ---
 
@@ -133,8 +133,8 @@ in harness-owned `audits.yaml`. Workflow consumption still checks current
 readiness and applicable gate criteria before accepting any result.
 An operator-requested manual independent PASS that meets those same criteria
 satisfies the review prerequisite. Apply and verify any mechanical conditions
-before accepting PROVISIONAL PASS, which is permitted only in explicitly paired
-live delivery. Automated delivery accepts only PASS or FAIL; an otherwise
+before accepting PROVISIONAL PASS, which is permitted only if the delivery is a
+live operator-initiated build. Automated delivery accepts only PASS or FAIL; an otherwise
 provisional result is FAIL under REVIEW, not permission to progress. Workflow references to internal PASS describe
 the default suspended-harness route; they do not require a duplicate self-audit
 of an already accepted manual result. No method replaces human sign-off.

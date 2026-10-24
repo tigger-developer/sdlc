@@ -6,6 +6,12 @@ last-updated: 2026-10-24
 
 # Changelog
 
+## v3.8.15 - 2026-10-24
+
+- Describe provisional-verdict eligibility as a live operator-initiated build,
+  rather than tying it to the paired-delivery workflow. Automated delivery still
+  requires PASS or FAIL.
+
 ## v3.8.14 - 2026-10-24
 
 - Permit PROVISIONAL PASS only for explicitly paired delivery in a live human

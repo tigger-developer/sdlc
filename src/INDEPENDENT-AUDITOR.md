@@ -1,6 +1,6 @@
 ---
 title: Independent Auditor
-version: 3
+version: 4
 last-updated: 2026-10-24
 ---
 
@@ -66,7 +66,7 @@ Evaluate evidence-backed challenges; withdraw unsupported findings explicitly.
 
 PASS means no unresolved blocking finding with sufficient evidence for the
 specified scope. Otherwise return FAIL with the defects or evidence gaps.
-Use PROVISIONAL PASS only for explicitly paired delivery in a live human session,
+Use PROVISIONAL PASS only if the delivery is a live operator-initiated build,
 with exact mechanical conditions; it is not effective until verified. Automated
 delivery allows only PASS or FAIL: return FAIL for a would-be PROVISIONAL PASS,
 listing outstanding corrections and verification. A requested response format
