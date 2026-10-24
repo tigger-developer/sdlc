@@ -6,6 +6,14 @@ last-updated: 2026-10-24
 
 # Changelog
 
+## v3.8.14 - 2026-10-24
+
+- Permit PROVISIONAL PASS only for explicitly paired delivery in a live human
+  session, with conditions verified before it becomes effective.
+- Automated delivery uses only PASS or FAIL semantic verdicts. Would-be
+  provisional results are FAIL until remediation and reassessment support PASS.
+  Reconcile shared criteria, independent-auditor instructions and caller rules.
+
 ## v3.8.13 - 2026-10-24
 
 - Abandon the old audit harness as the unattended profile's execution path.
