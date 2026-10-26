@@ -1,7 +1,7 @@
 ---
 title: Delivery Execution and Record Responsibilities
-version: 3
-last-updated: 2026-10-24
+version: 4
+last-updated: 2026-10-26
 ---
 
 # Delivery execution and records
@@ -92,33 +92,34 @@ internal PASS satisfies the audit prerequisite in this section. Do not call the
 external harness to obtain a PASS before creating a delivery branch or
 synchronizing phase checkpoints. Human approval and other admission rules remain.
 
-The project profile selects the implementation branch strategy:
+The branch strategy applies to definition and delivery:
 
-- `current` keeps implementation on the operator-selected branch; and
-- `feature` uses one published implementation branch per approved change.
+- `feature` is the default and uses one published branch per change; and
+- explicit `current` keeps work on the operator-selected branch.
 
 The initializer resolves this value from command line, process environment,
 project `.sdlc/project.yaml`, user `~/.agents/sdlc.yaml`, then the schema
 default. It persists only explicit project overrides. Agents never read `.env`.
 
-Normal delivery has two synchronized phases: definition and delivery. The
-definition phase always remains on the operator-selected branch. The branch
-strategy applies only after definition-gate PASS and operator sign-off admit
-the change to delivery.
+Normal delivery has two synchronized phases: definition and delivery. Select
+or create the change branch before editing definition artefacts, then reuse it
+for delivery. Branch creation does not waive definition-gate PASS or operator
+sign-off before implementation. Explicit operator branch instructions take
+precedence; emergency work follows `EMERGENCY.md` instead.
 
-At the start of each phase:
+At the start of each phase, inspect the repository and working tree. Select
+the change branch below before editing, then pull it through its configured
+upstream and pull strategy once that upstream exists.
 
-1. Inspect the repository and working tree.
-2. Pull the active branch through its configured upstream and pull strategy
-   before changing that phase's artefacts.
+Under `feature`, before the first phase's edits:
 
-At the start of the delivery phase only, under `feature`:
+1. Reuse an existing branch assigned to the change, if present.
+2. Otherwise pull the project's recorded primary branch and create one
+   project-convention feature branch for the change.
+3. Synchronize and publish that branch through the existing configured remote.
 
-1. Pull the project's recorded primary branch.
-2. Create one project-convention feature branch for the approved change.
-3. Synchronize and publish that feature branch before implementation.
-
-Do not create, switch, merge, or delete a feature branch during definition.
+Do not create a second branch merely because definition advances to delivery.
+Do not merge or delete a branch without the applicable integration authority.
 
 At the end of each phase, after its artefacts have an effective audit PASS and
 are committed:
@@ -127,7 +128,7 @@ are committed:
 2. Push every committed phase checkpoint to that upstream.
 
 Selecting `feature` authorizes creation and first publication of the
-implementation branch through an existing configured remote. It does not
+change branch through an existing configured remote. It does not
 authorize creating or changing a remote, guessing a primary branch, or
 rewriting history. Follow the project's established branch naming and
 integration policy.

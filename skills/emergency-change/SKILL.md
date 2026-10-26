@@ -10,7 +10,8 @@ This skill is usable only when the operator includes the exact token
 `BYPASS-GATE-7` in the same request. Never infer, suggest, or self-authorize it.
 
 Read `~/.agents/sdlc/MAIN.md` and `EMERGENCY.md`, then the project profile and
-applicable standards. Treat the bounded request as the temporary specification.
+applicable standards, including `GIT.md`. Use the primary branch by default
+under `EMERGENCY.md`, unless the operator specifies another branch. Treat the bounded request as the temporary specification.
 Select the required AT, RT, UT, and OT evidence. For every justified automated test,
 write it first and observe RED. Implement, observe GREEN, and run immediate
 checks. Then reuse or create the durable work item: its ID, directory, bounded

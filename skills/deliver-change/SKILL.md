@@ -97,12 +97,11 @@ imply completion.
 
 ## Deliver the approved change
 
-After admission, apply the implementation branch strategy from the project and
-global configuration. Under `current`, remain on the operator-selected branch.
-Under `feature`, pull the project's recorded primary branch, create and publish
-one project-convention feature branch for this change, then deliver there. Do
-not create the feature branch during definition or before checking admission.
-Never guess a primary branch, remote, or naming convention.
+After admission, apply the branch strategy under `GIT.md` and `DELIVERY.md`.
+Default to `feature` and reuse the change's definition branch. If no change
+branch exists, create and publish one from the recorded primary branch through
+the existing remote. An explicit `current` override retains the selected
+branch. Never guess a primary branch, remote, or naming convention.
 
 Read `~/.agents/sdlc/ORG-SCHEMA.md`. Create `validation.org` from its template
 with one `:testdef:` heading per specified test; preserve IDs and existing history.

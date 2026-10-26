@@ -1,10 +1,17 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 26
+version: 27
 last-updated: 2026-10-26
 ---
 
 # SDLC Standards: Design Learnings
+
+## Branch defaults must agree across phases and configuration
+
+A feature-branch default must cover definition artefacts as well as code and
+must match the initializer's actual fallback. Reuse the change branch across
+phases. Existing explicit current-branch settings remain overrides; emergency
+primary-branch work is a separate, exact-token route with unchanged safety rules.
 
 ## Native hook contracts and nested homes
 

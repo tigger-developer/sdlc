@@ -1,7 +1,7 @@
 ---
 title: Git and Source-Control Standards
-version: 2
-last-updated: 2026-10-24
+version: 3
+last-updated: 2026-10-26
 ---
 
 # Git and Source-Control Standards
@@ -79,8 +79,25 @@ explicit operator decision to stage the whole worktree.
 
 ## Branches and history
 
-- Follow the repository's configured default branch and existing branch naming
-  convention. Do not impose `main`, `master`, or another model globally.
+Work on a feature branch by default, including definition, documentation,
+tests and implementation. Reuse the branch already assigned to the change;
+otherwise create one before editing. An explicit operator instruction or
+project branch policy overrides this default. Merely starting on the primary
+branch is not an override. Emergency work explicitly authorized with
+`BYPASS-GATE-7` defaults instead to the repository's recorded primary branch
+(usually `main` or `master`), unless the operator specifies another branch.
+Verify that branch rather than guessing its name. Preserve unrelated work when
+switching; never merge, reset, stash or discard it merely to reach the target.
+Branch selection alone does not authorize merge, deployment or issue closure.
+Read-only inspection does not require creating or switching branches.
+
+For governed work, apply the phase synchronization in `DELIVERY.md`. An
+explicit `delivery.branch_strategy: current` retains the selected branch;
+omission defaults to `feature`. The emergency branch rule overrides the normal
+strategy unless the operator explicitly selects a branch for that emergency.
+
+- Resolve the primary branch from repository configuration and follow its
+  existing branch naming convention. Do not assume the name `main` or `master`.
 - Rebase or merge according to project policy; do not rewrite other people's
   commits for cosmetic consistency.
 - Fetch before making claims about remote state.

@@ -10,10 +10,11 @@ Read `~/.agents/sdlc/MAIN.md`, `ISSUES.md`, `TESTING.md`, `CODING.md`,
 `ARCHITECTURE.md`, `GIT.md`, `DOCUMENTATION.md`, and `ORGMODE.md`, then the project
 profile and its selected standards and authorities.
 
-Remain on the operator-selected branch throughout definition. Do not create,
-switch, merge, or delete a feature branch. The project branch strategy applies
-only when an approved specification enters delivery. Synchronize the current
-branch at the definition boundaries required by `DELIVERY.md`.
+Apply the branch selection in `GIT.md` and `DELIVERY.md` before changing
+artefacts. Default to a feature branch for the change and reuse it for later
+delivery; an explicit branch override takes precedence. Synchronize at the
+definition boundaries required by `DELIVERY.md`. Creating a branch does not
+authorize implementation, merge or deletion.
 
 Definition defaults to **ATTENDED**. Ask the bounded clarification questions
 required to make the specification safe and context-independent. If the

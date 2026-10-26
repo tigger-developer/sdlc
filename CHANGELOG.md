@@ -6,6 +6,13 @@ last-updated: 2026-10-26
 
 # Changelog
 
+## v3.8.19 - 2026-10-26
+
+- Default to a feature branch for definition and delivery, reusing the change
+  branch across phases. Preserve explicit current-branch configuration overrides.
+- Default exact-token BYPASS-GATE-7 emergency work to the recorded primary branch
+  unless the operator specifies otherwise. Retain Git safety and approval rules.
+
 ## v3.8.18 - 2026-10-26
 
 - Add Goose installer selection, native skill projections and a PreToolUse

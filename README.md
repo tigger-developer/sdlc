@@ -224,3 +224,12 @@ at `~/.agents/sdlc`. Its command guard is a native `PreToolUse` plugin under
 `~/.agents/plugins/sdlc-command-guard-goose`. The installer preserves Goose
 configuration and other plugins. See [Goose integration](docs/goose-support.md)
 for requirements and the validation boundary.
+
+### Branch defaults
+
+Work defaults to a feature branch, reused from definition through delivery.
+Explicit branch instructions and `delivery.branch_strategy: current` settings
+remain overrides, including existing global or project settings. An omitted
+strategy now resolves to `feature`; existing explicit settings are not migrated.
+Emergency `BYPASS-GATE-7` work defaults to the recorded primary branch unless
+the operator specifies another branch. See [Git standards](src/GIT.md).
