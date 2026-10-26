@@ -1,6 +1,6 @@
 ---
 title: Git and Source-Control Standards
-version: 3
+version: 4
 last-updated: 2026-10-26
 ---
 
@@ -79,7 +79,11 @@ explicit operator decision to stage the whole worktree.
 
 ## Branches and history
 
-Work on a feature branch by default, including definition, documentation,
+The branch defaults in the following two paragraphs apply only to work governed
+by the full SDLC. Reading Git or coding standards alone does not activate them;
+they impose no branch policy on personal or other non-SDLC work.
+
+For full-SDLC work, use a feature branch by default, including definition, documentation,
 tests and implementation. Reuse the branch already assigned to the change;
 otherwise create one before editing. An explicit operator instruction or
 project branch policy overrides this default. Merely starting on the primary

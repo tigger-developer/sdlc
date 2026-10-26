@@ -25,6 +25,13 @@ in full. The deployed version may differ from the source maintained in this
 repository; follow that deployed version, not a source copy or a newly built
 replacement.
 
+## Maintainer branch policy
+
+Work in this maintainer repository stays on its primary branch unless the
+operator explicitly specifies otherwise. The feature-branch default maintained
+in the public framework governs consuming projects using the full SDLC; it does
+not govern this repository merely because we maintain that source.
+
 ## Release discipline
 
 Every SDLC modification ends with a versioned release unless the operator

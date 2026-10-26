@@ -227,7 +227,9 @@ for requirements and the validation boundary.
 
 ### Branch defaults
 
-Work defaults to a feature branch, reused from definition through delivery.
+Work governed by the full SDLC defaults to a feature branch, reused from
+definition through delivery. This is not a personal or standalone coding-standard
+rule, and this maintainer repository follows its own local branch policy.
 Explicit branch instructions and `delivery.branch_strategy: current` settings
 remain overrides, including existing global or project settings. An omitted
 strategy now resolves to `feature`; existing explicit settings are not migrated.

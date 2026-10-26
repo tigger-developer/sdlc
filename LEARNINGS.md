@@ -1,10 +1,17 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 27
+version: 28
 last-updated: 2026-10-26
 ---
 
 # SDLC Standards: Design Learnings
+
+## Maintained rules are not maintainer instructions
+
+A rule being edited governs its declared consumers, not the session maintaining
+it. Full-SDLC branch policy must not leak into personal instructions or activate
+when standalone coding standards are loaded. Maintainer branch choices belong
+in repository-local instructions, separate from framework source.
 
 ## Branch defaults must agree across phases and configuration
 

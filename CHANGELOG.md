@@ -6,6 +6,13 @@ last-updated: 2026-10-26
 
 # Changelog
 
+## v3.8.20 - 2026-10-26
+
+- Restrict feature and emergency branch defaults to full-SDLC work. Reading
+  standalone standards does not impose branch policy on personal work.
+- Record the SDLC maintainer's primary-branch policy separately from the
+  instruction source it maintains. This corrects v3.8.19's overbroad scope.
+
 ## v3.8.19 - 2026-10-26
 
 - Default to a feature branch for definition and delivery, reusing the change
