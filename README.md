@@ -28,7 +28,7 @@ Neither route re-enables the external audit harness.
 The Lean SDLC helps a person and a coding agent take a software change from an
 idea to reviewed delivery. It supplies shared engineering standards, workflow
 skills, and evidence the person can inspect before approving important
-decisions. It supports Codex, Claude Code, GitHub Copilot CLI, and Hermes.
+decisions. It supports Codex, Claude Code, GitHub Copilot CLI, Hermes, and Goose.
 
 ## Why it exists
 
@@ -70,7 +70,7 @@ make install
 ```
 
 The installer asks which of the existing `~/.codex`, `~/.claude`,
-`~/.copilot`, and `~/.hermes` homes should receive native adapters. A top-level
+`~/.copilot`, `~/.hermes`, and `~/.config/goose` homes should receive native adapters. A top-level
 `active-harness` list in `~/.agents/sdlc.yaml` supplies that selection without
 asking. It does not create a missing provider home.
 
@@ -216,3 +216,11 @@ and optional manually invoked fresh-session audits through the review skills.
     [trash-cli](https://github.com/andreafrancia/trash-cli) provides the
     command; other compatible implementations can be used. Homebrew itself
     is optional.
+
+### Goose deployment
+
+Goose receives SDLC skills under `~/.config/goose/skills`; shared rules remain
+at `~/.agents/sdlc`. Its command guard is a native `PreToolUse` plugin under
+`~/.agents/plugins/sdlc-command-guard-goose`. The installer preserves Goose
+configuration and other plugins. See [Goose integration](docs/goose-support.md)
+for requirements and the validation boundary.

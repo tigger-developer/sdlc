@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ABOUTME: Blocks prohibited commands and direct .env reads before agent tool execution.
-# ABOUTME: Accepts Claude, Codex, Copilot, and Hermes pre-tool hook payloads.
+# ABOUTME: Accepts Claude, Codex, Copilot, Hermes, and Goose pre-tool hook payloads.
 set -eo pipefail
 
 command_json="$(cat)"
@@ -9,7 +9,7 @@ if ! printf '%s' "$command_json" | jq -e 'type == "object"' >/dev/null 2>&1; the
     exit 2
 fi
 command_text="$(printf '%s' "$command_json" | jq -r '.tool_input.command // .toolInput.command // .toolArgs.command // .command // empty')"
-hook_event="$(printf '%s' "$command_json" | jq -r '.hook_event_name // .hookEventName // empty')"
+hook_event="$(printf '%s' "$command_json" | jq -r '.hook_event_name // .hookEventName // .event // empty')"
 tool_name="$(printf '%s' "$command_json" | jq -r '.tool_name // .toolName // empty')"
 
 block() {

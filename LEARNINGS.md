@@ -1,10 +1,18 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 25
-last-updated: 2026-10-25
+version: 26
+last-updated: 2026-10-26
 ---
 
 # SDLC Standards: Design Learnings
+
+## Native hook contracts and nested homes
+
+An execution event is not necessarily a policy boundary: Goose's PreToolUse
+can block, whereas BeforeShellExecution cannot. Set hook-failure behaviour
+explicitly and distinguish local policy tests from native runtime validation.
+Provider homes need not be direct children of the user home; resolve shared
+assets independently of nested configuration directories.
 
 ## Disclosure and verification serve different purposes
 

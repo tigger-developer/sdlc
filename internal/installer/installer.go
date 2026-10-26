@@ -23,6 +23,7 @@ const (
 	agentCodex   = "codex"
 	agentCopilot = "copilot"
 	agentHermes  = "hermes"
+	agentGoose   = "goose"
 	agentCustom  = "custom"
 )
 
@@ -37,6 +38,7 @@ var providerDefinitions = []providerDefinition{
 	{name: agentCodex, commandPath: "prompts-commands"},
 	{name: agentCopilot, commandPath: "prompts-commands", skills: true},
 	{name: agentHermes, skills: true},
+	{name: agentGoose, skills: true},
 }
 
 var retiredCommandFiles = []string{
@@ -197,7 +199,7 @@ func Run(options Options) error {
 		if installationHasChanges(verified) {
 			return errors.New("installation verification still reports changes")
 		}
-		if err := verifyCanonicalMain(filepath.Join(filepath.Dir(agentHome), ".agents")); err != nil {
+		if err := verifyCanonicalMain(commonAgentHome(agent, agentHome)); err != nil {
 			return err
 		}
 		fmt.Fprintln(options.Output, "Installation: synchronized all planned copies.")
@@ -245,7 +247,7 @@ func RunInteractive(sourcePath, userHome, release string, input io.Reader, outpu
 	}
 	mergeInstallationPlan(&plan, shared)
 	for _, agent := range agents {
-		agentHome := filepath.Join(userHome, "."+agent)
+		agentHome := providerHome(userHome, agent)
 		provider, planErr := planProviderInstallation(agent, source, agentHome)
 		if planErr != nil {
 			return planErr
@@ -329,7 +331,7 @@ func planDetectedInstallation(source, userHome string, agents []string, release 
 	}
 	mergeInstallationPlan(&plan, shared)
 	for _, agent := range agents {
-		provider, err := planProviderInstallation(agent, source, filepath.Join(userHome, "."+agent))
+		provider, err := planProviderInstallation(agent, source, providerHome(userHome, agent))
 		if err != nil {
 			return installationPlan{}, err
 		}
@@ -346,7 +348,7 @@ func planDetectedInstallation(source, userHome string, agents []string, release 
 func planDetectedConfigurations(source, userHome string, agents []string) ([]*configurationChange, error) {
 	var changes []*configurationChange
 	for _, agent := range agents {
-		agentChanges, err := analyseConfiguration(agent, filepath.Join(userHome, "."+agent), source, io.Discard)
+		agentChanges, err := analyseConfiguration(agent, providerHome(userHome, agent), source, io.Discard)
 		if err != nil {
 			return nil, err
 		}
@@ -376,7 +378,7 @@ func confirmationAccepted(response string) bool {
 func detectedAgents(userHome string) ([]string, error) {
 	var detected []string
 	for _, provider := range providerDefinitions {
-		path := filepath.Join(userHome, "."+provider.name)
+		path := providerHome(userHome, provider.name)
 		info, err := os.Stat(path)
 		if errors.Is(err, os.ErrNotExist) {
 			continue
@@ -393,6 +395,10 @@ func detectedAgents(userHome string) ([]string, error) {
 
 func printHarnessLocalValidation(output io.Writer, agents []string) {
 	for _, agent := range agents {
+		if agent == agentGoose {
+			fmt.Fprintln(output, "Harness goose: command-guard-projection=VALID; external-audit-adapter=NOT-IN-SCOPE; native-hook-execution=UNVERIFIED")
+			continue
+		}
 		fmt.Fprintf(output, "Harness %s: command-guard-projection=VALID; external-audit-adapter-construction=VALID\n", agent)
 	}
 }
@@ -403,6 +409,8 @@ func verifyHarnessGuards(commonHome string, agents []string, output io.Writer) e
 		payload := `{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{"command":"rm obsolete"}}`
 		if agent == agentCopilot {
 			payload = `{"hookEventName":"preToolUse","toolName":"shell","toolArgs":{"command":"rm obsolete"}}`
+		} else if agent == agentGoose {
+			payload = `{"event":"PreToolUse","tool_name":"shell","tool_input":{"command":"rm obsolete"}}`
 		} else if agent == agentHermes {
 			payload = `{"hook_event_name":"pre_tool_call","tool_name":"terminal","tool_input":{"command":"rm obsolete"}}`
 		}
@@ -430,6 +438,13 @@ func verifyHarnessGuards(commonHome string, agents []string, output io.Writer) e
 }
 
 func verifyHarnessAdapters(commonHome string, agents []string) error {
+	legacy := false
+	for _, agent := range agents {
+		legacy = legacy || agent != agentGoose
+	}
+	if !legacy {
+		return nil
+	}
 	runner := filepath.Join(commonHome, "sdlc", "bin", "sdlc-harness")
 	info, err := os.Stat(runner)
 	if err != nil {
@@ -439,6 +454,9 @@ func verifyHarnessAdapters(commonHome string, agents []string) error {
 		return fmt.Errorf("verifying installed harness runner %q: expected an executable regular file", runner)
 	}
 	for _, harnessName := range agents {
+		if harnessName == agentGoose {
+			continue // Goose support does not revive the abandoned external audit harness.
+		}
 		request := harness.Request{
 			Harness: harnessName, Model: "readiness-model", Provider: "readiness-provider",
 			Prompt: "readiness", Directory: "/project", ResultFile: "/result",
@@ -533,7 +551,7 @@ func resolveTarget(agent, agentHome, source string) (string, string, error) {
 		return inferTarget(agentHome, source)
 	}
 	if !knownAgent(requested) {
-		return "", "", fmt.Errorf("unsupported agent %q; use auto, claude, codex, copilot, hermes, or custom", agent)
+		return "", "", fmt.Errorf("unsupported agent %q; use auto, claude, codex, copilot, hermes, goose, or custom", agent)
 	}
 	if agentHome == "" {
 		if requested == agentCustom {
@@ -591,6 +609,8 @@ func agentFromHome(path string) string {
 		return agentCopilot
 	case agentHermes:
 		return agentHermes
+	case agentGoose:
+		return agentGoose
 	default:
 		return ""
 	}
@@ -601,11 +621,26 @@ func defaultAgentHome(agent string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("resolving user home: %w", err)
 	}
-	return filepath.Join(home, "."+agent), nil
+	return providerHome(home, agent), nil
+}
+
+func providerHome(userHome, agent string) string {
+	if agent == agentGoose {
+		return filepath.Join(userHome, ".config", "goose")
+	}
+	return filepath.Join(userHome, "."+agent)
+}
+
+func commonAgentHome(agent, agentHome string) string {
+	parent := filepath.Dir(agentHome)
+	if agent == agentGoose && filepath.Base(parent) == ".config" {
+		parent = filepath.Dir(parent)
+	}
+	return filepath.Join(parent, ".agents")
 }
 
 func planInstallation(agent, source, agentHome, release string) (installationPlan, error) {
-	commonHome := filepath.Join(filepath.Dir(agentHome), ".agents")
+	commonHome := commonAgentHome(agent, agentHome)
 	plan := installationPlan{}
 	shared, err := planSharedInstallation(source, commonHome, release)
 	if err != nil {
@@ -777,7 +812,7 @@ func planProviderInstallation(agent, source, agentHome string) (installationPlan
 		if planErr != nil {
 			return installationPlan{}, planErr
 		}
-		canonicalSkills := filepath.Join(filepath.Dir(agentHome), ".agents", "skills")
+		canonicalSkills := filepath.Join(commonAgentHome(agent, agentHome), "skills")
 		providerSkills := filepath.Join(agentHome, "skills")
 		for _, skill := range currentSkills {
 			if isAuditSkill(skill) {
@@ -1287,6 +1322,8 @@ func analyseConfiguration(agent, agentHome, source string, output io.Writer) ([]
 		return configurationChanges(change), err
 	case agentCodex:
 		return analyseCodexConfigurations(agentHome, source, output)
+	case agentGoose:
+		return analyseGooseConfiguration(agentHome)
 	case agentHermes:
 		change, err := analyseHermesConfiguration(agentHome, source, output)
 		return configurationChanges(change), err

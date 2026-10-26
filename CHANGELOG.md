@@ -1,10 +1,17 @@
 ---
 title: Changelog
 version: 1
-last-updated: 2026-10-25
+last-updated: 2026-10-26
 ---
 
 # Changelog
+
+## v3.8.18 - 2026-10-26
+
+- Add Goose installer selection, native skill projections and a PreToolUse
+  command-guard plugin with blocking hook-failure policy. Preserve Goose config.
+- Resolve shared files outside Goose's nested configuration home. Verify local
+  policy decisions without claiming native hook execution or a legacy audit adapter.
 
 ## v3.8.17 - 2026-10-25
 
