@@ -227,10 +227,13 @@ for requirements and the validation boundary.
 
 ### Branch defaults
 
-Work governed by the full SDLC defaults to a feature branch, reused from
-definition through delivery. This is not a personal or standalone coding-standard
+Full-SDLC definition and ticket allocation stay on primary, whose `docs/work.org`
+is the canonical register. Publish a ticket reservation before using its number.
+Create a feature branch only for admitted code delivery, before writing tests or
+production code; see [branch and allocation hygiene](src/DELIVERY.md).
+This is not a personal or standalone coding-standard
 rule, and this maintainer repository follows its own local branch policy.
-Explicit branch instructions and `delivery.branch_strategy: current` settings
+Explicit implementation branch instructions and `delivery.branch_strategy: current` settings
 remain overrides, including existing global or project settings. An omitted
 strategy now resolves to `feature`; existing explicit settings are not migrated.
 Emergency `BYPASS-GATE-7` work defaults to the recorded primary branch unless

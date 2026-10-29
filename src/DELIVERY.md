@@ -1,7 +1,7 @@
 ---
 title: Delivery Execution and Record Responsibilities
-version: 4
-last-updated: 2026-10-26
+version: 5
+last-updated: 2026-10-29
 ---
 
 # Delivery execution and records
@@ -92,59 +92,87 @@ internal PASS satisfies the audit prerequisite in this section. Do not call the
 external harness to obtain a PASS before creating a delivery branch or
 synchronizing phase checkpoints. Human approval and other admission rules remain.
 
-The branch strategy applies to definition and delivery:
+### Definition and ticket authority
 
-- `feature` is the default and uses one published branch per change; and
-- explicit `current` keeps work on the operator-selected branch.
+Definition runs on the project's recorded primary branch (normally `master`
+or `main`), never on a newly created feature branch. Verify the configured
+primary branch; do not guess its name. Its `docs/work.org` is the single
+source of truth for ticket allocation, the work register and lifecycle state.
+Record and review the definition there, including its specification and feedback.
+An implementation branch's copy is a snapshot, not a competing ticket authority.
 
-The initializer resolves this value from command line, process environment,
+Before definition edits, inspect the working tree and synchronize the primary
+branch through its existing upstream. Preserve unrelated work; do not stash,
+reset, discard or carry feature changes onto primary merely to reach it. A
+separate clean checkout within the authorized workspace may be used instead.
+Apply the ticket-reservation protocol below before assigning a work number.
+Commit and publish the reviewed definition and operator sign-off on primary
+before normal delivery admission. An unpublished definition is not dispatch-ready.
+Branch configuration does not move ticket
+creation or definition onto an implementation branch.
+
+### Implementation branches
+
+The configured strategy applies only when code delivery begins, including
+writing tests, after the applicable admission requirements:
+
+- `feature` is the default: synchronize primary, verify the published ticket
+  and applicable definition baseline (signed off for normal delivery), then
+  create and publish one feature branch from
+  that revision before writing test or production code. Reuse an existing
+  implementation branch for the same ticket after checking its definition
+  baseline; do not create a second branch on resume.
+- Explicit `current` retains the operator-selected implementation branch.
+  It does not override primary-branch ticket authority.
+- Emergency work follows `EMERGENCY.md`; its later ticket reconciliation
+  still uses primary. Paired delivery retains its skeleton-before-code rule.
+
+The initializer resolves the strategy from command line, process environment,
 project `.sdlc/project.yaml`, user `~/.agents/sdlc.yaml`, then the schema
-default. It persists only explicit project overrides. Agents never read `.env`.
+default, `feature`. It persists only explicit project overrides. Agents never
+read `.env`. Documentation-only work does not create an implementation branch.
 
-Normal delivery has two synchronized phases: definition and delivery. Select
-or create the change branch before editing definition artefacts, then reuse it
-for delivery. Branch creation does not waive definition-gate PASS or operator
-sign-off before implementation. Explicit operator branch instructions take
-precedence; emergency work follows `EMERGENCY.md` instead.
+During delivery, keep code, tests and candidate-specific evidence on the
+implementation branch. Update canonical `docs/work.org` on primary with narrow,
+committed changes supported by that evidence; never merge code merely to update
+the register or overwrite primary's register with a stale branch copy. At
+integration, preserve primary's latest register and reconcile only the ticket's
+authorized state changes. Approval and closure rules remain unchanged.
 
-At the start of each phase, inspect the repository and working tree. Select
-the change branch below before editing, then pull it through its configured
-upstream and pull strategy once that upstream exists.
+Synchronize each phase's branch through its configured upstream before edits
+and after committed, reviewed phase checkpoints. The early reservation commit
+below is allocation evidence, not a completed or approved definition phase.
+Creating and publishing an implementation branch uses an existing configured
+remote; it does not authorize new remotes, merges, deployment, branch deletion
+or history rewriting. Follow `GIT.md` and the project's integration policy.
 
-Under `feature`, before the first phase's edits:
+### Ticket reservation and collision prevention
 
-1. Reuse an existing branch assigned to the change, if present.
-2. Otherwise pull the project's recorded primary branch and create one
-   project-convention feature branch for the change.
-3. Synchronize and publish that branch through the existing configured remote.
+Serialize writers sharing a checkout; never let concurrent agents edit or stage
+its register together. Separate checkouts still require the publication check
+below. A fetch alone does not reserve a number.
 
-Do not create a second branch merely because definition advances to delivery.
-Do not merge or delete a branch without the applicable integration authority.
+1. Synchronize primary and inspect its register, specifications, archives and
+   relevant history under `ISSUES.md`. Choose the next never-used number.
+2. Record a minimal reservation in primary's `docs/work.org`: ID, descriptor,
+   intended specification path and a note that definition is pending, using the
+   existing lifecycle vocabulary. Commit and push
+   this narrow reservation before treating the ID as allocated or using it in
+   a specification directory, implementation branch or external reference.
+3. A successful non-force push establishes the reservation. If primary advanced
+   and rejects the push, refresh it and recheck the namespace. Reconcile the
+   unpublished reservation; if its candidate number was taken, choose the next
+   never-used number and retry. Do not blindly replay a colliding reservation.
+   A tentative unpublished number is not an assigned identifier.
+4. Never reuse or silently renumber a published reservation. Retain abandoned
+   reservations as history. If conflicting established identities already exist,
+   stop allocation and request operator resolution with the conflicting evidence.
 
-At the end of each phase, after its artefacts have an effective audit PASS and
-are committed:
-
-1. Pull the active branch through its configured upstream and pull strategy.
-2. Push every committed phase checkpoint to that upstream.
-
-Selecting `feature` authorizes creation and first publication of the
-change branch through an existing configured remote. It does not
-authorize creating or changing a remote, guessing a primary branch, or
-rewriting history. Follow the project's established branch naming and
-integration policy.
-
-A push may run asynchronously while independent non-Git work continues, but it
-must remain tracked and only one synchronization operation may be in flight.
-Collect its result before another Git operation or operator handback. A
-transient synchronization failure does not invalidate a local audit PASS or
-require idle waiting: record it, continue safe independent work, and retry at
-the next boundary. A divergence that makes the phase baseline or resulting
-history ambiguous is a blocker; never hide it through stashing, force, or
-history rewriting.
-
-When no upstream exists, report the exact missing relationship. Do not invent a
-remote. Phase synchronization operates on coherent commits and must not stage
-unrelated worktree content.
+With no reachable upstream, do not claim a shared reservation or invent an
+alternative allocator. Discussion may continue without an assigned ticket.
+For an explicitly local-only project, primary remains authoritative and allocation
+must be serialized by one writer; concurrent definitions must wait for the
+reservation commit. No lock service or other infrastructure is implied here.
 
 ## Documentation during delivery and closure
 

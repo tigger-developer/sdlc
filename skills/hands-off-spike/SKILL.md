@@ -37,7 +37,8 @@ does not authorize silently crossing it to avoid another question.
 ## 2. Record the brief and obtain sign-off
 
 Allocate a never-used work number under the project's scheme. In an SDLC
-project, add the item to `docs/work.org` with an adjacent descriptor and keep
+project, reserve it on primary under `DELIVERY.md` before creating the spike
+branch. Add the item to primary's `docs/work.org` with an adjacent descriptor and keep
 the brief at `specs/WNNN-descriptor/spike.org`. Without a profile, use the
 project's established work record; if none exists, ask where to keep the brief
 in the step 1 question set.

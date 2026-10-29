@@ -1,7 +1,7 @@
 ---
 title: Git and Source-Control Standards
-version: 4
-last-updated: 2026-10-26
+version: 5
+last-updated: 2026-10-29
 ---
 
 # Git and Source-Control Standards
@@ -79,26 +79,20 @@ explicit operator decision to stage the whole worktree.
 
 ## Branches and history
 
-The branch defaults in the following two paragraphs apply only to work governed
-by the full SDLC. Reading Git or coding standards alone does not activate them;
-they impose no branch policy on personal or other non-SDLC work.
+These branch rules apply only to full-SDLC work, not personal work or standalone
+use of coding standards. Definition, ticket allocation and the canonical
+`docs/work.org` register stay on the recorded primary branch. Do not create
+a feature branch during definition. Follow `DELIVERY.md` for serialized ticket
+reservation and phase synchronization.
 
-For full-SDLC work, use a feature branch by default, including definition, documentation,
-tests and implementation. Reuse the branch already assigned to the change;
-otherwise create one before editing. An explicit operator instruction or
-project branch policy overrides this default. Merely starting on the primary
-branch is not an override. Emergency work explicitly authorized with
-`BYPASS-GATE-7` defaults instead to the repository's recorded primary branch
-(usually `main` or `master`), unless the operator specifies another branch.
-Verify that branch rather than guessing its name. Preserve unrelated work when
-switching; never merge, reset, stash or discard it merely to reach the target.
-Branch selection alone does not authorize merge, deployment or issue closure.
-Read-only inspection does not require creating or switching branches.
+Feature branches are the default only for code delivery, starting with test
+implementation after admission. Explicit implementation branch overrides remain
+valid. Exact-token `BYPASS-GATE-7` emergencies default to primary unless the
+operator specifies another implementation branch. Neither override moves ticket
+authority off primary. Documentation-only work does not require a feature branch.
 
-For governed work, apply the phase synchronization in `DELIVERY.md`. An
-explicit `delivery.branch_strategy: current` retains the selected branch;
-omission defaults to `feature`. The emergency branch rule overrides the normal
-strategy unless the operator explicitly selects a branch for that emergency.
+Preserve unrelated work when switching branches. Branch selection authorizes
+neither merge, deployment nor closure. Read-only work requires no branch switch.
 
 - Resolve the primary branch from repository configuration and follow its
   existing branch naming convention. Do not assume the name `main` or `master`.

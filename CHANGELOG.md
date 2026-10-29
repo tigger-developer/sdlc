@@ -1,10 +1,19 @@
 ---
 title: Changelog
 version: 1
-last-updated: 2026-10-26
+last-updated: 2026-10-29
 ---
 
 # Changelog
+
+## v3.8.21 - 2026-10-29
+
+- Keep definition and the canonical work register on primary. Create feature
+  branches only for admitted code delivery, including test implementation.
+- Require published ticket reservations with collision checks on rejected pushes;
+  preserve assigned identities and reconcile lifecycle updates on primary.
+- Correct definition/delivery skill routing without changing personal or
+  maintainer branch policy, emergency timing or implementation overrides.
 
 ## v3.8.20 - 2026-10-26
 

@@ -10,11 +10,12 @@ Read `~/.agents/sdlc/MAIN.md`, `ISSUES.md`, `TESTING.md`, `CODING.md`,
 `ARCHITECTURE.md`, `GIT.md`, `DOCUMENTATION.md`, and `ORGMODE.md`, then the project
 profile and its selected standards and authorities.
 
-Apply the branch selection in `GIT.md` and `DELIVERY.md` before changing
-artefacts. Default to a feature branch for the change and reuse it for later
-delivery; an explicit branch override takes precedence. Synchronize at the
-definition boundaries required by `DELIVERY.md`. Creating a branch does not
-authorize implementation, merge or deletion.
+Work on the project's recorded primary branch under `GIT.md` and
+`DELIVERY.md`. Do not create a feature branch during definition. Primary's
+`docs/work.org` is the ticket authority; synchronize it and publish a minimal
+reservation under `DELIVERY.md` before treating a number as allocated. Record,
+review and publish the definition on primary. Branching for code belongs to
+admitted delivery, not ticket creation.
 
 Definition defaults to **ATTENDED**. Ask the bounded clarification questions
 required to make the specification safe and context-independent. If the
@@ -34,7 +35,7 @@ scope. If operator direction raises unresolved test or design choices, ask no
 more than three additional questions for each affected area. Do not use
 multiple-choice UI.
 
-Allocate the next never-used project work number. Create
+Use the work number reserved on primary under `DELIVERY.md`. Create
 `specs/WNNN-descriptor/spec.org` from
 `~/.agents/sdlc/templates/v3/spec.org`. Include context, falsifiable acceptance
 criteria, traced AT/RT/UT/OT test definitions (including at least one meaningful

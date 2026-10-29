@@ -1,7 +1,7 @@
 ---
 title: Paired Development
-version: 3
-last-updated: 2026-10-24
+version: 4
+last-updated: 2026-10-29
 ---
 
 # Paired Development
@@ -32,6 +32,10 @@ Bounded objective
 ```
 
 ## Specification boundary
+
+Use primary for ticket reservation and the canonical register under `DELIVERY.md`;
+create an implementation branch only after the skeleton exists and the operator
+authorizes the iteration. Paired admission retains its retrospective definition.
 
 For code or script work, create the skeleton before coding unless an applicable
 work item already exists. Record its ID, title, bounded objective, constraints,

@@ -1,7 +1,7 @@
 ---
 title: Specification Standards
-version: 3
-last-updated: 2026-10-24
+version: 4
+last-updated: 2026-10-29
 ---
 
 # Specification Standards
@@ -296,6 +296,11 @@ history before allocating an identifier. Use a value greater than the highest
 value ever assigned, not the lowest currently available value. Preserve gaps.
 Where practical, retain a retired or superseded entry as durable lineage rather
 than deleting it.
+
+For full-SDLC work, primary's `docs/work.org` is the canonical ticket register.
+Reserve ticket numbers through `DELIVERY.md` before treating them as assigned;
+a feature-branch snapshot is never an allocation authority. This workflow rule
+does not apply to an independent auditor's read-only standards review.
 
 Never give a human an identifier without its descriptor. Write, for example,
 `FR-012 - repeated installation is a no-op`, not merely `FR-012`. The same rule

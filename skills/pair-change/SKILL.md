@@ -11,7 +11,9 @@ applicable standards. The operator's bounded objective and explicit iteration
 instructions are the working specification. A question remains a question.
 
 For code or script changes, reuse the applicable work item or create its skeleton
-before coding. Append authorized requirements and decisions as the session
+on primary before coding, reserving any new ID under `DELIVERY.md`. Only then
+select the implementation branch; paired admission does not require advance
+definition sign-off. Append authorized requirements and decisions as the session
 progresses. Documentation-only changes do not require a ticket.
 
 Iterate implementation with the operator. Use automated TDD wherever justified,

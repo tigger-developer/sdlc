@@ -1,7 +1,7 @@
 ---
 title: Emergency Delivery Standards
-version: 3
-last-updated: 2026-10-26
+version: 4
+last-updated: 2026-10-29
 ---
 
 # Emergency Delivery Standards
@@ -70,7 +70,9 @@ Define the expected evidence for one-off and user tests before implementation
 where practical, but do not require them to produce a pre-change failure. After
 implementation and automated verification, reuse or create the durable work item
 with its ID, directory, authorized request, actual change, and available evidence.
-This lean record is sufficient to start the implementation audit; a complete
+Reserve any new ticket and update the canonical register on primary under
+`DELIVERY.md`, even when the fix uses an explicitly selected implementation
+branch. This lean record is sufficient to start the implementation audit; a complete
 definition or prior definition PASS is not required. Documentation-only changes
 need no ticket. Never delay the fix for ticket creation.
 

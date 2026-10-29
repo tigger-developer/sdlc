@@ -97,11 +97,13 @@ imply completion.
 
 ## Deliver the approved change
 
-After admission, apply the branch strategy under `GIT.md` and `DELIVERY.md`.
-Default to `feature` and reuse the change's definition branch. If no change
-branch exists, create and publish one from the recorded primary branch through
-the existing remote. An explicit `current` override retains the selected
-branch. Never guess a primary branch, remote, or naming convention.
+After admission, verify the ticket reservation and approved definition published
+on primary. Apply `GIT.md` and `DELIVERY.md`: default to creating and publishing
+an implementation feature branch from that baseline before writing tests or
+production code. Reuse a verified implementation branch on resume. An explicit
+`current` override affects implementation only. Keep ticket allocation and
+canonical `docs/work.org` updates on primary; never allocate from a branch copy.
+Never guess a primary branch, remote or naming convention.
 
 Read `~/.agents/sdlc/ORG-SCHEMA.md`. Create `validation.org` from its template
 with one `:testdef:` heading per specified test; preserve IDs and existing history.

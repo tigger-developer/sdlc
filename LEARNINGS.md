@@ -1,10 +1,18 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 28
-last-updated: 2026-10-26
+version: 29
+last-updated: 2026-10-29
 ---
 
 # SDLC Standards: Design Learnings
+
+## Ticket identity needs one serialized authority
+
+Parallel definitions cannot allocate numbers safely from independent branch
+snapshots. A primary-branch reservation must be published before its number is
+used as an identity. A rejected push requires renewed allocation checks, not
+blind replay. Feature branches isolate implementation; they must not fork the
+project's ticket register or silently replace its newer lifecycle state.
 
 ## Maintained rules are not maintainer instructions
 
@@ -15,10 +23,11 @@ in repository-local instructions, separate from framework source.
 
 ## Branch defaults must agree across phases and configuration
 
-A feature-branch default must cover definition artefacts as well as code and
-must match the initializer's actual fallback. Reuse the change branch across
-phases. Existing explicit current-branch settings remain overrides; emergency
-primary-branch work is a separate, exact-token route with unchanged safety rules.
+The initializer's feature fallback applies to implementation, not definition.
+Definition stays on primary with the canonical ticket register; implementation
+branches start from that published baseline. This supersedes the earlier
+whole-change branch rule. Explicit current-branch settings remain implementation
+overrides; emergency primary-branch work retains its separate authorization.
 
 ## Native hook contracts and nested homes
 
