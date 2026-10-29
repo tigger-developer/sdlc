@@ -1,7 +1,7 @@
 ---
 title: Shared Review Criteria and Profiles
-version: 6
-last-updated: 2026-10-24
+version: 7
+last-updated: 2026-10-29
 ---
 
 # Shared review criteria
@@ -83,12 +83,11 @@ contain defects. A requester claim alone does not establish readiness.
 - Candidate inputs freeze for review. Changed code, tests, docs or validation
   invalidate the result for those changed inputs. Current affected checks and
   settled evidence are required before reassessment; preserve earlier results as history.
-- Harness audit findings/state belong only to harness-owned `audits.yaml`.
-  Duplicated audit state in reviewed artefacts is a blocking finding. Internal
-  review evidence is separately owned and links, rather than copies, external
-  findings. Independent results are returned to the caller for separate
-  recording, never inserted into harness-owned state. Never forge an external
-  verdict or erase unresolved findings.
+- `audits.yaml` is the sole canonical audit record under `AUDIT-RECORD.md`,
+  for self-audit and independent review. Do not duplicate findings, verdicts or
+  counters in specifications or parallel review documents. Independent reviewers
+  return findings to the authorized caller for recording. Preserve provenance
+  and unresolved findings; never fabricate separation or erase earlier results.
 - Definition fails for any semantically identified annotation record/block,
   even resolved or empty, in the spec. Use the annotation tool's actual format,
   not keyword matching. Missing/conflicting dispositions in `feedback.yaml`
@@ -133,11 +132,26 @@ rounds. PROVISIONAL PASS, where allowed, consumes a round; its exact mechanical
 conditions must be verified before it is effective. A new substantive assessment
 is another round, not a free clarification or renamed verification.
 
-If there is no effective PASS at the fifth round, record a terminal gate failure,
-halt progression through that gate and alert the operator with the ticket, gate,
-candidate, findings and review history. Do not start a sixth round, reset the
-count, change reviewers or relabel the ticket to evade the limit. Preserve the
-failure pending operator direction; it is not automatic abandonment of the ticket.
+If there is no effective PASS at the fifth round, halt autonomous progression
+and alert the operator with the ticket, gate, candidate, findings and history.
+An unattended agent must not start another round or reset its own allowance.
+Changing reviewers, methods, candidates or ticket labels does not reset it.
+
+In an interactive session, the operator may request self-audit or independent
+external audit and authorize a reset. Explicit direction to continue auditing
+after being informed of exhaustion is reset authority; no special token or
+maintainer change is required. Record that instruction before the next review.
+A reset starts a new five-round cycle for the named ticket and gate only.
+Retain all previous cycles and unresolved findings. It neither awards PASS nor
+waives criteria, readiness, holds, sign-off or independence requirements.
+A generic audit request without exhaustion/reset context does not silently
+reset an exhausted count. For unattended work, record explicit operator reset
+authority before resuming; infrastructure cannot replenish rounds on its own.
+
+Use `AUDIT-RECORD.md` for the structured record and reset provenance. The
+five-round limit bounds autonomous work; it is not a prohibition on live
+operator-directed review. External audit means an explicitly invoked independent
+fresh-context reviewer, not the retired audit harness.
 
 The five-round ceiling is process policy, not an infrastructure override. The
 implementing project may choose timeouts and bounded transport recovery, which

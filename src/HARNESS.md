@@ -1,10 +1,15 @@
 ---
 title: SDLC Audit Harness Guide
-version: 18
-last-updated: 2026-10-24
+version: 19
+last-updated: 2026-10-29
 ---
 
 # SDLC audit harness guide
+
+> RETIRED IMPLEMENTATION: the material below is historical only. Do not execute
+> its commands or apply its suspension, re-enablement or ownership rules.
+> Active review rules are REVIEW.md and AUDITS.md; AUDIT-RECORD.md defines the
+> sole canonical audits.yaml record for every review method.
 
 **Automatic external auditing is suspended until explicitly re-enabled by the operator.**
 Workflow audit steps load `definition-audit`, `test-code-audit` or `code-audit`

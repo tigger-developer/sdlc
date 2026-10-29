@@ -13,8 +13,8 @@ signed-off `spec.org`, and its current audit evidence.
 Admit delivery only when all three prerequisites hold: explicit operator
 sign-off in `spec.org`, an `ACTIVE` work item in `docs/work.org`, and accepted
 current definition-review evidence under `AUDITS.md`. That evidence may be
-internal PASS in `internal-review.md`, an accepted isolated independent result,
-or a still-current historical external PASS. Review method never substitutes
+internal PASS or an accepted isolated independent result in `audits.yaml`,
+or a still-current historical external PASS linked by that record. Review method never substitutes
 for sign-off or ACTIVE state. Do not repeat an accepted review merely to change
 its method; no new external verdict or failure is required.
 Check documented dependencies and implementation holds; only explicit operator
@@ -25,7 +25,8 @@ Do not trust copied gate metadata or begin by rerunning definition audits. A
 material specification change outside DELIVERY.md's Hands-off delivery decision
 authority requires current audit evidence and renewed
 operator approval: reset sign-off to `PENDING` and move the item to `REVIEW`,
-preserving history. Never edit `audits.yaml` or copy its state into the spec.
+preserving history. Append review results to `audits.yaml` under `AUDIT-RECORD.md`; do not copy
+its state into the spec or a parallel ledger.
 
 ## Delivery modes and continuation
 
@@ -132,8 +133,8 @@ Before requesting another audit either stage, address **every** finding as a bat
 remediate valid findings and challenge incorrect or out-of-scope findings with
 evidence under `~/.agents/sdlc/AUDITS.md`. Raise doubtful or unresolved disputes
 to the operator; never silently waive findings or expand scope to obtain a PASS.
-External auditing is suspended; do not call the harness or launch another
-reviewer. Do not re-audit the signed-off definition without a material change.
+The old external harness is retired. Use self-review by default; launch an
+independent reviewer only with explicit authority under `AUDITS.md`. Do not re-audit the signed-off definition without a material change.
 After current delivery-code internal PASS under
 `AUDITS.md`, return the results for operator validation, explicitly naming the
 review method and any loss of independence.

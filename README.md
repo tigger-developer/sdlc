@@ -1,15 +1,14 @@
 ---
 title: Lean SDLC for Coding Agents
-version: 12
-last-updated: 2026-10-24
+version: 13
+last-updated: 2026-10-29
 ---
 
 # Lean SDLC for Coding Agents
 
-## Automatic audit harness suspended
+## Review without the retired audit harness
 
-**The automatic independent audit harness is currently suspended and under
-review.** Workflow audit steps use `definition-audit`, `test-code-audit` and
+**The old automatic audit harness is retired.** Workflow audit steps use `definition-audit`, `test-code-audit` and
 `code-audit` internally in the current session, without attempting an external
 call first. Readiness checks, review criteria and human approval remain.
 
@@ -21,7 +20,8 @@ or use a self-audit skill. [AUDITS.md](src/AUDITS.md) defines the caller's
 isolation and evidence responsibilities. The reviewer loads engineering
 criteria, without MAIN or delivery orchestration. Both methods use the same
 [review criteria](src/REVIEW.md); self-review is labelled non-independent.
-Neither route re-enables the external audit harness.
+Both routes record results in `audits.yaml` under [the canonical audit record
+contract](src/AUDIT-RECORD.md). Do not maintain parallel review documents.
 
 ## What it is
 
@@ -133,13 +133,14 @@ implementation, recorded results, and review of the finished change. Automated
 regression tests establish RED and GREEN where applicable; operator and one-off
 tests remain separately identified.
 
-### Understand the audit harness
+### Historical audit harness
 
-The automatic external route described below is **suspended**. Use the review
-skills above while the harness is under review; the retained interface is not
-an instruction to invoke it during delivery.
+The implementation described below is **retired historical material**. Its
+commands, defaults and ownership rules do not govern current reviews. Use
+AUDITS.md and AUDIT-RECORD.md; a future CI implementation must follow those
+contracts rather than revive this interface.
 
-The audit harness sends a defined evidence package to an independent reviewer,
+The retired audit harness sent a defined evidence package to an independent reviewer,
 records its verdict against that revision, and manages bounded retries and
 recovery. It also performs local readiness checks before spending a review
 round. An audit verdict is evidence for human judgement, not human approval.
@@ -168,7 +169,7 @@ project paths are visible, though their contents still require review.
 | Understand the design history and v2 experiment | [Design learnings](LEARNINGS.md) |
 | Configure global defaults or project overrides | [Configuration reference](docs/CONFIGURATION.md#configuration) and [Quickstart setup](QUICKSTART.md#2-set-optional-global-defaults) |
 | Inspect installation behaviour and recovery | [Installation reference](docs/CONFIGURATION.md#install) |
-| Diagnose an audit or its readiness check | [Audit harness guide](src/HARNESS.md) and [Org schema](src/ORG-SCHEMA.md) |
+| Understand audit evidence and readiness | [Audit record](src/AUDIT-RECORD.md) and [Org schema](src/ORG-SCHEMA.md) |
 | Understand project authority and standards routing | [Core SDLC rules](src/MAIN.md) |
 | Locate templates, skills, and implementation | [Repository layout](docs/CONFIGURATION.md#repository-layout) |
 | Review legacy migration evidence | [Migration reference](docs/archive/README-v3.5.2.md#migration-evidence) |

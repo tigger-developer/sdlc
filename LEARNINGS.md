@@ -1,10 +1,18 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 29
+version: 30
 last-updated: 2026-10-29
 ---
 
 # SDLC Standards: Design Learnings
+
+## Review records belong to the process, not its executor
+
+Use one structured audit record for self and independent reviews. Preserve method,
+candidate and reset provenance so future automation can consume the same contract.
+A five-round ceiling stops autonomous loops; explicit operator reset authority
+starts a new cycle without deleting history or waiving review criteria. Retiring
+a harness must remove its ownership and revival rules from active templates.
 
 ## Ticket identity needs one serialized authority
 

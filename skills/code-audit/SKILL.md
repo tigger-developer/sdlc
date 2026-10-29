@@ -8,7 +8,7 @@ the author's current context; do not delegate or select an independent role.
 Read ~/.agents/sdlc/SELF-AUDIT.md and REVIEW.md's delivery-code criteria, with
 READING's retained-context reuse. Inspect original candidate evidence rather
 than only the authoring summary. This skill never loads the independent-auditor
-entry point or launches the suspended audit harness.
+entry point or launches the retired audit harness.
 
 Select the mode explicitly:
 
@@ -43,6 +43,6 @@ and material unresolved decisions honestly.
 
 Report every blocking finding together with location, evidence and correction.
 Remediate within scope, rerun affected checks and reassess under SELF-AUDIT.
-Record an explicitly internal result; never write audits.yaml or claim
-independence. PASS supports otherwise-authorized operator validation,
+Record the explicitly internal result in audits.yaml under AUDIT-RECORD.md;
+never create a parallel audit document or claim independence. PASS supports otherwise-authorized operator validation,
 not closure, merge or deployment.

@@ -1,7 +1,7 @@
 ---
 title: Delivery Review Gates
-version: 19
-last-updated: 2026-10-24
+version: 20
+last-updated: 2026-10-29
 ---
 
 # Delivery review gates
@@ -12,17 +12,16 @@ or delivery workflows. Read `READING.md` and reuse retained standards.
 
 ## Active invocation policy
 
-Automatic external auditing is suspended until explicitly re-enabled. Delivery
+The old external audit harness is retired, not suspended or awaiting re-enablement. Delivery
 reviews use `definition-audit`, `test-code-audit` and `code-audit` in the current
 session through `SELF-AUDIT.md`. These three skills are self-audit only; none
-launches or acts as an independent reviewer. Do not call the suspended harness,
-probe provider health, reset auditor state or wait for recovery.
+launches or acts as an independent reviewer. Do not invoke or probe the retired harness or wait for its recovery.
 These skills are authorized by a required workflow review or an explicit audit
 request, not by their mere availability in a non-SDLC project.
 
 An explicitly requested independent audit uses INDEPENDENT-AUDITOR.md directly,
 not one of the self-audit skills. A manual fresh session or an isolated native
-sub-agent may perform it. This does not re-enable the external audit harness.
+sub-agent may perform it. This is the supported external-review route; it does not use the retired harness.
 
 ### Unattended profile requiring independence
 
@@ -63,7 +62,7 @@ permits this route. Ordinary self-audit requirements do not. The caller:
   receives read-only scope; the caller owns remediation, records and workflow
   progression. No reviewer launches another reviewer.
 - Records actual separation, findings and limitations separately from internal
-  review and harness-owned state. Rechecks affected evidence after remediation.
+  review, within the canonical `audits.yaml` record. Rechecks affected evidence after remediation.
   Re-review uses the same authorized scope and REVIEW's five-round ceiling per
   ticket and gate; a
   standalone invocation is one review unless further rounds were authorized.
@@ -76,7 +75,11 @@ verdict semantics. Read `SELF-AUDIT.md` for internal records, continuation and
 review limits. The current contracts supersede historical external invocation
 and PASS requirements. Preserve still-current historical external verdicts;
 do not repeat a review merely to change its method. A successful provider probe
-never re-enables external auditing.
+does not authorize an independent review or revive the retired harness.
+
+In a live session, the operator may explicitly request self-audit or independent
+external audit and authorize a count reset. REVIEW defines that authority;
+AUDIT-RECORD records it without erasing prior cycles or findings.
 
 ## Audit rounds and readiness
 
@@ -85,7 +88,8 @@ write-tests and deliver gates (definition, test-code and delivery-code in existi
 records). Supply the current round and preserved history to the auditor; record
 assessments durably. Count auditor rejections of incomplete submissions, but not
 local checks that prevent submission. No effective PASS after round five means a
-hard gate failure and operator alert; do not dispatch round six or reset counters.
+hard gate failure and operator alert. Stop autonomous reviews; an explicit
+operator-authorized reset permits a new cycle under REVIEW and AUDIT-RECORD.
 Infrastructure determines timeouts and bounded recovery, not a larger audit limit.
 
 ## Composite gates
@@ -146,8 +150,9 @@ admission, retaining applicable TDD, delivery review and retrospective evidence.
 Self-audit records belong in the locations defined by SELF-AUDIT. Manual
 fresh-context findings are returned for recording as a separate manual review,
 with actual separation, candidate, evidence and limitations; never relabel them
-as author self-review. Managed manual-review records live beside the spec, not
-in harness-owned `audits.yaml`. Workflow consumption still checks current
+as author self-review. Managed manual-review records belong beside the spec, never
+in parallel Markdown records. Record all methods in `audits.yaml` under
+`AUDIT-RECORD.md`. Workflow consumption still checks current
 readiness and applicable gate criteria before accepting any result.
 An operator-requested manual independent PASS that meets those same criteria
 satisfies the review prerequisite. Apply and verify any mechanical conditions
@@ -155,20 +160,19 @@ before accepting PROVISIONAL PASS, which requires live operator supervision
 confirmed by requester and auditor under REVIEW. Without supervision, the auditor
 must return FAIL for a would-be provisional result and the requester must reject
 any provisional response as FAIL; it is not permission to progress. Workflow references to internal PASS describe
-the default suspended-harness route; they do not require a duplicate self-audit
+the default self-review route; they do not require a duplicate self-audit
 of an already accepted manual result. No method replaces human sign-off.
 
-Only the harness writes external findings, verdicts, revisions, round numbers,
-remediation and session identities to `audits.yaml`. Other artefacts link that
-record, never duplicate its state. Do not clear incidents, forge envelopes or
-rewrite external history. Candidate changes invalidate relevant results;
-previous verdicts remain historical evidence only for their reviewed candidate.
+`audits.yaml` is the sole canonical audit record for every method. Authorized
+self-reviewers or callers write it under `AUDIT-RECORD.md`; independent reviewers
+return findings for the caller to record. Never create or continue a parallel
+`internal-review.md`, `reviews.md` or independent-review ledger. Link existing
+files as immutable history. Preserve prior verdicts and unresolved findings.
 
-The preserved invocation, cache, timeout, reset, transport and recovery details
-are in `EXTERNAL-AUDIT.md` and `HARNESS.md`, loaded only for authorized transport
-maintenance or re-enablement. They are not part of the active review package.
-External test-code/delivery-code context reuse and counters remain transport
-responsibilities; self-audit never operates those controls.
+`EXTERNAL-AUDIT.md` and `HARNESS.md` are historical references to a retired
+implementation, not active routes or re-enablement instructions. A future CI
+harness may implement the current record and review contracts; no current
+workflow depends on it.
 
 # Canary
 

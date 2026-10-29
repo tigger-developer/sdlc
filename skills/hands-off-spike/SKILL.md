@@ -101,10 +101,10 @@ security, technology and TDD/testing standards without full SDLC readiness,
 definition gates or documentation artefacts. The caller is responsible for
 invoking each review at the stated stage; no model can prove that timing.
 
-External auditing is suspended. Do not call the harness, first provoke an
+The old external audit harness is retired. Do not call the harness, first provoke an
 external failure, or launch another model/agent/context. Address all findings
 as a batch, rerun affected checks and reassess the candidate. Record each review
-under `SELF-AUDIT.md`'s evidence contract in the brief's Findings section.
+in `audits.yaml` under `AUDIT-RECORD.md`, linked from the brief's Findings.
 Stop for an unremediable defect, exhausted invocation budget or human-only
 decision, not for the absence of an external reviewer.
 
@@ -116,11 +116,9 @@ Add a Findings section to the brief:
 - the recommendation and its main risk;
 - approaches not tried, and why;
 - the spike branch and checkpoint commits, each with a descriptor;
-- both internal review results, reviewed candidates, standards, findings,
-  remediation, checks and limitations. State that review was in this session
-  and was not independent. External review is suspended; no external failure
-  reference or verdict is required. Never create or edit `audits.yaml` for a
-  spike; its Findings section is the record.
+- links to both internal review entries, which record the reviewed candidates,
+  standards, findings, remediation, checks, limitations and actual separation. No legacy harness failure reference or verdict is required. Record reviews only in `audits.yaml` under `AUDIT-RECORD.md`; the brief's
+  Findings section links it rather than duplicating the audit.
 
 Return to ATTENDED and present the brief. The operator decides:
 

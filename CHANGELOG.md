@@ -1,10 +1,21 @@
 ---
 title: Changelog
-version: 1
+version: 2
 last-updated: 2026-10-29
 ---
 
 # Changelog
+
+## v3.8.22 - 2026-10-29
+
+- Make audits.yaml the single structured audit record for every method; prohibit
+  parallel review ledgers and preserve legacy files as linked history.
+- Define a versioned harness-independent record contract with candidate identity,
+  methods, findings, cycles and explicit operator reset provenance.
+- Bound autonomous reviews to five rounds per ticket/gate/cycle while allowing
+  interactive operator-directed reviews and resets. Retire harness revival rules.
+- This release specifies the record contract; it does not implement a new CI
+  harness, validator or automatic migration of existing records.
 
 ## v3.8.21 - 2026-10-29
 

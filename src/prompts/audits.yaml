@@ -1,3 +1,5 @@
+# RETIRED harness prompt bundle: historical implementation, not active review instructions.
+# Current review and record contracts: REVIEW.md, AUDITS.md and AUDIT-RECORD.md.
 version: 4
 session_recovery_instructions: |
   This is a replacement audit context, not a retained conversation. Read the complete current

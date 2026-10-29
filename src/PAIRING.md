@@ -1,6 +1,6 @@
 ---
 title: Paired Development
-version: 4
+version: 5
 last-updated: 2026-10-29
 ---
 
@@ -106,7 +106,7 @@ definition review with `definition-audit` internally under
 `~/.agents/sdlc/AUDITS.md`, using paired scope. This reviews requirements, design, and test
 definitions against the authorized outcome; it is not fictional advance
 approval. Correct documentary errors, but refer proposed behaviour or design
-changes to the operator for normal delivery. Do not invoke the suspended audit
+changes to the operator for normal delivery. Do not invoke the retired audit
 harness or reopen implementation merely to pursue optional improvements.
 
 At closure, present one consolidated handback containing:

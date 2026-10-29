@@ -1,10 +1,15 @@
 ---
 title: Suspended External Audit Protocol and Historical Rules
-version: 1
-last-updated: 2026-10-24
+version: 2
+last-updated: 2026-10-29
 ---
 
 # Suspended external audit protocol
+
+> RETIRED IMPLEMENTATION: the material below is historical only. Do not execute
+> its commands or apply its suspension, re-enablement or ownership rules.
+> Active review rules are REVIEW.md and AUDITS.md; AUDIT-RECORD.md defines the
+> sole canonical audits.yaml record for every review method.
 
 This reference preserves the former AUDITS version 12 text in full for history
 and authorized transport maintenance. It is not an active entry point or a

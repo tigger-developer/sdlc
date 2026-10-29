@@ -1,7 +1,7 @@
 ---
 title: Independent Auditor
-version: 5
-last-updated: 2026-10-24
+version: 6
+last-updated: 2026-10-29
 ---
 
 # Independent auditor
@@ -21,9 +21,11 @@ The invocation must identify the project and permitted paths, candidate revision
 or delta, review purpose, requirements or brief, and relevant original evidence.
 The purpose is definition, tests before implementation, implementation, or a
 bounded standalone/spike review. Managed invocations also identify the ticket,
-gate, current round and preserved review history. Apply REVIEW's five-round limit
+gate, current cycle/round, any operator reset authority and preserved review history. Apply REVIEW's five-round limit
 per ticket and gate; report limit exhaustion to the requester for operator alert,
-not a fresh allowance. Report missing or ambiguous inputs; do not invent scope,
+not a self-authorized allowance. Honour a recorded explicit operator reset under
+REVIEW and `AUDIT-RECORD.md`; return findings for the caller to record in
+`audits.yaml`, never a parallel audit document. Report missing or ambiguous inputs; do not invent scope,
 a round count or approval.
 
 Use a fresh context without the author's conversation, reasoning or desired
@@ -82,7 +84,7 @@ must independently enforce the same rule on receipt. Under live supervision,
 exact mechanical conditions still require verification before effective PASS.
 A requested response format cannot override this boundary.
 Follow an explicitly supplied machine response format, otherwise use a concise
-human-readable report. Never fabricate a harness verdict or write its records.
+human-readable report. Never fabricate a verdict or edit the canonical record yourself.
 A result applies only to the reviewed candidate and is not human approval.
 
 For human-facing interaction use the existing base canary plus AUDIT and selected

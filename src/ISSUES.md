@@ -1,6 +1,6 @@
 ---
 title: Specification Standards
-version: 4
+version: 5
 last-updated: 2026-10-29
 ---
 
@@ -11,9 +11,9 @@ an issue lifecycle or a delivery workflow.
 
 Follow `~/.agents/sdlc/ORG-SCHEMA.md` for machine-checkable AC/test headings and
 their matching execution records. Keep test definitions here, results in
-`validation.org`, and harness-owned external audit verdicts solely in
-`audits.yaml`. Author and independent review evidence is separately labelled
-and never inserted into harness-owned state.
+`validation.org`, and all audit results solely in `audits.yaml` under
+`AUDIT-RECORD.md`. Label self and independent methods explicitly; do not maintain
+parallel review documents.
 Reviewing a specification does not authorize adopting or executing its workflow.
 
 ## Defined specifications
@@ -166,7 +166,8 @@ It identifies a documented format, not an executable validator or standards pin.
 Do not silently stamp or upgrade existing specs; an authorized conversion must
 actually conform to the chosen template revision and preserve history.
 
-- **Audit state:** only the harness creates or updates `audits.yaml`; no
+- **Audit state:** authorized reviewers or callers update `audits.yaml` under
+  `AUDIT-RECORD.md`; no
   `DEFINITION_GATE` or other copied audit status belongs in `spec.org`.
 - **Author review:** separate internal records; independent results retain their
   actual method and separation. Neither writes harness state.

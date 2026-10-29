@@ -43,8 +43,8 @@ UT under TESTING.md), edge cases, solution design,
 mandatory security impact, and a context-independent delivery handoff. Apply
 `~/.agents/sdlc/ORG-SCHEMA.md`: every AC carries `:ac:` and every test `:testdef:`.
 Create `validation.org` by delivery admission; do not invent execution states
-in definition. The harness alone creates and updates
-`audits.yaml`. Add or update the descriptive work item in `docs/work.org`. Apply the
+in definition. Record reviews in `audits.yaml` under `AUDIT-RECORD.md`;
+do not create parallel audit documents. Add or update the descriptive work item in `docs/work.org`. Apply the
 change-specific title, Org hierarchy, description-list, and semantic-emphasis
 requirements in `ISSUES.md`; generic titles and visually unscannable drafts are
 not ready for audit.
@@ -70,8 +70,9 @@ evidence under `~/.agents/sdlc/AUDITS.md`. Raise doubtful or unresolved disputes
 to the operator; never silently waive findings or expand scope to obtain a PASS.
 Do not launch an external reviewer.
 
-After current internal PASS is recorded in `internal-review.md`, move the work
-item to `REVIEW`. No external verdict is required while auditing is suspended.
+After current internal PASS is recorded in `audits.yaml`, move the work
+item to `REVIEW`. Self-review requires no external verdict; an explicitly requested independent
+review uses the same canonical record with its actual method.
 Never copy the verdict into
 spec metadata. Open the specification with the previewer selected by `MAIN.md`
 and return it for operator sign-off. Preview is presentation, not a gate. After

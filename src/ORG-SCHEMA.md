@@ -1,13 +1,13 @@
 ---
 title: Specification and Validation Record Schema
-version: 2
-last-updated: 2026-10-24
+version: 3
+last-updated: 2026-10-29
 ---
 
 # Specification and validation record schema
 
 `spec.org` owns requirements and test definitions. `validation.org` owns test
-execution state and evidence. `audits.yaml` remains harness-owned audit evidence;
+execution state and evidence. `audits.yaml` owns all audit evidence under `AUDIT-RECORD.md`;
 test colours are not audit verdicts.
 
 ## Addressable records

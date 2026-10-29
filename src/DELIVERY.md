@@ -1,6 +1,6 @@
 ---
 title: Delivery Execution and Record Responsibilities
-version: 5
+version: 6
 last-updated: 2026-10-29
 ---
 
@@ -87,7 +87,7 @@ with links to preserved decision history.
 
 ### Phase synchronization
 
-While external auditing is suspended under `AUDITS.md`, a current recorded
+Under `AUDITS.md`, a current recorded
 internal PASS satisfies the audit prerequisite in this section. Do not call the
 external harness to obtain a PASS before creating a delivery branch or
 synchronizing phase checkpoints. Human approval and other admission rules remain.
@@ -245,8 +245,7 @@ but audit-ineligible. Preserve superseded runs below the same test node.
 
 The deterministic `~/.agents/sdlc/bin/sdlc-validate` reports schema errors, inventory
 and readiness as YAML. Read its `--help` and run it before the corresponding audit.
-When explicitly re-enabled, the harness repeats the same checks before spending
-a round. Schema failures and
+The caller verifies the same checks before submitting a review. Schema failures and
 ineligibility never invoke a model. Test-code requires ATs/RTs RED/GREEN and a recorded
 state for every OT/UT; delivery-code requires AT/RT/OT GREEN, permitting outstanding UTs only.
 

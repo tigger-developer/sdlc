@@ -1,6 +1,6 @@
 ---
 title: Emergency Delivery Standards
-version: 4
+version: 5
 last-updated: 2026-10-29
 ---
 
@@ -86,7 +86,7 @@ consolidate the actual requirements, test definitions and solution design
 without inventing advance ceremony. Run the retrospective
 definition review with `definition-audit` under `AUDITS.md` in the current
 session, using emergency scope. Use `code-audit` for the delivery review; the
-external harness is suspended. Correct documentary errors; refer behaviour or design changes to the
+old external harness is retired. Correct documentary errors; refer behaviour or design changes to the
 operator for normal delivery. Complete outstanding user tests against the audited
 candidate. Missing AT/RT/OT results block audit admission; outstanding UTs block closure.
 

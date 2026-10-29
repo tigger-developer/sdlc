@@ -61,10 +61,11 @@ The Synopsis and explicit test expectations are intentional repetitions. Preserv
 material detail without imposing a word limit or creating a second summary file.
 
 The work item's TODO keyword in =docs/work.org= is its sole lifecycle state.
-Only the harness creates or updates =audits.yaml=; it owns external harness results.
-Current self-review evidence lives in =internal-review.md=; accepted independent
-results retain their separate method and evidence. Follow AUDITS.md for gate
-acceptance. Never require a new harness verdict while that route is suspended.
+=audits.yaml= is the sole audit record for self-review and independent review.
+The authorized reviewer or caller records results under AUDIT-RECORD.md;
+independent auditors return findings for the caller to record. Do not create
+parallel =internal-review.md= or other review ledgers. Link legacy records as
+history. Follow AUDITS.md for gate acceptance; no audit harness is required.
 Do not copy audit findings, verdicts or session state into this specification.
 Follow annotation review in =ISSUES.md=: preserve resolved feedback and its
 disposition in =feedback.yaml= before removing its annotation. Unresolved feedback
@@ -77,7 +78,7 @@ paraphrase the approver. Design approval does not override an implementation hol
 A material specification change outside DELIVERY.md's Hands-off delivery decision
 authority requires renewed operator approval and current
 audit evidence: reset operator sign-off to PENDING and move the work item to
-REVIEW, preserving history. Never edit the audit record directly.
+REVIEW, preserving history. Append new reviews under AUDIT-RECORD.md; never rewrite previous verdicts.
 #+end_comment
 
 * Synopsis

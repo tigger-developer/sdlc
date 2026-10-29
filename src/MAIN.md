@@ -1,7 +1,7 @@
 ---
 title: Lean Software Delivery Standards
-version: 6
-last-updated: 2026-10-24
+version: 7
+last-updated: 2026-10-29
 ---
 
 # Lean Software Delivery Standards
@@ -17,11 +17,11 @@ does not restart the loading chain. Missing/lost text must be read, not guessed.
 
 ## Standing audit mode: internal only
 
-Automatic external auditing is suspended. `AUDITS.md` owns delivery review
+The old external audit harness is retired. `AUDITS.md` owns delivery review
 orchestration and routes current-session review through `SELF-AUDIT.md` and the
 three review skills. The three review skills never launch another reviewer. An explicitly requested
 independent review follows AUDITS' caller contract and INDEPENDENT-AUDITOR.
-The suspended external harness is not invoked. Review prerequisites
+The retired external harness is not invoked. Review prerequisites
 never replace human approval, readiness, tests, scope, holds or closure.
 
 This repository is a standalone standards and delivery framework for coding
@@ -117,8 +117,8 @@ Normal delivery has two phases and two human gates:
 
 Read `AUDITS.md` before any gate for its purpose, evidence ownership, finding
 resolution and continuation contract. Ordinary author checks are not extra
-review rounds. Test-code PASS is not delivery approval. Never edit or duplicate
-harness-owned `audits.yaml`; internal evidence has a separate owner.
+review rounds. Test-code PASS is not delivery approval. Record every review method in canonical `audits.yaml` under `AUDIT-RECORD.md`;
+never duplicate audit state in parallel documents.
 
 A specification is a delivery handoff. A new agent must be able to deliver it
 using only `spec.org`, `.sdlc/project.yaml`, the named authorities, and the
