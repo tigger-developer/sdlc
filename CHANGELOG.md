@@ -1,10 +1,17 @@
 ---
 title: Changelog
 version: 2
-last-updated: 2026-10-29
+last-updated: 2026-10-31
 ---
 
 # Changelog
+
+## v3.8.23 - 2026-10-31
+
+- Draft defect-raise as a reporting and ticket-registration skill, separate from
+  diagnosis, change definition and implementation. Keep the draft outside deployment.
+- Propose shared ticket identity and defect.org records, retaining the existing
+  specs root pending a separate decision about tickets naming and migration.
 
 ## v3.8.22 - 2026-10-29
 
