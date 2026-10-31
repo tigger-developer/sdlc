@@ -239,3 +239,20 @@ remain overrides, including existing global or project settings. An omitted
 strategy now resolves to `feature`; existing explicit settings are not migrated.
 Emergency `BYPASS-GATE-7` work defaults to the recorded primary branch unless
 the operator specifies another branch. See [Git standards](src/GIT.md).
+
+### Ticket layout and v3 migration
+
+All new tickets live directly under `tickets/`. Use W for work, D for defects
+and S for spikes, sharing one number sequence: W123, D124, S125, W126. Keep
+`spec.org`, `defect.org` and `spike.org` as appropriate within each directory.
+Existing identities are preserved. `docs/work.org` remains the shared register.
+
+If an initialized v3 project still has `specs/`, run `sdlc-init` before normal
+agent work. It uses `git mv -- specs tickets` and replaces every literal `specs/` in
+tracked `.org`, `.md` and `.yaml` files, including files inside `tickets/`,
+hyperlinks and audit references.
+It rejects non-text selected documents, conflicting roots or a dirty tree,
+and commits the migration without model calls or redoing configuration.
+Selected symlinks pointing at `specs/` require operator resolution
+before migration. No source directory means no migration is needed.
+Existing v1/v2 initialization remains available through the same command.

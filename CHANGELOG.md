@@ -6,6 +6,16 @@ last-updated: 2026-10-31
 
 # Changelog
 
+## v3.9.0 - 2026-10-31
+
+- Use flat tickets directories and W/D/S prefixes sharing one numeric sequence.
+  Preserve existing IDs; keep spec.org, defect.org and spike.org filenames.
+- Add a deterministic v3 initializer migration: rename specs to tickets and
+  replace specs/ references in tracked text, preserving configuration and numbers.
+- Require migration before normal SDLC work when specs remains. Update skills,
+  templates and the defect-raise skill. Define, deliver and defect-raise refuse
+  uninitialized or old-layout projects; v1/v2 initialization remains supported.
+
 ## v3.8.24 - 2026-10-31
 
 - Revise the defect-raise draft to place new reports under specs/defects while

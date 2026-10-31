@@ -1,5 +1,5 @@
 #+TITLE: WNNN - [Concise change-specific title]
-#+SCHEMA: 10
+#+SCHEMA: 11
 #+SUBTITLE: Unified change specification
 #+STARTUP: overview
 #+OPTIONS: toc:2 num:nil
@@ -14,7 +14,8 @@ result. Copy it unchanged into new specifications; follow ISSUES.md for versioni
 
 Use a new project-wide work number and never reuse an identifier. Replace every
 instructional placeholder before definition sign-off. The document title must
-name the change as =WNNN - [concise change-specific title]=. Generic titles such
+name the change with its existing ticket ID and a concise descriptor. New work
+uses W; a defect fix retains its D ID and an existing ticket keeps its identity. Generic titles such
 as =Spec sheet=, =Specification=, =Change=, or =Untitled= are invalid.
 Keep the opening section named =Synopsis=; do not repeat the document title
 as its headline. Preserve its =CUSTOM_ID: summary= for stable links.

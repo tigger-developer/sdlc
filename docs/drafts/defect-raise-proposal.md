@@ -1,38 +1,24 @@
 # Defect raising and ticket storage
 
-Status: storage layout agreed; skill remains a draft outside installed skills.
+Status: storage and numbering agreed; the skill source is now in
+`skills/defect-raise/SKILL.md`. Deployment remains a separate operator action.
 
-## Storage layout
+Use a flat `tickets/` root. Work items use W, defects D and spikes S, sharing
+one numeric namespace: W123, D124, S125, W126. Allocate above the highest ever
+reserved number across all types, not from independent counters. All types
+share primary's `docs/work.org` register and lifecycle.
 
-Keep `specs/`. New defect reports go in
-`specs/defects/<ticket>-description/defect.org`. Existing feature and spike
-locations remain unchanged. All tickets share the existing number namespace
-and primary's `docs/work.org` register and lifecycle authority.
+- `tickets/W123-description/spec.org`
+- `tickets/D124-description/defect.org`
+- `tickets/S125-description/spike.org`
 
-```text
-specs/
-  W123-feature-description/spec.org
-  W124-spike-description/spike.org
-  defects/
-    W125-defect-description/
-      defect.org
-```
+A defect's later fix specification stays in its D-prefixed directory under the
+same identity. Diagnosis and fix design remain unnecessary for initial reporting.
 
-Existing projects retain their number format, including schemes without a W
-prefix. The defects subdirectory segregates reports on disk, not in numbering
-or lifecycle. Allocation and duplicate checks must cover the shared register
-and nested defect directories, not just immediate children of `specs/`.
+For initialized v3 projects, `sdlc-init` renames `specs/` to `tickets/` and
+replaces all `specs/` references in all tracked `.org`, `.md` and `.yaml` files, including those
+inside the renamed directory. It does not reclassify or
+renumber existing identities. Normal work stops until migration is performed.
 
-A newly raised defect needs its report and register entry. If correction later
-requires `spec.org`, add it to the same defect directory with the same ticket
-number, linking the report and original requirements. Validation and audit
-records are added there only when required by the subsequent work. Diagnosis
-and fix design are not prerequisites for registration.
-
-## Scope and history
-
-The earlier proposal to introduce `tickets/` is withdrawn. No directory-root
-migration or relocation of existing tickets is required. Reuse an existing
-defect's current location when adding evidence instead of moving it or creating
-a duplicate. The draft skill does not activate a new delivery route or weaken
-implementation approval requirements.
+The earlier specs/defects proposal is superseded by this flat layout. No separate
+defect tree or numeric namespace remains in the proposal.

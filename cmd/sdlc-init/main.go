@@ -123,8 +123,10 @@ func printBootstrapHelp(output io.Writer) {
 func printInitPurpose(output io.Writer) {
 	fmt.Fprintln(output, "Initialize or migrate one Git project to the installed SDLC framework.")
 	fmt.Fprintln(output, "")
-	fmt.Fprintln(output, "Run it once from the project root. It creates the project profile and work")
-	fmt.Fprintln(output, "ledger, optionally migrates legacy tickets, and preserves prior SDLC state.")
+	fmt.Fprintln(output, "Run from the project root. It creates the project profile and work")
+	fmt.Fprintln(output, "ledger, migrates legacy projects, and preserves prior SDLC state.")
+	fmt.Fprintln(output, "For initialized v3 projects, it renames specs to tickets and replaces all")
+	fmt.Fprintln(output, "specs/ references in tracked .org, .md and .yaml files, without configuration prompts.")
 	fmt.Fprintln(output, "It does not install or update the global SDLC framework; run make install")
 	fmt.Fprintln(output, "from the SDLC source repository for that operation.")
 	fmt.Fprintln(output, "")

@@ -23,7 +23,7 @@ import (
 
 const projectProfilePath = ".sdlc/project.yaml"
 
-var historicalIdentifierPattern = regexp.MustCompile(`(?m)(?:^|[^A-Za-z0-9])(?:W|AC|RT|UT|OT)0*([0-9]+)(?:[.]|\b)|#0*([0-9]+)\b`)
+var historicalIdentifierPattern = regexp.MustCompile(`(?m)(?:^|[^A-Za-z0-9])(?:[WDS]|AC|RT|UT|OT)0*([0-9]+)(?:[.]|\b)|#0*([0-9]+)\b`)
 
 // Technology is one automatically discovered technology standard.
 type Technology struct {
@@ -31,7 +31,7 @@ type Technology struct {
 	Path string
 }
 
-// Options controls one once-only project initialization.
+// Options controls project initialization and supported layout migrations.
 type Options struct {
 	ProjectRoot          string
 	SDLCRoot             string
@@ -79,17 +79,18 @@ func Run(options Options) error {
 	if err := ensureGitRepository(options, projectRoot); err != nil {
 		return err
 	}
+	if info, err := os.Lstat(filepath.Join(projectRoot, projectProfilePath)); err == nil {
+		if !info.Mode().IsRegular() {
+			return fmt.Errorf("%s must be a regular file", projectProfilePath)
+		}
+		return migrateV3Tickets(options, projectRoot)
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return fmt.Errorf("checking project profile: %w", err)
+	}
 	workspace := initializationWorkspacePath(projectRoot)
 	resume, err := interruptedMigration(options, projectRoot, workspace)
 	if err != nil {
 		return err
-	}
-	if _, err := os.Stat(filepath.Join(projectRoot, projectProfilePath)); err == nil && resume == nil {
-		return fmt.Errorf("%s already exists; sdlc-init runs exactly once", projectProfilePath)
-	} else if !errors.Is(err, os.ErrNotExist) {
-		if err != nil {
-			return fmt.Errorf("checking project profile: %w", err)
-		}
 	}
 	if resume == nil {
 		if err := requireCleanWorktree(options, projectRoot); err != nil {

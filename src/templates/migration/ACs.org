@@ -17,7 +17,7 @@
 #   disposition, provenance, and rationale only. Ticket bodies and comments are
 #   not current requirement or AC authorities.
 # - Requirements established or changed through SDLC v3 are governed by
-#   signed-off =specs/*/spec.org= artefacts.
+#   signed-off =tickets/*/spec.org= artefacts.
 #
 # Lossless conversion rules:
 # - Preserve every AC identifier, descriptor, requirement, source, shipped or
@@ -54,7 +54,7 @@ requirements established under the legacy ticket-led process, including current
 and superseded requirements, provenance, and test traceability. Initialization
 folds this complete hierarchy into =docs/work.org=, which then becomes the sole
 requirement authority. Requirements established or changed through SDLC v3 are
-governed by signed-off =specs/*/spec.org= artefacts.
+governed by signed-off =tickets/*/spec.org= artefacts.
 
 The migration index and archived tickets retain disposition, provenance, and
 rationale only. Ticket bodies and comments are not current requirement or AC

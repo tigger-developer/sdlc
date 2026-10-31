@@ -3,6 +3,17 @@ name: define-change
 description: Define and audit one lean SDLC v3 change through operator sign-off, without implementing it.
 ---
 
+## Initialization prerequisite
+
+Before creating or editing any ticket or candidate, require a readable
+`.sdlc/project.yaml` declaring version 3 and no project-root `specs/`
+directory. If either condition fails, stop this skill and tell the operator to
+run `sdlc-init` from the project root. Do not allocate an ID, edit a record,
+start a review or write code until initialization/migration succeeds. Do not
+work around the check, migrate by hand or infer permission to invoke the
+initializer. Recheck the profile and layout before resuming.
+
+
 Follow `~/.agents/sdlc/READING.md`; reuse required documents already read in
 full, unchanged and retained in context. A skill transition does not reload them.
 
@@ -35,8 +46,9 @@ scope. If operator direction raises unresolved test or design choices, ask no
 more than three additional questions for each affected area. Do not use
 multiple-choice UI.
 
-Use the work number reserved on primary under `DELIVERY.md`. Create
-`specs/WNNN-descriptor/spec.org` from
+Reserve the next shared numeric ID on primary under `DELIVERY.md`, using W
+for a new work item. Reuse a defect's D identity when defining its fix. Create
+`tickets/WNNN-descriptor/spec.org` from
 `~/.agents/sdlc/templates/v3/spec.org`. Include context, falsifiable acceptance
 criteria, traced AT/RT/UT/OT test definitions (including at least one meaningful
 UT under TESTING.md), edge cases, solution design,

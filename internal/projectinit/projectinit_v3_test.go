@@ -642,7 +642,7 @@ func TestRunInitializesOnceOnMigrationBranch(t *testing.T) {
 	if branch != "sdlc-v3-migration-2026-09-06" {
 		t.Fatalf("branch = %s", branch)
 	}
-	if err := Run(options); err == nil || !strings.Contains(err.Error(), "runs exactly once") {
+	if err := Run(options); err != nil {
 		t.Fatalf("second initialization error = %v", err)
 	}
 }

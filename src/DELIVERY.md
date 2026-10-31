@@ -1,7 +1,7 @@
 ---
 title: Delivery Execution and Record Responsibilities
-version: 6
-last-updated: 2026-10-29
+version: 7
+last-updated: 2026-10-31
 ---
 
 # Delivery execution and records
@@ -153,7 +153,9 @@ its register together. Separate checkouts still require the publication check
 below. A fetch alone does not reserve a number.
 
 1. Synchronize primary and inspect its register, specifications, archives and
-   relevant history under `ISSUES.md`. Choose the next never-used number.
+   relevant history under `ISSUES.md`. Choose one more than the highest number
+   ever reserved across W, D, S and legacy IDs, then prefix it for the new type.
+   W123 -> D124 -> S125 -> W126 is one sequence, not three counters.
 2. Record a minimal reservation in primary's `docs/work.org`: ID, descriptor,
    intended specification path and a note that definition is pending, using the
    existing lifecycle vocabulary. Commit and push

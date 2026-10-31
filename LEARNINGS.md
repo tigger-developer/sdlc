@@ -1,10 +1,18 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 30
-last-updated: 2026-10-29
+version: 31
+last-updated: 2026-10-31
 ---
 
 # SDLC Standards: Design Learnings
+
+## Layout migration is not project reinitialization
+
+Detect an existing v3 profile before legacy migration orchestration. A root
+rename needs git mv and reference replacement, not configuration discovery,
+ticket reclassification or model calls. Ticket prefixes classify work while
+the numeric component stays in one allocation namespace. Keep illustrative
+numbers inside example blocks so they are not mistaken for reserved tickets.
 
 ## Review records belong to the process, not its executor
 

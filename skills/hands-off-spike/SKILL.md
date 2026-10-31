@@ -36,10 +36,11 @@ does not authorize silently crossing it to avoid another question.
 
 ## 2. Record the brief and obtain sign-off
 
-Allocate a never-used work number under the project's scheme. In an SDLC
+Allocate the next shared numeric ticket number with the S prefix under
+`ISSUES.md`; W, D and S do not have separate counters. In an SDLC
 project, reserve it on primary under `DELIVERY.md` before creating the spike
 branch. Add the item to primary's `docs/work.org` with an adjacent descriptor and keep
-the brief at `specs/WNNN-descriptor/spike.org`. Without a profile, use the
+the brief at `tickets/SNNN-descriptor/spike.org`. Without a profile, use the
 project's established work record; if none exists, ask where to keep the brief
 in the step 1 question set.
 
@@ -64,7 +65,7 @@ criteria, stack, architecture or boundaries require renewed sign-off.
 
 ## 3. Work unattended
 
-- Create `spike/WNNN-descriptor` from the operator-selected branch. Commit
+- Create `spike/SNNN-descriptor` from the operator-selected branch. Commit
   coherent checkpoints there. Synchronize it only as GIT.md permits through an
   existing remote. **Never merge it, rebase another branch onto it, or deploy
   from it.**

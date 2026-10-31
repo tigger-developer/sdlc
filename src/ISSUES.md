@@ -1,7 +1,7 @@
 ---
 title: Specification Standards
-version: 5
-last-updated: 2026-10-29
+version: 6
+last-updated: 2026-10-31
 ---
 
 # Specification Standards
@@ -130,9 +130,10 @@ relationship.
 
 ## Unified specification
 
-Normal delivery uses one Org document at `specs/WNNN-descriptor/spec.org`. New
-v3 work uses the `WNNN` prefix; migrated projects retain their established
-scheme and must not acquire a new prefix. The document contains, in order:
+Normal delivery uses `tickets/<ticket>-descriptor/spec.org`. A new work item
+uses W, a defect D and a spike S; a defect's later fix specification retains
+its D identity and lives beside `defect.org`. A spike brief is `spike.org`.
+The specification contains, in order:
 
 - a scan-friendly summary covering outcome, before, after, changes, unchanged
   boundaries, edge cases, decisions, and next step;
@@ -284,6 +285,27 @@ Do not contradict a reported observation merely because the current code or a
 different environment suggests it should be impossible. Treat the discrepancy
 as diagnostic evidence: both observations may be true under different paths,
 configuration, state, or timing.
+
+## Ticket identities and storage
+
+All new tickets share one numeric namespace, regardless of prefix. Use W for
+work/specifications, D for defects and S for spikes. W123 followed by a defect,
+a spike and a work item produces D124, S125 and W126. Never restart or maintain
+a separate counter for each prefix. Choose one more than the highest number
+ever reserved across all types, including archived and abandoned entries, not
+merely the last displayed line in `docs/work.org`.
+
+Store tickets in one flat root: `tickets/W123-description/spec.org`,
+`tickets/D124-description/defect.org`, `tickets/S125-description/spike.org`.
+Do not create a defects or spikes subdirectory. All types remain in the same
+primary-branch `docs/work.org` register with their existing lifecycle and type
+tags. Reserve IDs under DELIVERY's publication protocol. Ticket identity stays
+stable when a defect gains a fix specification; do not allocate a second number.
+
+Existing IDs are historical identities, including unprefixed or older W-prefixed
+spikes/defects. Directory migration does not change them. New allocations follow
+W/D/S and include all historical numbers when determining the next number.
+A project still containing root `specs/` must run `sdlc-init` before normal work.
 
 ## Identifiers and human communication
 

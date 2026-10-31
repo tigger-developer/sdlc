@@ -3,6 +3,17 @@ name: deliver-change
 description: Deliver a signed-off SDLC v3 specification through TDD and validation, using native goal-backed hands-off continuation where available.
 ---
 
+## Initialization prerequisite
+
+Before creating or editing any ticket or candidate, require a readable
+`.sdlc/project.yaml` declaring version 3 and no project-root `specs/`
+directory. If either condition fails, stop this skill and tell the operator to
+run `sdlc-init` from the project root. Do not allocate an ID, edit a record,
+start a review or write code until initialization/migration succeeds. Do not
+work around the check, migrate by hand or infer permission to invoke the
+initializer. Recheck the profile and layout before resuming.
+
+
 Follow `~/.agents/sdlc/READING.md`; reuse required texts already read in full,
 unchanged and retained in context. Reading lists do not request duplicate loads.
 

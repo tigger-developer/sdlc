@@ -70,7 +70,7 @@ provides a durable cross-cutting category that the standard tags cannot express.
 :CREATED: YYYY-MM-DD
 :END:
 
-- *Specification:* [[file:../specs/WNNN-concise-descriptor/spec.org][WNNN - Concise descriptor]]
+- *Specification:* [[file:../tickets/WNNN-concise-descriptor/spec.org][WNNN - Concise descriptor]]
 #+end_example
 
 Use =OWNER= and =BRANCH= properties only when concurrent work needs explicit
@@ -78,6 +78,10 @@ coordination. Use =MIGRATION_DISPOSITION= only to preserve an immutable migratio
 classification; it is provenance, not current state.
 
 * Work items
+
+New tickets use W (work), D (defect) or S (spike), sharing one numeric
+sequence across all prefixes. All ticket directories are directly under
+=tickets/=. Preserve existing identities and count archived reservations.
 
 * Legacy Acceptance Criteria (SDLC v1)                         :legacy:
 :PROPERTIES:

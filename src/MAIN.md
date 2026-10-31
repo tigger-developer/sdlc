@@ -1,7 +1,7 @@
 ---
 title: Lean Software Delivery Standards
-version: 7
-last-updated: 2026-10-29
+version: 8
+last-updated: 2026-10-31
 ---
 
 # Lean Software Delivery Standards
@@ -14,6 +14,16 @@ delivery agent's self-audit does not select that role.
 For other authorized SDLC work, follow `READING.md`: required full reading is
 satisfied by unchanged text already read and retained in context. A new skill
 does not restart the loading chain. Missing/lost text must be read, not guessed.
+
+## Ticket layout migration check
+
+Before proceeding with project work, check for a root `specs/` directory. If
+present, stop normal work and require `sdlc-init` (the SDLC init command) first.
+Do not create tickets, edit definitions or implement against the old layout.
+Initialization/migration and read-only diagnosis of its blockers are permitted.
+For an already-v3 project this renames `specs` to `tickets` and replaces
+`specs/` references in all tracked `.org`, `.md` and `.yaml` files. Do not migrate by ad hoc agent edits.
+This check applies to consuming SDLC projects, not instruction source maintainers.
 
 ## Standing audit mode: internal only
 
@@ -33,6 +43,15 @@ The canonical installed root is exactly `~/.agents/sdlc`. Never search the
 filesystem to locate it. If `~/.agents/sdlc/MAIN.md` is absent or unreadable,
 report that exact path.
 
+## Raising defects
+
+An explicit request to register a defect uses `defect-raise`, not
+`define-change`. Record observations, expectations and evidence without requiring
+root cause or fix design. It uses primary, the shared numeric namespace and
+`tickets/DNNN-description/defect.org`. Defect-raise, define-change and
+deliver-change all refuse to proceed until initialization and layout migration
+have succeeded. Raising a defect does not authorize implementation or an audit.
+
 ## Delivery-specific engineering rules
 
 READING owns the shared engineering boundaries and common command prohibitions.
@@ -41,8 +60,9 @@ They apply in full to this route as well as to advice and review.
 - Never write code without a defined specification. In normal delivery this is
   the active `spec.org`; paired and emergency delivery and the signed-off
   hands-off spike brief are the explicit alternatives defined below.
-- New v3 work uses the `WNNN` project-work prefix. A migrated project retains
-  its established work-number scheme; agents must not invent another prefix.
+- New tickets use W for work/specifications, D for defects and S for spikes,
+  sharing one numeric namespace under `tickets/`. Follow `ISSUES.md`; preserve
+  existing identities during migration.
 
 ## Progressive loading
 
