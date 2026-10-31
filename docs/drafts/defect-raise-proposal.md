@@ -1,51 +1,38 @@
 # Defect raising and ticket storage
 
-Status: proposal for operator review. The skill is deliberately outside `skills/`
-and is not deployed. No project migration or new workflow routing is activated.
+Status: storage layout agreed; skill remains a draft outside installed skills.
 
-## Recommendation
+## Storage layout
 
-Treat features, defects and spikes as tickets in one numbered namespace.
-`docs/work.org` remains the canonical index and lifecycle authority on primary.
-A ticket directory holds the artefacts appropriate to its work:
+Keep `specs/`. New defect reports go in
+`specs/defects/<ticket>-description/defect.org`. Existing feature and spike
+locations remain unchanged. All tickets share the existing number namespace
+and primary's `docs/work.org` register and lifecycle authority.
 
 ```text
-tickets/W123-example/
-  defect.org       # defect report, when applicable
-  spec.org         # agreed change/fix specification, when required
-  spike.org        # exploratory brief, when applicable
-  validation.org   # test execution evidence, when required
-  audits.yaml      # the sole review record, when reviews occur
+specs/
+  W123-feature-description/spec.org
+  W124-spike-description/spike.org
+  defects/
+    W125-defect-description/
+      defect.org
 ```
 
-This is a menu, not a mandatory bundle. A newly raised defect normally needs
-only `defect.org` and its register entry. A feature need not have a defect report;
-a spike does not automatically require a product specification. Existing
-projects retain their number format, including schemes without a W prefix.
-Do not create separate bug and feature number sequences.
+Existing projects retain their number format, including schemes without a W
+prefix. The defects subdirectory segregates reports on disk, not in numbering
+or lifecycle. Allocation and duplicate checks must cover the shared register
+and nested defect directories, not just immediate children of `specs/`.
 
-`specs/` is the current SDLC directory name. It describes only one kind of
-artefact and becomes less useful as the collection includes reports and spikes.
-`tickets/` would express the intended ownership more clearly. The filename
-`defect.org` distinguishes a report from an approved fix specification without
-inventing a separate ticket lifecycle.
+A newly raised defect needs its report and register entry. If correction later
+requires `spec.org`, add it to the same defect directory with the same ticket
+number, linking the report and original requirements. Validation and audit
+records are added there only when required by the subsequent work. Diagnosis
+and fix design are not prerequisites for registration.
 
-## Proposed transition
+## Scope and history
 
-Draft the skill against the current established root, using
-`specs/<existing-number>-description/defect.org`. Decide separately whether to
-adopt `tickets/` as the framework default and how existing projects opt in.
-Do not move existing files, duplicate directories or break evidence links as
-part of raising a defect. A root change needs a coordinated review of routing,
-initialization, templates, validators, links and migration guidance.
-
-The same ticket may acquire `spec.org` when correction is designed. It links the
-report and existing requirements instead of replacing the original evidence or
-allocating a second number. Diagnosis is not required before registration.
-
-## Decision remaining
-
-Whether to keep `specs/` as the storage name or undertake a separate migration
-to `tickets/`. The proposed skill's reporting scope and shared ticket identity
-do not depend on that decision. This draft does not select a new delivery route
-or weaken existing implementation approval requirements.
+The earlier proposal to introduce `tickets/` is withdrawn. No directory-root
+migration or relocation of existing tickets is required. Reuse an existing
+defect's current location when adding evidence instead of moving it or creating
+a duplicate. The draft skill does not activate a new delivery route or weaken
+implementation approval requirements.

@@ -68,9 +68,11 @@ collision-prevention protocol. Use the same namespace as features and spikes,
 including the project's existing prefix convention. Do not create a feature
 branch to raise a defect or allocate from a branch copy of the register.
 
-Create `defect.org` in that ticket's directory under the project's established
-work-item root. Until a project adopts a different root explicitly, the current
-SDLC root remains `specs/`; this draft does not rename it to `tickets/`.
+Create `specs/defects/<ticket>-description/defect.org`, preserving the project's
+ticket-number format. Feature and spike directories remain in their existing
+locations under `specs/`; do not migrate existing tickets. Check the shared
+register and both direct and nested ticket directories when checking duplicates
+and reserving numbers. The defects subdirectory does not create a new namespace.
 Use a descriptive Org title and concise sections suited to the evidence above.
 Do not copy the delivery specification template or add empty ceremonial sections.
 

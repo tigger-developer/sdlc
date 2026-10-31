@@ -6,6 +6,12 @@ last-updated: 2026-10-31
 
 # Changelog
 
+## v3.8.24 - 2026-10-31
+
+- Revise the defect-raise draft to place new reports under specs/defects while
+  retaining shared ticket numbering and work.org. Withdraw the tickets-root
+  proposal; existing feature, spike and defect records are not migrated.
+
 ## v3.8.23 - 2026-10-31
 
 - Draft defect-raise as a reporting and ticket-registration skill, separate from
