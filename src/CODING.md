@@ -1,3 +1,9 @@
+---
+title: Coding Standards
+version: 1
+last-updated: 2026-11-07
+---
+
 # Coding Standards
 
 ## Readability and fit
@@ -82,6 +88,52 @@ only those selected by the project's standards profile.
   and 2 for invalid invocation unless an established interface says otherwise.
 - Never use a fixed sleep as synchronization. Poll an observable readiness
   condition with a timeout.
+
+## Dry run and preflight
+
+Dry run and apply must share identity resolution, discovery, applicable
+read-only validation and action selection. Switch modes at the mutation
+boundary, not around entire steps containing required inspection. From the
+same observations, both modes must select the same targets and intended actions.
+Dry run must not make persistent operational changes to obtain evidence.
+
+The following pseudocode illustrates the contract; it does not prescribe an
+architecture or require a planning framework:
+
+```text
+observed = inspectAndResolveIdentity(request)
+validateApplicableReadOnlyChecks(observed)
+plan = selectActions(observed)
+reportFindingsAndPlan(observed, plan)
+
+if dryRun:
+    reportDeferredChecks(plan)
+    return preflightResult(plan)
+
+recheckRelevantPreconditions(plan)
+result = execute(plan)
+verified = verifyRequiredPostconditions(plan, result)
+reportActualOutcome(result, verified)
+return operationStatus(result, verified)
+```
+
+- Unknown blocks dependent actions. Failed discovery or unresolved identity
+  must not become an empty successful plan or confirmed absence. Report the
+  blocking reason and propagate failure.
+- Deferred is not passed. Validate an isolated temporary candidate where that
+  provides meaningful evidence; otherwise identify checks requiring an earlier
+  mutation, their dependencies and the resulting limitation. Run those checks
+  when their prerequisites exist, before dependent actions.
+- Recheck relevant volatile identity, ownership and target preconditions before
+  mutation. Material changes must stop the affected action or obtain renewed
+  authorization under the applicable workflow, not silently expand its scope.
+- Report only outcomes supported by execution and required postconditions.
+  Preparation, skipped work, partial execution and verification failure must
+  not become activation or completion claims merely because a call returned no
+  error. Preserve partial outcomes and propagate errors and verification failures.
+- Ordinary functions suffice. Multi-step workflows may repeat inspection,
+  validation and verification at each mutation boundary. The normative rules
+  govern; copying the example's shape without its semantics is insufficient.
 
 ## Structure and embedded languages
 

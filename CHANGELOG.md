@@ -1,10 +1,18 @@
 ---
 title: Changelog
 version: 2
-last-updated: 2026-10-31
+last-updated: 2026-11-07
 ---
 
 # Changelog
+
+## v3.9.1 - 2026-11-07
+
+- Add a concise dry-run and preflight pattern to the coding standards, sharing
+  discovery and action selection while suppressing operational mutations.
+- Require truthful handling of unknown state, deferred checks, changed
+  preconditions and partial or unverified outcomes without prescribing a new
+  orchestration framework.
 
 ## v3.9.0 - 2026-10-31
 

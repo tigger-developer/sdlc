@@ -1,10 +1,19 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 31
-last-updated: 2026-10-31
+version: 32
+last-updated: 2026-11-07
 ---
 
 # SDLC Standards: Design Learnings
+
+## Dry run suppresses mutations, not evidence
+
+Sharing step descriptions does not establish shared discovery or validation.
+Keep identity resolution, read-only checks and action selection common to dry
+run and apply; switch modes at the mutation boundary. Unknown state is not
+absence, deferred validation is not a passed check, and successful preparation
+is not verified activation. A short illustrative pattern makes the contract
+concrete without requiring a framework; its semantics remain authoritative.
 
 ## Layout migration is not project reinitialization
 
