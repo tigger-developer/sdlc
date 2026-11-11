@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 )
 
 func analyseGooseConfiguration(installRoot string) ([]*configurationChange, error) {
@@ -46,11 +47,56 @@ func analyseGooseConfiguration(installRoot string) ([]*configurationChange, erro
 		if bytes.Equal(existing, content) && !linked {
 			continue
 		}
+		var previous map[string]any
+		managed := false
+		if json.Unmarshal(existing, &previous) == nil {
+			managed = reflect.DeepEqual(previous, item.value)
+			if filepath.Base(item.path) == "hooks.json" {
+				managed = managedGooseHooks(previous)
+			}
+		}
 		changes = append(changes, &configurationChange{
 			path: item.path, beforeLabel: "existing Goose SDLC plugin file or absent",
 			afterLabel: "Goose PreToolUse command guard with on_failure=block",
-			contents:   content, mode: 0o644, conflict: err == nil || linked,
+			contents:   content, mode: 0o644, conflict: (err == nil && !managed) || linked,
 		})
 	}
 	return changes, nil
+}
+
+// Known plugin generations contain only SDLC policy handlers. Unknown additions
+// remain conflicts rather than being discarded during an automatic migration.
+func managedGooseHooks(root map[string]any) bool {
+	if !onlyKeys(root, "hooks") {
+		return false
+	}
+	hooks, ok := root["hooks"].(map[string]any)
+	if !ok || !onlyKeys(hooks, "PreToolUse") {
+		return false
+	}
+	groups, ok := hooks["PreToolUse"].([]any)
+	if !ok || len(groups) == 0 {
+		return false
+	}
+	for _, raw := range groups {
+		group, ok := raw.(map[string]any)
+		if !ok || !onlyKeys(group, "hooks") {
+			return false
+		}
+		handlers, ok := group["hooks"].([]any)
+		if !ok || len(handlers) == 0 {
+			return false
+		}
+		for _, rawHandler := range handlers {
+			handler, ok := rawHandler.(map[string]any)
+			if !ok || !onlyKeys(handler, "type", "command", "timeout", "on_failure") || handler["type"] != "command" || handler["timeout"] != float64(10) || handler["on_failure"] != "block" {
+				return false
+			}
+			command, _ := handler["command"].(string)
+			if command != `"${PLUGIN_ROOT}/../../sdlc/hooks/agent-command-guard.sh"` && command != `"/opt/sdlc/hooks/agent-command-guard.sh"` {
+				return false
+			}
+		}
+	}
+	return true
 }

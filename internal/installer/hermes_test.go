@@ -71,7 +71,7 @@ func TestW004ManagedGuardIdentityRequiresExactCommandVector(t *testing.T) {
 
 func TestW004CopilotHookOwnershipIsExact(t *testing.T) {
 	managed := `{"version":1,"hooks":{"preToolUse":[{"type":"command","command":"bash ~/.agents/sdlc/hooks/agent-command-guard.sh","timeoutSec":5}]}}`
-	if !copilotManagedHook([]byte(managed)) {
+	if _, ok := migrateCopilotGuard([]byte(managed)); !ok {
 		t.Fatal("canonical Copilot hook was not recognized")
 	}
 	for _, conflicting := range []string{
@@ -79,7 +79,7 @@ func TestW004CopilotHookOwnershipIsExact(t *testing.T) {
 		`{"version":1,"personal":true,"hooks":{"preToolUse":[]}}`,
 		`{"version":1,"hooks":{"preToolUse":[{"type":"command","command":"bash ~/.agents/sdlc/hooks/agent-command-guard.sh --extra","timeoutSec":5}]}}`,
 	} {
-		if copilotManagedHook([]byte(conflicting)) {
+		if _, ok := migrateCopilotGuard([]byte(conflicting)); ok {
 			t.Fatalf("unknown Copilot conflict was treated as managed: %s", conflicting)
 		}
 	}

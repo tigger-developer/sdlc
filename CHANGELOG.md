@@ -6,6 +6,16 @@ last-updated: 2026-11-11
 
 # Changelog
 
+## v4.0.19 - 2026-11-11
+
+- Migrate known legacy command-guard paths and collapse duplicate SDLC hooks
+  for Codex and Claude through one normalizer. Preserve unrelated handlers and
+  their matchers rather than broadening an entire mixed group.
+- Migrate Copilot guards without dropping unrelated hook entries. Recognize
+  known Goose plugin generations for unattended migration while preserving
+  unknown-content conflicts. Verify migration and repeatability across all
+  five supported harnesses, including Hermes's existing duplicate handling.
+
 ## v4.0.18 - 2026-11-11
 
 - Record installed canonical skills and selected discovery links in separate

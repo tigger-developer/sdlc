@@ -1,6 +1,6 @@
 ---
 title: SDLC Configuration and Installation Reference
-version: 7
+version: 8
 last-updated: 2026-11-11
 ---
 
@@ -63,6 +63,14 @@ is not installed on the global path. The installation:
   locations of the selected harnesses; and
 - registers the same canonical command guard through each selected harness's
   native hook mechanism without replacing unrelated provider configuration.
+
+Hook configuration also migrates recognized legacy SDLC guard paths and removes
+duplicate SDLC registrations. Codex, Claude, Hermes and Copilot retain unrelated
+hooks; Codex and Claude keep their original matchers. Known Goose plugin
+generations migrate automatically, while unknown plugin content requires review.
+This reconciliation occurs during ordinary selected-harness installation, not
+bare deployment of user-home configuration. Native hook execution still needs
+host verification after installation.
 
 It lists only missing or differing artefacts. An unchanged rerun writes nothing
 and asks no question. Set `VERBOSE=1` to include matching artefacts. A selected

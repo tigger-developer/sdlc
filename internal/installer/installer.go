@@ -1563,56 +1563,7 @@ func analyseClaudeConfiguration(agentHome string, output io.Writer) (*configurat
 }
 
 func normalizeClaudeToolGuard(root map[string]any) (bool, error) {
-	hooks, err := objectField(root, "hooks")
-	if err != nil {
-		return false, err
-	}
-	value, exists := hooks["PreToolUse"]
-	var entries []any
-	if exists {
-		var ok bool
-		entries, ok = value.([]any)
-		if !ok {
-			return false, errors.New("hooks.PreToolUse must be a JSON array")
-		}
-	}
-	found := false
-	changed := false
-	for _, item := range entries {
-		group, ok := item.(map[string]any)
-		if !ok {
-			return false, errors.New("hooks.PreToolUse entries must be JSON objects")
-		}
-		handlers, _ := group["hooks"].([]any)
-		for _, raw := range handlers {
-			handler, ok := raw.(map[string]any)
-			if !ok {
-				continue
-			}
-			command, _ := handler["command"].(string)
-			if !isManagedGuardCommand(command) {
-				continue
-			}
-			found = true
-			if command != toolGuardCommand || group["matcher"] != "*" || handler["type"] != "command" || handler["timeout"] != float64(5) {
-				handler["command"] = toolGuardCommand
-				group["matcher"] = "*"
-				handler["type"] = "command"
-				handler["timeout"] = 5
-				changed = true
-			}
-		}
-	}
-	if !found {
-		entries = append(entries, map[string]any{
-			"matcher": "*",
-			"hooks":   []any{map[string]any{"type": "command", "command": toolGuardCommand, "timeout": 5}},
-		})
-		changed = true
-	}
-	hooks["PreToolUse"] = entries
-	root["hooks"] = hooks
-	return changed, nil
+	return normalizeJSONToolGuard(root, false)
 }
 
 func analyseCopilotConfiguration(agentHome string, output io.Writer) (*configurationChange, error) {
@@ -1631,6 +1582,11 @@ func analyseCopilotConfiguration(agentHome string, output io.Writer) (*configura
 		return nil, err
 	}
 	candidate = append(candidate, '\n')
+	if exists {
+		if migrated, ok := migrateCopilotGuard(original); ok {
+			candidate = migrated
+		}
+	}
 	if exists && bytes.Equal(original, candidate) {
 		fmt.Fprintln(output, "Configuration: Copilot hooks already contain the SDLC tool guard.")
 		return nil, nil
@@ -1638,7 +1594,7 @@ func analyseCopilotConfiguration(agentHome string, output io.Writer) (*configura
 	before := "managed hook file absent"
 	conflict := false
 	if exists {
-		if copilotManagedHook(original) {
+		if _, managed := migrateCopilotGuard(original); managed {
 			before = "managed hook file differs and will be backed up"
 		} else {
 			before = "unknown same-path conflict; unrelated content is not presumed SDLC-owned"
@@ -1648,25 +1604,40 @@ func analyseCopilotConfiguration(agentHome string, output io.Writer) (*configura
 	return &configurationChange{path: path, beforeLabel: before, afterLabel: "preToolUse invokes the canonical SDLC command guard", contents: candidate, mode: mode, conflict: conflict}, nil
 }
 
-func copilotManagedHook(contents []byte) bool {
+// Migrate only recognized guards, retaining other hooks and configuration fields.
+func migrateCopilotGuard(contents []byte) ([]byte, bool) {
 	var root map[string]any
-	if json.Unmarshal(contents, &root) != nil || !onlyKeys(root, "version", "hooks") || root["version"] != float64(1) {
-		return false
+	if json.Unmarshal(contents, &root) != nil || root["version"] != float64(1) {
+		return nil, false
 	}
 	hooks, ok := root["hooks"].(map[string]any)
-	if !ok || !onlyKeys(hooks, "preToolUse") {
-		return false
+	if !ok {
+		return nil, false
 	}
 	entries, ok := hooks["preToolUse"].([]any)
-	if !ok || len(entries) != 1 {
-		return false
+	if !ok {
+		return nil, false
 	}
-	entry, ok := entries[0].(map[string]any)
-	if !ok || !onlyKeys(entry, "type", "command", "timeoutSec") || entry["type"] != "command" || entry["timeoutSec"] != float64(5) {
-		return false
+	var retained []any
+	found := false
+	for _, raw := range entries {
+		entry, ok := raw.(map[string]any)
+		command, _ := entry["command"].(string)
+		if ok && isManagedGuardCommand(command) {
+			found = true
+		} else {
+			retained = append(retained, raw)
+		}
 	}
-	command, ok := entry["command"].(string)
-	return ok && isManagedGuardCommand(command)
+	if !found {
+		return nil, false
+	}
+	hooks["preToolUse"] = append(retained, map[string]any{"type": "command", "command": toolGuardCommand, "timeoutSec": 5})
+	data, err := json.MarshalIndent(root, "", "  ")
+	if err != nil {
+		return nil, false
+	}
+	return append(data, '\n'), true
 }
 
 func onlyKeys(value map[string]any, allowed ...string) bool {
@@ -1872,6 +1843,14 @@ func analyseCodexHooksConfiguration(agentHome string, output io.Writer) (*config
 }
 
 func normalizeCodexToolGuard(root map[string]any) (bool, error) {
+	return normalizeJSONToolGuard(root, true)
+}
+
+func normalizeJSONToolGuard(root map[string]any, statusMessage bool) (bool, error) {
+	before, err := json.Marshal(root)
+	if err != nil {
+		return false, err
+	}
 	hooks, err := objectField(root, "hooks")
 	if err != nil {
 		return false, err
@@ -1885,8 +1864,7 @@ func normalizeCodexToolGuard(root map[string]any) (bool, error) {
 			return false, errors.New("hooks.PreToolUse must be a JSON array")
 		}
 	}
-	changed := false
-	found := false
+	var normalized []any
 	for _, item := range entries {
 		group, ok := item.(map[string]any)
 		if !ok {
@@ -1894,41 +1872,40 @@ func normalizeCodexToolGuard(root map[string]any) (bool, error) {
 		}
 		handlers, ok := group["hooks"].([]any)
 		if !ok {
+			normalized = append(normalized, group)
 			continue
 		}
+		var retained []any
+		removed := false
 		for _, handlerValue := range handlers {
 			handler, ok := handlerValue.(map[string]any)
-			if !ok || handler["command"] != toolGuardCommand {
-				continue
-			}
-			found = true
-			if group["matcher"] != "*" {
-				group["matcher"] = "*"
-				changed = true
-			}
-			if handler["type"] != "command" {
-				handler["type"] = "command"
-				changed = true
-			}
-			if handler["timeout"] != float64(5) {
-				handler["timeout"] = 5
-				changed = true
+			command, _ := handler["command"].(string)
+			if ok && isManagedGuardCommand(command) {
+				removed = true
+			} else {
+				retained = append(retained, handlerValue)
 			}
 		}
+		if !removed {
+			normalized = append(normalized, group)
+		} else if len(retained) != 0 {
+			group["hooks"] = retained
+			normalized = append(normalized, group)
+		}
 	}
-	if !found {
-		entries = append(entries, map[string]any{
-			"matcher": "*",
-			"hooks": []any{map[string]any{
-				"type": "command", "command": toolGuardCommand, "timeout": 5,
-				"statusMessage": "Checking SDLC tool policy",
-			}},
-		})
-		changed = true
+	// Isolate the global guard so unrelated handlers retain their original matcher.
+	guard := map[string]any{"type": "command", "command": toolGuardCommand, "timeout": 5}
+	if statusMessage {
+		guard["statusMessage"] = "Checking SDLC tool policy"
 	}
-	hooks["PreToolUse"] = entries
+	normalized = append(normalized, map[string]any{
+		"matcher": "*",
+		"hooks":   []any{guard},
+	})
+	hooks["PreToolUse"] = normalized
 	root["hooks"] = hooks
-	return changed, nil
+	after, err := json.Marshal(root)
+	return !bytes.Equal(before, after), err
 }
 
 func readOptionalRegularFile(path string) ([]byte, os.FileMode, bool, error) {

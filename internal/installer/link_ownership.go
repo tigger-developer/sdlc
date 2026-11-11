@@ -254,16 +254,7 @@ func installedGoosePluginMatches(root string) (bool, error) {
 	if !reflect.DeepEqual(manifest, expectedManifest) {
 		return false, nil
 	}
-	for _, command := range []string{`"${PLUGIN_ROOT}/../../sdlc/hooks/agent-command-guard.sh"`, `"/opt/sdlc/hooks/agent-command-guard.sh"`} {
-		expectedHooks := map[string]any{"hooks": map[string]any{"PreToolUse": []any{map[string]any{"hooks": []any{map[string]any{
-			"type": "command", "command": command,
-			"timeout": float64(10), "on_failure": "block",
-		}}}}}}
-		if reflect.DeepEqual(hooks, expectedHooks) {
-			return true, nil
-		}
-	}
-	return false, nil
+	return managedGooseHooks(hooks), nil
 }
 
 func rejectUnverifiedRetiredSkills(root string, names []string) error {

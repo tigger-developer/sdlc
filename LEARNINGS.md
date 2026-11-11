@@ -1,10 +1,20 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 35
+version: 36
 last-updated: 2026-11-11
 ---
 
 # SDLC Standards: Design Learnings
+
+## Hook migration must reconcile old and current registrations
+
+Finding the current guard does not establish a valid installation: an older
+registration may still execute and fail. Identify known installer-owned command
+vectors, migrate them and collapse duplicates. In mixed hook groups, preserve
+unrelated handlers and their matchers by giving the global guard its own group.
+Exercise old-plus-current configurations and a second installation for every
+supported harness. Unknown plugin additions remain conflicts, not permission
+to overwrite them.
 
 ## Skill retirement requires installed ownership evidence
 
