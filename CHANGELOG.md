@@ -6,6 +6,11 @@ last-updated: 2026-11-11
 
 # Changelog
 
+## v4.0.1 - 2026-11-11
+
+- Require explicit operator authorization before selecting a major SDLC release
+  increment.
+
 ## v4.0.0 - 2026-11-11
 
 - Move the canonical public installation to `/opt/sdlc`, with standards under

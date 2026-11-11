@@ -47,6 +47,9 @@ explicitly requires a pre-tag stopping point.
   lesson.
 - Use semantic versioning. Default to a patch increment unless compatibility or
   scope warrants a minor or major increment.
+- Obtain the operator's explicit authorization before selecting a major version
+  increment. Do not infer authorization from the scope or compatibility impact
+  of the change.
 - Changes made before a pending release tag belong to that release and do not
   require an additional version increment.
 - Commit the release state, create the matching annotated Git tag, and push both
