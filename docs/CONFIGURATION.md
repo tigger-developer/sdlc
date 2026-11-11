@@ -60,9 +60,11 @@ when its complete contents match the current source or the recorded installed
 release. It replaces an existing Goose plugin directory only when its files
 match the former SDLC plugin projection. Existing links must point to a known
 SDLC location. Unknown skill files, altered skills, and unrelated links stop
-the installation for manual review. Finder's `.DS_Store` metadata is ignored
-when comparing skill content and remains recoverable with the old directory
-in Trash. Naming a path like an SDLC skill is not proof of ownership.
+the installation for manual review. Recognized Finder and Explorer metadata
+files are ignored when comparing skill and Goose plugin content; they remain
+recoverable with the old directory in Trash. Ordinary extra files and
+directories still prevent replacement. Naming a path like an SDLC skill is
+not proof of ownership.
 
 Replaced managed files, links, retired SDLC artefacts, and merged
 **configuration files** go to **Trash**, not adjacent `.bak` files. This includes

@@ -94,10 +94,12 @@ func TestTaggedReleaseProvesOldSkillDirectoryOnlyWhenUnchanged(t *testing.T) {
 	if err != nil || !matched {
 		t.Fatalf("tagged public skill was not recognized: matched=%v err=%v", matched, err)
 	}
-	writeFixtureFile(t, filepath.Join(destination, ".DS_Store"), "other data\n")
+	for _, name := range []string{".DS_Store", "._SKILL.md", ".localized", "Icon\r", "Thumbs.db", "ehthumbs.db", "desktop.ini"} {
+		writeFixtureFile(t, filepath.Join(destination, name), "desktop metadata\n")
+	}
 	matched, err = installedSkillMatchesRelease(owner, destination)
 	if err != nil || !matched {
-		t.Fatalf("Finder metadata prevented recognition: matched=%v err=%v", matched, err)
+		t.Fatalf("desktop metadata prevented recognition: matched=%v err=%v", matched, err)
 	}
 	writeFixtureFile(t, filepath.Join(destination, "operator.txt"), "other data\n")
 	matched, err = installedSkillMatchesRelease(owner, destination)
@@ -113,6 +115,12 @@ func TestGoosePluginReplacementRequiresExactOldProjection(t *testing.T) {
 	matched, err := installedGoosePluginMatches(root)
 	if err != nil || !matched {
 		t.Fatalf("old Goose plugin was not recognized: matched=%v err=%v", matched, err)
+	}
+	writeFixtureFile(t, filepath.Join(root, ".DS_Store"), "desktop metadata\n")
+	writeFixtureFile(t, filepath.Join(root, "hooks", "Thumbs.db"), "desktop metadata\n")
+	matched, err = installedGoosePluginMatches(root)
+	if err != nil || !matched {
+		t.Fatalf("desktop metadata prevented Goose plugin recognition: matched=%v err=%v", matched, err)
 	}
 	writeFixtureFile(t, filepath.Join(root, "operator.json"), `{"personal":true}`)
 	matched, err = installedGoosePluginMatches(root)

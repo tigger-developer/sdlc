@@ -106,7 +106,7 @@ func directoryContents(root string) (directoryEntryContents, error) {
 			result.directories[relative] = true
 			return nil
 		}
-		if entry.Name() == ".DS_Store" && entry.Type().IsRegular() {
+		if entry.Type().IsRegular() && isDesktopMetadataFile(entry.Name()) {
 			return nil
 		}
 		if !entry.Type().IsRegular() {
@@ -116,6 +116,28 @@ func directoryContents(root string) (directoryEntryContents, error) {
 		return err
 	})
 	return result, err
+}
+
+func isDesktopMetadataFile(name string) bool {
+	if name == ".DS_Store" || name == ".localized" || name == "Icon\r" || strings.HasPrefix(name, "._") {
+		return true
+	}
+	switch strings.ToLower(name) {
+	case "thumbs.db", "ehthumbs.db", "desktop.ini":
+		return true
+	}
+	return false
+}
+
+func withoutDesktopMetadata(entries []os.DirEntry) []os.DirEntry {
+	retained := make([]os.DirEntry, 0, len(entries))
+	for _, entry := range entries {
+		if entry.Type().IsRegular() && isDesktopMetadataFile(entry.Name()) {
+			continue
+		}
+		retained = append(retained, entry)
+	}
+	return retained
 }
 
 func equalDirectoryContents(a, b directoryEntryContents) bool {
@@ -181,6 +203,9 @@ func taggedSkillContents(source, release, skill string) (directoryEntryContents,
 		case tar.TypeDir:
 			result.directories[relative] = true
 		case tar.TypeReg, tar.TypeRegA:
+			if isDesktopMetadataFile(filepath.Base(relative)) {
+				continue
+			}
 			result.files[relative], err = io.ReadAll(reader)
 			if err != nil {
 				return result, err
@@ -197,6 +222,7 @@ func installedGoosePluginMatches(root string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	entries = withoutDesktopMetadata(entries)
 	if len(entries) != 2 || entries[0].Name() != "hooks" || !entries[0].IsDir() || entries[1].Name() != "plugin.json" || !entries[1].Type().IsRegular() {
 		return false, nil
 	}
@@ -204,6 +230,7 @@ func installedGoosePluginMatches(root string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	hookEntries = withoutDesktopMetadata(hookEntries)
 	if len(hookEntries) != 1 || hookEntries[0].Name() != "hooks.json" || !hookEntries[0].Type().IsRegular() {
 		return false, nil
 	}

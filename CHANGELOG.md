@@ -6,6 +6,12 @@ last-updated: 2026-11-11
 
 # Changelog
 
+## v4.0.9 - 2026-11-11
+
+- Exclude recognized Finder and Explorer metadata files when verifying older
+  SDLC skill and Goose plugin directories for symlink migration. Continue to
+  reject unrelated files and directories.
+
 ## v4.0.8 - 2026-11-11
 
 - Ignore incidental Finder `.DS_Store` files when proving an installed skill
