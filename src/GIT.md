@@ -1,6 +1,6 @@
 ---
 title: Git and Source-Control Standards
-version: 6
+version: 7
 last-updated: 2026-11-11
 ---
 
@@ -109,6 +109,10 @@ and compatibility-based increment rules. Follow the project's applicable tag
 convention for whether a Git tag includes a `v` prefix; the prefix is not part
 of the SemVer version number.
 
+Obtain the operator's explicit approval before selecting a major version
+increment. A breaking change or an applicable numbering convention does not
+itself authorize that increment.
+
 ## Hooks
 
 Repository hooks must not evade organization-wide or user-wide hooks. If a
@@ -142,6 +146,8 @@ condition in a durable project record. Human approval is required where the
 exception weakens safety, verification, access control, or history integrity.
 
 ## Document history
+
+Version 7 requires operator approval before a major version increment.
 
 Version 6 adds the release-numbering convention and fallback.
 

@@ -6,6 +6,11 @@ last-updated: 2026-11-11
 
 # Changelog
 
+## v4.0.6 - 2026-11-11
+
+- Require explicit operator approval before a major version increment in
+  projects governed by the SDLC Git standard.
+
 ## v4.0.5 - 2026-11-11
 
 - Make the Git tag prefix follow the project's applicable convention instead
