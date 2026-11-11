@@ -6,6 +6,12 @@ last-updated: 2026-11-11
 
 # Changelog
 
+## v4.0.12 - 2026-11-11
+
+- Require handover notes to be written, committed and pushed on `master` only,
+  after pushing the agent's work on its other worked branches. Account clearly
+  for work, commits and push status on each branch.
+
 ## v4.0.11 - 2026-11-11
 
 - Explain why fixed `/opt/sdlc` paths justify the installer's limited sudo
