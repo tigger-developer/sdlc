@@ -13,8 +13,9 @@ is safe only when its complete contents match a known SDLC installation.
 Confirm an old skill against the recorded release, check plugin structure and
 content, and accept only known prior link targets. Extra files or changed
 content require manual review, even when the directory name matches a public
-skill. Recheck immediately before replacement because a destination may change
-after the install plan is printed.
+skill. Ignore incidental Finder `.DS_Store` metadata during content comparison
+while retaining the old directory in Trash. Recheck immediately before
+replacement because a destination may change after the install plan is printed.
 
 ## Shared fixed paths need narrow privilege and explicit adapters
 

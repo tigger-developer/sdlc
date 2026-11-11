@@ -96,8 +96,13 @@ func TestTaggedReleaseProvesOldSkillDirectoryOnlyWhenUnchanged(t *testing.T) {
 	}
 	writeFixtureFile(t, filepath.Join(destination, ".DS_Store"), "other data\n")
 	matched, err = installedSkillMatchesRelease(owner, destination)
+	if err != nil || !matched {
+		t.Fatalf("Finder metadata prevented recognition: matched=%v err=%v", matched, err)
+	}
+	writeFixtureFile(t, filepath.Join(destination, "operator.txt"), "other data\n")
+	matched, err = installedSkillMatchesRelease(owner, destination)
 	if err != nil || matched {
-		t.Fatalf("directory with unrelated file was accepted: matched=%v err=%v", matched, err)
+		t.Fatalf("directory with unrelated skill file was accepted: matched=%v err=%v", matched, err)
 	}
 }
 

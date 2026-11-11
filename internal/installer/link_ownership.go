@@ -106,6 +106,9 @@ func directoryContents(root string) (directoryEntryContents, error) {
 			result.directories[relative] = true
 			return nil
 		}
+		if entry.Name() == ".DS_Store" && entry.Type().IsRegular() {
+			return nil
+		}
 		if !entry.Type().IsRegular() {
 			return fmt.Errorf("cannot verify non-regular skill entry %q", path)
 		}

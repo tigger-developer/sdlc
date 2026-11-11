@@ -6,6 +6,11 @@ last-updated: 2026-11-11
 
 # Changelog
 
+## v4.0.8 - 2026-11-11
+
+- Ignore incidental Finder `.DS_Store` files when proving an installed skill
+  matches an SDLC release. Keep the replaced directory recoverable in Trash.
+
 ## v4.0.7 - 2026-11-11
 
 - Restrict migration links to verified SDLC-owned skill directories, Goose
