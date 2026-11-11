@@ -1,6 +1,6 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 33
+version: 34
 last-updated: 2026-11-11
 ---
 
@@ -15,6 +15,12 @@ plan with ordinary installation, omit home operations before they are planned,
 and retain post-install verification of canonical content. Global configuration
 already under the canonical root can be updated without reading a user's
 legacy configuration.
+
+Provider integration assets can belong under the canonical root without
+activating a provider. Bare installs supply the generated Goose plugin for
+declarative hosts; discovery links and native execution verification remain
+host responsibilities. Reuse the normal generator so hook policy cannot drift
+between deployment modes.
 
 ## First-install choices must read the migration source
 

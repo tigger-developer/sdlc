@@ -834,6 +834,18 @@ func planSharedInstallationMode(source, userHome, installRoot, release string, b
 		}
 		plan.retirements = append(plan.retirements, retired...)
 	}
+	if bare {
+		pluginChanges, err := analyseGooseConfiguration(installRoot)
+		if err != nil {
+			return installationPlan{}, err
+		}
+		for _, change := range pluginChanges {
+			if change.conflict {
+				return installationPlan{}, fmt.Errorf("bare installation cannot replace conflicting Goose plugin file %q; review it before retrying", change.path)
+			}
+		}
+		plan.managedConfigurations = append(plan.managedConfigurations, pluginChanges...)
+	}
 	releaseChange, err := planGlobalReleaseConfiguration(installRoot, userHome, release)
 	if err != nil {
 		return installationPlan{}, err

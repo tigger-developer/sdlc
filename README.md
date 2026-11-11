@@ -82,6 +82,14 @@ For a declarative host where Nix manages links and harness configuration:
 make install INSTALL_FLAGS="--bare"
 ```
 
+Bare mode also supplies the Goose plugin directory at
+`/opt/sdlc/plugins/sdlc-command-guard-goose`, containing `plugin.json` and
+`hooks/hooks.json`. Nix can expose that directory through the user's
+`~/.agents/plugins/sdlc-command-guard-goose` discovery link. The hook calls
+`/opt/sdlc/hooks/agent-command-guard.sh` and blocks on failure. Providing the
+plugin files alone does not activate the hook; the host manages discovery and
+verifies native execution. Conflicting plugin files stop bare installation.
+
 Bare mode installs only `/opt/sdlc`, without prompts, agent discovery, user-home
 links, or provider configuration. No installed harness is required. Pre-create
 a writable `/opt/sdlc` if ordinary directory creation is unavailable. After

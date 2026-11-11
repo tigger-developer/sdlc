@@ -4,6 +4,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -47,7 +48,36 @@ func TestBareDeploymentDoesNotTouchHomes(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	for _, path := range []string{".local", ".codex", ".hermes", ".agents/skills"} {
+	plugin := filepath.Join(destination, "plugins", "sdlc-command-guard-goose")
+	manifest, err := os.ReadFile(filepath.Join(plugin, "plugin.json"))
+	if err != nil || !json.Valid(manifest) {
+		t.Fatalf("invalid plugin manifest: %q %v", manifest, err)
+	}
+	hooksPath := filepath.Join(plugin, "hooks", "hooks.json")
+	hooks, err := os.ReadFile(hooksPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var config struct {
+		Hooks map[string][]struct {
+			Hooks []struct {
+				Command   string `json:"command"`
+				OnFailure string `json:"on_failure"`
+			}
+		}
+	}
+	if err := json.Unmarshal(hooks, &config); err != nil {
+		t.Fatal(err)
+	}
+	events := config.Hooks["PreToolUse"]
+	if len(events) != 1 || len(events[0].Hooks) != 1 {
+		t.Fatalf("unexpected hook configuration: %s", hooks)
+	}
+	hook := events[0].Hooks[0]
+	if hook.Command != `"/opt/sdlc/hooks/agent-command-guard.sh"` || hook.OnFailure != "block" {
+		t.Fatalf("unexpected guard policy: %+v", hook)
+	}
+	for _, path := range []string{".local", ".codex", ".hermes", ".agents/skills", ".agents/plugins", ".config/goose"} {
 		if _, err := os.Lstat(filepath.Join(root, "home", path)); !os.IsNotExist(err) {
 			t.Fatalf("home changed: %s %v", path, err)
 		}
@@ -58,6 +88,18 @@ func TestBareDeploymentDoesNotTouchHomes(t *testing.T) {
 	}
 	if strings.Contains(output.String(), "[yes/no]") || strings.Contains(output.String(), "Detected agent") {
 		t.Fatal(output.String())
+	}
+	if err := os.WriteFile(hooksPath, []byte("operator-owned\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	for _, mode := range [][]string{{"--bare"}, {"--bare", "--dry-run"}} {
+		args := append(mode, "--source", source)
+		if err := runAtRoot(args, strings.NewReader(""), &output, destination); err == nil || !strings.Contains(err.Error(), "conflicting Goose plugin") {
+			t.Fatalf("expected conflict: %v", err)
+		}
+	}
+	if data, err := os.ReadFile(hooksPath); err != nil || string(data) != "operator-owned\n" {
+		t.Fatalf("conflicting plugin changed: %q %v", data, err)
 	}
 }
 

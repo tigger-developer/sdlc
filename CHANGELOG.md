@@ -6,6 +6,15 @@ last-updated: 2026-11-11
 
 # Changelog
 
+## v4.0.17 - 2026-11-11
+
+- Include the generated Goose command-guard plugin under
+  `/opt/sdlc/plugins/sdlc-command-guard-goose` in bare installations for
+  declarative hosts to expose through Goose's plugin discovery. Reuse the
+  ordinary installer's generator, preserve fail-closed policy, and reject
+  conflicting plugin files without prompting or modifying user homes.
+- Document the plugin location and activation boundary in help and the README.
+
 ## v4.0.16 - 2026-11-11
 
 - Add `sdlc-install --bare` for noninteractive canonical deployment under
