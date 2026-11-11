@@ -143,6 +143,15 @@ fields:
     allow_global: true
     migration_aliases: [SDLC_DELIVERY_MODEL]
 
+  - key: SDLC_TEST_CODE_MODEL
+    path: delivery.test_code.model
+    flag: test-code-model
+    help: Model for writing test code from the signed-off specification
+    type: string
+    prompt: "Select test-code model:"
+    default: gpt-5.6-sol
+    allow_global: true
+
   - key: SDLC_BUILD_HARNESS
     path: delivery.build.harness
     flag: build-harness

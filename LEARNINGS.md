@@ -1,10 +1,17 @@
 ---
 title: "SDLC Standards: Design Learnings"
 version: 32
-last-updated: 2026-11-07
+last-updated: 2026-11-11
 ---
 
 # SDLC Standards: Design Learnings
+
+## Model roles follow work boundaries
+
+Signed-off test definitions belong to definition. Writing executable tests is a
+delivery activity that can use a separately selected model from implementation.
+Configuring that model does not by itself create a CI phase boundary or change
+the delivery skill's continuation contract.
 
 ## Dry run suppresses mutations, not evidence
 

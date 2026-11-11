@@ -1,7 +1,7 @@
 ---
 title: SDLC v3 Quickstart
-version: 7
-last-updated: 2026-10-24
+version: 8
+last-updated: 2026-11-11
 ---
 
 # SDLC v3 Quickstart
@@ -79,8 +79,10 @@ or record an explicit override in `.sdlc/project.yaml`.
 - Choose an **auditor capable of evaluating the author's work**, especially on
   complex requirements and architecture. Do not choose it on low price alone:
   repeated misunderstandings and review loops can erase the saving.
-- Set the driver through `delivery.definition` and `delivery.build`, and the
-  auditor through `delivery.audit` in the [configuration](docs/CONFIGURATION.md#configuration).
+- Set the definition and implementation drivers through `delivery.definition`
+  and `delivery.build`, the test-code model through `delivery.test_code.model`,
+  and the auditor through `delivery.audit` in the
+  [configuration](docs/CONFIGURATION.md#configuration).
   Model capability matters more than harness branding, but the selected
   **harness must support the model, authentication and session resumption**.
 - **Hermes offers multiple provider routes**, but is not exempt from model
@@ -280,6 +282,9 @@ require an operator decision and normal delivery. Documentation-only edits do
 not require a ticket.
 
 ## Document history
+
+Version 8 adds a separate model setting for writing test code from the
+signed-off specification.
 
 Version 6 includes AT in automated-test readiness and delivery evidence.
 Earlier versions remain in Git history.

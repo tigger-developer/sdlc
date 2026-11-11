@@ -1,10 +1,16 @@
 ---
 title: Changelog
 version: 2
-last-updated: 2026-11-07
+last-updated: 2026-11-11
 ---
 
 # Changelog
+
+## v3.9.3 - 2026-11-11
+
+- Add `delivery.test_code.model` for a separately selected model that writes
+  executable tests from signed-off test definitions. Keep test definition under
+  `delivery.definition` and implementation under `delivery.build`.
 
 ## v3.9.2 - 2026-11-11
 

@@ -1,7 +1,7 @@
 ---
 title: SDLC Configuration and Installation Reference
-version: 4
-last-updated: 2026-10-24
+version: 5
+last-updated: 2026-11-11
 ---
 
 # SDLC configuration and installation reference
@@ -104,6 +104,8 @@ delivery:
     harness: codex
     provider: openai
     model: gpt-5.6-sol
+  test_code:
+    model: gpt-5.6-sol # writes tests from the signed-off specification
   build:
     harness: codex
     provider: openai
@@ -137,6 +139,12 @@ infrastructure:
 semantic-version Git tag deployed by `make install`; the installer maintains it
 without replacing unrelated settings. Projects follow those global skills and
 standards, so `.sdlc/project.yaml` does not duplicate an SDLC release pin.
+
+`delivery.test_code.model` selects the model for writing executable tests from
+the signed-off specification. Test definitions remain part of
+`delivery.definition`. The test-code setting does not select a harness or split
+`deliver-change` into separate jobs; a scheduler may use it when dispatching a
+distinct test-code phase.
 
 Each of `delivery.definition`, `delivery.build` and `delivery.audit` accepts an
 optional `fallback` mapping containing `harness`, `provider` where supported, and
@@ -200,7 +208,10 @@ it.
 
 ## Document history
 
-This revision separates independent review, author self-audit and delivery-only
+Version 5 adds `delivery.test_code.model` without changing the delivery
+workflow or the definition and build model roles.
+
+Version 4 separates independent review, author self-audit and delivery-only
 responsibilities. Earlier rules remain in their canonical owners and Git history.
 
 - Version 3 (2026-10-24): Separate delivery, independent-audit and self-audit entry points.

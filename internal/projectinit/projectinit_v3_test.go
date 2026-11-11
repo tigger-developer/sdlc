@@ -173,6 +173,32 @@ func TestGlobalConfigurationSkipsQuestionUnlessOverrideRequested(t *testing.T) {
 	}
 }
 
+func TestTestCodeModelUsesDistinctGlobalSetting(t *testing.T) {
+	schema, err := LoadConfigSchema(testSDLCRoot(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	field, found := schemaField(schema, "SDLC_TEST_CODE_MODEL")
+	if !found || field.Path != "delivery.test_code.model" || field.Flag != "test-code-model" || !field.AllowGlobal {
+		t.Fatalf("test-code model field = %+v, found = %t", field, found)
+	}
+	global := map[string]any{"delivery": map[string]any{
+		"definition": map[string]any{"model": "definition-model"},
+		"test_code":  map[string]any{"model": "test-model"},
+		"build":      map[string]any{"model": "build-model"},
+	}}
+	var output bytes.Buffer
+	values, explicit, err := resolveConfiguration(defaultOptions(Options{
+		Input: strings.NewReader(""), Output: &output, ErrorOutput: &output,
+	}), ConfigSchema{Fields: []ConfigField{field}}, nil, global, nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if values[field.Key] != "test-model" || explicit[field.Key] || output.Len() != 0 {
+		t.Fatalf("test-code model resolution = %#v, explicit = %#v, output = %q", values, explicit, output.String())
+	}
+}
+
 func TestSkippedAgentScanClassifiesArchivedWorkAsUnresolved(t *testing.T) {
 	items := unresolvedMigratedWork([]string{"001-old-feature"})
 	if len(items) != 1 || items[0].Disposition != "unresolved" || items[0].Descriptor != "old feature" {
