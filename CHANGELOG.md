@@ -6,6 +6,11 @@ last-updated: 2026-11-11
 
 # Changelog
 
+## v4.0.10 - 2026-11-11
+
+- Require the handover skill to commit attributable work and push every branch
+  used for the task, with remote verification before reporting the handover.
+
 ## v4.0.9 - 2026-11-11
 
 - Exclude recognized Finder and Explorer metadata files when verifying older
