@@ -6,6 +6,12 @@ last-updated: 2026-11-11
 
 # Changelog
 
+## v4.0.13 - 2026-11-11
+
+- Move the fixed-path and limited-sudo rationale into a dedicated installation
+  document. Keep the README install steps brief and point the installer's sudo
+  prompt directly to the explanation.
+
 ## v4.0.12 - 2026-11-11
 
 - Require handover notes to be written, committed and pushed on `master` only,

@@ -12,7 +12,7 @@ import (
 	"runtime"
 )
 
-const installExplanationURL = "https://github.com/tigger-developer/sdlc#installing-under-optsdlc"
+const installExplanationURL = "https://github.com/tigger-developer/sdlc/blob/master/docs/INSTALLATION-PATH.md#why-optsdlc-may-need-sudo"
 
 func ensureInstallRoot(root string, input io.Reader, output io.Writer) error {
 	if input == nil {
