@@ -6,6 +6,11 @@ last-updated: 2026-11-11
 
 # Changelog
 
+## v4.0.4 - 2026-11-11
+
+- Name Semantic Versioning as the fallback release convention and distinguish
+  its version number from a `v`-prefixed Git tag.
+
 ## v4.0.3 - 2026-11-11
 
 - Direct release numbering to project and ecosystem conventions, with a

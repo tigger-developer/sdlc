@@ -103,8 +103,10 @@ neither merge, deployment nor closure. Read-only work requires no branch switch.
 
 For release version numbers, follow the project's documented policy and any
 required or established best-practice convention for its language, framework,
-or product type. If none applies, use the `v0.0.0` convention: `v` followed by
-three dot-separated non-negative integer components.
+or product type. If none applies, use [Semantic Versioning (SemVer)](https://semver.org/)
+for a declared public interface, including its `MAJOR.MINOR.PATCH` numbering
+and compatibility-based increment rules. A Git tag may prefix the semantic
+version with `v`; that prefix is not part of the version number.
 
 ## Hooks
 
