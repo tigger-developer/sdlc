@@ -132,11 +132,7 @@ func Run(options Options) error {
 	}
 	globalPath := options.GlobalConfigPath
 	if globalPath == "" {
-		userHome, homeErr := os.UserHomeDir()
-		if homeErr != nil {
-			return fmt.Errorf("resolving user home: %w", homeErr)
-		}
-		globalPath = filepath.Join(userHome, ".agents", "sdlc.yaml")
+		globalPath = "/opt/sdlc/sdlc.yaml"
 	}
 	global, err := readYAMLConfig(globalPath)
 	if err != nil {

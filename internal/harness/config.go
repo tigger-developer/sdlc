@@ -162,9 +162,7 @@ func ResolveConfig(options ConfigOptions) (Config, error) {
 	}
 	globalPath := options.GlobalPath
 	if globalPath == "" {
-		if home, err := os.UserHomeDir(); err == nil {
-			globalPath = filepath.Join(home, ".agents", "sdlc.yaml")
-		}
+		globalPath = "/opt/sdlc/sdlc.yaml"
 	}
 	if err := applyDocument(globalPath); err != nil {
 		return Config{}, err

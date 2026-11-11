@@ -10,15 +10,15 @@ import (
 	"path/filepath"
 )
 
-func analyseGooseConfiguration(agentHome string) ([]*configurationChange, error) {
-	root := filepath.Join(commonAgentHome(agentGoose, agentHome), "plugins", "sdlc-command-guard-goose")
+func analyseGooseConfiguration(installRoot string) ([]*configurationChange, error) {
+	root := filepath.Join(installRoot, "plugins", "sdlc-command-guard-goose")
 	manifest := map[string]any{
 		"name": "sdlc-command-guard-goose", "version": "1.0.0",
 		"description": "Apply the SDLC shell and protected-file policy before Goose tools run.",
 	}
 	hooks := map[string]any{"hooks": map[string]any{"PreToolUse": []any{
 		map[string]any{"hooks": []any{map[string]any{
-			"type": "command", "command": `"${PLUGIN_ROOT}/../../sdlc/hooks/agent-command-guard.sh"`,
+			"type": "command", "command": `"/opt/sdlc/hooks/agent-command-guard.sh"`,
 			"timeout": 10, "on_failure": "block",
 		}}},
 	}}}
@@ -49,7 +49,7 @@ func analyseGooseConfiguration(agentHome string) ([]*configurationChange, error)
 		changes = append(changes, &configurationChange{
 			path: item.path, beforeLabel: "existing Goose SDLC plugin file or absent",
 			afterLabel: "Goose PreToolUse command guard with on_failure=block",
-			contents:   content, mode: 0o600, conflict: err == nil || linked,
+			contents:   content, mode: 0o644, conflict: err == nil || linked,
 		})
 	}
 	return changes, nil

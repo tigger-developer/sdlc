@@ -183,7 +183,7 @@ func TestInstalledAuditAliasUsesCanonicalStandardsRoot(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := filepath.Join(canonicalRoot, "sdlc", "prompts", "audits.yaml")
+	want := filepath.Join(canonicalRoot, "sdlc", "docs", "prompts", "audits.yaml")
 	for _, executable := range []string{command, alias} {
 		if got := auditRegistryForExecutable(executable); got != want {
 			t.Fatalf("registry for %s = %s; want %s", executable, got, want)

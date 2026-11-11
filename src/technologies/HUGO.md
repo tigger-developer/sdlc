@@ -1,7 +1,7 @@
 # Hugo Standards
 
 These standards apply to Hugo sites and supplement
-`~/.agents/sdlc/technologies/WEB.md`. Hugo projects select both documents.
+`/opt/sdlc/docs/technologies/WEB.md`. Hugo projects select both documents.
 
 ## Architecture
 
@@ -51,7 +51,7 @@ layout.
 ## Testing
 
 Follow the rendered-output and paired-development model in
-`~/.agents/sdlc/technologies/WEB.md`.
+`/opt/sdlc/docs/technologies/WEB.md`.
 
 - Validate the generated site rather than grepping Hugo source templates.
 - Use `htmltest` for broad generated-site, route, link, and asset validation.
@@ -64,11 +64,11 @@ Follow the rendered-output and paired-development model in
 ## Vulnerability checking
 
 Expose the `make vulncheck` contract defined by
-`~/.agents/sdlc/SECURITY.md`.
+`/opt/sdlc/docs/SECURITY.md`.
 
 - Scan Hugo Module metadata with OSV-Scanner or another documented scanner that
   supports the committed Go module graph.
-- Apply `~/.agents/sdlc/technologies/NODE.md` when npm or another Node package
+- Apply `/opt/sdlc/docs/technologies/NODE.md` when npm or another Node package
   manager participates in the build, and include that dependency graph.
 - Treat the Hugo executable as part of the build environment. Where the project
   owns that binary, scan it or its resolved package closure; otherwise record

@@ -3,7 +3,7 @@
 Use Org as an outliner, not as Markdown with different punctuation. Keep files
 readable as plain text, navigable in Emacs, and renderable by Pandoc.
 
-For `spec.org` and `validation.org`, also follow `~/.agents/sdlc/ORG-SCHEMA.md`:
+For `spec.org` and `validation.org`, also follow `/opt/sdlc/docs/ORG-SCHEMA.md`:
 tagged AC/test records, declared execution states and deterministic readiness.
 
 ## Structure

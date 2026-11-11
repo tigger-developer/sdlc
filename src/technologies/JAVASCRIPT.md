@@ -2,25 +2,25 @@
 
 These standards apply whenever a project owns JavaScript or TypeScript source,
 including libraries, command-line tools, browser code, and host-application
-plugins. They supplement `~/.agents/sdlc/CODING.md`.
+plugins. They supplement `/opt/sdlc/docs/CODING.md`.
 
 Also select:
 
-- `~/.agents/sdlc/technologies/NODE.md` when Node.js is the runtime or an
+- `/opt/sdlc/docs/technologies/NODE.md` when Node.js is the runtime or an
   npm-managed dependency can affect the built artefact; and
-- `~/.agents/sdlc/technologies/WEB.md` for browser-facing HTML, CSS, DOM, or
+- `/opt/sdlc/docs/technologies/WEB.md` for browser-facing HTML, CSS, DOM, or
   accessibility behaviour.
 
 ## Runtime profiles
 
 - **Web applications and sites:** Apply the common rules in this document to
-  source code and add `~/.agents/sdlc/technologies/WEB.md` for browser, DOM,
+  source code and add `/opt/sdlc/docs/technologies/WEB.md` for browser, DOM,
   accessibility, rendered-output, and visual-validation concerns.
 - **Host-application plugins:** Apply the common rules in this document and the
   host-plugin lifecycle rules below. Add `WEB.md` only when the plugin owns
   browser-facing interface or stylesheet behaviour.
 - **Node.js applications and build systems:** Apply the common rules in this
-  document and add `~/.agents/sdlc/technologies/NODE.md` for runtime,
+  document and add `/opt/sdlc/docs/technologies/NODE.md` for runtime,
   package-manager, dependency, server, and vulnerability concerns.
 
 ## Language and type safety
@@ -109,7 +109,7 @@ desktop-only.
   bundling. Linting, type checking, tests, and production bundling must report
   failures through non-zero exit status.
 - Commit the selected package manager's lockfile and build from it
-  reproducibly. Apply `~/.agents/sdlc/technologies/NODE.md` to the dependency
+  reproducibly. Apply `/opt/sdlc/docs/technologies/NODE.md` to the dependency
   graph and lifecycle scripts.
 - Treat generated bundles as build artefacts. Do not hand-edit them or use them
   as the canonical source.
@@ -118,7 +118,7 @@ desktop-only.
 
 ## Testing and vulnerability checking
 
-- Follow `~/.agents/sdlc/TESTING.md`. Test observable behaviour through public
+- Follow `/opt/sdlc/docs/TESTING.md`. Test observable behaviour through public
   boundaries; do not treat source-text searches as behavioural tests.
 - Keep domain logic testable without booting the browser, host application, or
   network. Test the adapter boundary separately where integration risk warrants
@@ -127,7 +127,7 @@ desktop-only.
   be represented honestly by a stable automated test.
 - Distributed or deployable projects with package-managed dependencies must
   expose the non-mutating `make vulncheck` contract in
-  `~/.agents/sdlc/SECURITY.md`.
+  `/opt/sdlc/docs/SECURITY.md`.
 
 ## References
 

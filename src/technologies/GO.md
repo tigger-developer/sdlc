@@ -1,8 +1,8 @@
 # Go Standards
 
-Go-specific standards. The general coding standards in `~/.agents/sdlc/CODING.md` apply on top of these.
+Go-specific standards. The general coding standards in `/opt/sdlc/docs/CODING.md` apply on top of these.
 
-For Go applications that serve HTML/CSS/JavaScript (lean web apps, Hugo-adjacent services), the patterns here cover the server side; the response payload itself follows `~/.agents/sdlc/technologies/WEB.md`.
+For Go applications that serve HTML/CSS/JavaScript (lean web apps, Hugo-adjacent services), the patterns here cover the server side; the response payload itself follows `/opt/sdlc/docs/technologies/WEB.md`.
 
 ## Project Layout
 
@@ -84,7 +84,7 @@ cmd := fmt.Sprintf("hugo --minify --baseURL %q", cfg.BaseURL)
 ```
 
 Better still: avoid shelling out when the standard library will do the job. See
-`~/.agents/sdlc/CODING.md` "Structure and embedded languages" for the general
+`/opt/sdlc/docs/CODING.md` "Structure and embedded languages" for the general
 rule.
 
 ## Function Decomposition
@@ -152,7 +152,7 @@ for _, tt := range tests {
 - Test files: `_test.go` suffix, alongside the code under test
 - `go test ./...` from the module root runs everything
 
-See `~/.agents/sdlc/TESTING.md` for the cross-language testing standards.
+See `/opt/sdlc/docs/TESTING.md` for the cross-language testing standards.
 
 ## Tooling
 
@@ -178,7 +178,7 @@ linters:
 ```
 
 Deployable Go applications must expose the `make vulncheck` contract defined by
-`~/.agents/sdlc/SECURITY.md`, implemented with `govulncheck ./...`. Follow that
+`/opt/sdlc/docs/SECURITY.md`, implemented with `govulncheck ./...`. Follow that
 non-mutating, fail-closed contract and provision the scanner reproducibly
 outside the target. Do not suppress findings through JSON/SARIF output modes
 whose documented exit behaviour would conceal them.

@@ -145,7 +145,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ~/.agents/sdlc/hooks/agent-command-guard.sh",
+            "command": "bash /opt/sdlc/hooks/agent-command-guard.sh",
             "timeout": 5
           }
         ]

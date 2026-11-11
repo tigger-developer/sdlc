@@ -3,7 +3,7 @@ name: define-project-foundation
 description: Define and review the Vision and Architecture for a new greenfield project before feature work begins.
 ---
 
-Follow `~/.agents/sdlc/READING.md`; reuse required documents already read in
+Follow `/opt/sdlc/docs/READING.md`; reuse required documents already read in
 full, unchanged and retained in context. A skill transition does not reload them.
 
 Use this skill only for a **greenfield** project that does not yet have an
@@ -11,7 +11,7 @@ approved project foundation. Do not regenerate or overwrite an established
 brownfield project's Vision or Architecture; report that the existing
 authorities need a separate review.
 
-Read `~/.agents/sdlc/MAIN.md`, `ISSUES.md`, `TESTING.md`,
+Read `/opt/sdlc/docs/MAIN.md`, `ISSUES.md`, `TESTING.md`,
 `DOCUMENTATION.md`, `CODING.md`, `ARCHITECTURE.md`, `AUDITS.md`, and the project
 profile before drafting. Preserve human edits and keep the work limited to the
 two foundation documents and their review record.
@@ -36,7 +36,7 @@ and stop when the foundation is sufficiently defined. The operator may answer
 
 As soon as the operator mentions a technology, integration, or deployment
 platform, read the corresponding selected standard under
-`~/.agents/sdlc/technologies/` (and any named domain standard) before asking
+`/opt/sdlc/docs/technologies/` (and any named domain standard) before asking
 follow-up questions or drafting. Do not defer technology-standard loading until
 after the documents are written.
 

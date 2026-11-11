@@ -14,10 +14,10 @@ work around the check, migrate by hand or infer permission to invoke the
 initializer. Recheck the profile and layout before resuming.
 
 
-Follow `~/.agents/sdlc/READING.md`; reuse required texts already read in full,
+Follow `/opt/sdlc/docs/READING.md`; reuse required texts already read in full,
 unchanged and retained in context. Reading lists do not request duplicate loads.
 
-Read `~/.agents/sdlc/MAIN.md`, `TESTING.md`, `CODING.md`, `ARCHITECTURE.md`,
+Read `/opt/sdlc/docs/MAIN.md`, `TESTING.md`, `CODING.md`, `ARCHITECTURE.md`,
 `DOCUMENTATION.md`, `GIT.md`, the project profile, selected standards, the
 signed-off `spec.org`, and its current audit evidence.
 
@@ -64,7 +64,7 @@ conservative expenditure estimates in the hands-off decision log; no billing
 integration is needed. UTs and configured SDLC audits are outside this budget.
 
 On entering HANDS-OFF, read
-`~/.agents/skills/deliver-change/references/native-goal.md` and resolve its
+`/opt/sdlc/skills/deliver-change/references/native-goal.md` and resolve its
 budgets before implementation. Activate the current harness's native goal
 control where exposed and authorized; verify its result before announcing
 `NATIVE GOAL: ACTIVE`. Do not treat a configured budget as an enforced budget.
@@ -117,9 +117,9 @@ production code. Reuse a verified implementation branch on resume. An explicit
 canonical `docs/work.org` updates on primary; never allocate from a branch copy.
 Never guess a primary branch, remote or naming convention.
 
-Read `~/.agents/sdlc/ORG-SCHEMA.md`. Create `validation.org` from its template
+Read `/opt/sdlc/docs/ORG-SCHEMA.md`. Create `validation.org` from its template
 with one `:testdef:` heading per specified test; preserve IDs and existing history.
-Run `~/.agents/sdlc/bin/sdlc-validate --help` before first use. Use it locally to
+Run `/opt/sdlc/bin/sdlc-validate --help` before first use. Use it locally to
 check the full inventory and correct schema/readiness errors before calling an auditor.
 
 Write and execute the complete justified AT/RT package before implementing the target
@@ -127,7 +127,7 @@ behaviour. Only minimal execution-enabling scaffolding is permitted under
 `TESTING.md`; include it in test-code audit evidence. Record RED only for the intended observed failure; initially GREEN
 preservation tests need their rationale. Mark deferred OT/UT execution AMBER with
 a reason. Run the validator with `--spec <spec.org> --readiness-check=test-code`,
-then load `~/.agents/skills/test-code-audit/SKILL.md` in this session. Remediate
+then load `/opt/sdlc/skills/test-code-audit/SKILL.md` in this session. Remediate
 findings and record current internal PASS before building.
 If the approved spec has neither ATs nor RTs, skip this audit and proceed to implementation;
 do not remove or reclassify approved ATs or RTs to bypass it.
@@ -136,13 +136,13 @@ Implement the authorized solution, obtain GREEN for every AT/RT and execute boun
 OTs. Keep the specification synchronized for authorized routine details, without
 changing signed-off behaviour. Finish the solution, tests and affected documentation,
 not merely one file or edit. Run `sdlc-validate --readiness-check=delivery-code`
-with the same spec, then load `~/.agents/skills/code-audit/SKILL.md` in this
+with the same spec, then load `/opt/sdlc/skills/code-audit/SKILL.md` in this
 session whether or not test-code was required. Include affected product
 documentation; missing or materially stale required docs block the final gate.
 A test-code PASS is not delivery approval; check `readiness_check` in audit evidence.
 Before requesting another audit either stage, address **every** finding as a batch:
 remediate valid findings and challenge incorrect or out-of-scope findings with
-evidence under `~/.agents/sdlc/AUDITS.md`. Raise doubtful or unresolved disputes
+evidence under `/opt/sdlc/docs/AUDITS.md`. Raise doubtful or unresolved disputes
 to the operator; never silently waive findings or expand scope to obtain a PASS.
 The old external harness is retired. Use self-review by default; launch an
 independent reviewer only with explicit authority under `AUDITS.md`. Do not re-audit the signed-off definition without a material change.

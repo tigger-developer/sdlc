@@ -3,10 +3,10 @@ name: pair-change
 description: Run explicitly selected paired development with live operator validation and lean closure records.
 ---
 
-Follow `~/.agents/sdlc/READING.md`; reuse required documents already read in
+Follow `/opt/sdlc/docs/READING.md`; reuse required documents already read in
 full, unchanged and retained in context. A skill transition does not reload them.
 
-Read `~/.agents/sdlc/MAIN.md` and `PAIRING.md`, then the project profile and
+Read `/opt/sdlc/docs/MAIN.md` and `PAIRING.md`, then the project profile and
 applicable standards. The operator's bounded objective and explicit iteration
 instructions are the working specification. A question remains a question.
 
@@ -20,8 +20,8 @@ Iterate implementation with the operator. Use automated TDD wherever justified,
 and record each explicit visual, ergonomic, editorial, or operational validation
 without replacing it with artificial automation. Audit each coherent code
 increment promptly with `code-audit` in this session, not each keystroke.
-Before that review, follow `~/.agents/sdlc/ORG-SCHEMA.md` and run
-`~/.agents/sdlc/bin/sdlc-validate --help`, then its delivery-code readiness check.
+Before that review, follow `/opt/sdlc/docs/ORG-SCHEMA.md` and run
+`/opt/sdlc/bin/sdlc-validate --help`, then its delivery-code readiness check.
 Every AT/RT/OT must be GREEN; record outstanding UTs as AMBER. This route does not
 require a pre-build test-code audit.
 Update affected product documentation before that final delivery verdict; do not
@@ -30,7 +30,7 @@ When the outcome stabilizes, consolidate `spec.org`, `validation.org`, and
 affected documentation, then run the retrospective definition review.
 
 Use `definition-audit` in this session for the retrospective definition review.
-Follow `~/.agents/sdlc/AUDITS.md` for internal evidence and continuation. Refer proposed behaviour
+Follow `/opt/sdlc/docs/AUDITS.md` for internal evidence and continuation. Refer proposed behaviour
 or design changes to the operator for normal delivery; do not redesign during
 wrap-up. Ask the operator to confirm the recorded user tests and close the work.
 

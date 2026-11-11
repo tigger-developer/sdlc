@@ -23,23 +23,23 @@ provider and add local human preferences separately.
 
 Global instructions should already have been supplied from the current
 harness's home directory. If not, read its deployed copy there, not source in
-an instruction-maintainer checkout. Follow `~/.agents/sdlc/READING.md`: reuse
+an instruction-maintainer checkout. Follow `/opt/sdlc/docs/READING.md`: reuse
 unchanged text already read in full and retained in context. Report an absent
 required document's exact path; never search for another SDLC installation.
 
 - An explicitly invoked independent auditor in a fresh context reads
-  `~/.agents/sdlc/INDEPENDENT-AUDITOR.md`, not `MAIN.md`, regardless of `.sdlc/`. Return
+  `/opt/sdlc/docs/INDEPENDENT-AUDITOR.md`, not `MAIN.md`, regardless of `.sdlc/`. Return
   findings only. A delivery agent's self-audit retains the delivery role.
 - Conversation unrelated to project work does not inspect project markers or
   load MAIN merely because cwd is a checkout.
 
 - When the project root contains `.sdlc/project.yaml`, read
-  `~/.agents/sdlc/MAIN.md` in full and follow its workflow and
+  `/opt/sdlc/docs/MAIN.md` in full and follow its workflow and
   progressive-loading table.
 - If `.sdlc/` exists but its profile is absent or unreadable, report incomplete
   initialization before delivery; do not initialize or downgrade automatically.
 - Otherwise, when writing or changing code or scripts, read
-  `~/.agents/sdlc/CODING.md` and the technology standards it selects. The SDLC
+  `/opt/sdlc/docs/CODING.md` and the technology standards it selects. The SDLC
   workflow, gates, and automatic audits do not apply. Explicit standalone review
   uses INDEPENDENT-AUDITOR in a fresh context or SELF-AUDIT in the author's context.
 

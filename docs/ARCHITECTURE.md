@@ -21,10 +21,10 @@ plan, task, and implementation lifecycles.
 
 ```text
 staging repository
-  src/       -> ~/.agents/sdlc/
-  skills/    -> ~/.agents/skills/
-  hooks/     -> ~/.agents/sdlc/hooks/
-  bin/       -> ~/.agents/sdlc/bin/
+  src/       -> /opt/sdlc/docs/
+  skills/    -> /opt/sdlc/skills/
+  hooks/     -> /opt/sdlc/hooks/
+  bin/       -> /opt/sdlc/bin/
                  ^
                  |
   ~/.local/bin/sdlc-* symlinks
@@ -33,7 +33,7 @@ staging repository
 `sdlc-install` remains a repository-internal build artefact invoked by
 `make install`; it is not deployed to the global path. The installed CLI tools
 operate on individual projects or documents. Their global links target the
-deployed release under `~/.agents/sdlc/bin`, never the mutable source checkout.
+deployed release under `/opt/sdlc/bin`, never the mutable source checkout.
 The public `sdlc-audit` link targets the deployed `sdlc-harness`; no duplicate
 audit implementation is built. Recognized historical command retirement markers
 are removed through Trash, not retained in executable directories.
@@ -53,7 +53,7 @@ MAIN, workflow and transport documents are excluded from both mandatory and
 optional auditor references. Callers provide
 only project files; external SDLC standard paths are not accepted as inputs.
 
-`~/.agents/sdlc/MAIN.md` is the delivery-agent bootstrap. An explicitly independent
+`/opt/sdlc/docs/MAIN.md` is the delivery-agent bootstrap. An explicitly independent
 fresh-context auditor enters through `INDEPENDENT-AUDITOR.md` before project-marker routing
 and must not load MAIN. The author uses `SELF-AUDIT.md` for non-independent review.
 Both select criteria through `REVIEW.md`; `READING.md` governs complete reads,
@@ -78,7 +78,7 @@ was invoked, authenticated, interactively ready, or initializer-ready.
 
 Interactive installation discovers supported harnesses from existing provider
 home directories. A top-level `active-harness` list in the shared
-`~/.agents/sdlc.yaml` configuration replaces the selection question; the
+`/opt/sdlc/sdlc.yaml` configuration replaces the selection question; the
 installer intersects that list with the homes that exist. Explicit `--agent`
 invocation remains the highest-precedence selection route.
 
@@ -111,9 +111,9 @@ specs/NNN-descriptor/validation.org
 
 The project YAML contains non-secret project facts, named product, architecture,
 and requirement authorities, migration branch metadata, and explicit overrides.
-It does not copy inherited global defaults from `~/.agents/sdlc.yaml`. The work
+It does not copy inherited global defaults from `/opt/sdlc/sdlc.yaml`. The work
 profile does not pin an SDLC release: global skills and standards follow the
-release recorded in `~/.agents/sdlc.yaml`. Its schema `version` remains distinct
+release recorded in `/opt/sdlc/sdlc.yaml`. Its schema `version` remains distinct
 from that installer-managed `release`. The work ledger carries work state,
 provenance, and an initially folded legacy
 acceptance-criteria subtree. Current v3 requirements, tests, and design remain
@@ -375,7 +375,7 @@ only the migrated SDLC keys and preserves unrelated `.env` content.
 
 Annotated semantic-version Git tags are the release authority. The build embeds
 the latest release tag reachable from its current commit. `make install` records
-that value as the top-level `release` in `~/.agents/sdlc.yaml`, preserving the
+that value as the top-level `release` in `/opt/sdlc/sdlc.yaml`, preserving the
 operator's other global defaults. Project profiles do not duplicate it.
 
 The entire unfinished v2 implementation is preserved on

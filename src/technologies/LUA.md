@@ -2,7 +2,7 @@
 
 These standards apply to maintained Lua programs, embedded extensions, plugins,
 and host configuration such as Hammerspoon. The general rules in
-`~/.agents/sdlc/CODING.md` also apply.
+`/opt/sdlc/docs/CODING.md` also apply.
 
 ## Selection and language boundary
 
@@ -165,7 +165,7 @@ it. Never evaluate user input as Lua or interpolate it into shell commands.
   justified and their platform compatibility is tested.
 
 For a deployable Lua application, expose the `make vulncheck` contract from
-`~/.agents/sdlc/SECURITY.md`. Scan every supported resolved dependency manifest
+`/opt/sdlc/docs/SECURITY.md`. Scan every supported resolved dependency manifest
 with the selected ecosystem-capable scanner. If available tooling cannot assess
 the LuaRocks graph, record that limitation explicitly and scan the built
 artefact or deployment closure with Trivy or OSV-Scanner where supported. Never

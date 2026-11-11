@@ -3,7 +3,7 @@ name: migrate-legacy-acs-to-sdlc-v1
 description: Archive and close a brownfield project's legacy GitHub tickets while reconciling its SDLC v1 acceptance-criteria ledger and documentation before SDLC v3 initialization. Invoke only when the operator requests this migration.
 ---
 
-Follow `~/.agents/sdlc/READING.md`; reuse required documents already read in
+Follow `/opt/sdlc/docs/READING.md`; reuse required documents already read in
 full, unchanged and retained in context. A skill transition does not reload them.
 
 # Prepare an SDLC v1 project for SDLC v3
@@ -12,12 +12,12 @@ full, unchanged and retained in context. A skill transition does not reload them
 `delivery.definition` harness, provider where applicable, and model. Do not
 substitute an audit model or a hardcoded model preference.
 
-If `~/.agents/sdlc/MAIN.md` is absent or unreadable, report that exact path;
+If `/opt/sdlc/docs/MAIN.md` is absent or unreadable, report that exact path;
 never search for another copy.
 
-Read `~/.agents/sdlc/MAIN.md`, `~/.agents/sdlc/ISSUES.md`,
-`~/.agents/sdlc/TESTING.md`, `~/.agents/sdlc/DOCUMENTATION.md`, and
-`~/.agents/sdlc/GIT.md` in full. Consult project documentation only as needed
+Read `/opt/sdlc/docs/MAIN.md`, `/opt/sdlc/docs/ISSUES.md`,
+`/opt/sdlc/docs/TESTING.md`, `/opt/sdlc/docs/DOCUMENTATION.md`, and
+`/opt/sdlc/docs/GIT.md` in full. Consult project documentation only as needed
 for the targeted staleness pass.
 
 ## Outcome and boundary
@@ -76,7 +76,7 @@ material, stop before closure.
 
 Immediately after verifying and promoting the archive, create
 `docs/ticket-migration.org` from
-`~/.agents/sdlc/templates/migration/ticket-migration.org`. Read that template in
+`/opt/sdlc/docs/templates/migration/ticket-migration.org`. Read that template in
 full and follow its embedded structure, syntax, and validation instructions. If
 an interrupted migration already has an index, preserve its recorded state and
 reconcile its structure rather than overwriting it.
@@ -92,7 +92,7 @@ Use `VALID` for an applicable legacy AC, never `HOLD` or `HOLDING`. Keep test
 results and heuristic qualifications separate; validity is not a test pass.
 Those old generated labels are compatibility inputs, not blocked-work states.
 
-Read `~/.agents/sdlc/templates/migration/ACs.org` in full. Before indexing live
+Read `/opt/sdlc/docs/templates/migration/ACs.org` in full. Before indexing live
 RTs or appending migrated ACs, convert the pre-existing `docs/ACs.md` into
 `docs/ACs.org` using that canonical structure. Use `git mv` so the tracked
 history remains visible and no conflicting Markdown ledger remains.
@@ -112,7 +112,7 @@ and validate it with Pandoc's Org reader after conversion and before every
 repository commit that changes it.
 
 After writing or changing the ledger, cross-check its outline against the
-canonical example in `~/.agents/sdlc/templates/migration/ACs.org`. Every AC MUST
+canonical example in `/opt/sdlc/docs/templates/migration/ACs.org`. Every AC MUST
 be a level-three heading containing both its identifier and a useful descriptor,
 for example `*** AC29.1 - Reject an invalid host definition`. An identifier-only
 AC heading fails this structural check. Preserve any additional source detail
@@ -337,7 +337,7 @@ Report only:
 
 If the migration index or completion report does not fit in one terminal
 screen, present `docs/ticket-migration.org` with the previewer selected by
-`~/.agents/sdlc/MAIN.md`.
+`/opt/sdlc/docs/MAIN.md`.
 Presentation is not an approval gate.
 
 The operator decides whether the project is ready for `sdlc-init`, which

@@ -110,7 +110,7 @@ func printBootstrapHelp(output io.Writer) {
 	fmt.Fprintln(output, "")
 	fmt.Fprintln(output, "Core options:")
 	fmt.Fprintln(output, "  --project PATH        project root (default: current directory)")
-	fmt.Fprintln(output, "  --sdlc-root PATH      canonical SDLC root (default: ~/.agents/sdlc)")
+	fmt.Fprintln(output, "  --sdlc-root PATH      canonical SDLC root (default: /opt/sdlc/docs)")
 	fmt.Fprintln(output, "  --global-config PATH  global SDLC YAML configuration")
 	fmt.Fprintln(output, "  --override-global-config")
 	fmt.Fprintln(output, "                        prompt for project overrides to populated global defaults")
@@ -136,11 +136,7 @@ func printInitPurpose(output io.Writer) {
 }
 
 func bootstrapSDLCRoot(arguments []string) (string, error) {
-	userHome, err := os.UserHomeDir()
-	if err != nil {
-		return "", err
-	}
-	root := filepath.Join(userHome, ".agents", "sdlc")
+	root := "/opt/sdlc/docs"
 	for index := 0; index < len(arguments); index++ {
 		argument := arguments[index]
 		if argument == "--sdlc-root" || argument == "-sdlc-root" {

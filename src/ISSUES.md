@@ -9,7 +9,7 @@ last-updated: 2026-10-31
 This document governs requirements and acceptance criteria. It does not define
 an issue lifecycle or a delivery workflow.
 
-Follow `~/.agents/sdlc/ORG-SCHEMA.md` for machine-checkable AC/test headings and
+Follow `/opt/sdlc/docs/ORG-SCHEMA.md` for machine-checkable AC/test headings and
 their matching execution records. Keep test definitions here, results in
 `validation.org`, and all audit results solely in `audits.yaml` under
 `AUDIT-RECORD.md`. Label self and independent methods explicitly; do not maintain
@@ -145,7 +145,7 @@ The specification contains, in order:
 - solution design and architecture impact, including security; and
 - a context-independent delivery handoff.
 
-Use the canonical `~/.agents/sdlc/templates/v3/spec.org`. Draft the detail first
+Use the canonical `/opt/sdlc/docs/templates/v3/spec.org`. Draft the detail first
 and derive the opening summary from it. The summary introduces nothing absent
 below its section break, contradicts nothing, and omits no material change,
 unchanged boundary, decision, or edge case. A mismatch blocks the definition

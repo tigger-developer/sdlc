@@ -33,4 +33,4 @@ Examples:
 The validator checks recorded evidence, not its truth or behavioural adequacy.
 Definition review does not require execution readiness; neither check is a
 definition gate or an instruction to execute tests during specification writing.
-Org record contract: ~/.agents/sdlc/ORG-SCHEMA.md
+Org record contract: /opt/sdlc/docs/ORG-SCHEMA.md

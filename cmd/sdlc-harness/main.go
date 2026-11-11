@@ -533,7 +533,7 @@ func auditRegistryForExecutable(executable string) string {
 	if err != nil {
 		return ""
 	}
-	return filepath.Clean(filepath.Join(filepath.Dir(resolved), "..", "prompts", "audits.yaml"))
+	return filepath.Clean(filepath.Join(filepath.Dir(resolved), "..", "docs", "prompts", "audits.yaml"))
 }
 
 func (document auditPromptDocument) prompt(gate string) (string, error) {

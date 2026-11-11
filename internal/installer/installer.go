@@ -115,20 +115,22 @@ var deployedInternalCommandNames = []string{
 }
 
 const (
+	canonicalInstallRoot  = "/opt/sdlc"
 	codexPythonRulesStart = "# BEGIN SDLC MANAGED PYTHON RULES"
 	codexPythonRulesEnd   = "# END SDLC MANAGED PYTHON RULES"
-	toolGuardCommand      = "bash ~/.agents/sdlc/hooks/agent-command-guard.sh"
+	toolGuardCommand      = "bash /opt/sdlc/hooks/agent-command-guard.sh"
 )
 
 type Options struct {
-	Agent     string
-	AgentHome string
-	Source    string
-	Apply     bool
-	Configure bool
-	Release   string
-	Input     io.Reader
-	Output    io.Writer
+	Agent       string
+	AgentHome   string
+	Source      string
+	Apply       bool
+	Configure   bool
+	Release     string
+	InstallRoot string
+	Input       io.Reader
+	Output      io.Writer
 }
 
 type configurationChange struct {
@@ -169,6 +171,10 @@ type installationPlan struct {
 
 func Run(options Options) error {
 	options = withDefaultIO(options)
+	installRoot := options.InstallRoot
+	if installRoot == "" {
+		installRoot = canonicalInstallRoot
+	}
 	source, err := validateSource(options.Source)
 	if err != nil {
 		return err
@@ -177,14 +183,19 @@ func Run(options Options) error {
 	if err != nil {
 		return err
 	}
-	plan, err := planInstallation(agent, source, agentHome, options.Release)
+	if options.Apply || options.Configure {
+		if err := ensureInstallRoot(installRoot, options.Input, options.Output); err != nil {
+			return err
+		}
+	}
+	plan, err := planInstallation(agent, source, agentHome, installRoot, options.Release)
 	if err != nil {
 		return err
 	}
 
 	printHeading(options.Output, agent, source, agentHome, options.Apply, options.Configure)
 	printInstallationPlan(options.Output, plan, options.Apply)
-	changes, err := analyseConfiguration(agent, agentHome, source, options.Output)
+	changes, err := analyseConfiguration(agent, agentHome, source, installRoot, options.Output)
 	if err != nil {
 		return err
 	}
@@ -192,20 +203,26 @@ func Run(options Options) error {
 		if err := applyInstallation(plan, options.Output); err != nil {
 			return err
 		}
-		verified, verifyErr := planInstallation(agent, source, agentHome, options.Release)
+		if err := ensureSharedDirectoryModes(installRoot); err != nil {
+			return err
+		}
+		verified, verifyErr := planInstallation(agent, source, agentHome, installRoot, options.Release)
 		if verifyErr != nil {
 			return fmt.Errorf("verifying installation: %w", verifyErr)
 		}
 		if installationHasChanges(verified) {
 			return errors.New("installation verification still reports changes")
 		}
-		if err := verifyCanonicalMain(commonAgentHome(agent, agentHome)); err != nil {
+		if err := verifyCanonicalMain(installRoot); err != nil {
 			return err
 		}
 		fmt.Fprintln(options.Output, "Installation: synchronized all planned copies.")
 	}
 	if options.Configure {
-		return offerConfigurationChanges(changes, options.Input, options.Output)
+		if err := offerConfigurationChanges(changes, options.Input, options.Output); err != nil {
+			return err
+		}
+		return ensureSharedDirectoryModes(installRoot)
 	}
 	if len(changes) != 0 {
 		fmt.Fprintln(options.Output, "Configuration: recommendation only; re-run with --configure to review and apply it.")
@@ -214,6 +231,15 @@ func Run(options Options) error {
 }
 
 func RunInteractive(sourcePath, userHome, release string, input io.Reader, output io.Writer) error {
+	return runInteractiveAtRoot(sourcePath, userHome, canonicalInstallRoot, release, input, output)
+}
+
+// RunInteractiveAtRoot is for isolated installer verification; production uses RunInteractive.
+func RunInteractiveAtRoot(sourcePath, userHome, installRoot, release string, input io.Reader, output io.Writer) error {
+	return runInteractiveAtRoot(sourcePath, userHome, installRoot, release, input, output)
+}
+
+func runInteractiveAtRoot(sourcePath, userHome, installRoot, release string, input io.Reader, output io.Writer) error {
 	if input == nil {
 		input = os.Stdin
 	}
@@ -235,26 +261,28 @@ func RunInteractive(sourcePath, userHome, release string, input io.Reader, outpu
 		return fmt.Errorf("resolving user home %q: %w", userHome, err)
 	}
 	reader := bufio.NewReader(input)
-	agents, err := selectInteractiveAgents(userHome, reader, output)
+	if err := ensureInstallRoot(installRoot, reader, output); err != nil {
+		return err
+	}
+	agents, err := selectInteractiveAgents(userHome, installRoot, reader, output)
 	if err != nil {
 		return err
 	}
 	plan := installationPlan{}
-	commonHome := filepath.Join(userHome, ".agents")
-	shared, planErr := planSharedInstallation(source, commonHome, release)
+	shared, planErr := planSharedInstallation(source, userHome, installRoot, release)
 	if planErr != nil {
 		return planErr
 	}
 	mergeInstallationPlan(&plan, shared)
 	for _, agent := range agents {
 		agentHome := providerHome(userHome, agent)
-		provider, planErr := planProviderInstallation(agent, source, agentHome)
+		provider, planErr := planProviderInstallation(agent, source, agentHome, installRoot)
 		if planErr != nil {
 			return planErr
 		}
 		mergeInstallationPlan(&plan, provider)
 	}
-	configurations, err := planDetectedConfigurations(source, userHome, agents)
+	configurations, err := planDetectedConfigurations(source, userHome, installRoot, agents)
 	if err != nil {
 		return err
 	}
@@ -267,10 +295,10 @@ func RunInteractive(sourcePath, userHome, release string, input io.Reader, outpu
 	}
 	if !installationHasChanges(plan) {
 		fmt.Fprintln(output, "All detected SDLC copies are current.")
-		if err := verifyHarnessGuards(commonHome, agents, output); err != nil {
+		if err := verifyHarnessGuards(installRoot, agents, output); err != nil {
 			return err
 		}
-		if err := verifyHarnessAdapters(commonHome, agents); err != nil {
+		if err := verifyHarnessAdapters(installRoot, agents); err != nil {
 			return err
 		}
 		printHarnessLocalValidation(output, agents)
@@ -297,7 +325,10 @@ func RunInteractive(sourcePath, userHome, release string, input io.Reader, outpu
 			return err
 		}
 	}
-	verified, verifyErr := planDetectedInstallation(source, userHome, agents, release)
+	if err := ensureSharedDirectoryModes(installRoot); err != nil {
+		return err
+	}
+	verified, verifyErr := planDetectedInstallation(source, userHome, installRoot, agents, release)
 	if verifyErr != nil {
 		return verifyErr
 	}
@@ -308,13 +339,13 @@ func RunInteractive(sourcePath, userHome, release string, input io.Reader, outpu
 	if installationHasChanges(verified) {
 		return errors.New("deployment verification still reports changes")
 	}
-	if err := verifyCanonicalMain(commonHome); err != nil {
+	if err := verifyCanonicalMain(installRoot); err != nil {
 		return err
 	}
-	if err := verifyHarnessGuards(commonHome, agents, output); err != nil {
+	if err := verifyHarnessGuards(installRoot, agents, output); err != nil {
 		return err
 	}
-	if err := verifyHarnessAdapters(commonHome, agents); err != nil {
+	if err := verifyHarnessAdapters(installRoot, agents); err != nil {
 		return err
 	}
 	printHarnessLocalValidation(output, agents)
@@ -322,22 +353,21 @@ func RunInteractive(sourcePath, userHome, release string, input io.Reader, outpu
 	return nil
 }
 
-func planDetectedInstallation(source, userHome string, agents []string, release string) (installationPlan, error) {
+func planDetectedInstallation(source, userHome, installRoot string, agents []string, release string) (installationPlan, error) {
 	plan := installationPlan{}
-	commonHome := filepath.Join(userHome, ".agents")
-	shared, err := planSharedInstallation(source, commonHome, release)
+	shared, err := planSharedInstallation(source, userHome, installRoot, release)
 	if err != nil {
 		return installationPlan{}, err
 	}
 	mergeInstallationPlan(&plan, shared)
 	for _, agent := range agents {
-		provider, err := planProviderInstallation(agent, source, providerHome(userHome, agent))
+		provider, err := planProviderInstallation(agent, source, providerHome(userHome, agent), installRoot)
 		if err != nil {
 			return installationPlan{}, err
 		}
 		mergeInstallationPlan(&plan, provider)
 	}
-	configurations, err := planDetectedConfigurations(source, userHome, agents)
+	configurations, err := planDetectedConfigurations(source, userHome, installRoot, agents)
 	if err != nil {
 		return installationPlan{}, err
 	}
@@ -345,10 +375,10 @@ func planDetectedInstallation(source, userHome string, agents []string, release 
 	return plan, nil
 }
 
-func planDetectedConfigurations(source, userHome string, agents []string) ([]*configurationChange, error) {
+func planDetectedConfigurations(source, userHome, installRoot string, agents []string) ([]*configurationChange, error) {
 	var changes []*configurationChange
 	for _, agent := range agents {
-		agentChanges, err := analyseConfiguration(agent, providerHome(userHome, agent), source, io.Discard)
+		agentChanges, err := analyseConfiguration(agent, providerHome(userHome, agent), source, installRoot, io.Discard)
 		if err != nil {
 			return nil, err
 		}
@@ -403,8 +433,8 @@ func printHarnessLocalValidation(output io.Writer, agents []string) {
 	}
 }
 
-func verifyHarnessGuards(commonHome string, agents []string, output io.Writer) error {
-	guard := filepath.Join(commonHome, "sdlc", "hooks", "agent-command-guard.sh")
+func verifyHarnessGuards(installRoot string, agents []string, output io.Writer) error {
+	guard := filepath.Join(installRoot, "hooks", "agent-command-guard.sh")
 	for _, agent := range agents {
 		payload := `{"hook_event_name":"PreToolUse","tool_name":"Bash","tool_input":{"command":"rm obsolete"}}`
 		if agent == agentCopilot {
@@ -437,7 +467,7 @@ func verifyHarnessGuards(commonHome string, agents []string, output io.Writer) e
 	return nil
 }
 
-func verifyHarnessAdapters(commonHome string, agents []string) error {
+func verifyHarnessAdapters(installRoot string, agents []string) error {
 	legacy := false
 	for _, agent := range agents {
 		legacy = legacy || agent != agentGoose
@@ -445,7 +475,7 @@ func verifyHarnessAdapters(commonHome string, agents []string) error {
 	if !legacy {
 		return nil
 	}
-	runner := filepath.Join(commonHome, "sdlc", "bin", "sdlc-harness")
+	runner := filepath.Join(installRoot, "bin", "sdlc-harness")
 	info, err := os.Stat(runner)
 	if err != nil {
 		return fmt.Errorf("verifying installed harness runner %q: %w", runner, err)
@@ -639,15 +669,15 @@ func commonAgentHome(agent, agentHome string) string {
 	return filepath.Join(parent, ".agents")
 }
 
-func planInstallation(agent, source, agentHome, release string) (installationPlan, error) {
+func planInstallation(agent, source, agentHome, installRoot, release string) (installationPlan, error) {
 	commonHome := commonAgentHome(agent, agentHome)
 	plan := installationPlan{}
-	shared, err := planSharedInstallation(source, commonHome, release)
+	shared, err := planSharedInstallation(source, commonHome, installRoot, release)
 	if err != nil {
 		return installationPlan{}, err
 	}
 	mergeInstallationPlan(&plan, shared)
-	provider, err := planProviderInstallation(agent, source, agentHome)
+	provider, err := planProviderInstallation(agent, source, agentHome, installRoot)
 	if err != nil {
 		return installationPlan{}, err
 	}
@@ -655,10 +685,10 @@ func planInstallation(agent, source, agentHome, release string) (installationPla
 	return plan, nil
 }
 
-func planSharedInstallation(source, commonHome, release string) (installationPlan, error) {
-	liveSDLC := filepath.Join(commonHome, "sdlc")
-	localBin := filepath.Join(filepath.Dir(commonHome), ".local", "bin")
-	if sameLexicalPath(source, liveSDLC) {
+func planSharedInstallation(source, userHome, installRoot, release string) (installationPlan, error) {
+	liveSDLC := filepath.Join(installRoot, "docs")
+	localBin := filepath.Join(userHome, ".local", "bin")
+	if sameLexicalPath(source, installRoot) {
 		return installationPlan{}, fmt.Errorf("source %q is the live SDLC directory; use a separate staging clone", source)
 	}
 	plan := installationPlan{}
@@ -667,9 +697,9 @@ func planSharedInstallation(source, commonHome, release string) (installationPla
 		optional            bool
 	}{
 		{source: filepath.Join(source, "src"), destination: liveSDLC},
-		{source: filepath.Join(source, "commands"), destination: filepath.Join(liveSDLC, "commands"), optional: true},
-		{source: filepath.Join(source, "hooks"), destination: filepath.Join(liveSDLC, "hooks")},
-		{source: filepath.Join(source, "skills"), destination: filepath.Join(commonHome, "skills")},
+		{source: filepath.Join(source, "commands"), destination: filepath.Join(installRoot, "commands"), optional: true},
+		{source: filepath.Join(source, "skills"), destination: filepath.Join(installRoot, "skills")},
+		{source: filepath.Join(source, "hooks"), destination: filepath.Join(installRoot, "hooks")},
 	} {
 		var files []managedSync
 		var err error
@@ -683,6 +713,21 @@ func planSharedInstallation(source, commonHome, release string) (installationPla
 		}
 		plan.syncs = append(plan.syncs, files...)
 	}
+	currentSkills, err := sourceDirectoryNames(filepath.Join(source, "skills"))
+	if err != nil {
+		return installationPlan{}, err
+	}
+	globalSkills := filepath.Join(userHome, ".agents", "skills")
+	for _, skill := range currentSkills {
+		if isAuditSkill(skill) {
+			continue
+		}
+		link, linkErr := planManagedLink(filepath.Join(installRoot, "skills", skill), filepath.Join(globalSkills, skill), globalSkills)
+		if linkErr != nil {
+			return installationPlan{}, linkErr
+		}
+		plan.links = append(plan.links, link)
+	}
 	for _, name := range deployedCommandNames {
 		sourcePath := filepath.Join(source, "bin", name)
 		if info, err := os.Stat(sourcePath); err != nil {
@@ -690,8 +735,8 @@ func planSharedInstallation(source, commonHome, release string) (installationPla
 		} else if !info.Mode().IsRegular() {
 			return installationPlan{}, fmt.Errorf("built command %q is not a regular file", sourcePath)
 		}
-		deployedPath := filepath.Join(liveSDLC, "bin", name)
-		sync, err := planFileSync(sourcePath, deployedPath, filepath.Join(liveSDLC, "bin"))
+		deployedPath := filepath.Join(installRoot, "bin", name)
+		sync, err := planFileSync(sourcePath, deployedPath, filepath.Join(installRoot, "bin"))
 		if err != nil {
 			return installationPlan{}, err
 		}
@@ -709,8 +754,8 @@ func planSharedInstallation(source, commonHome, release string) (installationPla
 		} else if !info.Mode().IsRegular() {
 			return installationPlan{}, fmt.Errorf("built internal command %q is not a regular file", sourcePath)
 		}
-		deployedPath := filepath.Join(liveSDLC, "bin", name)
-		sync, err := planFileSync(sourcePath, deployedPath, filepath.Join(liveSDLC, "bin"))
+		deployedPath := filepath.Join(installRoot, "bin", name)
+		sync, err := planFileSync(sourcePath, deployedPath, filepath.Join(installRoot, "bin"))
 		if err != nil {
 			return installationPlan{}, err
 		}
@@ -721,8 +766,8 @@ func planSharedInstallation(source, commonHome, release string) (installationPla
 		files                       []string
 	}{
 		{filepath.Join(source, "src"), liveSDLC, retiredSharedFiles},
-		{filepath.Join(source, "commands"), filepath.Join(liveSDLC, "commands"), retiredCommandFiles},
-		{filepath.Join(source, "skills"), filepath.Join(commonHome, "skills"), retiredSkillFiles},
+		{filepath.Join(source, "commands"), filepath.Join(installRoot, "commands"), retiredCommandFiles},
+		{filepath.Join(source, "skills"), filepath.Join(installRoot, "skills"), retiredSkillFiles},
 	} {
 		retirements, err := planRetiredFiles(retirement.sourceRoot, retirement.destinationRoot, retirement.files)
 		if err != nil {
@@ -735,17 +780,22 @@ func planSharedInstallation(source, commonHome, release string) (installationPla
 		return installationPlan{}, err
 	}
 	plan.retirements = append(plan.retirements, sharedRetirements...)
-	retirements, retirementErr := planExactRetirements(filepath.Join(commonHome, "skills"), retiredGlobalSkillPaths)
+	retirements, retirementErr := planExactRetirements(filepath.Join(installRoot, "skills"), retiredGlobalSkillPaths)
 	if retirementErr != nil {
 		return installationPlan{}, retirementErr
 	}
 	plan.retirements = append(plan.retirements, retirements...)
-	auditRetirements, auditErr := planAuditSkillRetirements(filepath.Join(commonHome, "skills"))
+	legacyGlobalRetirements, legacyErr := planExactRetirements(globalSkills, retiredGlobalSkillPaths)
+	if legacyErr != nil {
+		return installationPlan{}, legacyErr
+	}
+	plan.retirements = append(plan.retirements, legacyGlobalRetirements...)
+	auditRetirements, auditErr := planAuditSkillRetirements(filepath.Join(installRoot, "skills"))
 	if auditErr != nil {
 		return installationPlan{}, auditErr
 	}
 	plan.retirements = append(plan.retirements, auditRetirements...)
-	auditLink, err := planManagedLink(filepath.Join(liveSDLC, "bin", "sdlc-harness"), filepath.Join(localBin, "sdlc-audit"), localBin)
+	auditLink, err := planManagedLink(filepath.Join(installRoot, "bin", "sdlc-harness"), filepath.Join(localBin, "sdlc-audit"), localBin)
 	if err != nil {
 		return installationPlan{}, err
 	}
@@ -760,14 +810,14 @@ func planSharedInstallation(source, commonHome, release string) (installationPla
 		return installationPlan{}, err
 	}
 	plan.retirements = append(plan.retirements, commandRetirements...)
-	for _, root := range []string{localBin, filepath.Join(liveSDLC, "bin")} {
+	for _, root := range []string{localBin, filepath.Join(installRoot, "bin")} {
 		retired, err := planRetiredCommandBackups(root)
 		if err != nil {
 			return installationPlan{}, err
 		}
 		plan.retirements = append(plan.retirements, retired...)
 	}
-	releaseChange, err := planGlobalReleaseConfiguration(commonHome, release)
+	releaseChange, err := planGlobalReleaseConfiguration(installRoot, userHome, release)
 	if err != nil {
 		return installationPlan{}, err
 	}
@@ -777,8 +827,8 @@ func planSharedInstallation(source, commonHome, release string) (installationPla
 	return plan, nil
 }
 
-func verifyCanonicalMain(commonHome string) error {
-	mainPath := filepath.Join(commonHome, "sdlc", "MAIN.md")
+func verifyCanonicalMain(installRoot string) error {
+	mainPath := filepath.Join(installRoot, "docs", "MAIN.md")
 	info, err := os.Stat(mainPath)
 	if err != nil {
 		return fmt.Errorf("verifying canonical SDLC entry point %q: %w", mainPath, err)
@@ -789,7 +839,7 @@ func verifyCanonicalMain(commonHome string) error {
 	return nil
 }
 
-func planProviderInstallation(agent, source, agentHome string) (installationPlan, error) {
+func planProviderInstallation(agent, source, agentHome, installRoot string) (installationPlan, error) {
 	plan := installationPlan{}
 	if agent == agentCustom {
 		return plan, nil
@@ -797,6 +847,15 @@ func planProviderInstallation(agent, source, agentHome string) (installationPlan
 	provider, found := providerDefinitionFor(agent)
 	if !found {
 		return installationPlan{}, fmt.Errorf("planning unsupported agent %q", agent)
+	}
+	if agent == agentGoose {
+		userHome := filepath.Dir(filepath.Dir(agentHome))
+		plugins := filepath.Join(userHome, ".agents", "plugins")
+		link, err := planManagedLink(filepath.Join(installRoot, "plugins", "sdlc-command-guard-goose"), filepath.Join(plugins, "sdlc-command-guard-goose"), plugins)
+		if err != nil {
+			return installationPlan{}, err
+		}
+		plan.links = append(plan.links, link)
 	}
 	if agent == agentCodex && provider.commandPath != "" {
 		sourceRoot := filepath.Join(source, "commands")
@@ -812,7 +871,7 @@ func planProviderInstallation(agent, source, agentHome string) (installationPlan
 		if planErr != nil {
 			return installationPlan{}, planErr
 		}
-		canonicalSkills := filepath.Join(commonAgentHome(agent, agentHome), "skills")
+		canonicalSkills := filepath.Join(installRoot, "skills")
 		providerSkills := filepath.Join(agentHome, "skills")
 		for _, skill := range currentSkills {
 			if isAuditSkill(skill) {
@@ -1278,6 +1337,10 @@ func synchronizeLink(link managedLink, output io.Writer) error {
 }
 
 func ensureRegularDirectory(directory string, output io.Writer) error {
+	mode := os.FileMode(0o700)
+	if directory == canonicalInstallRoot || strings.HasPrefix(directory, canonicalInstallRoot+string(os.PathSeparator)) {
+		mode = 0o755
+	}
 	info, err := os.Lstat(directory)
 	if err == nil && info.IsDir() && info.Mode()&os.ModeSymlink == 0 {
 		return nil
@@ -1289,7 +1352,10 @@ func ensureRegularDirectory(directory string, output io.Writer) error {
 				return err
 			}
 		}
-		return os.Mkdir(directory, 0o700)
+		if err := os.Mkdir(directory, mode); err != nil {
+			return err
+		}
+		return os.Chmod(directory, mode)
 	}
 	if err != nil {
 		return fmt.Errorf("inspecting installation directory %q: %w", directory, err)
@@ -1297,7 +1363,10 @@ func ensureRegularDirectory(directory string, output io.Writer) error {
 	if err := trashArtifact(output, directory); err != nil {
 		return err
 	}
-	return os.Mkdir(directory, 0o700)
+	if err := os.Mkdir(directory, mode); err != nil {
+		return err
+	}
+	return os.Chmod(directory, mode)
 }
 
 func regularFilesEqual(sourcePath string, sourceInfo os.FileInfo, destinationPath string, destinationInfo os.FileInfo) (bool, error) {
@@ -1315,7 +1384,7 @@ func regularFilesEqual(sourcePath string, sourceInfo os.FileInfo, destinationPat
 	return bytes.Equal(sourceContent, destinationContent), nil
 }
 
-func analyseConfiguration(agent, agentHome, source string, output io.Writer) ([]*configurationChange, error) {
+func analyseConfiguration(agent, agentHome, source, installRoot string, output io.Writer) ([]*configurationChange, error) {
 	switch agent {
 	case agentClaude:
 		change, err := analyseClaudeConfiguration(agentHome, output)
@@ -1323,7 +1392,7 @@ func analyseConfiguration(agent, agentHome, source string, output io.Writer) ([]
 	case agentCodex:
 		return analyseCodexConfigurations(agentHome, source, output)
 	case agentGoose:
-		return analyseGooseConfiguration(agentHome)
+		return analyseGooseConfiguration(installRoot)
 	case agentHermes:
 		change, err := analyseHermesConfiguration(agentHome, source, output)
 		return configurationChanges(change), err
@@ -1502,7 +1571,8 @@ func isManagedGuardCommand(command string) bool {
 		return false
 	}
 	path := strings.Trim(fields[1], "\"'")
-	return path == "~/.agents/sdlc/hooks/agent-command-guard.sh" ||
+	return path == "/opt/sdlc/hooks/agent-command-guard.sh" ||
+		path == "~/.agents/sdlc/hooks/agent-command-guard.sh" ||
 		strings.HasSuffix(path, "/.agents/sdlc/hooks/agent-command-guard.sh") ||
 		strings.HasSuffix(path, "/.hermes/sdlc/hooks/agent-command-guard.sh") ||
 		strings.HasSuffix(path, "/.claude/sdlc/hooks/agent-command-guard.sh")
@@ -1882,7 +1952,7 @@ func applyConfigurationChangeWith(change *configurationChange, output io.Writer,
 
 func writeFileAtomic(path string, contents []byte, mode os.FileMode) error {
 	directory := filepath.Dir(path)
-	if err := os.MkdirAll(directory, 0o700); err != nil {
+	if err := ensureRegularDirectory(directory, io.Discard); err != nil {
 		return fmt.Errorf("creating configuration directory %q: %w", directory, err)
 	}
 	temporary, err := os.CreateTemp(directory, ".sdlc-install-*")

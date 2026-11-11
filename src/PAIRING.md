@@ -87,7 +87,7 @@ For each bounded iteration:
 
 The agent must not manufacture automated tests merely to reproduce visual or
 subjective validation the operator has already performed. Follow
-`~/.agents/sdlc/TESTING.md` for evidence selection and the final user-test
+`/opt/sdlc/docs/TESTING.md` for evidence selection and the final user-test
 record.
 
 ## Closure
@@ -103,7 +103,7 @@ prose.
 
 After the current implementation passes its gate, run the retrospective
 definition review with `definition-audit` internally under
-`~/.agents/sdlc/AUDITS.md`, using paired scope. This reviews requirements, design, and test
+`/opt/sdlc/docs/AUDITS.md`, using paired scope. This reviews requirements, design, and test
 definitions against the authorized outcome; it is not fictional advance
 approval. Correct documentary errors, but refer proposed behaviour or design
 changes to the operator for normal delivery. Do not invoke the retired audit

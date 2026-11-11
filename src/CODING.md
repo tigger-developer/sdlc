@@ -8,7 +8,7 @@ last-updated: 2026-11-07
 
 ## Readability and fit
 
-Apply `~/.agents/sdlc/ARCHITECTURE.md` for proportionality, responsibilities,
+Apply `/opt/sdlc/docs/ARCHITECTURE.md` for proportionality, responsibilities,
 reuse and conformance to an approved solution design when one governs the work.
 In a standalone standards audit, use the project's existing architecture and
 conventions; absence of SDLC approval is not itself a code defect.
@@ -52,7 +52,7 @@ acceptable only when the underlying condition is understood, the specific rule
 is named, and an adjacent comment explains why the code is safe. Broad or
 file-wide suppression is prohibited.
 
-Technology-specific standards live under `~/.agents/sdlc/technologies/`. Load
+Technology-specific standards live under `/opt/sdlc/docs/technologies/`. Load
 only those selected by the project's standards profile.
 
 ## Comments and documentation

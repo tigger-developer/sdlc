@@ -15,7 +15,7 @@ for SDLC v3. The [README](../README.md) introduces the framework and the
 For the recommended **driver/auditor setup**, including model capability,
 authentication and billing, see the [quickstart configuration guidance](../QUICKSTART.md#recommended-driver-and-auditor-setup).
 
-`make install` also initializes the pinned
+The separate `make install-preview` target initializes the pinned
 [tigger-developer/HTML-Preview](https://github.com/tigger-developer/HTML-Preview)
 submodule and runs its own `make install` if `htmlpreview` is absent from PATH.
 Existing installations are retained. This previewer renders **Org and
@@ -27,7 +27,7 @@ make install
 
 The installer lists the existing `~/.codex`, `~/.claude`, `~/.copilot`, and
 `~/.hermes` directories and asks which detected agents should receive native
-adapters. A top-level `active-harness` list in `~/.agents/sdlc.yaml` supplies
+adapters. A top-level `active-harness` list in `/opt/sdlc/sdlc.yaml` supplies
 that selection without asking; listed harnesses whose provider home does not
 exist are skipped. An explicit `--agent` selection takes precedence.
 
@@ -35,14 +35,15 @@ The repository-internal `sdlc-install` command is invoked by `make install`; it
 is not installed on the global path. The installation:
 
 - builds `sdlc-install` locally, deploys `sdlc-init` and
-  `sdlc-merge-legacy-acs` under `~/.agents/sdlc/bin`, and links those operator
+  `sdlc-merge-legacy-acs` under `/opt/sdlc/bin`, and links those operator
   commands onto the global path;
-- deploys `sdlc-harness` under `~/.agents/sdlc/bin` and exposes it as
+- deploys `sdlc-harness` under `/opt/sdlc/bin` and exposes it as
   `~/.local/bin/sdlc-audit`; `sdlc-audit --help` describes the audit interface;
 - moves recognized retired command remnants to Trash rather than leaving
   executable `.sdlc-*-retired` names in command directories;
-- synchronizes the canonical standards to `~/.agents/sdlc`;
-- installs SDLC skills globally under `~/.agents/skills`;
+- synchronizes the canonical standards to `/opt/sdlc/docs`;
+- installs canonical SDLC skill directories under `/opt/sdlc/skills` and links
+  each one into `~/.agents/skills`;
 - links canonical skills into the native Claude, Copilot, and Hermes skill
   locations of the selected harnesses; and
 - registers the same canonical command guard through each selected harness's
@@ -76,7 +77,7 @@ checkout owns `~/.local/bin/htmlpreview`, move that link aside once before
 ## Configuration
 
 Global non-secret defaults and the deployed SDLC release live at
-`~/.agents/sdlc.yaml`. Project facts and explicit overrides live in tracked
+`/opt/sdlc/sdlc.yaml`. Project facts and explicit overrides live in tracked
 `.sdlc/project.yaml`. Resolution order is:
 
 1. command line;

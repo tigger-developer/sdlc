@@ -7,7 +7,7 @@ last-updated: 2026-10-31
 # Lean Software Delivery Standards
 
 **Independent auditor: stop reading here.** If explicitly invoked in a fresh
-context solely to audit, read `~/.agents/sdlc/INDEPENDENT-AUDITOR.md` instead. Do not load the
+context solely to audit, read `/opt/sdlc/docs/INDEPENDENT-AUDITOR.md` instead. Do not load the
 rest of this document or activate delivery, even when `.sdlc/` exists. A
 delivery agent's self-audit does not select that role.
 
@@ -39,8 +39,8 @@ agents. The project and human operator retain authority. SDLC v3 supports Codex,
 Claude Code, GitHub Copilot CLI, and Hermes through provider-neutral standards,
 canonical global skills, and capability-aware adapters.
 
-The canonical installed root is exactly `~/.agents/sdlc`. Never search the
-filesystem to locate it. If `~/.agents/sdlc/MAIN.md` is absent or unreadable,
+The canonical installed root is exactly `/opt/sdlc/docs`. Never search the
+filesystem to locate it. If `/opt/sdlc/docs/MAIN.md` is absent or unreadable,
 report that exact path.
 
 ## Raising defects
@@ -75,34 +75,34 @@ Do not supply this document or the full library as an auditor preamble.
 
 | Work | Additional standards |
 |---|---|
-| Specification, acceptance criteria, bugs, or clarification | `~/.agents/sdlc/ISSUES.md` |
-| Test definition or verification | `~/.agents/sdlc/TESTING.md` |
-| SDLC workflow audits or gates | `~/.agents/sdlc/AUDITS.md` |
-| Architecture, solution design, delivery, or any audit gate | `~/.agents/sdlc/ARCHITECTURE.md` |
-| Implementation or code review | `~/.agents/sdlc/CODING.md` |
-| Explicit paired delivery | `~/.agents/sdlc/PAIRING.md` |
-| Exact `BYPASS-GATE-7` emergency delivery | `~/.agents/sdlc/EMERGENCY.md` |
-| Git, commits, branches, or hooks | `~/.agents/sdlc/GIT.md` |
-| Technical documentation | `~/.agents/sdlc/DOCUMENTATION.md` |
-| Org artefacts | `~/.agents/sdlc/ORGMODE.md` |
-| Security, dependencies, or vulnerability checking | `~/.agents/sdlc/SECURITY.md` |
-| APIs, webhooks, or integrations | `~/.agents/sdlc/technologies/API.md` |
-| Go | `~/.agents/sdlc/technologies/GO.md` |
-| JavaScript or TypeScript | `~/.agents/sdlc/technologies/JAVASCRIPT.md` |
-| Lua or a Lua-hosted framework | `~/.agents/sdlc/technologies/LUA.md` |
-| Python | `~/.agents/sdlc/technologies/PYTHON.md` |
-| Bash or POSIX-style shell | `~/.agents/sdlc/technologies/SHELL.md` |
-| Fish shell | `~/.agents/sdlc/technologies/FISH.md` |
-| Perl | `~/.agents/sdlc/technologies/PERL.md` |
-| Rust | `~/.agents/sdlc/technologies/RUST.md` |
-| Swift | `~/.agents/sdlc/technologies/SWIFT.md` |
-| Web interfaces or sites | `~/.agents/sdlc/technologies/WEB.md` |
-| Hugo sites | `~/.agents/sdlc/technologies/HUGO.md` and `WEB.md` |
-| Node.js or npm applications | `~/.agents/sdlc/technologies/NODE.md` |
+| Specification, acceptance criteria, bugs, or clarification | `/opt/sdlc/docs/ISSUES.md` |
+| Test definition or verification | `/opt/sdlc/docs/TESTING.md` |
+| SDLC workflow audits or gates | `/opt/sdlc/docs/AUDITS.md` |
+| Architecture, solution design, delivery, or any audit gate | `/opt/sdlc/docs/ARCHITECTURE.md` |
+| Implementation or code review | `/opt/sdlc/docs/CODING.md` |
+| Explicit paired delivery | `/opt/sdlc/docs/PAIRING.md` |
+| Exact `BYPASS-GATE-7` emergency delivery | `/opt/sdlc/docs/EMERGENCY.md` |
+| Git, commits, branches, or hooks | `/opt/sdlc/docs/GIT.md` |
+| Technical documentation | `/opt/sdlc/docs/DOCUMENTATION.md` |
+| Org artefacts | `/opt/sdlc/docs/ORGMODE.md` |
+| Security, dependencies, or vulnerability checking | `/opt/sdlc/docs/SECURITY.md` |
+| APIs, webhooks, or integrations | `/opt/sdlc/docs/technologies/API.md` |
+| Go | `/opt/sdlc/docs/technologies/GO.md` |
+| JavaScript or TypeScript | `/opt/sdlc/docs/technologies/JAVASCRIPT.md` |
+| Lua or a Lua-hosted framework | `/opt/sdlc/docs/technologies/LUA.md` |
+| Python | `/opt/sdlc/docs/technologies/PYTHON.md` |
+| Bash or POSIX-style shell | `/opt/sdlc/docs/technologies/SHELL.md` |
+| Fish shell | `/opt/sdlc/docs/technologies/FISH.md` |
+| Perl | `/opt/sdlc/docs/technologies/PERL.md` |
+| Rust | `/opt/sdlc/docs/technologies/RUST.md` |
+| Swift | `/opt/sdlc/docs/technologies/SWIFT.md` |
+| Web interfaces or sites | `/opt/sdlc/docs/technologies/WEB.md` |
+| Hugo sites | `/opt/sdlc/docs/technologies/HUGO.md` and `WEB.md` |
+| Node.js or npm applications | `/opt/sdlc/docs/technologies/NODE.md` |
 
 The tracked project profile is `.sdlc/project.yaml`. It names project facts,
 standards, authorities, and explicit local overrides. Global non-secret
-defaults and the installed SDLC release live in `~/.agents/sdlc.yaml`. The
+defaults and the installed SDLC release live in `/opt/sdlc/sdlc.yaml`. The
 schema `version` and deployed `release` are separate values. Project profiles do
 not pin the globally installed SDLC. Agents never read `.env`.
 

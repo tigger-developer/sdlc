@@ -1,8 +1,8 @@
 # Fish Shell Standards
 
 These standards apply to maintained Fish scripts, functions, completions, and
-configuration. The general rules in `~/.agents/sdlc/CODING.md` still apply.
-`~/.agents/sdlc/technologies/SHELL.md` governs Bash and POSIX-style shell work
+configuration. The general rules in `/opt/sdlc/docs/CODING.md` still apply.
+`/opt/sdlc/docs/technologies/SHELL.md` governs Bash and POSIX-style shell work
 and is not an automatic prerequisite for Fish; load both only when the project
 maintains both kinds of shell source.
 

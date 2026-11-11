@@ -52,7 +52,7 @@ func TestDefaultRunDetectsInstalledProviderSubset_RT4_4(t *testing.T) {
 	}
 	t.Setenv("HOME", root)
 	var output bytes.Buffer
-	if err := run([]string{"--source", source}, strings.NewReader("codex,hermes\n"), &output); err != nil {
+	if err := runAtRoot([]string{"--source", source}, strings.NewReader("codex,hermes\n"), &output, filepath.Join(root, "opt", "sdlc")); err != nil {
 		t.Fatalf("run() error = %v\n%s", err, output.String())
 	}
 	if got := output.String(); !strings.Contains(got, "Detected agent homes: codex, hermes") || !strings.Contains(got, "Detected agents: codex, hermes") || strings.Contains(got, ".claude") || strings.Contains(got, ".copilot") {
@@ -73,10 +73,10 @@ func TestDefaultRunUsesActiveHarnessWithoutSelectionQuestion(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	if err := os.MkdirAll(filepath.Join(root, ".agents"), 0o700); err != nil {
+	if err := os.MkdirAll(filepath.Join(root, "opt", "sdlc"), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(root, ".agents", "sdlc.yaml"), []byte("version: 3\nactive-harness:\n  - hermes\n"), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(root, "opt", "sdlc", "sdlc.yaml"), []byte("version: 3\nactive-harness:\n  - hermes\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(filepath.Join(root, ".hermes", "config.yaml"), []byte("model:\n  provider: test\n"), 0o600); err != nil {
@@ -84,7 +84,7 @@ func TestDefaultRunUsesActiveHarnessWithoutSelectionQuestion(t *testing.T) {
 	}
 	t.Setenv("HOME", root)
 	var output bytes.Buffer
-	if err := run([]string{"--source", source}, strings.NewReader(""), &output); err != nil {
+	if err := runAtRoot([]string{"--source", source}, strings.NewReader(""), &output, filepath.Join(root, "opt", "sdlc")); err != nil {
 		t.Fatalf("run() error = %v\n%s", err, output.String())
 	}
 	if got := output.String(); !strings.Contains(got, "Active harnesses from") || !strings.Contains(got, "Detected agents: hermes") || strings.Contains(got, "Install the SDLC for which agents?") {

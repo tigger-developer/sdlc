@@ -3,7 +3,7 @@ Alias of sdlc-harness; both use the same interface.
 
 STANDING POLICY: external auditing is suspended until the operator explicitly
 re-enables it. At each review step, load definition-audit, test-code-audit or
-code-audit from ~/.agents/skills/ in the current session. Do not invoke this
+code-audit from /opt/sdlc/skills/ in the current session. Do not invoke this
 command first, launch another reviewer or wait for a provider failure. Follow
 SELF-AUDIT.md for internal evidence and AUDITS.md for delivery gates; human approval and readiness
 requirements remain. The interface below is retained for operator use after
@@ -39,7 +39,7 @@ All coding, security, technology and TDD/testing standards apply to spike code;
 full SDLC workflow, gates and documentation requirements do not apply.
 Audits are anchored to the invocation project. --project cannot select another
 root; --input accepts only files inside that project tree. Do not pass
-~/.agents/sdlc/MAIN.md, ARCHITECTURE.md, DOCUMENTATION.md or other installed
+/opt/sdlc/docs/MAIN.md, ARCHITECTURE.md, DOCUMENTATION.md or other installed
 SDLC standards: the harness supplies mandatory review rules and selected
 technology standards, with an optional review-only reference inventory.
 External --input paths are rejected.
@@ -121,7 +121,7 @@ Example:
     --audit-record specs/WNNN-descriptor/audits.yaml --work-item WNNN \
     --input tests.go --input application.go
 Include all relevant project source, test and authority files; this example
-abbreviates inputs. Do not add paths under ~/.agents/sdlc.
+abbreviates inputs. Do not add paths under /opt/sdlc/docs.
 
 Goal-config options:
   --project DIR  --global-config FILE  Project and global configuration.
@@ -130,7 +130,7 @@ Goal-config options:
   --goal-max-token-budget N            Token budget override.
 
 Audit limits are configured under delivery.audit in project .sdlc/project.yaml
-or global ~/.agents/sdlc.yaml: timeout (10m per turn), total_timeout (15m across
+or global /opt/sdlc/sdlc.yaml: timeout (10m per turn), total_timeout (15m across
 recovery and fallback), response_start_timeout (3m), response_idle_timeout (2m),
 max_failures (3) and max_rounds (5). Duration strings require units and at least
 one second; 90s is accepted as a personal response-start override. Heartbeats
@@ -153,4 +153,4 @@ fallback once, then stop if recovery fails. Private diagnostics retain reason,
 HTTP status and retryability without copying provider bodies or credentials.
 Audit reset does not restore provider quota or Hermes credential-pool state.
 
-Operator configuration and diagnostic details: ~/.agents/sdlc/HARNESS.md
+Operator configuration and diagnostic details: /opt/sdlc/docs/HARNESS.md

@@ -57,13 +57,13 @@ separate operation; the design should explain that distinction.
   intended end state, compatibility and recovery constraints, and the retirement
   condition for temporary paths. Planned coexistence is legitimate; unexplained
   parallel old/new paths are not. Apply the compatibility rules in
-  `~/.agents/sdlc/CODING.md` and relevant technology standards.
+  `/opt/sdlc/docs/CODING.md` and relevant technology standards.
 - Define material failure outcomes and recovery. Address atomicity, repetition,
   concurrency and resource bounds where the operation requires them, rather
   than adding every reliability mechanism by default.
 - Assess security in every design: trust boundaries, privileges, untrusted input,
   sensitive data and exposure. Record required safeguards or a supported
-  no-change rationale. Apply `~/.agents/sdlc/SECURITY.md` and relevant technology
+  no-change rationale. Apply `/opt/sdlc/docs/SECURITY.md` and relevant technology
   standards.
 - Consider performance, operability, portability and other qualities only where
   they affect this change. Record the design consequence, not generic aspirations.

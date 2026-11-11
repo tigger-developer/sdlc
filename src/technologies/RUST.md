@@ -1,8 +1,8 @@
 # Rust Standards
 
 These technology-specific standards supplement the general coding standards in
-`~/.agents/sdlc/CODING.md`. Also select
-`~/.agents/sdlc/technologies/API.md` when the project provides or materially
+`/opt/sdlc/docs/CODING.md`. Also select
+`/opt/sdlc/docs/technologies/API.md` when the project provides or materially
 consumes an API.
 
 Primary references:
@@ -175,7 +175,7 @@ collect unrelated responsibilities.
   provider implementation.
 - Use bounded one-off or user tests against a real service when contract evidence
   cannot be established locally. Follow the cost and external-action rules in
-  `~/.agents/sdlc/TESTING.md`.
+  `/opt/sdlc/docs/TESTING.md`.
 
 ## Serialization, configuration, and data
 
@@ -209,7 +209,7 @@ collect unrelated responsibilities.
 
 ## Testing
 
-Follow `~/.agents/sdlc/TESTING.md` and the project's RT, UT, and OT definitions.
+Follow `/opt/sdlc/docs/TESTING.md` and the project's RT, UT, and OT definitions.
 
 - Use Rust's built-in test harness and `cargo test` by default. Add another test
   runner only for a demonstrated project need.
@@ -247,7 +247,7 @@ select additional lints deliberately and justify narrow suppressions beside the
 code.
 
 Deployable Rust applications must expose the `make vulncheck` contract defined
-by `~/.agents/sdlc/SECURITY.md`. Run `cargo audit` against the committed
+by `/opt/sdlc/docs/SECURITY.md`. Run `cargo audit` against the committed
 `Cargo.lock`, or use the RustSec advisory check in an established `cargo deny`
 policy. The target is non-mutating and fail-closed: it must not update the
 advisory exception policy, dependencies, or lockfile, install a scanner, or
@@ -275,7 +275,7 @@ The target deliberately does not install `cargo-audit` or generate a lockfile.
 `cargo audit --file Cargo.lock` checks the named resolved dependency graph and
 returns failure for reported vulnerabilities. Record narrowly approved advisory
 exceptions in the repository's Cargo Audit configuration under the exception
-contract in `~/.agents/sdlc/SECURITY.md`; never add an inline `--ignore` merely
+contract in `/opt/sdlc/docs/SECURITY.md`; never add an inline `--ignore` merely
 to make the target pass. A workspace normally has one root `Cargo.lock`; add an
 explicit scan for every other committed lockfile that contributes to a deployed
 artefact.

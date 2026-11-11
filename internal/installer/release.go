@@ -12,7 +12,7 @@ import (
 
 var semanticReleasePattern = regexp.MustCompile(`^v[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$`)
 
-func planGlobalReleaseConfiguration(commonHome, release string) (*configurationChange, error) {
+func planGlobalReleaseConfiguration(installRoot, userHome, release string) (*configurationChange, error) {
 	if release == "" {
 		return nil, nil
 	}
@@ -20,13 +20,21 @@ func planGlobalReleaseConfiguration(commonHome, release string) (*configurationC
 		return nil, fmt.Errorf("SDLC release %q is not a semantic-version tag", release)
 	}
 
-	path := filepath.Join(commonHome, "sdlc.yaml")
+	path := filepath.Join(installRoot, "sdlc.yaml")
 	current, mode, exists, err := readOptionalRegularFile(path)
 	if err != nil {
 		return nil, err
 	}
 	if !exists {
-		mode = 0o600
+		legacyPath := filepath.Join(userHome, ".agents", "sdlc.yaml")
+		legacy, _, legacyExists, legacyErr := readOptionalRegularFile(legacyPath)
+		if legacyErr != nil {
+			return nil, legacyErr
+		}
+		if legacyExists {
+			current = legacy
+		}
+		mode = 0o644
 	}
 
 	document, root, err := globalConfigurationDocument(path, current)

@@ -5,7 +5,7 @@ description: Self-review a specification, design and test definitions in the cur
 
 Use only for a workflow-required or explicitly requested self-audit. Review in
 the author's current context; do not delegate or select an independent role.
-Read ~/.agents/sdlc/SELF-AUDIT.md and REVIEW.md's definition criteria, with
+Read /opt/sdlc/docs/SELF-AUDIT.md and REVIEW.md's definition criteria, with
 READING's retained-context reuse. Inspect original candidate evidence rather
 than only the authoring summary. This skill never loads the independent-auditor
 entry point or launches the retired audit harness.

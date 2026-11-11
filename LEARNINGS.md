@@ -6,6 +6,17 @@ last-updated: 2026-11-11
 
 # SDLC Standards: Design Learnings
 
+## Shared fixed paths need narrow privilege and explicit adapters
+
+Agent pre-instructions use one absolute SDLC path so path resolution does not
+cause extra framework reading on every invocation. A shared `/opt/sdlc` tree
+works on workstations and managed builders, while harness discovery still
+requires per-user skill-directory and plugin links. Keep personal global
+instructions in provider homes. Installation must establish ownership of the
+shared root with at most the two approved sudo commands; all framework content
+is then installed as the normal user. Existing global YAML must be carried
+forward when the canonical configuration path moves.
+
 ## Model roles follow work boundaries
 
 Signed-off test definitions belong to definition. Writing executable tests is a

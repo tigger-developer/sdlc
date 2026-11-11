@@ -15,14 +15,14 @@ imposed by that harness before creating a goal.
 
 ## Resolve limits
 
-Read `~/.agents/sdlc/bin/sdlc-harness --help` once, resolving the executable to
+Read `/opt/sdlc/bin/sdlc-harness --help` once, resolving the executable to
 an absolute path. Run its **read-only** `goal-config --project <project-root>`
 operation. Use the returned integers; do not parse budget strings yourself.
 An error must be resolved before starting goal-backed delivery. Never substitute
 a default after invalid input.
 
 Resolution uses command arguments, process environment, `.sdlc/project.yaml`,
-`~/.agents/sdlc.yaml`, then schema defaults. `max_turns` applies only to Hermes
+`/opt/sdlc/sdlc.yaml`, then schema defaults. `max_turns` applies only to Hermes
 and Copilot; `max_token_budget` only to Codex. Neither changes the audit limit.
 Values describe native continuation budgets, not a guaranteed currency ceiling.
 

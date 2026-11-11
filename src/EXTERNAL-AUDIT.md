@@ -86,7 +86,7 @@ input invalidates the key; do not alter inputs merely to evade a cached FAIL.
 
 ## Composite gates
 
-Apply `~/.agents/sdlc/ARCHITECTURE.md` at all three gates. The harness supplies
+Apply `/opt/sdlc/docs/ARCHITECTURE.md` at all three gates. The harness supplies
 that installed standard; the caller supplies the relevant project architecture.
 Definition review resolves significant design decisions and their verification;
 implementation review checks adherence without substituting the auditor's
@@ -112,7 +112,7 @@ tests to evade it. Paired/emergency routes retain their implement-first sequence
 and may invoke delivery-code directly. Both implementation gates may reuse context internally but have separate
 work-item/gate verdict allowances. Calling agents do not manage that context.
 
-Before invoking either stage, use `~/.agents/sdlc/bin/sdlc-validate --help` and run
+Before invoking either stage, use `/opt/sdlc/bin/sdlc-validate --help` and run
 its selected readiness check. `ORG-SCHEMA.md` defines the record contract. The
 harness repeats this deterministic check before config/provider startup, cache
 lookup or audit-record mutation. It locates `spec.org` and `validation.org` beside
@@ -135,7 +135,7 @@ its exact gate and candidate without manufacturing an external verdict.
 
 For every gate:
 
-1. Invoke `~/.agents/sdlc/bin/sdlc-harness` with the gate and exact evidence.
+1. Invoke `/opt/sdlc/bin/sdlc-harness` with the gate and exact evidence.
 2. On `FAIL`, address **every** finding before resuming: remediate all valid
    findings together and supply an evidence-backed challenge for each disputed one.
 3. Never split known findings across remediation rounds or manually create a
@@ -153,7 +153,7 @@ the auditor's reassessment in `audits.yaml`.
 
 Invoke the resolved absolute harness path with `--gate`, `--audit-record`,
 `--work-item`, and the complete project `--input` list. Do not pass paths under
-`~/.agents/sdlc` as inputs: the harness loads its own installed rules. Supply
+`/opt/sdlc/docs` as inputs: the harness loads its own installed rules. Supply
 extra review context on
 stdin. Use the same command after remediation. Do not select start/resume, pass
 session IDs, or override providers. The harness owns context selection, cooldown,
@@ -366,7 +366,7 @@ increment promptly, not every live edit. Emergency work fixes first, records the
 durable ticket, then audits implementation. Both consolidate and retrospectively
 review the definition after the delivery-code gate has an effective PASS.
 For all routes, affected product documentation must be current at the final
-delivery-code verdict. The harness includes `~/.agents/sdlc/DOCUMENTATION.md`
+delivery-code verdict. The harness includes `/opt/sdlc/docs/DOCUMENTATION.md`
 in definition and delivery-code audit evidence. Review the changed documentation
 against its voice,
 document-purpose and presentation rules as well as technical accuracy; cite concrete
@@ -374,7 +374,7 @@ violations, not editorial preferences. The test-code gate does not demand
 those updates. A paired/emergency retrospective specification may follow code
 review; this does not defer updates to affected product documentation.
 
-Run `~/.agents/sdlc/bin/sdlc-harness --help` before first use. In its stdin audit
+Run `/opt/sdlc/bin/sdlc-harness --help` before first use. In its stdin audit
 context, supply `Workflow: paired` or `Workflow: emergency` for an operator-invoked
 variant. For the subsequent `--gate definition` invocation, also supply
 `Review: retrospective`. These are prompt instructions, not new CLI flags;

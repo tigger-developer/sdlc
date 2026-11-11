@@ -23,10 +23,10 @@ func TestGooseInteractiveInstallation(t *testing.T) {
 	writeCommandFixtures(t, source)
 	writeGuardFixture(t, filepath.Join(source, "hooks", "agent-command-guard.sh"))
 	var output bytes.Buffer
-	if err := RunInteractive(source, root, "v3.8.18", strings.NewReader("goose\n"), &output); err != nil {
+	if err := runInteractiveAtRoot(source, root, filepath.Join(root, "opt", "sdlc"), "v3.8.18", strings.NewReader("goose\n"), &output); err != nil {
 		t.Fatalf("%v\n%s", err, output.String())
 	}
-	assertFixtureContent(t, filepath.Join(root, ".agents", "sdlc", "MAIN.md"), "public rules\n")
+	assertFixtureContent(t, filepath.Join(root, "opt", "sdlc", "docs", "MAIN.md"), "public rules\n")
 	assertFixtureContent(t, filepath.Join(home, "skills", "define-change", "SKILL.md"), "definition\n")
 	assertFixtureContent(t, filepath.Join(home, "config.yaml"), "operator: preserved\n")
 	if _, err := os.Stat(filepath.Join(root, ".config", ".agents")); !os.IsNotExist(err) {
@@ -52,7 +52,7 @@ func TestGooseInteractiveInstallation(t *testing.T) {
 		t.Fatalf("claims legacy adapter support: %s", output.String())
 	}
 	output.Reset()
-	if err := RunInteractive(source, root, "v3.8.18", strings.NewReader("goose\n"), &output); err != nil {
+	if err := runInteractiveAtRoot(source, root, filepath.Join(root, "opt", "sdlc"), "v3.8.18", strings.NewReader("goose\n"), &output); err != nil {
 		t.Fatal(err)
 	}
 	if !strings.Contains(output.String(), "current") {
@@ -87,16 +87,16 @@ func TestGooseExplicitInstallationPreservesConflictingPlugin(t *testing.T) {
 	writeFixtureFile(t, filepath.Join(source, "skills", "define-change", "SKILL.md"), "skill\n")
 	writeCommandFixtures(t, source)
 	writeGuardFixture(t, filepath.Join(source, "hooks", "agent-command-guard.sh"))
-	plugin := filepath.Join(root, ".agents", "plugins", "sdlc-command-guard-goose", "hooks", "hooks.json")
+	plugin := filepath.Join(root, "opt", "sdlc", "plugins", "sdlc-command-guard-goose", "hooks", "hooks.json")
 	writeFixtureFile(t, plugin, "operator-owned\n")
 	unrelated := filepath.Join(root, ".agents", "plugins", "another-plugin", "plugin.json")
 	writeFixtureFile(t, unrelated, "preserve\n")
 	var output bytes.Buffer
-	err := Run(Options{Agent: "goose", AgentHome: home, Source: source, Apply: true, Configure: true, Input: strings.NewReader("n\nn\n"), Output: &output})
+	err := Run(Options{Agent: "goose", AgentHome: home, Source: source, InstallRoot: filepath.Join(root, "opt", "sdlc"), Apply: true, Configure: true, Input: strings.NewReader("n\nn\n"), Output: &output})
 	if err == nil || !strings.Contains(err.Error(), "declined replacement") {
 		t.Fatalf("expected refusal to leave readiness unresolved, got %v", err)
 	}
-	assertFixtureContent(t, filepath.Join(root, ".agents", "sdlc", "MAIN.md"), "rules\n")
+	assertFixtureContent(t, filepath.Join(root, "opt", "sdlc", "docs", "MAIN.md"), "rules\n")
 	assertFixtureContent(t, filepath.Join(home, "skills", "define-change", "SKILL.md"), "skill\n")
 	assertFixtureContent(t, plugin, "operator-owned\n")
 	assertFixtureContent(t, unrelated, "preserve\n")

@@ -37,14 +37,10 @@ func runGoalConfig(arguments []string, output, diagnostics io.Writer) error {
 		if err != nil {
 			return err
 		}
-		*root = filepath.Join(filepath.Dir(executable), "..")
+		*root = filepath.Join(filepath.Dir(executable), "..", "docs")
 	}
 	if *global == "" {
-		home, err := os.UserHomeDir()
-		if err != nil {
-			return err
-		}
-		*global = filepath.Join(home, ".agents", "sdlc.yaml")
+		*global = "/opt/sdlc/sdlc.yaml"
 	}
 	schema, err := projectinit.LoadConfigSchema(*root)
 	if err != nil {

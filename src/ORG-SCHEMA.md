@@ -80,7 +80,7 @@ Rerun affected tests after changes; keep unaffected evidence with its rationale.
 
 ## Deterministic checks
 
-`~/.agents/sdlc/bin/sdlc-validate --help` describes usage. The validator reads both documents,
+`/opt/sdlc/bin/sdlc-validate --help` describes usage. The validator reads both documents,
 outputs YAML under `audit-readiness`, and never runs tests or writes files.
 
 - Schema errors prevent readiness evaluation and force `ready: false`.

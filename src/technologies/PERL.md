@@ -1,6 +1,6 @@
 # Perl Standards
 
-These technology-specific standards supplement the general coding standards in `~/.agents/sdlc/CODING.md`.
+These technology-specific standards supplement the general coding standards in `/opt/sdlc/docs/CODING.md`.
 
 Perl is a maintenance language here, not a default choice for new tooling. Use Perl when the project is already Perl, when a mature CPAN ecosystem is the clear reason for the choice, or when maintaining existing Perl is lower-risk than a rewrite. Do not reach for Perl one-liners as a loophole around the shell rules that prohibit `sed`, `awk`, and `perl` for stream editing.
 

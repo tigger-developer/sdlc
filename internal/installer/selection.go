@@ -14,12 +14,12 @@ import (
 
 const activeHarnessKey = "active-harness"
 
-func selectInteractiveAgents(userHome string, reader *bufio.Reader, output io.Writer) ([]string, error) {
+func selectInteractiveAgents(userHome, installRoot string, reader *bufio.Reader, output io.Writer) ([]string, error) {
 	detected, err := detectedAgents(userHome)
 	if err != nil {
 		return nil, err
 	}
-	configPath := filepath.Join(userHome, ".agents", "sdlc.yaml")
+	configPath := filepath.Join(installRoot, "sdlc.yaml")
 	configured, present, err := configuredActiveHarnesses(configPath)
 	if err != nil {
 		return nil, err

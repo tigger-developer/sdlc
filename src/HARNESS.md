@@ -22,7 +22,7 @@ instructions. A separate context is not required for internal review.
 
 Internal SDLC helper for running one bounded provider context against
 original evidence files with SHA-256 integrity checks. It is installed at
-`~/.agents/sdlc/bin/sdlc-harness`. The operator-facing `sdlc-audit` command is a
+`/opt/sdlc/bin/sdlc-harness`. The operator-facing `sdlc-audit` command is a
 symlink to this same executable; it accepts the same options and subcommands.
 SDLC skills continue to use the resolved absolute harness path.
 
@@ -107,13 +107,13 @@ and cache keys differ. Existing history and session IDs remain intact.
 `max_token_budget` for the delivery skill; it does not invoke a provider,
 activate a goal, write configuration or enforce native continuation itself.
 
-    /absolute/path/to/.agents/sdlc/bin/sdlc-harness goal-config --project .
+    /opt/sdlc/bin/sdlc-harness goal-config --project .
 
 - `--project DIR`: audit project root; defaults to the invocation Git root or,
   outside Git, the invocation directory.
-- `--global-config FILE`: defaults to `~/.agents/sdlc.yaml`.
-- `--sdlc-root DIR`: schema root; defaults to the deployed executable's parent
-  directory. Source-tree checks may pass `--sdlc-root src`.
+- `--global-config FILE`: defaults to `/opt/sdlc/sdlc.yaml`.
+- `--sdlc-root DIR`: schema root; defaults to the deployed executable's
+  sibling `docs` directory. Source-tree checks may pass `--sdlc-root src`.
 - `--goal-max-turns VALUE` and `--goal-max-token-budget VALUE`: explicit overrides.
 - Precedence: these overrides, `SDLC_GOAL_MAX_TURNS` / `SDLC_GOAL_MAX_TOKEN_BUDGET`,
   project YAML, global YAML, then `config/project-init.schema.yaml` defaults.
@@ -140,7 +140,7 @@ the same automatic audit behaviour. The old reset-session flag is replaced by re
   extensions supplement technology selection; Markdown and Org evidence add
   their format rules. Node includes JavaScript; Hugo includes Web. The
   auditor judges which optional review references apply. MAIN, delivery workflows
-  and transport instructions are never auditor references. Do not pass `~/.agents/sdlc` files as `--input`;
+  and transport instructions are never auditor references. Do not pass `/opt/sdlc/docs` files as `--input`;
   external caller-supplied paths are rejected. The harness also includes the
   project profile. Supply relevant project authorities separately.
 - Repeat `--input <file>` for every exact evidence file.
@@ -224,7 +224,7 @@ outside the harness's ownership.
 ## Audit execution deadlines
 
 Configure these duration strings under `delivery.audit` in project
-`.sdlc/project.yaml` or global `~/.agents/sdlc.yaml`:
+`.sdlc/project.yaml` or global `/opt/sdlc/sdlc.yaml`:
 
 | Key | Default | Meaning |
 |---|---|---|
@@ -302,7 +302,7 @@ automatically. Filesystem validation does not make project directories immutable
 ## Audit example
 
 ```sh
-/absolute/path/to/.agents/sdlc/bin/sdlc-harness --gate definition \
+/opt/sdlc/bin/sdlc-harness --gate definition \
   --project . --audit-record specs/W001-change/audits.yaml --work-item W001-change \
   --input specs/W001-change/spec.org --input .sdlc/project.yaml < audit-context.txt
 ```

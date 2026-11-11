@@ -654,11 +654,12 @@ func TestRunInitializesOnceOnMigrationBranch(t *testing.T) {
 	runGitTest(t, project, "add", "README.md", ".gitignore")
 	runGitTest(t, project, "commit", "-m", "initial")
 	options := Options{
-		ProjectRoot: project,
-		SDLCRoot:    testSDLCRoot(t),
-		Overrides:   v3TestOverrides(t),
-		Input:       strings.NewReader("\n\n\nn\nn\n"),
-		Output:      &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{},
+		ProjectRoot:      project,
+		SDLCRoot:         testSDLCRoot(t),
+		GlobalConfigPath: filepath.Join(project, "missing-global.yaml"),
+		Overrides:        v3TestOverrides(t),
+		Input:            strings.NewReader("\n\n\nn\nn\n"),
+		Output:           &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{},
 		RunCommand: localOnlyTestRunner,
 		Now:        func() time.Time { return time.Date(2026, 9, 6, 0, 0, 0, 0, time.UTC) },
 	}
@@ -799,8 +800,9 @@ warnings: []
 
 	options := Options{
 		ProjectRoot: project, SDLCRoot: testSDLCRoot(t), Overrides: v3TestOverrides(t),
-		Input:  strings.NewReader("\n\n\nn\nn\n"),
-		Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{},
+		GlobalConfigPath: filepath.Join(project, "missing-global.yaml"),
+		Input:            strings.NewReader("\n\n\nn\nn\n"),
+		Output:           &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{},
 		RunCommand: runner,
 		RunHarness: func(_ context.Context, name string, arguments []string, directory string, input io.Reader, output, errorOutput io.Writer) error {
 			return runner(name, arguments, directory, input, output, errorOutput)
@@ -885,8 +887,9 @@ func TestRunMigratesV1ThroughTicketSkillBeforeCreatingProfile(t *testing.T) {
 
 	options := Options{
 		ProjectRoot: project, SDLCRoot: testSDLCRoot(t), Overrides: v3TestOverrides(t),
-		Input:  strings.NewReader("yes\n\n\n\nn\nn\n"),
-		Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{}, RunCommand: runner,
+		GlobalConfigPath: filepath.Join(project, "missing-global.yaml"),
+		Input:            strings.NewReader("yes\n\n\n\nn\nn\n"),
+		Output:           &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{}, RunCommand: runner,
 		Now: func() time.Time { return time.Date(2026, 9, 6, 0, 0, 0, 0, time.UTC) },
 	}
 	if err := Run(options); err == nil || !strings.Contains(err.Error(), "migration launch failed") {
@@ -1004,8 +1007,9 @@ warnings: []
 
 	options := Options{
 		ProjectRoot: project, SDLCRoot: testSDLCRoot(t), Overrides: overrides,
-		Input:  strings.NewReader("n\n\n\nn\n"),
-		Output: &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{}, RunCommand: runner,
+		GlobalConfigPath: filepath.Join(project, "missing-global.yaml"),
+		Input:            strings.NewReader("n\n\n\nn\n"),
+		Output:           &bytes.Buffer{}, ErrorOutput: &bytes.Buffer{}, RunCommand: runner,
 		RunHarness: func(_ context.Context, name string, arguments []string, directory string, input io.Reader, output, errorOutput io.Writer) error {
 			return runner(name, arguments, directory, input, output, errorOutput)
 		},
@@ -1155,9 +1159,10 @@ func TestRunSkipsV2AgentClassificationAndWritesReviewWork(t *testing.T) {
 	var output bytes.Buffer
 	err := Run(Options{
 		ProjectRoot: project, SDLCRoot: testSDLCRoot(t), Overrides: v3TestOverrides(t),
-		SkipAgentScans: true,
-		Input:          strings.NewReader("n\nn\n"),
-		Output:         &output, ErrorOutput: &bytes.Buffer{}, RunCommand: localOnlyTestRunner,
+		GlobalConfigPath: filepath.Join(project, "missing-global.yaml"),
+		SkipAgentScans:   true,
+		Input:            strings.NewReader("n\nn\n"),
+		Output:           &output, ErrorOutput: &bytes.Buffer{}, RunCommand: localOnlyTestRunner,
 		Now: func() time.Time { return time.Date(2026, 9, 7, 0, 0, 0, 0, time.UTC) },
 	})
 	if err != nil {
@@ -1425,19 +1430,26 @@ func v3TestOverrides(t *testing.T) map[string]string {
 		t.Fatal(err)
 	}
 	overrides := map[string]string{
-		"SDLC_PROJECT_KIND":             "application",
-		"SDLC_TECHNOLOGIES":             "GO",
-		"SDLC_PRODUCT_AUTHORITIES":      "README.md",
-		"SDLC_ARCHITECTURE_AUTHORITIES": "README.md",
-		"SDLC_BRANCH_STRATEGY":          "current",
-		"SDLC_SPEC_HARNESS":             "codex",
-		"SDLC_SPEC_PROVIDER":            "openai",
-		"SDLC_BUILD_HARNESS":            "codex",
-		"SDLC_BUILD_PROVIDER":           "openai",
-		"SDLC_AUDIT_HARNESS":            "codex",
-		"SDLC_AUDIT_PROVIDER":           "openai",
-		"SDLC_AUDIT_TIMEOUT":            "5m",
-		"SDLC_INFRA_ROLE":               "none",
+		"SDLC_PROJECT_KIND":                 "application",
+		"SDLC_TECHNOLOGIES":                 "GO",
+		"SDLC_PRODUCT_AUTHORITIES":          "README.md",
+		"SDLC_ARCHITECTURE_AUTHORITIES":     "README.md",
+		"SDLC_BRANCH_STRATEGY":              "current",
+		"SDLC_SPEC_HARNESS":                 "codex",
+		"SDLC_SPEC_PROVIDER":                "openai",
+		"SDLC_TEST_CODE_HARNESS":            "codex",
+		"SDLC_TEST_CODE_PROVIDER":           "openai",
+		"SDLC_BUILD_HARNESS":                "codex",
+		"SDLC_BUILD_PROVIDER":               "openai",
+		"SDLC_AUDIT_HARNESS":                "codex",
+		"SDLC_AUDIT_PROVIDER":               "openai",
+		"SDLC_AUDIT_TIMEOUT":                "5m",
+		"SDLC_AUDIT_TOTAL_TIMEOUT":          "15m",
+		"SDLC_AUDIT_RESPONSE_START_TIMEOUT": "3m",
+		"SDLC_AUDIT_RESPONSE_IDLE_TIMEOUT":  "2m",
+		"SDLC_AUDIT_MAX_ROUNDS":             "5",
+		"SDLC_GOAL_MAX_TOKEN_BUDGET":        "100,000",
+		"SDLC_INFRA_ROLE":                   "none",
 	}
 	for _, field := range schema.Fields {
 		if strings.HasSuffix(field.Key, "_MODEL") {

@@ -1,6 +1,6 @@
 # Swift Standards
 
-These technology-specific standards supplement the general coding standards in `~/.agents/sdlc/CODING.md`.
+These technology-specific standards supplement the general coding standards in `/opt/sdlc/docs/CODING.md`.
 
 Primary references:
 
@@ -107,7 +107,7 @@ For app projects, follow Xcode's structure unless there is a clear project conve
 
 ## Testing
 
-See `~/.agents/sdlc/TESTING.md` for cross-language testing standards.
+See `/opt/sdlc/docs/TESTING.md` for cross-language testing standards.
 
 - Test user-observable behaviour, not private implementation details.
 - Use async tests for async APIs.
@@ -132,7 +132,7 @@ Do not update resolved packages implicitly during deployment.
 
 Deployable Swift applications with Swift Package Manager or CocoaPods
 dependencies must expose the `make vulncheck` contract defined by
-`~/.agents/sdlc/SECURITY.md`. Use Trivy against `Package.resolved`,
+`/opt/sdlc/docs/SECURITY.md`. Use Trivy against `Package.resolved`,
 `Podfile.lock`, or the built artefact as appropriate. Follow the common
 non-mutating, fail-closed contract: do not update packages, rewrite resolved
 files, download an unpinned scanner, or suppress findings.

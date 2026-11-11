@@ -10,9 +10,9 @@ controls for the chosen packages. Selecting Node.js as an application runtime
 also requires a recorded justification for why a simpler compiled or static
 architecture is inadequate.
 
-These standards supplement `~/.agents/sdlc/CODING.md` and
-`~/.agents/sdlc/technologies/JAVASCRIPT.md`. Browser interfaces also follow
-`~/.agents/sdlc/technologies/WEB.md`.
+These standards supplement `/opt/sdlc/docs/CODING.md` and
+`/opt/sdlc/docs/technologies/JAVASCRIPT.md`. Browser interfaces also follow
+`/opt/sdlc/docs/technologies/WEB.md`.
 
 ## Runtime and package manager
 
@@ -69,7 +69,7 @@ normal verification.
 
 ## Testing and quality
 
-- Follow `~/.agents/sdlc/TESTING.md` and the project's established test runner.
+- Follow `/opt/sdlc/docs/TESTING.md` and the project's established test runner.
 - Keep tests independent of global packages, home-directory state, live
   registries, network access, locale, and execution order.
 - Use `oxlint` for JavaScript/TypeScript and Biome where its supported
@@ -81,7 +81,7 @@ normal verification.
 ## Vulnerability checking
 
 Expose the `make vulncheck` contract defined by
-`~/.agents/sdlc/SECURITY.md`. Use the selected package manager's audit command
+`/opt/sdlc/docs/SECURITY.md`. Use the selected package manager's audit command
 against the committed lockfile. Include dependencies that can alter the build
 artefact, not only packages present at runtime.
 

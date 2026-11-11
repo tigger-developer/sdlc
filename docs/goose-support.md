@@ -2,13 +2,14 @@
 
 Select `goose` in the installer or the top-level `active-harness` list.
 For explicit installation, use `--agent goose`; `--agent-home` overrides
-the default `~/.config/goose`. The shared installation remains in
-`~/.agents`, outside `~/.config`. SDLC skills are projected into Goose's
-`skills/` directory; shared skills remain available in `~/.agents/skills`.
+the default `~/.config/goose`. The canonical installation is `/opt/sdlc`,
+outside `~/.config`. SDLC skill directories are linked into Goose's `skills/`
+directory and `~/.agents/skills` from `/opt/sdlc/skills`.
 Personal instructions are a separate maintainer's responsibility.
 
-The installer owns only its skill projections and the dedicated
-`~/.agents/plugins/sdlc-command-guard-goose` plugin. It preserves
+The installer owns only its skill projections, the canonical
+`/opt/sdlc/plugins/sdlc-command-guard-goose` plugin and its discovery link at
+`~/.agents/plugins/sdlc-command-guard-goose`. It preserves
 `config.yaml` and unrelated plugins. Existing conflicting plugin files
 follow the installer's configuration-conflict handling.
 

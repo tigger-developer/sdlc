@@ -20,6 +20,10 @@ func main() {
 }
 
 func run(arguments []string, input io.Reader, output io.Writer) error {
+	return runAtRoot(arguments, input, output, "")
+}
+
+func runAtRoot(arguments []string, input io.Reader, output io.Writer, installRoot string) error {
 	workingDirectory, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("resolving current directory: %w", err)
@@ -41,7 +45,7 @@ func run(arguments []string, input io.Reader, output io.Writer) error {
 		fmt.Fprintln(output, "adapters. It does not initialize a software project; run sdlc-init from")
 		fmt.Fprintln(output, "that project's root instead.")
 		fmt.Fprintln(output, "Without --agent, it asks which existing provider homes to use unless the")
-		fmt.Fprintln(output, "top-level active-harness list in ~/.agents/sdlc.yaml supplies the selection.")
+		fmt.Fprintln(output, "top-level active-harness list in /opt/sdlc/sdlc.yaml supplies the selection.")
 		fmt.Fprintln(output, "")
 		fmt.Fprintln(output, "Options:")
 		flags.PrintDefaults()
@@ -67,16 +71,20 @@ func run(arguments []string, input io.Reader, output io.Writer) error {
 		if *apply || *configure {
 			return errors.New("--apply and --configure require an explicit --agent or --agent-home; omit them for interactive installation")
 		}
+		if installRoot != "" {
+			return installer.RunInteractiveAtRoot(*source, "", installRoot, buildRelease, input, output)
+		}
 		return installer.RunInteractive(*source, "", buildRelease, input, output)
 	}
 	return installer.Run(installer.Options{
-		Agent:     *agent,
-		AgentHome: *agentHome,
-		Source:    *source,
-		Apply:     *apply,
-		Configure: *configure,
-		Release:   buildRelease,
-		Input:     input,
-		Output:    output,
+		Agent:       *agent,
+		AgentHome:   *agentHome,
+		Source:      *source,
+		Apply:       *apply,
+		Configure:   *configure,
+		Release:     buildRelease,
+		InstallRoot: installRoot,
+		Input:       input,
+		Output:      output,
 	})
 }

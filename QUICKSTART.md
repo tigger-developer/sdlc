@@ -9,9 +9,7 @@ last-updated: 2026-11-11
 ## 1. Install the framework
 
 Building the installer and SDLC commands from source requires Go 1.23 or later.
-If `htmlpreview` is absent from `PATH`, installation also builds the pinned
-HTML-Preview source, which currently requires Go 1.26.8. Git and at least one
-supported harness are also needed: Codex, Claude Code,
+Git and at least one supported harness are also needed: Codex, Claude Code,
 GitHub Copilot CLI, or Hermes. The installer needs a `trash` executable on
 `PATH` when it applies changes; the [README note](README.md#quickstart)
 explains macOS and Linux options. GitHub CLI is required only for legacy
@@ -26,14 +24,14 @@ make install
 ```
 
 This builds the repository-internal installer, deploys the public commands under
-`~/.agents/sdlc/bin`, and links those deployed copies onto the global path. The
+`/opt/sdlc/bin`, and links those deployed copies onto the global path. The
 links do not point back into the source checkout.
 
 The installer lists the existing `~/.codex`, `~/.claude`, `~/.copilot`, and
 `~/.hermes` directories and asks which detected agents should receive native
 adapters. To use the same pre-authorized selection for both the public SDLC
 installer and the private agents installer, add this top-level key to
-`~/.agents/sdlc.yaml`:
+`/opt/sdlc/sdlc.yaml`:
 
 ```yaml
 active-harness:
@@ -50,9 +48,9 @@ After displaying the selected plan, the interactive installer applies it
 without a second aggregate confirmation. It asks separately before replacing
 an unknown same-path provider configuration conflict.
 
-The same command initializes the pinned HTML-Preview submodule and, when
-`htmlpreview` is not already installed, invokes that project's own
-`make install`. No manual viewer installation is needed. Optionally set
+For document preview, run `make install-preview` separately. It initializes the
+pinned HTML-Preview submodule and installs the viewer if absent. That optional
+build currently requires Go 1.26.8. Optionally set
 `HTML_PREVIEW_TOOL` to another executable name or path; if unset or empty,
 document review uses `htmlpreview`.
 HTML-Preview's default installation links to its submodule checkout; keep that
@@ -67,7 +65,7 @@ INSTALL_FLAGS=--apply make install
 
 ## 2. Set optional global defaults
 
-Create `~/.agents/sdlc.yaml` with non-secret defaults. Omit anything that should
+Create `/opt/sdlc/sdlc.yaml` with non-secret defaults. Omit anything that should
 be decided per project. A project may inherit a global value without copying it
 or record an explicit override in `.sdlc/project.yaml`.
 
@@ -111,7 +109,7 @@ selections. Press Enter to confirm them or toggle the corrected selection. The
 detector ignores archives, generated output, dependencies, and provider runtime
 state. A truly blank project receives no inferred selection.
 
-Populated values in `~/.agents/sdlc.yaml` are inherited without prompting and
+Populated values in `/opt/sdlc/sdlc.yaml` are inherited without prompting and
 are not copied into the project profile. Use `sdlc-init
 --override-global-config` when the project needs to review and override them.
 

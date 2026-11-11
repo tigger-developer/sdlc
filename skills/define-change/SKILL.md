@@ -14,10 +14,10 @@ work around the check, migrate by hand or infer permission to invoke the
 initializer. Recheck the profile and layout before resuming.
 
 
-Follow `~/.agents/sdlc/READING.md`; reuse required documents already read in
+Follow `/opt/sdlc/docs/READING.md`; reuse required documents already read in
 full, unchanged and retained in context. A skill transition does not reload them.
 
-Read `~/.agents/sdlc/MAIN.md`, `ISSUES.md`, `TESTING.md`, `CODING.md`,
+Read `/opt/sdlc/docs/MAIN.md`, `ISSUES.md`, `TESTING.md`, `CODING.md`,
 `ARCHITECTURE.md`, `GIT.md`, `DOCUMENTATION.md`, and `ORGMODE.md`, then the project
 profile and its selected standards and authorities.
 
@@ -49,11 +49,11 @@ multiple-choice UI.
 Reserve the next shared numeric ID on primary under `DELIVERY.md`, using W
 for a new work item. Reuse a defect's D identity when defining its fix. Create
 `tickets/WNNN-descriptor/spec.org` from
-`~/.agents/sdlc/templates/v3/spec.org`. Include context, falsifiable acceptance
+`/opt/sdlc/docs/templates/v3/spec.org`. Include context, falsifiable acceptance
 criteria, traced AT/RT/UT/OT test definitions (including at least one meaningful
 UT under TESTING.md), edge cases, solution design,
 mandatory security impact, and a context-independent delivery handoff. Apply
-`~/.agents/sdlc/ORG-SCHEMA.md`: every AC carries `:ac:` and every test `:testdef:`.
+`/opt/sdlc/docs/ORG-SCHEMA.md`: every AC carries `:ac:` and every test `:testdef:`.
 Create `validation.org` by delivery admission; do not invent execution states
 in definition. Record reviews in `audits.yaml` under `AUDIT-RECORD.md`;
 do not create parallel audit documents. Add or update the descriptive work item in `docs/work.org`. Apply the
@@ -75,10 +75,10 @@ present. No annotation records, even resolved or empty ones, may remain at the g
 Copy the template's `#+SCHEMA:` version. Keep `Synopsis` distinct from the
 change-specific `#+TITLE:`, with its eight level-two categories and short bullets.
 Its summary must accurately and completely represent the detail below
-its section break. Load `~/.agents/skills/definition-audit/SKILL.md` and conduct
+its section break. Load `/opt/sdlc/skills/definition-audit/SKILL.md` and conduct
 the composite review internally in this session. Address **every** finding as a batch:
 remediate valid findings and challenge incorrect or out-of-scope findings with
-evidence under `~/.agents/sdlc/AUDITS.md`. Raise doubtful or unresolved disputes
+evidence under `/opt/sdlc/docs/AUDITS.md`. Raise doubtful or unresolved disputes
 to the operator; never silently waive findings or expand scope to obtain a PASS.
 Do not launch an external reviewer.
 

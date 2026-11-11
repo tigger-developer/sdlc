@@ -6,7 +6,7 @@ last-updated: 2026-10-25
 
 # Instruction loading
 
-The installed public root is exactly `~/.agents/sdlc`. Read required documents
+The installed public root is exactly `/opt/sdlc/docs`. Read required documents
 in full before applying them. Full text already supplied and read in the
 current context satisfies this requirement. Reuse unchanged, retained contents;
 read again only when changed, missing or lost from context. A path, summary,

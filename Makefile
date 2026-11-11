@@ -46,7 +46,6 @@ lint:
 
 install: build
 	@$(INSTALLER) $(INSTALL_FLAGS)
-	@$(MAKE) install-preview
 
 install-preview:
 	git submodule update --init -- tools/HTML-Preview

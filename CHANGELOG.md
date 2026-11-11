@@ -6,6 +6,22 @@ last-updated: 2026-11-11
 
 # Changelog
 
+## v4.0.0 - 2026-11-11
+
+- Move the canonical public installation to `/opt/sdlc`, with standards under
+  `docs`, skills, hooks, commands, plugins and binaries as sibling directories,
+  and global configuration at `/opt/sdlc/sdlc.yaml`.
+- Link SDLC skill directories into harness discovery locations while leaving
+  personal skills in their existing homes. Update all active standards, skills,
+  adapters and command defaults to use the fixed paths.
+- Add a normal-user installation preflight. If the shared root is absent and
+  the operating system denies its creation, explain the choice before asking
+  for permission to run only `sudo mkdir` and `sudo chown`. Existing unwritable
+  roots stop installation. Preserve existing global configuration values when
+  migrating from `~/.agents/sdlc.yaml`.
+- Keep the optional HTML-Preview installation behind its separate
+  `make install-preview` target, so `make install` has no unrelated installer.
+
 ## v3.9.4 - 2026-11-11
 
 - Complete `delivery.test_code` with separate harness and provider settings

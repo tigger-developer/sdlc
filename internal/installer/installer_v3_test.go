@@ -38,7 +38,7 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 		writeFixtureFile(t, filepath.Join(root, "."+provider, "skills", "define-change", "SKILL.md"), "old\n")
 	}
 	writeFixtureFile(t, filepath.Join(root, ".copilot", "hooks", "sdlc-tool-guard.json"), "{}\n")
-	writeFixtureFile(t, filepath.Join(root, ".agents", "sdlc", "skills", "audit-code", "SKILL.md"), "duplicate\n")
+	writeFixtureFile(t, filepath.Join(root, "opt", "sdlc", "docs", "skills", "audit-code", "SKILL.md"), "duplicate\n")
 	writeFixtureFile(t, filepath.Join(root, ".agents", "skills", "audit-tests", "SKILL.md"), "obsolete\n")
 	writeFixtureFile(t, filepath.Join(root, ".claude", "settings.json"), `{"personal":true,"hooks":{"PreToolUse":[{"matcher":"*","hooks":[{"type":"command","command":"bash ~/.agents/sdlc/hooks/agent-command-guard.sh","timeout":5}]}]}}`)
 	writeFixtureFile(t, filepath.Join(root, ".hermes", "config.yaml"), "personal: true\nhooks:\n  pre_tool_call:\n    - command: bash ~/.agents/sdlc/hooks/agent-command-guard.sh\n      matcher: .*\n      timeout: 5\n")
@@ -53,7 +53,7 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 	}
 	oldInit := filepath.Join(root, ".local", "bin", "sdlc-project-init.sdlc-v3-retired-2")
 	writeFixtureFile(t, oldInit, "retired initializer\n")
-	writeFixtureFile(t, filepath.Join(root, ".agents", "sdlc", "bin", "sdlc-preview"), "old previewer\n")
+	writeFixtureFile(t, filepath.Join(root, "opt", "sdlc", "docs", "bin", "sdlc-preview"), "old previewer\n")
 	unrelatedPath := filepath.Join(root, ".claude", "unrelated.txt")
 	writeFixtureFile(t, unrelatedPath, "operator-owned bytes\n")
 	checkoutLink := filepath.Join(root, ".local", "bin", "sdlc-init")
@@ -64,7 +64,7 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 	guardCountPath := filepath.Join(root, "guard-count")
 	t.Setenv("SDLC_GUARD_COUNT_FILE", guardCountPath)
 	var output bytes.Buffer
-	if err := RunInteractive(source, root, "v3.0.0", strings.NewReader("\nyes\n"), &output); err != nil {
+	if err := runInteractiveAtRoot(source, root, filepath.Join(root, "opt", "sdlc"), "v3.0.0", strings.NewReader("\nyes\n"), &output); err != nil {
 		t.Fatalf("install: %v\n%s", err, output.String())
 	}
 	for _, provider := range []string{"claude", "codex", "copilot", "hermes"} {
@@ -84,18 +84,28 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 		t.Fatalf("installer asked for an aggregate confirmation:\n%s", output.String())
 	}
 	assertFixtureContent(t, unrelatedPath, "operator-owned bytes\n")
-	assertFixtureContent(t, filepath.Join(root, ".agents", "sdlc", "MAIN.md"), "# Lean SDLC\n")
+	assertFixtureContent(t, filepath.Join(root, "opt", "sdlc", "docs", "MAIN.md"), "# Lean SDLC\n")
+	for _, directory := range []string{"docs", "skills", "hooks", "bin"} {
+		info, err := os.Stat(filepath.Join(root, "opt", "sdlc", directory))
+		if err != nil || info.Mode().Perm()&0o055 != 0o055 {
+			t.Fatalf("shared %s directory is not readable by other users: %v", directory, err)
+		}
+	}
 	for _, skill := range []string{"audit-code", "audit-test-code", "audit-test-definitions"} {
 		if _, err := os.Lstat(filepath.Join(root, ".agents", "skills", skill)); !os.IsNotExist(err) {
 			t.Fatalf("audit skill %s was deployed: %v", skill, err)
 		}
 	}
 	assertFixtureContent(t, filepath.Join(root, ".agents", "skills", "define-change", "SKILL.md"), "---\nname: define-change\ndescription: Define a change.\n---\n")
+	globalSkillLink := filepath.Join(root, ".agents", "skills", "define-change")
+	if target, err := os.Readlink(globalSkillLink); err != nil || target != filepath.Join(root, "opt", "sdlc", "skills", "define-change") {
+		t.Fatalf("global skill link = %q (%v)", target, err)
+	}
 	for _, skill := range []string{"definition-audit", "test-code-audit", "code-audit"} {
 		assertFixtureContent(t, filepath.Join(root, ".agents", "skills", skill, "SKILL.md"), "---\nname: "+skill+"\ndescription: Internal review.\n---\n")
 	}
 	for _, name := range deployedCommandNames {
-		deployed := filepath.Join(root, ".agents", "sdlc", "bin", name)
+		deployed := filepath.Join(root, "opt", "sdlc", "bin", name)
 		assertFixtureContent(t, deployed, name+" executable\n")
 		link := filepath.Join(root, ".local", "bin", name)
 		target, err := os.Readlink(link)
@@ -115,7 +125,7 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 	}
 	auditLink := filepath.Join(root, ".local", "bin", "sdlc-audit")
 	target, err := os.Readlink(auditLink)
-	if err != nil || target != filepath.Join(root, ".agents", "sdlc", "bin", "sdlc-harness") {
+	if err != nil || target != filepath.Join(root, "opt", "sdlc", "bin", "sdlc-harness") {
 		t.Fatalf("audit alias = %q (%v)", target, err)
 	}
 	assertFixtureContent(t, auditLink, "sdlc-harness executable\n")
@@ -127,7 +137,7 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 		}
 		assertTrashed(t, path)
 	}
-	previewPath := filepath.Join(root, ".agents", "sdlc", "bin", "sdlc-preview")
+	previewPath := filepath.Join(root, "opt", "sdlc", "docs", "bin", "sdlc-preview")
 	if _, err := os.Lstat(previewPath); !os.IsNotExist(err) {
 		t.Fatalf("retired deployed previewer remains: %v", err)
 	}
@@ -135,7 +145,7 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 	if _, err := os.Lstat(filepath.Join(root, ".agents", "skills", "audit-tests")); !os.IsNotExist(err) {
 		t.Fatalf("retired global audit-tests skill remains: %v", err)
 	}
-	if _, err := os.Lstat(filepath.Join(root, ".agents", "sdlc", "skills")); !os.IsNotExist(err) {
+	if _, err := os.Lstat(filepath.Join(root, "opt", "sdlc", "docs", "skills")); !os.IsNotExist(err) {
 		t.Fatalf("duplicate canonical-root skills directory remains: %v", err)
 	}
 	for _, provider := range []string{"claude", "copilot", "hermes"} {
@@ -145,7 +155,7 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 			if err != nil {
 				t.Fatalf("reading %s skill link %s: %v", provider, skill, err)
 			}
-			want := filepath.Join(root, ".agents", "skills", skill)
+			want := filepath.Join(root, "opt", "sdlc", "skills", skill)
 			if target != want {
 				t.Fatalf("%s -> %s, want %s", path, target, want)
 			}
@@ -168,14 +178,14 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 		}
 	}
 	assertFixtureContent(t, assertTrashed(t, filepath.Join(root, ".copilot", "hooks", "sdlc-tool-guard.json")), "{}\n")
-	global := readFixtureFile(t, filepath.Join(root, ".agents", "sdlc.yaml"))
+	global := readFixtureFile(t, filepath.Join(root, "opt", "sdlc", "sdlc.yaml"))
 	if !strings.Contains(global, "version: 3") || !strings.Contains(global, "release: v3.0.0") {
 		t.Fatalf("global configuration does not identify the schema and deployed release:\n%s", global)
 	}
 
 	writeFixtureFile(t, filepath.Join(source, "skills", "define-change", "SKILL.md"), "updated canonical skill\n")
 	var refreshOutput bytes.Buffer
-	if err := RunInteractive(source, root, "v3.0.0", strings.NewReader("\n"), &refreshOutput); err != nil {
+	if err := runInteractiveAtRoot(source, root, filepath.Join(root, "opt", "sdlc"), "v3.0.0", strings.NewReader("\n"), &refreshOutput); err != nil {
 		t.Fatalf("refresh install: %v\n%s", err, refreshOutput.String())
 	}
 	assertFixtureContent(t, filepath.Join(root, ".agents", "skills", "define-change", "SKILL.md"), "updated canonical skill\n")
@@ -183,7 +193,7 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 		assertFixtureContent(t, filepath.Join(root, "."+provider, "skills", "define-change", "SKILL.md"), "updated canonical skill\n")
 	}
 	var noOpOutput bytes.Buffer
-	if err := RunInteractive(source, root, "v3.0.0", strings.NewReader("\nunexpected\n"), &noOpOutput); err != nil {
+	if err := runInteractiveAtRoot(source, root, filepath.Join(root, "opt", "sdlc"), "v3.0.0", strings.NewReader("\nunexpected\n"), &noOpOutput); err != nil {
 		t.Fatalf("all-provider no-op: %v\n%s", err, noOpOutput.String())
 	}
 	if !strings.Contains(noOpOutput.String(), "All detected SDLC copies are current.") || strings.Contains(noOpOutput.String(), "Deploy all") {
@@ -229,17 +239,17 @@ func TestV3InteractiveInstallIsSilentNoOpAfterSynchronization(t *testing.T) {
 	writeFixtureFile(t, filepath.Join(source, "templates", "codex-sdlc.rules.example"), codexPythonRulesStart+"\n"+codexPythonRulesEnd+"\n")
 	var first bytes.Buffer
 	writeFixtureFile(t, filepath.Join(root, ".agents", "sdlc.yaml"), "# operator settings\nversion: 3\nrelease: v2.1.0\ndelivery:\n  branch_strategy: feature\n")
-	if err := RunInteractive(source, root, "v3.0.0", strings.NewReader("\n"), &first); err != nil {
+	if err := runInteractiveAtRoot(source, root, filepath.Join(root, "opt", "sdlc"), "v3.0.0", strings.NewReader("\n"), &first); err != nil {
 		t.Fatal(err)
 	}
-	global := readFixtureFile(t, filepath.Join(root, ".agents", "sdlc.yaml"))
+	global := readFixtureFile(t, filepath.Join(root, "opt", "sdlc", "sdlc.yaml"))
 	for _, expected := range []string{"# operator settings", "version: 3", "release: v3.0.0", "branch_strategy: feature"} {
 		if !strings.Contains(global, expected) {
 			t.Fatalf("global configuration lost %q:\n%s", expected, global)
 		}
 	}
 	var second bytes.Buffer
-	if err := RunInteractive(source, root, "v3.0.0", strings.NewReader("\nunexpected\n"), &second); err != nil {
+	if err := runInteractiveAtRoot(source, root, filepath.Join(root, "opt", "sdlc"), "v3.0.0", strings.NewReader("\nunexpected\n"), &second); err != nil {
 		t.Fatal(err)
 	}
 	if !strings.Contains(second.String(), "All detected SDLC copies are current.") || strings.Contains(second.String(), "Deploy all") {

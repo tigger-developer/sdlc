@@ -128,7 +128,7 @@ writing tests, after the applicable admission requirements:
   still uses primary. Paired delivery retains its skeleton-before-code rule.
 
 The initializer resolves the strategy from command line, process environment,
-project `.sdlc/project.yaml`, user `~/.agents/sdlc.yaml`, then the schema
+project `.sdlc/project.yaml`, user `/opt/sdlc/sdlc.yaml`, then the schema
 default, `feature`. It persists only explicit project overrides. Agents never
 read `.env`. Documentation-only work does not create an implementation branch.
 
@@ -240,12 +240,12 @@ uses the live user-validation contract below.
 ### Test execution records and readiness
 
 Every delivery has `validation.org`, with one current heading per AT, RT, OT and UT
-defined in `spec.org`. Follow `~/.agents/sdlc/ORG-SCHEMA.md` and the canonical
+defined in `spec.org`. Follow `/opt/sdlc/docs/ORG-SCHEMA.md` and the canonical
 templates: both documents tag tests `:testdef:`, and only validation headings carry
 execution states. Declare `#+TODO: AMBER RED | GREEN`; an absent state is schema-valid
 but audit-ineligible. Preserve superseded runs below the same test node.
 
-The deterministic `~/.agents/sdlc/bin/sdlc-validate` reports schema errors, inventory
+The deterministic `/opt/sdlc/bin/sdlc-validate` reports schema errors, inventory
 and readiness as YAML. Read its `--help` and run it before the corresponding audit.
 The caller verifies the same checks before submitting a review. Schema failures and
 ineligibility never invoke a model. Test-code requires ATs/RTs RED/GREEN and a recorded

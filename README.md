@@ -65,13 +65,45 @@ coding-agent harness. GitHub CLI is needed only for migrating an SDLC v1
 project's GitHub tickets. Hermes auditing also requires `uv` and a supported
 installed Hermes runtime; see the [harness guide](src/HARNESS.md).
 
+### Installing under /opt/sdlc
+
+The public installer places the shared framework at `/opt/sdlc`: standards in
+`/opt/sdlc/docs`, skills in `/opt/sdlc/skills`, commands in `/opt/sdlc/bin`,
+hooks in `/opt/sdlc/hooks`, and global configuration in `/opt/sdlc/sdlc.yaml`.
+It links each SDLC skill directory into `~/.agents/skills` and supported
+provider skill directories so harnesses can discover them. Personal skills in
+those directories remain separate. The public installer does not construct a
+global `AGENTS.md` or `CLAUDE.md`; a separate personal installer can deploy
+those files and route agents to `/opt/sdlc/docs/MAIN.md`.
+
+Fixed absolute paths in pre-instructions prevent agents from reading extra
+framework sections while resolving a parameterized path. That avoids token
+cost on every invocation and gives workstations and managed builders the same
+authority path. The layout is intentionally fixed rather than configured by
+an environment variable.
+
+On an existing installation, the installer carries values from
+`~/.agents/sdlc.yaml` into `/opt/sdlc/sdlc.yaml` when the latter is absent.
+The old file remains available for recovery but is no longer read by SDLC
+commands.
+
+Run the installer as your normal user, never with `sudo`. If `/opt/sdlc` exists
+but is not writable by that user, installation stops. If it is absent, the
+installer tries to create it without elevation. When the operating system
+denies that attempt, the installer shows this explanation and asks permission
+before running exactly `sudo mkdir /opt/sdlc` and
+`sudo chown <current-user> /opt/sdlc`. All subsequent installation runs without
+elevation. To avoid installer-managed sudo, create and own `/opt/sdlc` yourself
+before installing. For a different fixed location, fork the project and replace
+the paths in its installer and instructions, including the tests.
+
 ```sh
 make install
 ```
 
 The installer asks which of the existing `~/.codex`, `~/.claude`,
 `~/.copilot`, `~/.hermes`, and `~/.config/goose` homes should receive native adapters. A top-level
-`active-harness` list in `~/.agents/sdlc.yaml` supplies that selection without
+`active-harness` list in `/opt/sdlc/sdlc.yaml` supplies that selection without
 asking. It does not create a missing provider home.
 
 From a clean, named branch in the project you want to use, run:
@@ -204,7 +236,7 @@ and optional manually invoked fresh-session audits through the review skills.
 - Version 2 (2026-10-01): Reorganized the front page around purpose, history,
   quickstart, and the main steps; preserved the previous detailed reference.
 
-[^go]: `make install` also builds the pinned HTML-Preview source when
+[^go]: The optional `make install-preview` builds the pinned HTML-Preview source when
     `htmlpreview` is absent from `PATH`; that source currently requires Go
     1.26.8. The installed commands are compiled binaries and do not need Go
     just to run.
@@ -221,7 +253,7 @@ and optional manually invoked fresh-session audits through the review skills.
 ### Goose deployment
 
 Goose receives SDLC skills under `~/.config/goose/skills`; shared rules remain
-at `~/.agents/sdlc`. Its command guard is a native `PreToolUse` plugin under
+at `/opt/sdlc/docs`. Its command guard is a native `PreToolUse` plugin under
 `~/.agents/plugins/sdlc-command-guard-goose`. The installer preserves Goose
 configuration and other plugins. See [Goose integration](docs/goose-support.md)
 for requirements and the validation boundary.

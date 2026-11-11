@@ -75,7 +75,7 @@ names for import sorting and document any deviation.
   baseline.
 - Keep tests independent of global interpreters, home-directory state, network
   access, locale, and execution order.
-- Follow `~/.agents/sdlc/TESTING.md`; do not use source or prompt text searches
+- Follow `/opt/sdlc/docs/TESTING.md`; do not use source or prompt text searches
   as behavioural regression tests.
 
 ## Security
@@ -114,7 +114,7 @@ names for import sorting and document any deviation.
 ## Vulnerability checking
 
 Deployable Python applications must expose the `make vulncheck` contract defined
-by `~/.agents/sdlc/SECURITY.md`. Run `pip-audit` through the project-managed
+by `/opt/sdlc/docs/SECURITY.md`. Run `pip-audit` through the project-managed
 environment against the committed lock, fully pinned requirements, or an
 equivalent already-resolved environment.
 

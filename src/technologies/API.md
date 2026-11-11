@@ -2,9 +2,9 @@
 
 These standards apply when a project provides or consumes a machine interface,
 including HTTP APIs, webhooks, remote procedure calls, and service integrations.
-They supplement `~/.agents/sdlc/CODING.md`, `~/.agents/sdlc/SECURITY.md`, and
-`~/.agents/sdlc/TESTING.md`. Browser-facing documents and interfaces also follow
-`~/.agents/sdlc/technologies/WEB.md`.
+They supplement `/opt/sdlc/docs/CODING.md`, `/opt/sdlc/docs/SECURITY.md`, and
+`/opt/sdlc/docs/TESTING.md`. Browser-facing documents and interfaces also follow
+`/opt/sdlc/docs/technologies/WEB.md`.
 
 The HTTP rules below are the default for HTTP and JSON interfaces. Other
 protocols must provide equivalent, explicit semantics rather than imitating HTTP
@@ -148,7 +148,7 @@ where its methods and status codes do not apply.
   assumptions absent from the provider's published contract.
 - Do not put calls to metered or third-party hosted APIs in the regression pack.
   Use bounded one-off verification and record it as required by
-  `~/.agents/sdlc/TESTING.md`.
+  `/opt/sdlc/docs/TESTING.md`.
 - Do not claim behavioural coverage by grepping an OpenAPI document, source code,
   routes, fixtures, or configuration. Schema linting and generated-code checks
   are useful static checks, not substitutes for request-response evidence.

@@ -2,26 +2,26 @@
 
 Standards for browser-facing HTML, CSS, JavaScript, and the testing and tooling
 concerns that span them. The general coding standards in
-`~/.agents/sdlc/CODING.md` apply on top of these. Projects that own JavaScript
+`/opt/sdlc/docs/CODING.md` apply on top of these. Projects that own JavaScript
 or TypeScript source also load
-`~/.agents/sdlc/technologies/JAVASCRIPT.md`.
+`/opt/sdlc/docs/technologies/JAVASCRIPT.md`.
 
-When a Go application serves HTML, CSS, or JavaScript, the server-side patterns in `~/.agents/sdlc/technologies/GO.md` (HTTP server, error handling, timeouts) apply for the server; the standards in this document apply for the response payload.
+When a Go application serves HTML, CSS, or JavaScript, the server-side patterns in `/opt/sdlc/docs/technologies/GO.md` (HTTP server, error handling, timeouts) apply for the server; the standards in this document apply for the response payload.
 
-Hugo projects also load `~/.agents/sdlc/technologies/HUGO.md`. Projects that
+Hugo projects also load `/opt/sdlc/docs/technologies/HUGO.md`. Projects that
 use Node.js as an application runtime, or npm-managed packages in their build,
-also load `~/.agents/sdlc/technologies/NODE.md`. npm-managed development tooling
+also load `/opt/sdlc/docs/technologies/NODE.md`. npm-managed development tooling
 does not by itself justify selecting Node.js as the production runtime.
 
 ## Source vs Rendered Tier Model
 
 Web content moves through three tiers between authoring and the user:
 
-1. **Source** -- templates, partials, source CSS/JS files. Source code. Tests must never grep, parse, or introspect this tier (see `~/.agents/sdlc/TESTING.md`).
+1. **Source** -- templates, partials, source CSS/JS files. Source code. Tests must never grep, parse, or introspect this tier (see `/opt/sdlc/docs/TESTING.md`).
 2. **Rendered/built** -- post-build HTML, fingerprinted CSS bundle, transpiled JS, RSS/feed XML, static assets. The artefact that travels over the wire. **Tests may query this tier** with format-aware tools -- the user's browser or feed reader receives this exact content.
 3. **Presented** -- post-JS-execution DOM, computed styles, visual layout. What the user actually sees. Requires a browser (Playwright/Cypress) or human validation.
 
-The source-introspection prohibition in `~/.agents/sdlc/TESTING.md` applies to tier 1. Tiers 2 and 3 are legitimate test targets. For mostly-static sites (Hugo), tier 2 is usually sufficient. For JS-heavy SPAs where meaningful content materializes only after browser execution, tier 2 is insufficient -- defer to tier 3.
+The source-introspection prohibition in `/opt/sdlc/docs/TESTING.md` applies to tier 1. Tiers 2 and 3 are legitimate test targets. For mostly-static sites (Hugo), tier 2 is usually sufficient. For JS-heavy SPAs where meaningful content materializes only after browser execution, tier 2 is insufficient -- defer to tier 3.
 
 ## HTML
 
@@ -58,7 +58,7 @@ The source-introspection prohibition in `~/.agents/sdlc/TESTING.md` applies to t
 ## Browser JavaScript and TypeScript
 
 The language-wide rules live in
-`~/.agents/sdlc/technologies/JAVASCRIPT.md`. Browser-facing code additionally:
+`/opt/sdlc/docs/technologies/JAVASCRIPT.md`. Browser-facing code additionally:
 
 - uses safe DOM APIs and contextual escaping for externally derived content;
 - preserves semantic HTML, keyboard operation, visible focus, and accessible
@@ -104,12 +104,12 @@ For tests that genuinely require a browser (computed styles, hover behaviour, JS
 
 Any deployable web project with package-managed application or build
 dependencies must expose the `make vulncheck` contract defined by
-`~/.agents/sdlc/SECURITY.md`. Scan dependencies capable of changing the served
+`/opt/sdlc/docs/SECURITY.md`. Scan dependencies capable of changing the served
 artefact, even when they are absent from the final static output.
 
 ## Testing Web Content
 
-Cross-cutting with `~/.agents/sdlc/TESTING.md`. This section contextualizes those rules for web content; it does not override them.
+Cross-cutting with `/opt/sdlc/docs/TESTING.md`. This section contextualizes those rules for web content; it does not override them.
 
 Decision tree by tier:
 
@@ -122,7 +122,7 @@ Decision tree by tier:
 | Computed style, hover, JS-rendered content | **Human validation by default; automated browser regression when justified** | Prefer human validation until the project adopts Playwright, Cypress, or an equivalent harness. |
 | Visual judgement (typography, "looks right", layout aesthetics) | **Human validation** | Machine checks cannot replace human visual judgement here. |
 
-Per `~/.agents/sdlc/TESTING.md`, the real-user test question still applies: *what user action does this test simulate, and what would the user observe?* For rendered HTML, generated feeds, or served static files the answer is "the user loads this URL and the browser/feed reader receives this response" -- legitimate. For source-template grep the answer is "nothing the user does" -- forbidden.
+Per `/opt/sdlc/docs/TESTING.md`, the real-user test question still applies: *what user action does this test simulate, and what would the user observe?* For rendered HTML, generated feeds, or served static files the answer is "the user loads this URL and the browser/feed reader receives this response" -- legitimate. For source-template grep the answer is "nothing the user does" -- forbidden.
 
 ## Paired visual development
 
@@ -136,7 +136,7 @@ Automation is not mandatory simply because rendered HTML can be queried. Use
 protects an objective, stable behaviour at proportionate cost. Do not translate
 a live visual approval into source-text assertions or a synthetic browser test
 whose only purpose is to replay the operator's judgement. Record that judgement
-as user-test evidence under `~/.agents/sdlc/TESTING.md`.
+as user-test evidence under `/opt/sdlc/docs/TESTING.md`.
 
 ## Reference Standards
 

@@ -8,13 +8,13 @@ Use this skill only when the operator explicitly invokes it. Paired development
 unattended counterpart. It answers a bounded question with evidence. It never
 delivers product behaviour.
 
-Follow `~/.agents/sdlc/READING.md`; reuse unchanged, fully read retained texts.
+Follow `/opt/sdlc/docs/READING.md`; reuse unchanged, fully read retained texts.
 
-Read `~/.agents/sdlc/MAIN.md`, `CODING.md`, `TESTING.md`, `GIT.md`,
+Read `/opt/sdlc/docs/MAIN.md`, `CODING.md`, `TESTING.md`, `GIT.md`,
 `DOCUMENTATION.md`, and `AUDITS.md`, then the project profile when present and the technology
 standards it selects. Read only the **Delivery modes and continuation** section
-of `~/.agents/skills/deliver-change/SKILL.md` as the shared HANDS-OFF contract and
-`~/.agents/skills/deliver-change/references/native-goal.md` by reference; do not
+of `/opt/sdlc/skills/deliver-change/SKILL.md` as the shared HANDS-OFF contract and
+`/opt/sdlc/skills/deliver-change/references/native-goal.md` by reference; do not
 restate them here.
 
 ## 1. Clarify the objective before anything else
@@ -94,9 +94,9 @@ criteria, stack, architecture or boundaries require renewed sign-off.
 ## 4. Audit the spike code
 
 After the test package is written, load
-`~/.agents/skills/test-code-audit/SKILL.md` in this session before implementing
+`/opt/sdlc/skills/test-code-audit/SKILL.md` in this session before implementing
 the target behaviour. After implementation is written, load
-`~/.agents/skills/code-audit/SKILL.md` in this session before handback. Use spike
+`/opt/sdlc/skills/code-audit/SKILL.md` in this session before handback. Use spike
 mode, the signed-off brief and current exploratory intent. Apply all coding,
 security, technology and TDD/testing standards without full SDLC readiness,
 definition gates or documentation artefacts. The caller is responsible for
