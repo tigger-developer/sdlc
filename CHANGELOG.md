@@ -6,6 +6,15 @@ last-updated: 2026-11-11
 
 # Changelog
 
+## v4.0.18 - 2026-11-11
+
+- Record installed canonical skills and selected discovery links in separate
+  inventories. Retire removed, unchanged skills and recorded links through
+  Trash, reject modified retirement candidates, and preserve unrelated skills.
+- Publish the canonical inventory in bare mode for declarative consumers;
+  leave home inventories and links to their owner. Adopt current source skills
+  on the first inventory without claiming unknown destination-only content.
+
 ## v4.0.17 - 2026-11-11
 
 - Include the generated Goose command-guard plugin under

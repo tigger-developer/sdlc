@@ -112,3 +112,50 @@ func TestBareRejectsProviderFlags(t *testing.T) {
 		}
 	}
 }
+
+func TestBareRetiresInventoriedSkills(t *testing.T) {
+	root, source := newCLIFixture(t)
+	bin := filepath.Join(root, "fake-bin")
+	if err := os.MkdirAll(bin, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	installCLITrashDouble(t, bin, root)
+	t.Setenv("PATH", bin)
+	put := func(path, text string) {
+		t.Helper()
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, []byte(text), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	put(filepath.Join(source, "skills", "retire-me", "SKILL.md"), "owned")
+	destination := filepath.Join(root, "opt", "sdlc")
+	args := []string{"--bare", "--source", source}
+	if err := runAtRoot(args, strings.NewReader(""), &bytes.Buffer{}, destination); err != nil {
+		t.Fatal(err)
+	}
+	put(filepath.Join(destination, "skills", "unrelated", "SKILL.md"), "private")
+	if err := os.Rename(filepath.Join(source, "skills", "retire-me"), filepath.Join(root, "saved-source")); err != nil {
+		t.Fatal(err)
+	}
+	if err := runAtRoot(append(args, "--dry-run"), strings.NewReader(""), &bytes.Buffer{}, destination); err != nil {
+		t.Fatal(err)
+	}
+	retired := filepath.Join(destination, "skills", "retire-me")
+	if _, err := os.Stat(retired); err != nil {
+		t.Fatal("preview retired skill", err)
+	}
+	for i := 0; i < 2; i++ {
+		if err := runAtRoot(args, strings.NewReader(""), &bytes.Buffer{}, destination); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if _, err := os.Lstat(retired); !os.IsNotExist(err) {
+		t.Fatalf("retired skill remains: %v", err)
+	}
+	if data, err := os.ReadFile(filepath.Join(destination, "skills", "unrelated", "SKILL.md")); err != nil || string(data) != "private" {
+		t.Fatalf("unrelated changed %q %v", data, err)
+	}
+}

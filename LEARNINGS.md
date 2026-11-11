@@ -1,10 +1,20 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 34
+version: 35
 last-updated: 2026-11-11
 ---
 
 # SDLC Standards: Design Learnings
+
+## Skill retirement requires installed ownership evidence
+
+Source-only synchronization cannot distinguish a removed owned skill from an
+unrelated destination addition. Record source fingerprints after installation,
+and use that inventory for later retirement. Keep discovery inventories local
+to each selected home so bare deployment cannot claim its links and later
+provider installs can still retire stale links. Refuse modified retirement
+candidates rather than discarding local additions. Unknown pre-inventory
+content needs separate provenance review; source absence alone is not ownership.
 
 ## Canonical deployment and home adapters are separate responsibilities
 

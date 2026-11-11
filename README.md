@@ -90,6 +90,20 @@ Bare mode also supplies the Goose plugin directory at
 plugin files alone does not activate the hook; the host manages discovery and
 verifies native execution. Conflicting plugin files stop bare installation.
 
+The canonical skill inventory is `/opt/sdlc/skills/.sdlc-inventory.json`.
+Its `skills` keys identify the current installed SDLC skills for declarative
+consumers. Each selected discovery directory has its own `.sdlc-inventory.json`
+recording managed link targets. Later installations move removed, unchanged
+skills and their recorded links to Trash. Modified retirement candidates stop
+installation for review; unrelated skills remain untouched. Bare mode manages
+only the canonical inventory and leaves discovery links to the host.
+
+The first inventory records current source skills only; unknown older removals
+need separate provenance review. Retirement applies to whole skills, not extra
+files inside retained skills. Finder and Explorer debris is ignored. Inventories
+are written after asset updates and retirement succeed, and dry runs make no
+inventory changes.
+
 Bare mode installs only `/opt/sdlc`, without prompts, agent discovery, user-home
 links, or provider configuration. No installed harness is required. Pre-create
 a writable `/opt/sdlc` if ordinary directory creation is unavailable. After

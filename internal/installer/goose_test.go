@@ -58,6 +58,19 @@ func TestGooseInteractiveInstallation(t *testing.T) {
 	if !strings.Contains(output.String(), "current") {
 		t.Fatalf("not idempotent: %s", output.String())
 	}
+	if err := os.Rename(filepath.Join(source, "skills", "define-change"), filepath.Join(root, "saved-skill")); err != nil {
+		t.Fatal(err)
+	}
+	writeFixtureFile(t, filepath.Join(home, "skills", "unrelated", "SKILL.md"), "private\n")
+	if err := runInteractiveAtRoot(source, root, filepath.Join(root, "opt", "sdlc"), "v3.8.18", strings.NewReader("goose\n"), &output); err != nil {
+		t.Fatal(err)
+	}
+	for _, skills := range []string{filepath.Join(root, "opt", "sdlc", "skills"), filepath.Join(root, ".agents", "skills"), filepath.Join(home, "skills")} {
+		if _, err := os.Lstat(filepath.Join(skills, "define-change")); !os.IsNotExist(err) {
+			t.Fatalf("retired skill remains in %s: %v", skills, err)
+		}
+	}
+	assertFixtureContent(t, filepath.Join(home, "skills", "unrelated", "SKILL.md"), "private\n")
 }
 
 func TestGooseNativeGuardPayload(t *testing.T) {

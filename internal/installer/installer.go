@@ -15,6 +15,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/tigger-developer/sdlc/internal/harness"
+	"github.com/tigger-developer/sdlc/internal/skillinventory"
 )
 
 const (
@@ -164,6 +165,7 @@ type managedLink struct {
 }
 
 type installationPlan struct {
+	inventories           []skillinventory.Plan
 	syncs                 []managedSync
 	links                 []managedLink
 	retirements           []managedRetirement
@@ -505,6 +507,11 @@ func verifyHarnessAdapters(installRoot string, agents []string) error {
 }
 
 func installationHasChanges(plan installationPlan) bool {
+	for _, inventory := range plan.inventories {
+		if inventory.Changed || len(inventory.Retirements) != 0 {
+			return true
+		}
+	}
 	if len(plan.configurations) != 0 || len(plan.managedConfigurations) != 0 {
 		return true
 	}
@@ -527,6 +534,7 @@ func installationHasChanges(plan installationPlan) bool {
 }
 
 func mergeInstallationPlan(plan *installationPlan, addition installationPlan) {
+	plan.inventories = append(plan.inventories, addition.inventories...)
 	plan.syncs = append(plan.syncs, addition.syncs...)
 	plan.links = append(plan.links, addition.links...)
 	plan.retirements = append(plan.retirements, addition.retirements...)
@@ -724,6 +732,14 @@ func planSharedInstallationMode(source, userHome, installRoot, release string, b
 		return installationPlan{}, err
 	}
 	globalSkills := filepath.Join(userHome, ".agents", "skills")
+	if err := plan.addSkillInventory(source, filepath.Join(installRoot, "skills"), "", currentSkills); err != nil {
+		return installationPlan{}, err
+	}
+	if !bare {
+		if err := plan.addSkillInventory(source, globalSkills, filepath.Join(installRoot, "skills"), currentSkills); err != nil {
+			return installationPlan{}, err
+		}
+	}
 	for _, skill := range currentSkills {
 		if bare {
 			continue
@@ -902,6 +918,9 @@ func planProviderInstallation(agent, source, agentHome, installRoot string) (ins
 		}
 		canonicalSkills := filepath.Join(installRoot, "skills")
 		providerSkills := filepath.Join(agentHome, "skills")
+		if err := plan.addSkillInventory(source, providerSkills, canonicalSkills, currentSkills); err != nil {
+			return installationPlan{}, err
+		}
 		for _, skill := range currentSkills {
 			if isAuditSkill(skill) {
 				continue
@@ -1061,6 +1080,14 @@ func printHeading(output io.Writer, agent, source, agentHome string, apply, conf
 }
 
 func printInstallationPlan(output io.Writer, plan installationPlan, apply bool) {
+	for _, inventory := range plan.inventories {
+		for _, retirement := range inventory.Retirements {
+			fmt.Fprintf(output, "Installation: trash inventoried retired skill %s\n", retirement.Path)
+		}
+		if inventory.Changed {
+			fmt.Fprintf(output, "Installation: update skill inventory %s\n", inventory.Path)
+		}
+	}
 	for _, sync := range plan.syncs {
 		if !sync.needsSync {
 			if os.Getenv("VERBOSE") == "1" {
@@ -1152,6 +1179,43 @@ func applyInstallation(plan installationPlan, output io.Writer) error {
 			return err
 		}
 	}
+	for _, inventory := range plan.inventories {
+		for _, retirement := range inventory.Retirements {
+			if err := retirement.Validate(); err != nil {
+				return err
+			}
+			if _, err := os.Lstat(retirement.Path); os.IsNotExist(err) {
+				continue
+			} else if err != nil {
+				return err
+			}
+			if err := trashArtifact(output, retirement.Path); err != nil {
+				return err
+			}
+		}
+	}
+	for _, inventory := range plan.inventories {
+		if inventory.Changed {
+			if err := writeFileAtomic(inventory.Path, inventory.Contents, 0o644); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (plan *installationPlan) addSkillInventory(source, destination, canonical string, names []string) error {
+	var selected []string
+	for _, name := range names {
+		if !isAuditSkill(name) {
+			selected = append(selected, name)
+		}
+	}
+	inventory, err := skillinventory.Build(filepath.Join(source, "skills"), destination, canonical, selected, "sdlc")
+	if err != nil {
+		return err
+	}
+	plan.inventories = append(plan.inventories, inventory)
 	return nil
 }
 
