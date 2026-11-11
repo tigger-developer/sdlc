@@ -157,6 +157,8 @@ type managedRetirement struct {
 type managedLink struct {
 	target            string
 	destination       string
+	destinationRoot   string
+	ownership         linkOwnership
 	needsSync         bool
 	destinationExists bool
 }
@@ -670,9 +672,9 @@ func commonAgentHome(agent, agentHome string) string {
 }
 
 func planInstallation(agent, source, agentHome, installRoot, release string) (installationPlan, error) {
-	commonHome := commonAgentHome(agent, agentHome)
+	userHome := filepath.Dir(commonAgentHome(agent, agentHome))
 	plan := installationPlan{}
-	shared, err := planSharedInstallation(source, commonHome, installRoot, release)
+	shared, err := planSharedInstallation(source, userHome, installRoot, release)
 	if err != nil {
 		return installationPlan{}, err
 	}
@@ -722,7 +724,7 @@ func planSharedInstallation(source, userHome, installRoot, release string) (inst
 		if isAuditSkill(skill) {
 			continue
 		}
-		link, linkErr := planManagedLink(filepath.Join(installRoot, "skills", skill), filepath.Join(globalSkills, skill), globalSkills)
+		link, linkErr := planManagedLink(filepath.Join(installRoot, "skills", skill), filepath.Join(globalSkills, skill), globalSkills, skillLinkOwnership(source, userHome, skill, filepath.Join(source, "skills", skill)))
 		if linkErr != nil {
 			return installationPlan{}, linkErr
 		}
@@ -741,7 +743,7 @@ func planSharedInstallation(source, userHome, installRoot, release string) (inst
 			return installationPlan{}, err
 		}
 		plan.syncs = append(plan.syncs, sync)
-		link, err := planManagedLink(deployedPath, filepath.Join(localBin, name), localBin)
+		link, err := planManagedLink(deployedPath, filepath.Join(localBin, name), localBin, linkOwnership{legacyTargets: []string{filepath.Join(userHome, ".agents", "sdlc", "bin", name), sourcePath}})
 		if err != nil {
 			return installationPlan{}, err
 		}
@@ -785,17 +787,15 @@ func planSharedInstallation(source, userHome, installRoot, release string) (inst
 		return installationPlan{}, retirementErr
 	}
 	plan.retirements = append(plan.retirements, retirements...)
-	legacyGlobalRetirements, legacyErr := planExactRetirements(globalSkills, retiredGlobalSkillPaths)
-	if legacyErr != nil {
-		return installationPlan{}, legacyErr
+	if err := rejectUnverifiedRetiredSkills(globalSkills, retiredGlobalSkillPaths); err != nil {
+		return installationPlan{}, err
 	}
-	plan.retirements = append(plan.retirements, legacyGlobalRetirements...)
 	auditRetirements, auditErr := planAuditSkillRetirements(filepath.Join(installRoot, "skills"))
 	if auditErr != nil {
 		return installationPlan{}, auditErr
 	}
 	plan.retirements = append(plan.retirements, auditRetirements...)
-	auditLink, err := planManagedLink(filepath.Join(installRoot, "bin", "sdlc-harness"), filepath.Join(localBin, "sdlc-audit"), localBin)
+	auditLink, err := planManagedLink(filepath.Join(installRoot, "bin", "sdlc-harness"), filepath.Join(localBin, "sdlc-audit"), localBin, linkOwnership{legacyTargets: []string{filepath.Join(userHome, ".agents", "sdlc", "bin", "sdlc-harness")}})
 	if err != nil {
 		return installationPlan{}, err
 	}
@@ -851,7 +851,7 @@ func planProviderInstallation(agent, source, agentHome, installRoot string) (ins
 	if agent == agentGoose {
 		userHome := filepath.Dir(filepath.Dir(agentHome))
 		plugins := filepath.Join(userHome, ".agents", "plugins")
-		link, err := planManagedLink(filepath.Join(installRoot, "plugins", "sdlc-command-guard-goose"), filepath.Join(plugins, "sdlc-command-guard-goose"), plugins)
+		link, err := planManagedLink(filepath.Join(installRoot, "plugins", "sdlc-command-guard-goose"), filepath.Join(plugins, "sdlc-command-guard-goose"), plugins, linkOwnership{kind: "goose-plugin"})
 		if err != nil {
 			return installationPlan{}, err
 		}
@@ -877,7 +877,10 @@ func planProviderInstallation(agent, source, agentHome, installRoot string) (ins
 			if isAuditSkill(skill) {
 				continue
 			}
-			link, linkErr := planManagedLink(filepath.Join(canonicalSkills, skill), filepath.Join(providerSkills, skill), providerSkills)
+			userHome := filepath.Dir(commonAgentHome(agent, agentHome))
+			owner := skillLinkOwnership(source, userHome, skill, filepath.Join(source, "skills", skill))
+			owner.legacyTargets = append(owner.legacyTargets, filepath.Join(userHome, ".agents", "skills", skill))
+			link, linkErr := planManagedLink(filepath.Join(canonicalSkills, skill), filepath.Join(providerSkills, skill), providerSkills, owner)
 			if linkErr != nil {
 				return installationPlan{}, linkErr
 			}
@@ -900,11 +903,9 @@ func planProviderInstallation(agent, source, agentHome, installRoot string) (ins
 				}
 			}
 		}
-		retirements, planErr := planExactRetirements(providerSkills, paths)
-		if planErr != nil {
-			return installationPlan{}, planErr
+		if err := rejectUnverifiedRetiredSkills(providerSkills, paths); err != nil {
+			return installationPlan{}, err
 		}
-		plan.retirements = append(plan.retirements, retirements...)
 	}
 	if agent != agentCodex {
 		if provider.commandPath != "" {
@@ -1226,15 +1227,14 @@ func planFileSync(source, destination, destinationRoot string) (managedSync, err
 	return sync, nil
 }
 
-func planManagedLink(target, destination, destinationRoot string) (managedLink, error) {
-	link := managedLink{target: target, destination: destination}
+func planManagedLink(target, destination, destinationRoot string, ownership linkOwnership) (managedLink, error) {
+	link := managedLink{target: target, destination: destination, destinationRoot: destinationRoot, ownership: ownership}
 	obstructed, err := destinationParentObstructed(destination, destinationRoot)
 	if err != nil {
 		return managedLink{}, err
 	}
 	if obstructed {
-		link.needsSync = true
-		return link, nil
+		return managedLink{}, fmt.Errorf("cannot install SDLC link %q: a destination parent is not a regular directory", destination)
 	}
 	info, err := os.Lstat(destination)
 	if errors.Is(err, os.ErrNotExist) {
@@ -1246,6 +1246,9 @@ func planManagedLink(target, destination, destinationRoot string) (managedLink, 
 	}
 	link.destinationExists = true
 	if info.Mode()&os.ModeSymlink == 0 {
+		if err := verifyOwnedLinkReplacement(link, info); err != nil {
+			return managedLink{}, err
+		}
 		link.needsSync = true
 		return link, nil
 	}
@@ -1255,6 +1258,11 @@ func planManagedLink(target, destination, destinationRoot string) (managedLink, 
 	}
 	if !filepath.IsAbs(current) {
 		current = filepath.Join(filepath.Dir(destination), current)
+	}
+	if !sameLexicalPath(current, target) {
+		if err := verifyOwnedLinkReplacement(link, info); err != nil {
+			return managedLink{}, err
+		}
 	}
 	link.needsSync = !sameLexicalPath(current, target)
 	return link, nil
@@ -1319,10 +1327,20 @@ func synchronizeFile(sync managedSync, output io.Writer) error {
 }
 
 func synchronizeLink(link managedLink, output io.Writer) error {
+	obstructed, err := destinationParentObstructed(link.destination, link.destinationRoot)
+	if err != nil {
+		return err
+	}
+	if obstructed {
+		return fmt.Errorf("cannot install SDLC link %q: a destination parent is not a regular directory", link.destination)
+	}
 	if err := ensureRegularDirectory(filepath.Dir(link.destination), output); err != nil {
 		return err
 	}
-	if _, err := os.Lstat(link.destination); err == nil {
+	if info, err := os.Lstat(link.destination); err == nil {
+		if err := verifyOwnedLinkReplacement(link, info); err != nil {
+			return err
+		}
 		if err := trashArtifact(output, link.destination); err != nil {
 			return err
 		}

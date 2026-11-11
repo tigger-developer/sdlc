@@ -55,6 +55,14 @@ plan is applied without a second aggregate confirmation. Replacing an unknown
 same-path provider configuration conflict still requires an explicit `y` or
 `yes`.
 
+The installer replaces an existing skill directory with a canonical link only
+when its complete contents match the current source or the recorded installed
+release. It replaces an existing Goose plugin directory only when its files
+match the former SDLC plugin projection. Existing links must point to a known
+SDLC location. Unknown files, altered skills, and unrelated links stop the
+installation for manual review; naming a path like an SDLC skill is not proof
+of ownership.
+
 Replaced managed files, links, retired SDLC artefacts, and merged
 **configuration files** go to **Trash**, not adjacent `.bak` files. This includes
 provider settings and global SDLC defaults. Applying changes requires `trash`;

@@ -6,6 +6,14 @@ last-updated: 2026-11-11
 
 # Changelog
 
+## v4.0.7 - 2026-11-11
+
+- Restrict migration links to verified SDLC-owned skill directories, Goose
+  plugin files, and known earlier link targets. Unknown or altered destinations
+  now stop for manual review instead of being moved to Trash.
+- Correct explicit-provider installation paths so shared skill and command
+  links use the user's home directory.
+
 ## v4.0.6 - 2026-11-11
 
 - Require explicit operator approval before a major version increment in

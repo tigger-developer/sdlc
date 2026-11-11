@@ -6,6 +6,16 @@ last-updated: 2026-11-11
 
 # SDLC Standards: Design Learnings
 
+## A managed link path is not ownership evidence
+
+Moving a real skill directory or plugin to Trash before installing a symlink
+is safe only when its complete contents match a known SDLC installation.
+Confirm an old skill against the recorded release, check plugin structure and
+content, and accept only known prior link targets. Extra files or changed
+content require manual review, even when the directory name matches a public
+skill. Recheck immediately before replacement because a destination may change
+after the install plan is printed.
+
 ## Shared fixed paths need narrow privilege and explicit adapters
 
 Agent pre-instructions use one absolute SDLC path so path resolution does not

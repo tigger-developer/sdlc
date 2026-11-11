@@ -98,6 +98,9 @@ func TestGooseExplicitInstallationPreservesConflictingPlugin(t *testing.T) {
 	}
 	assertFixtureContent(t, filepath.Join(root, "opt", "sdlc", "docs", "MAIN.md"), "rules\n")
 	assertFixtureContent(t, filepath.Join(home, "skills", "define-change", "SKILL.md"), "skill\n")
+	if target, err := os.Readlink(filepath.Join(root, ".agents", "skills", "define-change")); err != nil || target != filepath.Join(root, "opt", "sdlc", "skills", "define-change") {
+		t.Fatalf("global skill link = %q (%v)", target, err)
+	}
 	assertFixtureContent(t, plugin, "operator-owned\n")
 	assertFixtureContent(t, unrelated, "preserve\n")
 }

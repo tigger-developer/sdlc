@@ -34,17 +34,17 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 		}
 	}
 	for _, provider := range []string{"claude", "copilot", "hermes"} {
-		writeFixtureFile(t, filepath.Join(root, "."+provider, "skills", "audit-code", "SKILL.md"), "old\n")
-		writeFixtureFile(t, filepath.Join(root, "."+provider, "skills", "define-change", "SKILL.md"), "old\n")
+		writeFixtureFile(t, filepath.Join(root, "."+provider, "skills", "define-change", "SKILL.md"), readFixtureFile(t, filepath.Join(source, "skills", "define-change", "SKILL.md")))
 	}
 	writeFixtureFile(t, filepath.Join(root, ".copilot", "hooks", "sdlc-tool-guard.json"), "{}\n")
 	writeFixtureFile(t, filepath.Join(root, "opt", "sdlc", "docs", "skills", "audit-code", "SKILL.md"), "duplicate\n")
-	writeFixtureFile(t, filepath.Join(root, ".agents", "skills", "audit-tests", "SKILL.md"), "obsolete\n")
 	writeFixtureFile(t, filepath.Join(root, ".claude", "settings.json"), `{"personal":true,"hooks":{"PreToolUse":[{"matcher":"*","hooks":[{"type":"command","command":"bash ~/.agents/sdlc/hooks/agent-command-guard.sh","timeout":5}]}]}}`)
 	writeFixtureFile(t, filepath.Join(root, ".hermes", "config.yaml"), "personal: true\nhooks:\n  pre_tool_call:\n    - command: bash ~/.agents/sdlc/hooks/agent-command-guard.sh\n      matcher: .*\n      timeout: 5\n")
 	writeFixtureFile(t, filepath.Join(root, ".local", "bin", "sdlc-install"), "old installer link target\n")
 	writeFixtureFile(t, filepath.Join(root, ".local", "bin", "sdlc-project-init"), "old initializer link target\n")
-	writeFixtureFile(t, filepath.Join(root, ".local", "bin", "sdlc-audit"), "old audit runner\n")
+	if err := os.Symlink(filepath.Join(root, ".agents", "sdlc", "bin", "sdlc-harness"), filepath.Join(root, ".local", "bin", "sdlc-audit")); err != nil {
+		t.Fatal(err)
+	}
 	writeFixtureFile(t, filepath.Join(root, ".local", "bin", "sdlc-project-update"), "old updater\n")
 	writeFixtureFile(t, filepath.Join(root, ".local", "bin", "sdlc-preview"), "old previewer\n")
 	oldAuditLink := filepath.Join(root, ".local", "bin", "sdlc-audit.sdlc-v2-retired")
@@ -129,7 +129,10 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 		t.Fatalf("audit alias = %q (%v)", target, err)
 	}
 	assertFixtureContent(t, auditLink, "sdlc-harness executable\n")
-	assertFixtureContent(t, assertTrashed(t, auditLink), "old audit runner\n")
+	oldAuditTarget, err := os.Readlink(assertTrashed(t, auditLink))
+	if err != nil || oldAuditTarget != filepath.Join(root, ".agents", "sdlc", "bin", "sdlc-harness") {
+		t.Fatalf("old audit alias target = %q (%v)", oldAuditTarget, err)
+	}
 	for _, retired := range []string{"sdlc-install", "sdlc-project-init", "sdlc-project-update", "sdlc-preview", filepath.Base(oldAuditLink), filepath.Base(oldInit)} {
 		path := filepath.Join(root, ".local", "bin", retired)
 		if _, err := os.Lstat(path); !os.IsNotExist(err) {
@@ -142,9 +145,6 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 		t.Fatalf("retired deployed previewer remains: %v", err)
 	}
 	assertTrashed(t, previewPath)
-	if _, err := os.Lstat(filepath.Join(root, ".agents", "skills", "audit-tests")); !os.IsNotExist(err) {
-		t.Fatalf("retired global audit-tests skill remains: %v", err)
-	}
 	if _, err := os.Lstat(filepath.Join(root, "opt", "sdlc", "docs", "skills")); !os.IsNotExist(err) {
 		t.Fatalf("duplicate canonical-root skills directory remains: %v", err)
 	}
