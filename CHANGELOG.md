@@ -6,6 +6,11 @@ last-updated: 2026-11-11
 
 # Changelog
 
+## v4.0.5 - 2026-11-11
+
+- Make the Git tag prefix follow the project's applicable convention instead
+  of implying that a `v` prefix is generally suitable.
+
 ## v4.0.4 - 2026-11-11
 
 - Name Semantic Versioning as the fallback release convention and distinguish

@@ -105,8 +105,9 @@ For release version numbers, follow the project's documented policy and any
 required or established best-practice convention for its language, framework,
 or product type. If none applies, use [Semantic Versioning (SemVer)](https://semver.org/)
 for a declared public interface, including its `MAJOR.MINOR.PATCH` numbering
-and compatibility-based increment rules. A Git tag may prefix the semantic
-version with `v`; that prefix is not part of the version number.
+and compatibility-based increment rules. Follow the project's applicable tag
+convention for whether a Git tag includes a `v` prefix; the prefix is not part
+of the SemVer version number.
 
 ## Hooks
 
