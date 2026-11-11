@@ -6,6 +6,11 @@ last-updated: 2026-11-11
 
 # Changelog
 
+## v4.0.14 - 2026-11-11
+
+- Stop forwarding the installer's buffered prompt input to sudo. The stdin
+  copy could wait on the terminal after a passwordless sudo command exited.
+
 ## v4.0.13 - 2026-11-11
 
 - Move the fixed-path and limited-sudo rationale into a dedicated installation

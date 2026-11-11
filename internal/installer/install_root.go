@@ -59,7 +59,6 @@ func ensureInstallRoot(root string, input io.Reader, output io.Writer) error {
 	}
 	for _, args := range [][]string{{"mkdir", root}, {"chown", current.Username, root}} {
 		command := exec.Command("sudo", args...)
-		command.Stdin = input
 		command.Stdout = output
 		command.Stderr = output
 		if err := command.Run(); err != nil {

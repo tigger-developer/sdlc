@@ -6,6 +6,14 @@ last-updated: 2026-11-11
 
 # SDLC Standards: Design Learnings
 
+## Keep sudo separate from buffered installer input
+
+The installer uses a buffered reader for its own questions. Passing that reader
+as `exec.Cmd.Stdin` makes Go copy from the terminal in a separate goroutine;
+`Cmd.Wait` can then remain blocked after a passwordless sudo command has exited.
+Let sudo use its own terminal authentication route instead of forwarding the
+installer's input reader.
+
 ## Source skill discovery needs a skill manifest
 
 An abandoned, ignored source directory can contain only `.DS_Store` and empty
