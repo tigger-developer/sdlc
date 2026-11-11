@@ -6,6 +6,13 @@ last-updated: 2026-11-11
 
 # Changelog
 
+## v4.0.11 - 2026-11-11
+
+- Explain why fixed `/opt/sdlc` paths justify the installer's limited sudo
+  request, and reject root execution before building or installing.
+- Ignore abandoned source skill directories containing only desktop metadata
+  and empty subdirectories. Make acceptance of `yes` at the sudo prompt visible.
+
 ## v4.0.10 - 2026-11-11
 
 - Require the handover skill to commit attributable work and push every branch

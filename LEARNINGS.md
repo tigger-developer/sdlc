@@ -6,6 +6,15 @@ last-updated: 2026-11-11
 
 # SDLC Standards: Design Learnings
 
+## Source skill discovery needs a skill manifest
+
+An abandoned, ignored source directory can contain only `.DS_Store` and empty
+subdirectories. Discovering skills by directory name alone makes the installer
+try to migrate that directory against a release where it never existed. Include
+only directories with a regular `SKILL.md`; skip metadata-only directories and
+reject other source content without a skill manifest. Confirmed sudo consent
+should be acknowledged before privileged setup begins.
+
 ## A managed link path is not ownership evidence
 
 Moving a real skill directory or plugin to Trash before installing a symlink
