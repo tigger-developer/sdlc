@@ -44,7 +44,9 @@ lint:
 	shellcheck hooks/agent-command-guard.sh src/libexec/load-sdlc-env.sh
 	shfmt -i 4 -d hooks/agent-command-guard.sh src/libexec/load-sdlc-env.sh
 
-install: build
+install:
+	@if [ "$$(id -u)" -eq 0 ]; then printf '%s\n' 'Do not run the SDLC installer with sudo or as root; run make install as the target user.' >&2; exit 1; fi
+	@$(MAKE) build
 	@$(INSTALLER) $(INSTALL_FLAGS)
 
 install-preview:

@@ -24,6 +24,9 @@ func run(arguments []string, input io.Reader, output io.Writer) error {
 }
 
 func runAtRoot(arguments []string, input io.Reader, output io.Writer, installRoot string) error {
+	if err := rejectPrivilegedInstall(os.Geteuid()); err != nil {
+		return err
+	}
 	workingDirectory, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("resolving current directory: %w", err)
@@ -87,4 +90,11 @@ func runAtRoot(arguments []string, input io.Reader, output io.Writer, installRoo
 		Input:       input,
 		Output:      output,
 	})
+}
+
+func rejectPrivilegedInstall(effectiveUID int) error {
+	if effectiveUID == 0 {
+		return errors.New("do not run the SDLC installer with sudo or as root; run it as the target user")
+	}
+	return nil
 }

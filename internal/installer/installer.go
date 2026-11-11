@@ -975,9 +975,21 @@ func sourceDirectoryNames(root string) ([]string, error) {
 	}
 	var names []string
 	for _, entry := range entries {
-		if entry.IsDir() {
-			names = append(names, entry.Name())
+		if !entry.IsDir() {
+			continue
 		}
+		path := filepath.Join(root, entry.Name())
+		contents, err := directoryContents(path)
+		if err != nil {
+			return nil, fmt.Errorf("inspecting source skill %q: %w", path, err)
+		}
+		if len(contents.files) == 0 {
+			continue
+		}
+		if _, present := contents.files["SKILL.md"]; !present {
+			return nil, fmt.Errorf("source skill %q has files but no SKILL.md", path)
+		}
+		names = append(names, entry.Name())
 	}
 	sort.Strings(names)
 	return names, nil

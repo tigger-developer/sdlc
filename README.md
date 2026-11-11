@@ -67,35 +67,46 @@ installed Hermes runtime; see the [harness guide](src/HARNESS.md).
 
 ### Installing under /opt/sdlc
 
-The public installer places the shared framework at `/opt/sdlc`: standards in
-`/opt/sdlc/docs`, skills in `/opt/sdlc/skills`, commands in `/opt/sdlc/bin`,
-hooks in `/opt/sdlc/hooks`, and global configuration in `/opt/sdlc/sdlc.yaml`.
-It links each SDLC skill directory into `~/.agents/skills` and supported
-provider skill directories so harnesses can discover them. Personal skills in
-those directories remain separate. The public installer does not construct a
-global `AGENTS.md` or `CLAUDE.md`; a separate personal installer can deploy
-those files and route agents to `/opt/sdlc/docs/MAIN.md`.
+The SDLC pre-instructions refer to framework documents by fixed absolute paths.
+We tried parameterized paths and environment variables, but in our tests agents
+repeatedly explored and read the whole framework while resolving them.
 
-Fixed absolute paths in pre-instructions prevent agents from reading extra
-framework sections while resolving a parameterized path. That avoids token
-cost on every invocation and gives workstations and managed builders the same
-authority path. The layout is intentionally fixed rather than configured by
-an environment variable.
+That defeats the routing designed for **cost and accuracy**. For example, a Go
+task needs the Go standards; loading the Go, JavaScript, Swift, Python, Perl,
+shell, and web standards together weakens the focus on the applicable Go rules.
+It also loads substantially more text on **every agent invocation**, multiplying
+token use and cost. Fixed paths are therefore a requirement of this design.
+
+The SDLC is also intended for CI builders: restricted, managed users on
+ephemeral hosts, potentially with several builders sharing one host. Every
+builder needs the same fixed path to the shared framework. This is why the
+canonical installation moved from `~/.agents/sdlc` to `/opt/sdlc`.
+
+Creating `/opt/sdlc` may require privileged access, particularly on macOS.
+The installer first tries to create it as the current user. If the operating
+system refuses, it shows this explanation and asks whether it may run only
+`sudo mkdir /opt/sdlc` and `sudo chown <current-user> /opt/sdlc`. It then
+continues as the normal user; further privileged access should not be needed.
+**Do not run the installer with sudo:** it rejects root execution. To avoid the
+installer's sudo prompt, pre-create `/opt/sdlc` and grant the installing user
+write access before running it. If `/opt/sdlc` already exists but is not
+writable, the installer stops.
+
+The public installer places standards in `/opt/sdlc/docs`, skills in
+`/opt/sdlc/skills`, commands in `/opt/sdlc/bin`, hooks in `/opt/sdlc/hooks`, and
+global configuration in `/opt/sdlc/sdlc.yaml`. It links each SDLC skill
+directory into `~/.agents/skills` and supported provider skill directories for
+harness discovery; personal skills remain separate. The public installer does
+not construct global `AGENTS.md` or `CLAUDE.md` files. A separate personal
+installer can deploy those files and route agents to `/opt/sdlc/docs/MAIN.md`.
 
 On an existing installation, the installer carries values from
 `~/.agents/sdlc.yaml` into `/opt/sdlc/sdlc.yaml` when the latter is absent.
 The old file remains available for recovery but is no longer read by SDLC
 commands.
 
-Run the installer as your normal user, never with `sudo`. If `/opt/sdlc` exists
-but is not writable by that user, installation stops. If it is absent, the
-installer tries to create it without elevation. When the operating system
-denies that attempt, the installer shows this explanation and asks permission
-before running exactly `sudo mkdir /opt/sdlc` and
-`sudo chown <current-user> /opt/sdlc`. All subsequent installation runs without
-elevation. To avoid installer-managed sudo, create and own `/opt/sdlc` yourself
-before installing. For a different fixed location, fork the project and replace
-the paths in its installer and instructions, including the tests.
+For a different fixed location, fork the project and replace the paths in its
+installer and instructions, including the tests.
 
 ```sh
 make install

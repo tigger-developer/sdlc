@@ -26,6 +26,15 @@ func TestRunParsesUserFacingFlags(t *testing.T) {
 	}
 }
 
+func TestPrivilegedInstallIsRejected(t *testing.T) {
+	if err := rejectPrivilegedInstall(0); err == nil || !strings.Contains(err.Error(), "target user") {
+		t.Fatalf("root installer invocation was not rejected: %v", err)
+	}
+	if err := rejectPrivilegedInstall(501); err != nil {
+		t.Fatalf("unprivileged installer invocation was rejected: %v", err)
+	}
+}
+
 // RT-7.2
 func TestDefaultRunDetectsInstalledProviderSubset_RT4_4(t *testing.T) {
 	root, source := newCLIFixture(t)

@@ -5,7 +5,9 @@ description: Prepare a detailed Markdown handover of the current work for anothe
 
 # Handover
 
-Use this skill only when the user invokes it. Prepare a handover that lets a new agent resume the current work without relying on this conversation.
+Use this skill only when the user invokes it.
+
+Prepare a handover that lets a new agent resume the current work without relying on this conversation.
 
 1. Establish the current working directory and project scope. Before writing, propose one expanded absolute path matching `[cwd]/[hyphen-delimited-task-descriptor]-[YYYY-MM-DD].md`, using the current date in ISO format. Ask the user to confirm that path or provide another permitted destination. Do not write until the user confirms. If the path exists, inspect it and ask before replacing or appending; preserve existing content.
 2. Gather as much relevant detail as the current accessible context supports. Inspect current repository state and important source or evidence paths when needed to distinguish current observations from recollection. Do not claim to export hidden instructions, inaccessible earlier turns, private reasoning, or an exact transcript. Do not copy credentials, tokens, private keys, or unnecessary personal data. Identify any material detail omitted for that reason.

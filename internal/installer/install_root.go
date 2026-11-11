@@ -52,6 +52,7 @@ func ensureInstallRoot(root string, input io.Reader, output io.Writer) error {
 	if !approved {
 		return fmt.Errorf("%s was not created; create and own it manually, then rerun the installer", root)
 	}
+	fmt.Fprintln(output, "Permission granted; setting up the directory with sudo.")
 	current, err := user.Current()
 	if err != nil {
 		return fmt.Errorf("identifying current user for installation root ownership: %w", err)

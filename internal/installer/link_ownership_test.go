@@ -1,6 +1,8 @@
 package installer
 
 import (
+	"bufio"
+	"bytes"
 	"io"
 	"os"
 	"os/exec"
@@ -8,6 +10,21 @@ import (
 	"strings"
 	"testing"
 )
+
+func TestSudoConfirmationAcceptsOnlyYesOrY(t *testing.T) {
+	for _, response := range []string{"y\n", "yes\n", "YES\n"} {
+		accepted, err := confirm(bufio.NewReader(strings.NewReader(response)), &bytes.Buffer{}, "Approve? ")
+		if err != nil || !accepted {
+			t.Fatalf("confirmation %q was not accepted: accepted=%v err=%v", response, accepted, err)
+		}
+	}
+	for _, response := range []string{"n\n", "no\n", "perhaps\n", "\n"} {
+		accepted, err := confirm(bufio.NewReader(strings.NewReader(response)), &bytes.Buffer{}, "Approve? ")
+		if err != nil || accepted {
+			t.Fatalf("confirmation %q was accepted: accepted=%v err=%v", response, accepted, err)
+		}
+	}
+}
 
 func TestManagedSkillLinkRejectsUnknownDirectory(t *testing.T) {
 	root := t.TempDir()
@@ -21,6 +38,23 @@ func TestManagedSkillLinkRejectsUnknownDirectory(t *testing.T) {
 		t.Fatalf("unknown skill replacement was accepted: %v", err)
 	}
 	assertFixtureContent(t, filepath.Join(destination, "SKILL.md"), "personal\n")
+}
+
+func TestSourceSkillsExcludeAbandonedMetadataOnlyDirectories(t *testing.T) {
+	root := t.TempDir()
+	writeFixtureFile(t, filepath.Join(root, "active", "SKILL.md"), "public\n")
+	writeFixtureFile(t, filepath.Join(root, "abandoned", ".DS_Store"), "Finder metadata\n")
+	if err := os.MkdirAll(filepath.Join(root, "abandoned", "agents"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	names, err := sourceDirectoryNames(root)
+	if err != nil || len(names) != 1 || names[0] != "active" {
+		t.Fatalf("source skills = %v, err = %v", names, err)
+	}
+	writeFixtureFile(t, filepath.Join(root, "abandoned", "operator.txt"), "real content\n")
+	if _, err := sourceDirectoryNames(root); err == nil || !strings.Contains(err.Error(), "no SKILL.md") {
+		t.Fatalf("invalid source skill was not rejected: %v", err)
+	}
 }
 
 func TestUnverifiedRetiredSkillNeedsManualReview(t *testing.T) {
