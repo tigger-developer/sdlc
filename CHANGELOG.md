@@ -6,6 +6,12 @@ last-updated: 2026-11-07
 
 # Changelog
 
+## v3.9.2 - 2026-11-11
+
+- Clarify that Markdown outside `src/` is project material, not governing
+  session instructions; retain `AGENTS.md` and its `CLAUDE.md` link as the
+  project instruction entry points.
+
 ## v3.9.1 - 2026-11-07
 
 - Add a concise dry-run and preflight pattern to the coding standards, sharing
