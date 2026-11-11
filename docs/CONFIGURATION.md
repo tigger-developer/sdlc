@@ -1,6 +1,6 @@
 ---
 title: SDLC Configuration and Installation Reference
-version: 6
+version: 7
 last-updated: 2026-11-11
 ---
 
@@ -11,6 +11,19 @@ for SDLC v3. The [README](../README.md) introduces the framework and the
 [Quickstart](../QUICKSTART.md) walks through first use.
 
 ## Install
+
+For canonical deployment only, run `make install INSTALL_FLAGS="--bare"`, or
+`bin/sdlc-install --bare` after building. It installs the framework, skills,
+commands, hooks and global release metadata under `/opt/sdlc`. It does not
+discover agents, read legacy home configuration, create home links, retire
+home artefacts, or configure harnesses. Nix or another declarative manager owns
+those integrations. Existing canonical defaults remain intact except for the
+release metadata. With no canonical configuration, a minimal one is created.
+
+Bare mode never requests sudo. Pre-create a writable `/opt/sdlc` when ordinary
+creation is unavailable. Use `--bare --dry-run` for a non-mutating preview.
+Provider flags and `--configure` cannot be combined with `--bare`. The normal
+installation behaviour described below remains the default.
 
 For the recommended **driver/auditor setup**, including model capability,
 authentication and billing, see the [quickstart configuration guidance](../QUICKSTART.md#recommended-driver-and-auditor-setup).

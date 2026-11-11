@@ -6,6 +6,15 @@ last-updated: 2026-11-11
 
 # Changelog
 
+## v4.0.16 - 2026-11-11
+
+- Add `sdlc-install --bare` for noninteractive canonical deployment under
+  `/opt/sdlc`, leaving user-home links and provider configuration to a
+  declarative manager. Skip discovery and legacy home configuration migration.
+- Document bare installation and its `--dry-run` preview in CLI help and the
+  installation guides. Require unprivileged directory creation or a prepared
+  writable root; bare mode never requests sudo.
+
 ## v4.0.15 - 2026-11-11
 
 - Use `active-harness` from the legacy `~/.agents/sdlc.yaml` during first

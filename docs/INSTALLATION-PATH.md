@@ -34,6 +34,11 @@ installer's sudo prompt, pre-create `/opt/sdlc` and grant the installing user
 write access before running it. If `/opt/sdlc` already exists but is not
 writable, the installer stops.
 
+With `--bare`, installation is noninteractive and never requests sudo. It tries
+ordinary directory creation and reports the required preparation if denied.
+Only `/opt/sdlc` is populated; declarative configuration manages user-home links
+and provider adapters. Legacy `~/.agents/sdlc.yaml` is not read in this mode.
+
 ## Installed layout
 
 The public installer places standards in `/opt/sdlc/docs`, skills in

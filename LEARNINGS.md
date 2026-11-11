@@ -1,10 +1,20 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 32
+version: 33
 last-updated: 2026-11-11
 ---
 
 # SDLC Standards: Design Learnings
+
+## Canonical deployment and home adapters are separate responsibilities
+
+A declarative host may own every provider configuration and discovery link.
+Bare installation must bypass home inspection and migration during planning,
+not merely discard adapter writes after inspection. Share the canonical asset
+plan with ordinary installation, omit home operations before they are planned,
+and retain post-install verification of canonical content. Global configuration
+already under the canonical root can be updated without reading a user's
+legacy configuration.
 
 ## First-install choices must read the migration source
 

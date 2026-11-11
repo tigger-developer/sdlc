@@ -25,7 +25,7 @@ func planGlobalReleaseConfiguration(installRoot, userHome, release string) (*con
 	if err != nil {
 		return nil, err
 	}
-	if !exists {
+	if !exists && userHome != "" {
 		legacyPath := filepath.Join(userHome, ".agents", "sdlc.yaml")
 		legacy, _, legacyExists, legacyErr := readOptionalRegularFile(legacyPath)
 		if legacyErr != nil {
@@ -34,6 +34,9 @@ func planGlobalReleaseConfiguration(installRoot, userHome, release string) (*con
 		if legacyExists {
 			current = legacy
 		}
+		mode = 0o644
+	}
+	if !exists {
 		mode = 0o644
 	}
 

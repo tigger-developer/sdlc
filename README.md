@@ -60,8 +60,8 @@ complexity led to a separate project.
 ## Quickstart
 
 Building and installing the SDLC commands requires Go 1.23 or later[^go],
-Git, a `trash` command on `PATH`[^trash], and at least one supported
-coding-agent harness. GitHub CLI is needed only for migrating an SDLC v1
+Git and a `trash` command on `PATH`[^trash]. Installation also requires at
+least one supported coding-agent harness unless using `--bare`. GitHub CLI is needed only for migrating an SDLC v1
 project's GitHub tickets. Hermes auditing also requires `uv` and a supported
 installed Hermes runtime; see the [harness guide](src/HARNESS.md).
 
@@ -75,6 +75,19 @@ path and limited sudo are needed](docs/INSTALLATION-PATH.md) before installing.
 ```sh
 make install
 ```
+
+For a declarative host where Nix manages links and harness configuration:
+
+```sh
+make install INSTALL_FLAGS="--bare"
+```
+
+Bare mode installs only `/opt/sdlc`, without prompts, agent discovery, user-home
+links, or provider configuration. No installed harness is required. Pre-create
+a writable `/opt/sdlc` if ordinary directory creation is unavailable. After
+building, `bin/sdlc-install --bare` applies the same operation; add `--dry-run`
+to preview. Existing canonical configuration is preserved apart from its release
+metadata; legacy home configuration is not imported in this mode.
 
 The installer asks which of the existing `~/.codex`, `~/.claude`,
 `~/.copilot`, `~/.hermes`, and `~/.config/goose` homes should receive native adapters. A top-level

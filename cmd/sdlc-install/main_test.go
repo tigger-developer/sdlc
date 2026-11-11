@@ -124,7 +124,7 @@ func TestRunHelpIsSuccessful(t *testing.T) {
 	if err != nil {
 		t.Fatalf("run(--help) error = %v", err)
 	}
-	for _, flagName := range []string{"-agent", "-agent-home", "-source", "-apply", "-configure", "-version"} {
+	for _, flagName := range []string{"-agent", "-agent-home", "-source", "-apply", "-configure", "-version", "-bare", "-dry-run"} {
 		if !strings.Contains(output.String(), flagName) {
 			t.Errorf("help output missing %q: %q", flagName, output.String())
 		}

@@ -688,6 +688,10 @@ func planInstallation(agent, source, agentHome, installRoot, release string) (in
 }
 
 func planSharedInstallation(source, userHome, installRoot, release string) (installationPlan, error) {
+	return planSharedInstallationMode(source, userHome, installRoot, release, false)
+}
+
+func planSharedInstallationMode(source, userHome, installRoot, release string, bare bool) (installationPlan, error) {
 	liveSDLC := filepath.Join(installRoot, "docs")
 	localBin := filepath.Join(userHome, ".local", "bin")
 	if sameLexicalPath(source, installRoot) {
@@ -721,6 +725,9 @@ func planSharedInstallation(source, userHome, installRoot, release string) (inst
 	}
 	globalSkills := filepath.Join(userHome, ".agents", "skills")
 	for _, skill := range currentSkills {
+		if bare {
+			continue
+		}
 		if isAuditSkill(skill) {
 			continue
 		}
@@ -743,6 +750,9 @@ func planSharedInstallation(source, userHome, installRoot, release string) (inst
 			return installationPlan{}, err
 		}
 		plan.syncs = append(plan.syncs, sync)
+		if bare {
+			continue
+		}
 		link, err := planManagedLink(deployedPath, filepath.Join(localBin, name), localBin, linkOwnership{legacyTargets: []string{filepath.Join(userHome, ".agents", "sdlc", "bin", name), sourcePath}})
 		if err != nil {
 			return installationPlan{}, err
@@ -787,30 +797,37 @@ func planSharedInstallation(source, userHome, installRoot, release string) (inst
 		return installationPlan{}, retirementErr
 	}
 	plan.retirements = append(plan.retirements, retirements...)
-	if err := rejectUnverifiedRetiredSkills(globalSkills, retiredGlobalSkillPaths); err != nil {
-		return installationPlan{}, err
+	if !bare {
+		if err := rejectUnverifiedRetiredSkills(globalSkills, retiredGlobalSkillPaths); err != nil {
+			return installationPlan{}, err
+		}
 	}
 	auditRetirements, auditErr := planAuditSkillRetirements(filepath.Join(installRoot, "skills"))
 	if auditErr != nil {
 		return installationPlan{}, auditErr
 	}
 	plan.retirements = append(plan.retirements, auditRetirements...)
-	auditLink, err := planManagedLink(filepath.Join(installRoot, "bin", "sdlc-harness"), filepath.Join(localBin, "sdlc-audit"), localBin, linkOwnership{legacyTargets: []string{filepath.Join(userHome, ".agents", "sdlc", "bin", "sdlc-harness")}})
-	if err != nil {
-		return installationPlan{}, err
+	if !bare {
+		auditLink, err := planManagedLink(filepath.Join(installRoot, "bin", "sdlc-harness"), filepath.Join(localBin, "sdlc-audit"), localBin, linkOwnership{legacyTargets: []string{filepath.Join(userHome, ".agents", "sdlc", "bin", "sdlc-harness")}})
+		if err != nil {
+			return installationPlan{}, err
+		}
+		plan.links = append(plan.links, auditLink)
+		commandRetirements, err := planExactRetirements(localBin, []string{
+			"sdlc-install",
+			"sdlc-preview",
+			"sdlc-project-init",
+			"sdlc-project-update",
+		})
+		if err != nil {
+			return installationPlan{}, err
+		}
+		plan.retirements = append(plan.retirements, commandRetirements...)
 	}
-	plan.links = append(plan.links, auditLink)
-	commandRetirements, err := planExactRetirements(localBin, []string{
-		"sdlc-install",
-		"sdlc-preview",
-		"sdlc-project-init",
-		"sdlc-project-update",
-	})
-	if err != nil {
-		return installationPlan{}, err
-	}
-	plan.retirements = append(plan.retirements, commandRetirements...)
 	for _, root := range []string{localBin, filepath.Join(installRoot, "bin")} {
+		if bare && root == localBin {
+			continue
+		}
 		retired, err := planRetiredCommandBackups(root)
 		if err != nil {
 			return installationPlan{}, err
