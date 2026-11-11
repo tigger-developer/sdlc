@@ -6,6 +6,11 @@ last-updated: 2026-11-11
 
 # Changelog
 
+## v4.0.2 - 2026-11-11
+
+- Add an ISO date suffix to the confirmed Markdown destination proposed by the
+  handover skill.
+
 ## v4.0.1 - 2026-11-11
 
 - Require explicit operator authorization before selecting a major SDLC release
