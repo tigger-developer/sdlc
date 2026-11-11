@@ -6,6 +6,11 @@ last-updated: 2026-11-11
 
 # Changelog
 
+## v4.0.3 - 2026-11-11
+
+- Direct release numbering to project and ecosystem conventions, with a
+  `v0.0.0`-form fallback where none applies.
+
 ## v4.0.2 - 2026-11-11
 
 - Add an ISO date suffix to the confirmed Markdown destination proposed by the

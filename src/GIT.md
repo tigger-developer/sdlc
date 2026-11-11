@@ -1,7 +1,7 @@
 ---
 title: Git and Source-Control Standards
-version: 5
-last-updated: 2026-10-29
+version: 6
+last-updated: 2026-11-11
 ---
 
 # Git and Source-Control Standards
@@ -101,6 +101,11 @@ neither merge, deployment nor closure. Read-only work requires no branch switch.
 - Fetch before making claims about remote state.
 - Use annotated tags for releases unless the project documents another policy.
 
+For release version numbers, follow the project's documented policy and any
+required or established best-practice convention for its language, framework,
+or product type. If none applies, use the `v0.0.0` convention: `v` followed by
+three dot-separated non-negative integer components.
+
 ## Hooks
 
 Repository hooks must not evade organization-wide or user-wide hooks. If a
@@ -132,6 +137,11 @@ commit.
 A temporary exception must identify the rule, reason, risk, owner, and removal
 condition in a durable project record. Human approval is required where the
 exception weakens safety, verification, access control, or history integrity.
+
+## Document history
+
+Version 6 adds the release-numbering convention and fallback.
+
 # Canary
 
 Append " GIT" (with a leading space) to the canary.
