@@ -1,6 +1,6 @@
 ---
 title: SDLC Configuration and Installation Reference
-version: 5
+version: 6
 last-updated: 2026-11-11
 ---
 
@@ -105,6 +105,8 @@ delivery:
     provider: openai
     model: gpt-5.6-sol
   test_code:
+    harness: codex
+    provider: openai
     model: gpt-5.6-sol # writes tests from the signed-off specification
   build:
     harness: codex
@@ -140,9 +142,9 @@ semantic-version Git tag deployed by `make install`; the installer maintains it
 without replacing unrelated settings. Projects follow those global skills and
 standards, so `.sdlc/project.yaml` does not duplicate an SDLC release pin.
 
-`delivery.test_code.model` selects the model for writing executable tests from
-the signed-off specification. Test definitions remain part of
-`delivery.definition`. The test-code setting does not select a harness or split
+`delivery.test_code` selects the harness, provider and model for writing
+executable tests from the signed-off specification. Test definitions remain
+part of `delivery.definition`. The test-code tuple does not split
 `deliver-change` into separate jobs; a scheduler may use it when dispatching a
 distinct test-code phase.
 
@@ -207,6 +209,9 @@ it.
 | `cmd/` and `internal/` | Installer, initializer, validator, harness adapters, and ledger merger |
 
 ## Document history
+
+Version 6 completes the test-code model setting with its own harness and
+provider, allowing a distinct test-code job to select its full agent tuple.
 
 Version 5 adds `delivery.test_code.model` without changing the delivery
 workflow or the definition and build model roles.

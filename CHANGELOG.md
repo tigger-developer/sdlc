@@ -6,6 +6,11 @@ last-updated: 2026-11-11
 
 # Changelog
 
+## v3.9.4 - 2026-11-11
+
+- Complete `delivery.test_code` with separate harness and provider settings
+  alongside its model, so a test-code job can select its full agent tuple.
+
 ## v3.9.3 - 2026-11-11
 
 - Add `delivery.test_code.model` for a separately selected model that writes

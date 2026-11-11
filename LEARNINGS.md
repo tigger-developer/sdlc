@@ -10,6 +10,8 @@ last-updated: 2026-11-11
 
 Signed-off test definitions belong to definition. Writing executable tests is a
 delivery activity that can use a separately selected model from implementation.
+An independently invoked test-code job also needs its own harness and provider;
+a model setting alone cannot select an executable agent context.
 Configuring that model does not by itself create a CI phase boundary or change
 the delivery skill's continuation contract.
 

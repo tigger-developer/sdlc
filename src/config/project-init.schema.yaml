@@ -143,6 +143,25 @@ fields:
     allow_global: true
     migration_aliases: [SDLC_DELIVERY_MODEL]
 
+  - key: SDLC_TEST_CODE_HARNESS
+    path: delivery.test_code.harness
+    flag: test-code-harness
+    help: Test-code agent harness
+    type: choice
+    choices: *supported_harnesses
+    prompt: "Select test-code harness:"
+    default: codex
+    allow_global: true
+
+  - key: SDLC_TEST_CODE_PROVIDER
+    path: delivery.test_code.provider
+    flag: test-code-provider
+    help: Test-code model provider
+    type: string
+    prompt: "Select test-code provider:"
+    default: openai
+    allow_global: true
+
   - key: SDLC_TEST_CODE_MODEL
     path: delivery.test_code.model
     flag: test-code-model

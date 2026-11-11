@@ -57,7 +57,7 @@ func TestW004SchemaOffersEverySupportedHarness(t *testing.T) {
 		t.Fatal(err)
 	}
 	want := []string{"codex", "claude", "copilot", "hermes"}
-	for _, key := range []string{"SDLC_SPEC_HARNESS", "SDLC_BUILD_HARNESS", "SDLC_AUDIT_HARNESS"} {
+	for _, key := range []string{"SDLC_SPEC_HARNESS", "SDLC_TEST_CODE_HARNESS", "SDLC_BUILD_HARNESS", "SDLC_AUDIT_HARNESS"} {
 		var found *ConfigField
 		for index := range schema.Fields {
 			if schema.Fields[index].Key == key {
@@ -173,29 +173,44 @@ func TestGlobalConfigurationSkipsQuestionUnlessOverrideRequested(t *testing.T) {
 	}
 }
 
-func TestTestCodeModelUsesDistinctGlobalSetting(t *testing.T) {
+func TestTestCodeAgentUsesDistinctGlobalSettings(t *testing.T) {
 	schema, err := LoadConfigSchema(testSDLCRoot(t))
 	if err != nil {
 		t.Fatal(err)
 	}
-	field, found := schemaField(schema, "SDLC_TEST_CODE_MODEL")
-	if !found || field.Path != "delivery.test_code.model" || field.Flag != "test-code-model" || !field.AllowGlobal {
-		t.Fatalf("test-code model field = %+v, found = %t", field, found)
+	var fields []ConfigField
+	for _, item := range []struct{ key, path, flag string }{
+		{"SDLC_TEST_CODE_HARNESS", "delivery.test_code.harness", "test-code-harness"},
+		{"SDLC_TEST_CODE_PROVIDER", "delivery.test_code.provider", "test-code-provider"},
+		{"SDLC_TEST_CODE_MODEL", "delivery.test_code.model", "test-code-model"},
+	} {
+		field, found := schemaField(schema, item.key)
+		if !found || field.Path != item.path || field.Flag != item.flag || !field.AllowGlobal {
+			t.Fatalf("test-code field %s = %+v, found = %t", item.key, field, found)
+		}
+		fields = append(fields, field)
 	}
 	global := map[string]any{"delivery": map[string]any{
-		"definition": map[string]any{"model": "definition-model"},
-		"test_code":  map[string]any{"model": "test-model"},
-		"build":      map[string]any{"model": "build-model"},
+		"definition": map[string]any{"harness": "hermes", "provider": "definition-provider", "model": "definition-model"},
+		"test_code":  map[string]any{"harness": "codex", "provider": "test-provider", "model": "test-model"},
+		"build":      map[string]any{"harness": "claude", "provider": "build-provider", "model": "build-model"},
 	}}
 	var output bytes.Buffer
 	values, explicit, err := resolveConfiguration(defaultOptions(Options{
 		Input: strings.NewReader(""), Output: &output, ErrorOutput: &output,
-	}), ConfigSchema{Fields: []ConfigField{field}}, nil, global, nil, nil)
+	}), ConfigSchema{Fields: fields}, nil, global, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if values[field.Key] != "test-model" || explicit[field.Key] || output.Len() != 0 {
-		t.Fatalf("test-code model resolution = %#v, explicit = %#v, output = %q", values, explicit, output.String())
+	for key, want := range map[string]string{
+		"SDLC_TEST_CODE_HARNESS": "codex", "SDLC_TEST_CODE_PROVIDER": "test-provider", "SDLC_TEST_CODE_MODEL": "test-model",
+	} {
+		if values[key] != want || explicit[key] {
+			t.Fatalf("test-code %s resolution = %#v, explicit = %#v", key, values, explicit)
+		}
+	}
+	if output.Len() != 0 {
+		t.Fatalf("global test-code settings prompted: %q", output.String())
 	}
 }
 

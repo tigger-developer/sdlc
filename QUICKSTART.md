@@ -1,6 +1,6 @@
 ---
 title: SDLC v3 Quickstart
-version: 8
+version: 9
 last-updated: 2026-11-11
 ---
 
@@ -80,7 +80,7 @@ or record an explicit override in `.sdlc/project.yaml`.
   complex requirements and architecture. Do not choose it on low price alone:
   repeated misunderstandings and review loops can erase the saving.
 - Set the definition and implementation drivers through `delivery.definition`
-  and `delivery.build`, the test-code model through `delivery.test_code.model`,
+  and `delivery.build`, the test-code driver through `delivery.test_code`,
   and the auditor through `delivery.audit` in the
   [configuration](docs/CONFIGURATION.md#configuration).
   Model capability matters more than harness branding, but the selected
@@ -282,6 +282,8 @@ require an operator decision and normal delivery. Documentation-only edits do
 not require a ticket.
 
 ## Document history
+
+Version 9 gives the test-code driver its own harness and provider settings.
 
 Version 8 adds a separate model setting for writing test code from the
 signed-off specification.
