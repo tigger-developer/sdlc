@@ -6,6 +6,13 @@ last-updated: 2026-11-11
 
 # Changelog
 
+## v4.0.15 - 2026-11-11
+
+- Use `active-harness` from the legacy `~/.agents/sdlc.yaml` during first
+  installation, before copying that configuration to `/opt/sdlc/sdlc.yaml`.
+  Avoid asking for agent selection when the existing configuration already
+  provides it.
+
 ## v4.0.14 - 2026-11-11
 
 - Stop forwarding the installer's buffered prompt input to sudo. The stdin

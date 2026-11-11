@@ -25,10 +25,12 @@ Markdown** as **high-fidelity HTML**, including navigable document structure.
 make install
 ```
 
-The installer lists the existing `~/.codex`, `~/.claude`, `~/.copilot`, and
-`~/.hermes` directories and asks which detected agents should receive native
-adapters. A top-level `active-harness` list in `/opt/sdlc/sdlc.yaml` supplies
-that selection without asking; listed harnesses whose provider home does not
+The installer lists the existing `~/.codex`, `~/.claude`, `~/.copilot`,
+`~/.hermes`, and `~/.config/goose` directories and asks which agents should
+receive native adapters. A top-level `active-harness` list in
+`/opt/sdlc/sdlc.yaml`, or the legacy `~/.agents/sdlc.yaml` during first
+installation, supplies that
+selection without asking; listed harnesses whose provider home does not
 exist are skipped. An explicit `--agent` selection takes precedence.
 
 The repository-internal `sdlc-install` command is invoked by `make install`; it

@@ -79,7 +79,9 @@ make install
 The installer asks which of the existing `~/.codex`, `~/.claude`,
 `~/.copilot`, `~/.hermes`, and `~/.config/goose` homes should receive native adapters. A top-level
 `active-harness` list in `/opt/sdlc/sdlc.yaml` supplies that selection without
-asking. It does not create a missing provider home.
+asking. On first installation, the installer also reads that list from the
+legacy `~/.agents/sdlc.yaml` before migrating the file. It does not create a
+missing provider home.
 
 From a clean, named branch in the project you want to use, run:
 

@@ -24,6 +24,17 @@ func selectInteractiveAgents(userHome, installRoot string, reader *bufio.Reader,
 	if err != nil {
 		return nil, err
 	}
+	if !present {
+		if _, statErr := os.Stat(configPath); errors.Is(statErr, os.ErrNotExist) {
+			configPath = filepath.Join(userHome, ".agents", "sdlc.yaml")
+			configured, present, err = configuredActiveHarnesses(configPath)
+			if err != nil {
+				return nil, err
+			}
+		} else if statErr != nil {
+			return nil, fmt.Errorf("inspecting global SDLC configuration %q: %w", configPath, statErr)
+		}
+	}
 	if present {
 		selected := availableAgents(configured, detected)
 		fmt.Fprintf(output, "Active harnesses from %s with existing agent homes: %s\n", configPath, displayAgentNames(selected))

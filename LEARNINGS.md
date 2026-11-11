@@ -6,6 +6,14 @@ last-updated: 2026-11-11
 
 # SDLC Standards: Design Learnings
 
+## First-install choices must read the migration source
+
+The shared root is created before provider selection, but its `sdlc.yaml` is
+written later in the install plan. On a first migration, selecting providers
+from only the new path asks an unnecessary question despite a legacy
+`active-harness` list. Use the old configuration for that selection only while
+the new file is absent; once the new file exists, it is authoritative.
+
 ## Keep sudo separate from buffered installer input
 
 The installer uses a buffered reader for its own questions. Passing that reader
