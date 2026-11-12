@@ -90,7 +90,7 @@ func TestGooseNativeGuardPayload(t *testing.T) {
 	}
 }
 
-func TestGooseExplicitInstallationPreservesConflictingPlugin(t *testing.T) {
+func TestGooseExplicitInstallationBacksUpCanonicalPlugin(t *testing.T) {
 	root := t.TempDir()
 	source := filepath.Join(root, "source")
 	home := filepath.Join(root, ".config", "goose")
@@ -106,14 +106,14 @@ func TestGooseExplicitInstallationPreservesConflictingPlugin(t *testing.T) {
 	writeFixtureFile(t, unrelated, "preserve\n")
 	var output bytes.Buffer
 	err := Run(Options{Agent: "goose", AgentHome: home, Source: source, InstallRoot: filepath.Join(root, "opt", "sdlc"), Apply: true, Configure: true, Input: strings.NewReader("n\nn\n"), Output: &output})
-	if err == nil || !strings.Contains(err.Error(), "declined replacement") {
-		t.Fatalf("expected refusal to leave readiness unresolved, got %v", err)
+	if err != nil {
+		t.Fatal(err)
 	}
 	assertFixtureContent(t, filepath.Join(root, "opt", "sdlc", "docs", "MAIN.md"), "rules\n")
 	assertFixtureContent(t, filepath.Join(home, "skills", "define-change", "SKILL.md"), "skill\n")
 	if target, err := os.Readlink(filepath.Join(root, ".agents", "skills", "define-change")); err != nil || target != filepath.Join(root, "opt", "sdlc", "skills", "define-change") {
 		t.Fatalf("global skill link = %q (%v)", target, err)
 	}
-	assertFixtureContent(t, plugin, "operator-owned\n")
+	assertFixtureContent(t, assertCanonicalBackup(t, filepath.Join(root, "opt", "sdlc"), "plugins/sdlc-command-guard-goose/hooks/hooks.json"), "operator-owned\n")
 	assertFixtureContent(t, unrelated, "preserve\n")
 }

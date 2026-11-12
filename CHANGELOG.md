@@ -1,10 +1,22 @@
 ---
 title: Changelog
 version: 2
-last-updated: 2026-11-11
+last-updated: 2026-11-12
 ---
 
 # Changelog
+
+## v4.0.20 - 2026-11-12
+
+- Stage and verify a complete canonical SDLC tree, preserve operator
+  `sdlc.yaml` through release migration, and replace active contents while
+  retaining the previous tree beneath `.installer`. Stale artefacts leave the
+  active tree without canonical file-retirement inventories or additional sudo.
+- Journal replacement and snapshot affected home adapters for automatic rollback
+  after failure or interrupted installation. Reject concurrent installers and
+  leave dry-run non-mutating. Retain source-to-target mappings with each update.
+- Generate canonical Goose plugin assets as part of every complete tree;
+  keep discovery and shared harness configuration separate from bare deployment.
 
 ## v4.0.19 - 2026-11-11
 

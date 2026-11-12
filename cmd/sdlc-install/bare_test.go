@@ -92,15 +92,23 @@ func TestBareDeploymentDoesNotTouchHomes(t *testing.T) {
 	if err := os.WriteFile(hooksPath, []byte("operator-owned\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	for _, mode := range [][]string{{"--bare"}, {"--bare", "--dry-run"}} {
-		args := append(mode, "--source", source)
-		if err := runAtRoot(args, strings.NewReader(""), &output, destination); err == nil || !strings.Contains(err.Error(), "conflicting Goose plugin") {
-			t.Fatalf("expected conflict: %v", err)
-		}
+	if err := runAtRoot([]string{"--bare", "--dry-run", "--source", source}, strings.NewReader(""), &output, destination); err != nil {
+		t.Fatal(err)
 	}
 	if data, err := os.ReadFile(hooksPath); err != nil || string(data) != "operator-owned\n" {
-		t.Fatalf("conflicting plugin changed: %q %v", data, err)
+		t.Fatal("preview changed plugin")
 	}
+	if err := runAtRoot([]string{"--bare", "--source", source}, strings.NewReader(""), &output, destination); err != nil {
+		t.Fatal(err)
+	}
+	matches, err := filepath.Glob(filepath.Join(destination, ".installer", "deployment-*", "previous", "plugins", "sdlc-command-guard-goose", "hooks", "hooks.json"))
+	if err != nil || len(matches) != 1 {
+		t.Fatalf("plugin backup %v %v", matches, err)
+	}
+	if data, err := os.ReadFile(matches[0]); err != nil || string(data) != "operator-owned\n" {
+		t.Fatalf("plugin backup %q %v", data, err)
+	}
+
 }
 
 func TestBareRejectsProviderFlags(t *testing.T) {
@@ -155,7 +163,15 @@ func TestBareRetiresInventoriedSkills(t *testing.T) {
 	if _, err := os.Lstat(retired); !os.IsNotExist(err) {
 		t.Fatalf("retired skill remains: %v", err)
 	}
-	if data, err := os.ReadFile(filepath.Join(destination, "skills", "unrelated", "SKILL.md")); err != nil || string(data) != "private" {
-		t.Fatalf("unrelated changed %q %v", data, err)
+	if _, err := os.Stat(filepath.Join(destination, "skills", "unrelated")); !os.IsNotExist(err) {
+		t.Fatal("stale canonical skill remains")
 	}
+	matches, err := filepath.Glob(filepath.Join(destination, ".installer", "deployment-*", "previous", "skills", "unrelated", "SKILL.md"))
+	if err != nil || len(matches) != 1 {
+		t.Fatalf("backup %v %v", matches, err)
+	}
+	if data, err := os.ReadFile(matches[0]); err != nil || string(data) != "private" {
+		t.Fatalf("backup %q %v", data, err)
+	}
+
 }

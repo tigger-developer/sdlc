@@ -14,6 +14,9 @@ func RunBare(options Options) error {
 	if root == "" {
 		root = canonicalInstallRoot
 	}
+	if err := prepareRecovery(root, options.Apply); err != nil {
+		return err
+	}
 	source, err := validateSource(options.Source)
 	if err != nil {
 		return err

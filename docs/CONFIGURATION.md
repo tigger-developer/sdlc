@@ -1,7 +1,7 @@
 ---
 title: SDLC Configuration and Installation Reference
-version: 8
-last-updated: 2026-11-11
+version: 9
+last-updated: 2026-11-12
 ---
 
 # SDLC configuration and installation reference
@@ -67,7 +67,9 @@ is not installed on the global path. The installation:
 Hook configuration also migrates recognized legacy SDLC guard paths and removes
 duplicate SDLC registrations. Codex, Claude, Hermes and Copilot retain unrelated
 hooks; Codex and Claude keep their original matchers. Known Goose plugin
-generations migrate automatically, while unknown plugin content requires review.
+generations migrate automatically. Canonical plugin files are replaced with the
+complete staged tree and the previous contents remain in its rollback backup;
+unknown plugin content in a harness home still requires review.
 This reconciliation occurs during ordinary selected-harness installation, not
 bare deployment of user-home configuration. Native hook execution still needs
 host verification after installation.
@@ -89,9 +91,16 @@ recoverable with the old directory in Trash. Ordinary extra files and
 directories still prevent replacement. Naming a path like an SDLC skill is
 not proof of ownership.
 
-Replaced managed files, links, retired SDLC artefacts, and merged
-**configuration files** go to **Trash**, not adjacent `.bak` files. This includes
-provider settings and global SDLC defaults. Applying changes requires `trash`;
+The canonical tree is staged, validated and replaced as a whole. Previous
+contents and a recovery journal remain under `/opt/sdlc/.installer/`; the root
+itself is never renamed. `sdlc.yaml` retains operator settings through release
+migration. Stale canonical artefacts, including extra files inside skills, leave
+the active tree without a file-retirement inventory. An interrupted operation
+is restored on the next applying invocation; dry-run reports pending recovery.
+
+Replaced managed home files, links, and merged provider **configuration files**
+go to **Trash**, not adjacent `.bak` files. The transaction also snapshots these
+adapters so an application failure restores their prior state. Applying home adapter changes requires `trash`;
 a failed operation stops replacement. Already trashed items remain recoverable
 through Trash. Existing backup files are not cleaned up. `sdlc-init` preserves
 its Git and document migration archives; those are historical evidence, not

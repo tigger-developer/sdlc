@@ -1,10 +1,25 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 36
-last-updated: 2026-11-11
+version: 37
+last-updated: 2026-11-12
 ---
 
 # SDLC Standards: Design Learnings
+
+## Canonical trees and user homes have different ownership boundaries
+
+The canonical installation is a complete versioned instruction set, not a
+shared user directory. Stage a fresh tree and replace its contents, retaining
+the previous contents for rollback. Preserve operator configuration explicitly.
+The root directory under `/opt` remains in place: owning that directory does
+not grant permission to rename its entry in root-owned `/opt`.
+
+A short non-atomic activation window is accepted for local installation.
+Journalling and adapter snapshots recover failed or interrupted updates; they
+do not replace instructions already loaded into a running agent's context.
+Housekeeping paths must never become routing paths. Home skill-link inventories
+remain scoped to shared discovery directories, where unrelated content exists;
+they are no longer needed for canonical skill or document retirement.
 
 ## Hook migration must reconcile old and current registrations
 

@@ -88,21 +88,27 @@ Bare mode also supplies the Goose plugin directory at
 `~/.agents/plugins/sdlc-command-guard-goose` discovery link. The hook calls
 `/opt/sdlc/hooks/agent-command-guard.sh` and blocks on failure. Providing the
 plugin files alone does not activate the hook; the host manages discovery and
-verifies native execution. Conflicting plugin files stop bare installation.
+verifies native execution. Previous canonical plugin files are retained in rollback backups.
 
-The canonical skill inventory is `/opt/sdlc/skills/.sdlc-inventory.json`.
-Its `skills` keys identify the current installed SDLC skills for declarative
-consumers. Each selected discovery directory has its own `.sdlc-inventory.json`
-recording managed link targets. Later installations move removed, unchanged
-skills and their recorded links to Trash. Modified retirement candidates stop
-installation for review; unrelated skills remain untouched. Bare mode manages
-only the canonical inventory and leaves discovery links to the host.
+The canonical root is installer-owned. Updates stage and validate a complete
+candidate, retain the old contents under `/opt/sdlc/.installer/`, replace the
+active contents and verify the result. Stale docs, commands, hooks, plugins and
+skill contents leave the active tree together. `sdlc.yaml` is operator-owned:
+its values and comments are carried forward through the existing release
+migration. Other unexpected canonical files are retained in the backup only.
 
-The first inventory records current source skills only; unknown older removals
-need separate provenance review. Retirement applies to whole skills, not extra
-files inside retained skills. Finder and Explorer debris is ignored. Inventories
-are written after asset updates and retirement succeed, and dry runs make no
-inventory changes.
+No canonical document inventory is needed. Nix can enumerate the clean
+`/opt/sdlc/skills/` directory. Separate home-directory skill-link inventories
+remain for targeted retirement without touching unrelated skills. Bare mode
+leaves all home adapters alone.
+
+The root itself is never renamed, so upgrades need no further sudo. A lock
+prevents concurrent installers. The replacement window is short and non-atomic;
+failed validation or adapter application restores the previous tree and
+snapshotted adapters. An interrupted install is recovered before the next
+applying operation. Dry-run reports pending recovery without modifying it.
+Rollback backups are retained without automatic pruning; housekeeping paths
+never appear in instructions or harness links.
 
 Bare mode installs only `/opt/sdlc`, without prompts, agent discovery, user-home
 links, or provider configuration. No installed harness is required. Pre-create
@@ -253,8 +259,7 @@ and optional manually invoked fresh-session audits through the review skills.
     1.26.8. The installed commands are compiled binaries and do not need Go
     just to run.
 
-[^trash]: The installer needs a `trash` executable on `PATH` when it applies
-    changes. This is a command requirement, not a requirement for one package
+[^trash]: The installer needs a `trash` executable on `PATH` when it changes harness-home adapters. Bare installation does not need it. This is a command requirement, not a requirement for one package
     manager. On macOS, check for `trash` first; [Homebrew's `trash`
     formula](https://formulae.brew.sh/formula/trash) is one way to obtain it if
     absent. On Linux,

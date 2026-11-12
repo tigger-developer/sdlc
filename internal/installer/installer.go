@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/BurntSushi/toml"
+	"github.com/tigger-developer/sdlc/internal/deployment"
 	"github.com/tigger-developer/sdlc/internal/harness"
 	"github.com/tigger-developer/sdlc/internal/skillinventory"
 )
@@ -75,24 +76,6 @@ var retiredProviderArtifacts = []string{
 	"recommendations-please",
 	"summarize-issues",
 	"useful-be",
-}
-
-var retiredSharedFiles = []string{
-	"GO.md",
-	"PERL.md",
-	"PYTHON.md",
-	"SHELL.md",
-	"SWIFT.md",
-	"WEB.md",
-	filepath.Join("presets", "sdlc-standards", "templates", "constitution-addendum.md"),
-}
-
-var retiredV2SharedPaths = []string{
-	"commands",
-	"skills",
-	filepath.Join("bin", "sdlc-preview"),
-	filepath.Join("presets", "sdlc-standards"),
-	filepath.Join("templates", "project-init"),
 }
 
 var retiredGlobalSkillPaths = []string{
@@ -165,6 +148,9 @@ type managedLink struct {
 }
 
 type installationPlan struct {
+	root                  string
+	tree                  deployment.Tree
+	treeChanged           bool
 	inventories           []skillinventory.Plan
 	syncs                 []managedSync
 	links                 []managedLink
@@ -178,6 +164,9 @@ func Run(options Options) error {
 	installRoot := options.InstallRoot
 	if installRoot == "" {
 		installRoot = canonicalInstallRoot
+	}
+	if err := prepareRecovery(installRoot, options.Apply || options.Configure); err != nil {
+		return err
 	}
 	source, err := validateSource(options.Source)
 	if err != nil {
@@ -204,6 +193,12 @@ func Run(options Options) error {
 		return err
 	}
 	if options.Apply {
+		if options.Configure {
+			if err := reviewConfigurationChanges(changes, options.Input, options.Output); err != nil {
+				return err
+			}
+			plan.configurations = changes
+		}
 		if err := applyInstallation(plan, options.Output); err != nil {
 			return err
 		}
@@ -223,6 +218,9 @@ func Run(options Options) error {
 		fmt.Fprintln(options.Output, "Installation: synchronized all planned copies.")
 	}
 	if options.Configure {
+		if options.Apply {
+			return nil
+		}
 		if err := offerConfigurationChanges(changes, options.Input, options.Output); err != nil {
 			return err
 		}
@@ -249,6 +247,9 @@ func runInteractiveAtRoot(sourcePath, userHome, installRoot, release string, inp
 	}
 	if output == nil {
 		output = os.Stdout
+	}
+	if err := prepareRecovery(installRoot, true); err != nil {
+		return err
 	}
 	source, err := validateSource(sourcePath)
 	if err != nil {
@@ -323,11 +324,6 @@ func runInteractiveAtRoot(sourcePath, userHome, installRoot, release string, inp
 	}
 	if err := applyInstallation(plan, output); err != nil {
 		return err
-	}
-	for _, change := range plan.configurations {
-		if err := applyConfigurationChange(change, output); err != nil {
-			return err
-		}
 	}
 	if err := ensureSharedDirectoryModes(installRoot); err != nil {
 		return err
@@ -507,6 +503,9 @@ func verifyHarnessAdapters(installRoot string, agents []string) error {
 }
 
 func installationHasChanges(plan installationPlan) bool {
+	if plan.treeChanged {
+		return true
+	}
 	for _, inventory := range plan.inventories {
 		if inventory.Changed || len(inventory.Retirements) != 0 {
 			return true
@@ -521,6 +520,9 @@ func installationHasChanges(plan installationPlan) bool {
 		}
 	}
 	for _, sync := range plan.syncs {
+		if plan.root != "" && withinRoot(sync.destination, plan.root) {
+			continue
+		}
 		if sync.needsSync {
 			return true
 		}
@@ -534,6 +536,11 @@ func installationHasChanges(plan installationPlan) bool {
 }
 
 func mergeInstallationPlan(plan *installationPlan, addition installationPlan) {
+	if addition.tree != nil {
+		plan.root = addition.root
+		plan.tree = addition.tree
+		plan.treeChanged = addition.treeChanged
+	}
 	plan.inventories = append(plan.inventories, addition.inventories...)
 	plan.syncs = append(plan.syncs, addition.syncs...)
 	plan.links = append(plan.links, addition.links...)
@@ -702,7 +709,7 @@ func planSharedInstallation(source, userHome, installRoot, release string) (inst
 func planSharedInstallationMode(source, userHome, installRoot, release string, bare bool) (installationPlan, error) {
 	liveSDLC := filepath.Join(installRoot, "docs")
 	localBin := filepath.Join(userHome, ".local", "bin")
-	if sameLexicalPath(source, installRoot) {
+	if withinRoot(source, installRoot) {
 		return installationPlan{}, fmt.Errorf("source %q is the live SDLC directory; use a separate staging clone", source)
 	}
 	plan := installationPlan{}
@@ -732,9 +739,6 @@ func planSharedInstallationMode(source, userHome, installRoot, release string, b
 		return installationPlan{}, err
 	}
 	globalSkills := filepath.Join(userHome, ".agents", "skills")
-	if err := plan.addSkillInventory(source, filepath.Join(installRoot, "skills"), "", currentSkills); err != nil {
-		return installationPlan{}, err
-	}
 	if !bare {
 		if err := plan.addSkillInventory(source, globalSkills, filepath.Join(installRoot, "skills"), currentSkills); err != nil {
 			return installationPlan{}, err
@@ -789,40 +793,11 @@ func planSharedInstallationMode(source, userHome, installRoot, release string, b
 		}
 		plan.syncs = append(plan.syncs, sync)
 	}
-	for _, retirement := range []struct {
-		sourceRoot, destinationRoot string
-		files                       []string
-	}{
-		{filepath.Join(source, "src"), liveSDLC, retiredSharedFiles},
-		{filepath.Join(source, "commands"), filepath.Join(installRoot, "commands"), retiredCommandFiles},
-		{filepath.Join(source, "skills"), filepath.Join(installRoot, "skills"), retiredSkillFiles},
-	} {
-		retirements, err := planRetiredFiles(retirement.sourceRoot, retirement.destinationRoot, retirement.files)
-		if err != nil {
-			return installationPlan{}, err
-		}
-		plan.retirements = append(plan.retirements, retirements...)
-	}
-	sharedRetirements, err := planExactRetirements(liveSDLC, retiredV2SharedPaths)
-	if err != nil {
-		return installationPlan{}, err
-	}
-	plan.retirements = append(plan.retirements, sharedRetirements...)
-	retirements, retirementErr := planExactRetirements(filepath.Join(installRoot, "skills"), retiredGlobalSkillPaths)
-	if retirementErr != nil {
-		return installationPlan{}, retirementErr
-	}
-	plan.retirements = append(plan.retirements, retirements...)
 	if !bare {
 		if err := rejectUnverifiedRetiredSkills(globalSkills, retiredGlobalSkillPaths); err != nil {
 			return installationPlan{}, err
 		}
 	}
-	auditRetirements, auditErr := planAuditSkillRetirements(filepath.Join(installRoot, "skills"))
-	if auditErr != nil {
-		return installationPlan{}, auditErr
-	}
-	plan.retirements = append(plan.retirements, auditRetirements...)
 	if !bare {
 		auditLink, err := planManagedLink(filepath.Join(installRoot, "bin", "sdlc-harness"), filepath.Join(localBin, "sdlc-audit"), localBin, linkOwnership{legacyTargets: []string{filepath.Join(userHome, ".agents", "sdlc", "bin", "sdlc-harness")}})
 		if err != nil {
@@ -850,24 +825,15 @@ func planSharedInstallationMode(source, userHome, installRoot, release string, b
 		}
 		plan.retirements = append(plan.retirements, retired...)
 	}
-	if bare {
-		pluginChanges, err := analyseGooseConfiguration(installRoot)
-		if err != nil {
-			return installationPlan{}, err
-		}
-		for _, change := range pluginChanges {
-			if change.conflict {
-				return installationPlan{}, fmt.Errorf("bare installation cannot replace conflicting Goose plugin file %q; review it before retrying", change.path)
-			}
-		}
-		plan.managedConfigurations = append(plan.managedConfigurations, pluginChanges...)
-	}
 	releaseChange, err := planGlobalReleaseConfiguration(installRoot, userHome, release)
 	if err != nil {
 		return installationPlan{}, err
 	}
 	if releaseChange != nil {
 		plan.managedConfigurations = append(plan.managedConfigurations, releaseChange)
+	}
+	if err := plan.prepareCanonical(installRoot); err != nil {
+		return installationPlan{}, err
 	}
 	return plan, nil
 }
@@ -997,25 +963,6 @@ func planSkillDirectoryMapping(sourceRoot, destinationRoot string, optional bool
 	return syncs, nil
 }
 
-func planAuditSkillRetirements(root string) ([]managedRetirement, error) {
-	entries, err := os.ReadDir(root)
-	if errors.Is(err, os.ErrNotExist) {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, fmt.Errorf("reading managed skill directory %q: %w", root, err)
-	}
-	var retirements []managedRetirement
-	for _, entry := range entries {
-		// Backups are deliberately retained beside retired artefacts; they are
-		// not live skills and must not make verification non-idempotent.
-		if entry.IsDir() && !strings.Contains(entry.Name(), ".") && isAuditSkill(entry.Name()) && entry.Name() != "audit-tests" {
-			retirements = append(retirements, managedRetirement{path: filepath.Join(root, entry.Name())})
-		}
-	}
-	return retirements, nil
-}
-
 func sourceDirectoryNames(root string) ([]string, error) {
 	entries, err := os.ReadDir(root)
 	if err != nil {
@@ -1080,6 +1027,9 @@ func printHeading(output io.Writer, agent, source, agentHome string, apply, conf
 }
 
 func printInstallationPlan(output io.Writer, plan installationPlan, apply bool) {
+	if plan.treeChanged {
+		_, _ = fmt.Fprintf(output, "Installation: replace canonical tree %s; retain rollback contents\n", plan.root)
+	}
 	for _, inventory := range plan.inventories {
 		for _, retirement := range inventory.Retirements {
 			fmt.Fprintf(output, "Installation: trash inventoried retired skill %s\n", retirement.Path)
@@ -1089,6 +1039,9 @@ func printInstallationPlan(output io.Writer, plan installationPlan, apply bool) 
 		}
 	}
 	for _, sync := range plan.syncs {
+		if plan.root != "" && withinRoot(sync.destination, plan.root) {
+			continue
+		}
 		if !sync.needsSync {
 			if os.Getenv("VERBOSE") == "1" {
 				fmt.Fprintf(output, "Installation: current %s <- %s\n", sync.destination, sync.source)
@@ -1147,12 +1100,62 @@ func printInstallationPlan(output io.Writer, plan installationPlan, apply bool) 
 }
 
 func applyInstallation(plan installationPlan, output io.Writer) error {
-	if installationHasChanges(plan) {
+	if !installationHasChanges(plan) {
+		return nil
+	}
+	if plan.tree == nil {
 		if _, err := exec.LookPath("trash"); err != nil {
 			return fmt.Errorf("installation requires the trash CLI on PATH: %w", err)
 		}
+		return applyAdapters(plan, output)
 	}
+	var paths []string
+	for _, item := range plan.syncs {
+		if item.needsSync && !withinRoot(item.destination, plan.root) {
+			paths = append(paths, item.destination)
+		}
+	}
+	for _, item := range plan.links {
+		if item.needsSync {
+			paths = append(paths, item.destination)
+		}
+	}
+	for _, item := range plan.retirements {
+		if !withinRoot(item.path, plan.root) {
+			paths = append(paths, item.path)
+		}
+	}
+	for _, item := range append(append([]*configurationChange{}, plan.managedConfigurations...), plan.configurations...) {
+		if !withinRoot(item.path, plan.root) {
+			paths = append(paths, item.path)
+		}
+	}
+	for _, inventory := range plan.inventories {
+		if inventory.Changed {
+			paths = append(paths, inventory.Path)
+		}
+		for _, item := range inventory.Retirements {
+			paths = append(paths, item.Path)
+		}
+	}
+	if len(paths) != 0 {
+		if _, err := exec.LookPath("trash"); err != nil {
+			return fmt.Errorf("home adapter installation requires the trash CLI on PATH: %w", err)
+		}
+	}
+	backup, err := plan.tree.Install(plan.root, verifyCanonicalMain, deployment.Integration{Paths: paths, Apply: func() error { return applyAdapters(plan, output) }})
+	if err != nil {
+		return err
+	}
+	_, err = fmt.Fprintf(output, "Installation verified; rollback contents: %s\n", backup)
+	return err
+}
+
+func applyAdapters(plan installationPlan, output io.Writer) error {
 	for _, sync := range plan.syncs {
+		if plan.root != "" && withinRoot(sync.destination, plan.root) {
+			continue
+		}
 		if !sync.needsSync {
 			continue
 		}
@@ -1161,12 +1164,18 @@ func applyInstallation(plan installationPlan, output io.Writer) error {
 		}
 	}
 	for _, retirement := range plan.retirements {
+		if plan.root != "" && withinRoot(retirement.path, plan.root) {
+			continue
+		}
 		if err := trashArtifact(output, retirement.path); err != nil {
 			return err
 		}
 		fmt.Fprintf(output, "Installation retired: %s\n", retirement.path)
 	}
 	for _, change := range plan.managedConfigurations {
+		if plan.root != "" && withinRoot(change.path, plan.root) {
+			continue
+		}
 		if err := applyConfigurationChange(change, output); err != nil {
 			return err
 		}
@@ -1177,6 +1186,13 @@ func applyInstallation(plan installationPlan, output io.Writer) error {
 		}
 		if err := synchronizeLink(link, output); err != nil {
 			return err
+		}
+	}
+	for _, change := range plan.configurations {
+		if !withinRoot(change.path, plan.root) {
+			if err := applyConfigurationChange(change, output); err != nil {
+				return err
+			}
 		}
 	}
 	for _, inventory := range plan.inventories {
@@ -1515,7 +1531,7 @@ func analyseConfiguration(agent, agentHome, source, installRoot string, output i
 	case agentCodex:
 		return analyseCodexConfigurations(agentHome, source, output)
 	case agentGoose:
-		return analyseGooseConfiguration(installRoot)
+		return nil, nil // Plugin files belong to the complete canonical tree.
 	case agentHermes:
 		change, err := analyseHermesConfiguration(agentHome, source, output)
 		return configurationChanges(change), err
@@ -2001,6 +2017,18 @@ func printCodexRecommendations(output io.Writer, config codexConfig, metadata to
 }
 
 func offerConfigurationChanges(changes []*configurationChange, input io.Reader, output io.Writer) error {
+	if err := reviewConfigurationChanges(changes, input, output); err != nil {
+		return err
+	}
+	for _, change := range changes {
+		if err := applyConfigurationChange(change, output); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func reviewConfigurationChanges(changes []*configurationChange, input io.Reader, output io.Writer) error {
 	if len(changes) == 0 {
 		fmt.Fprintln(output, "Configuration: no automatic change is available for this target.")
 		return nil
@@ -2016,11 +2044,6 @@ func offerConfigurationChanges(changes []*configurationChange, input io.Reader, 
 			if !accepted {
 				return fmt.Errorf("declined replacement leaves the provider not SDLC-ready: %s", change.path)
 			}
-		}
-	}
-	for _, change := range changes {
-		if err := applyConfigurationChange(change, output); err != nil {
-			return err
 		}
 	}
 	return nil

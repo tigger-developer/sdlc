@@ -13,34 +13,18 @@ import (
 
 func analyseGooseConfiguration(installRoot string) ([]*configurationChange, error) {
 	root := filepath.Join(installRoot, "plugins", "sdlc-command-guard-goose")
-	manifest := map[string]any{
-		"name": "sdlc-command-guard-goose", "version": "1.0.0",
-		"description": "Apply the SDLC shell and protected-file policy before Goose tools run.",
+	files, err := goosePluginContents()
+	if err != nil {
+		return nil, err
 	}
-	hooks := map[string]any{"hooks": map[string]any{"PreToolUse": []any{
-		map[string]any{"hooks": []any{map[string]any{
-			"type": "command", "command": `"/opt/sdlc/hooks/agent-command-guard.sh"`,
-			"timeout": 10, "on_failure": "block",
-		}}},
-	}}}
 	var changes []*configurationChange
-	for _, item := range []struct {
-		path  string
-		value any
-	}{
-		{filepath.Join(root, "plugin.json"), manifest},
-		{filepath.Join(root, "hooks", "hooks.json"), hooks},
-	} {
-		content, err := json.MarshalIndent(item.value, "", "  ")
-		if err != nil {
-			return nil, fmt.Errorf("encoding Goose hook configuration: %w", err)
-		}
-		content = append(content, '\n')
-		existing, err := os.ReadFile(item.path)
+	for name, content := range files {
+		path := filepath.Join(root, name)
+		existing, err := os.ReadFile(path)
 		if err != nil && !os.IsNotExist(err) {
-			return nil, fmt.Errorf("reading Goose hook configuration %q: %w", item.path, err)
+			return nil, fmt.Errorf("reading Goose hook configuration %q: %w", path, err)
 		}
-		linked, linkErr := pathIsSymlink(item.path)
+		linked, linkErr := pathIsSymlink(path)
 		if linkErr != nil {
 			return nil, linkErr
 		}
@@ -50,13 +34,17 @@ func analyseGooseConfiguration(installRoot string) ([]*configurationChange, erro
 		var previous map[string]any
 		managed := false
 		if json.Unmarshal(existing, &previous) == nil {
-			managed = reflect.DeepEqual(previous, item.value)
-			if filepath.Base(item.path) == "hooks.json" {
+			var desired map[string]any
+			if err := json.Unmarshal(content, &desired); err != nil {
+				return nil, err
+			}
+			managed = reflect.DeepEqual(previous, desired)
+			if filepath.Base(path) == "hooks.json" {
 				managed = managedGooseHooks(previous)
 			}
 		}
 		changes = append(changes, &configurationChange{
-			path: item.path, beforeLabel: "existing Goose SDLC plugin file or absent",
+			path: path, beforeLabel: "existing Goose SDLC plugin file or absent",
 			afterLabel: "Goose PreToolUse command guard with on_failure=block",
 			contents:   content, mode: 0o644, conflict: (err == nil && !managed) || linked,
 		})
@@ -99,4 +87,27 @@ func managedGooseHooks(root map[string]any) bool {
 		}
 	}
 	return true
+}
+
+func goosePluginContents() (map[string][]byte, error) {
+	manifest := map[string]any{
+		"name": "sdlc-command-guard-goose", "version": "1.0.0",
+		"description": "Apply the SDLC shell and protected-file policy before Goose tools run.",
+	}
+	hooks := map[string]any{"hooks": map[string]any{"PreToolUse": []any{
+		map[string]any{"hooks": []any{map[string]any{
+			"type": "command", "command": `"/opt/sdlc/hooks/agent-command-guard.sh"`,
+			"timeout": 10, "on_failure": "block",
+		}}},
+	}}}
+
+	result := map[string][]byte{}
+	for name, value := range map[string]any{"plugin.json": manifest, filepath.Join("hooks", "hooks.json"): hooks} {
+		data, err := json.MarshalIndent(value, "", "  ")
+		if err != nil {
+			return nil, err
+		}
+		result[name] = append(data, '\n')
+	}
+	return result, nil
 }

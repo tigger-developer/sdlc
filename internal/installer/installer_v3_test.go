@@ -144,7 +144,7 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 	if _, err := os.Lstat(previewPath); !os.IsNotExist(err) {
 		t.Fatalf("retired deployed previewer remains: %v", err)
 	}
-	assertTrashed(t, previewPath)
+	assertCanonicalBackup(t, filepath.Join(root, "opt", "sdlc"), "docs/bin/sdlc-preview")
 	if _, err := os.Lstat(filepath.Join(root, "opt", "sdlc", "docs", "skills")); !os.IsNotExist(err) {
 		t.Fatalf("duplicate canonical-root skills directory remains: %v", err)
 	}
@@ -373,4 +373,13 @@ func assertFixtureContent(t *testing.T, path, expected string) {
 	if actual := readFixtureFile(t, path); actual != expected {
 		t.Fatalf("%s = %q, want %q", path, actual, expected)
 	}
+}
+
+func assertCanonicalBackup(t *testing.T, root, relative string) string {
+	t.Helper()
+	matches, err := filepath.Glob(filepath.Join(root, ".installer", "deployment-*", "previous", relative))
+	if err != nil || len(matches) == 0 {
+		t.Fatalf("missing canonical backup %s: %v", relative, err)
+	}
+	return matches[len(matches)-1]
 }

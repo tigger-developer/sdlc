@@ -102,6 +102,9 @@ func ensureSharedDirectoryModes(root string) error {
 		if walkErr != nil {
 			return walkErr
 		}
+		if path == filepath.Join(root, ".installer") {
+			return filepath.SkipDir
+		}
 		if !entry.IsDir() {
 			return nil
 		}
