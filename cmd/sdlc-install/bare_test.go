@@ -111,6 +111,52 @@ func TestBareDeploymentDoesNotTouchHomes(t *testing.T) {
 
 }
 
+func TestBareReinstallRefreshesSkillModelPreferences(t *testing.T) {
+	root, source := newCLIFixture(t)
+	destination := filepath.Join(root, "opt", "sdlc")
+	skill := filepath.Join(source, "skills", "deliver-change", "SKILL.md")
+	if err := os.MkdirAll(filepath.Dir(skill), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(skill, []byte("---\nname: deliver-change\ndescription: Deliver a change\n---\n\nDeliver.\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.MkdirAll(destination, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	config := filepath.Join(destination, "sdlc.yaml")
+	writeConfig := func(model, effort string) {
+		t.Helper()
+		body := "version: 3\ndelivery:\n  build:\n    harness: codex\n    provider: openai\n    model: " + model + "\n    reasoning_effort: " + effort + "\n"
+		if err := os.WriteFile(config, []byte(body), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	writeConfig("first", "high")
+	var output bytes.Buffer
+	arguments := []string{"--bare", "--source", source}
+	if err := runAtRoot(arguments, strings.NewReader(""), &output, destination); err != nil {
+		t.Fatal(err)
+	}
+	installed := filepath.Join(destination, "skills", "deliver-change", "SKILL.md")
+	contents, err := os.ReadFile(installed)
+	if err != nil || !strings.Contains(string(contents), "preferred_model: first") || !strings.Contains(string(contents), "preferred_reasoning_effort: high") {
+		t.Fatalf("initial preferences: %q %v", contents, err)
+	}
+	writeConfig("second", "low")
+	if err := runAtRoot(arguments, strings.NewReader(""), &output, destination); err != nil {
+		t.Fatal(err)
+	}
+	contents, err = os.ReadFile(installed)
+	if err != nil || !strings.Contains(string(contents), "preferred_model: second") || !strings.Contains(string(contents), "preferred_reasoning_effort: low") || strings.Contains(string(contents), "preferred_model: first") {
+		t.Fatalf("refreshed preferences: %q %v", contents, err)
+	}
+	original, err := os.ReadFile(skill)
+	if err != nil || strings.Contains(string(original), "preferred_model") {
+		t.Fatalf("source skill changed: %q %v", original, err)
+	}
+}
+
 func TestBareRejectsProviderFlags(t *testing.T) {
 	_, source := newCLIFixture(t)
 	for _, args := range [][]string{{"--agent", "hermes"}, {"--configure"}} {

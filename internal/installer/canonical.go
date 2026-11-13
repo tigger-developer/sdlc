@@ -49,6 +49,9 @@ func (plan *installationPlan) prepareCanonical(root string) error {
 			return err
 		}
 	}
+	if err := plan.applySkillPreferences(data); err != nil {
+		return err
+	}
 	files, err := goosePluginContents()
 	if err != nil {
 		return err

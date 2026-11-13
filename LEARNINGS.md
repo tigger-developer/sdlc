@@ -1,10 +1,19 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 37
-last-updated: 2026-11-12
+version: 38
+last-updated: 2026-11-13
 ---
 
 # SDLC Standards: Design Learnings
+
+## Model preferences belong to the invocation boundary
+
+A skill may advertise a preferred harness, provider, model and reasoning effort,
+but loading the skill does not itself switch a running session. Generate global
+preferences into installed skill metadata and refresh them on installation;
+resolve project overrides and verify actual launch settings when a fresh review
+context starts. Record the actual independent review and its invocation in the
+canonical audit record.
 
 ## Canonical trees and user homes have different ownership boundaries
 

@@ -143,6 +143,14 @@ fields:
     allow_global: true
     migration_aliases: [SDLC_DELIVERY_MODEL]
 
+  - key: SDLC_SPEC_REASONING_EFFORT
+    path: delivery.definition.reasoning_effort
+    flag: spec-reasoning-effort
+    help: Optional definition reasoning effort; blank leaves the model choice
+    type: string
+    prompt: "Definition reasoning effort, or blank for model choice:"
+    allow_global: true
+
   - key: SDLC_TEST_CODE_HARNESS
     path: delivery.test_code.harness
     flag: test-code-harness
@@ -169,6 +177,14 @@ fields:
     type: string
     prompt: "Select test-code model:"
     default: gpt-5.6-sol
+    allow_global: true
+
+  - key: SDLC_TEST_CODE_REASONING_EFFORT
+    path: delivery.test_code.reasoning_effort
+    flag: test-code-reasoning-effort
+    help: Optional test-code reasoning effort; blank leaves the model choice
+    type: string
+    prompt: "Test-code reasoning effort, or blank for model choice:"
     allow_global: true
 
   - key: SDLC_BUILD_HARNESS
@@ -200,6 +216,14 @@ fields:
     default: gpt-5.6-terra
     allow_global: true
 
+  - key: SDLC_BUILD_REASONING_EFFORT
+    path: delivery.build.reasoning_effort
+    flag: build-reasoning-effort
+    help: Optional delivery reasoning effort; blank leaves the model choice
+    type: string
+    prompt: "Delivery reasoning effort, or blank for model choice:"
+    allow_global: true
+
   - key: SDLC_AUDIT_HARNESS
     path: delivery.audit.harness
     flag: audit-harness
@@ -227,6 +251,14 @@ fields:
     type: string
     prompt: "Select external audit model:"
     default: gpt-5.6-luna
+    allow_global: true
+
+  - key: SDLC_AUDIT_REASONING_EFFORT
+    path: delivery.audit.reasoning_effort
+    flag: audit-reasoning-effort
+    help: Optional independent audit reasoning effort; blank leaves the model choice
+    type: string
+    prompt: "Independent audit reasoning effort, or blank for model choice:"
     allow_global: true
 
   - key: SDLC_GOAL_MAX_TURNS

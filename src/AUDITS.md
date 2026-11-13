@@ -1,7 +1,7 @@
 ---
 title: Delivery Review Gates
-version: 20
-last-updated: 2026-10-29
+version: 21
+last-updated: 2026-11-13
 ---
 
 # Delivery review gates
@@ -42,6 +42,22 @@ authority and disclosure of the reduced assurance.
 Only an explicit independent-audit request or an expressly authorized workflow
 permits this route. Ordinary self-audit requirements do not. The caller:
 
+- Resolves the effective `delivery.audit` selection before starting a reviewer:
+  read `/opt/sdlc/sdlc.yaml` and the project's `.sdlc/project.yaml` when present,
+  applying the documented project-over-global precedence and any explicit
+  invocation override. Select the configured `harness`, `provider` where that
+  harness uses one, `model`, and optional `reasoning_effort`. An absent effort
+  leaves the model's effort choice alone; do not invent a default. Check the
+  selected harness and model's supported effort levels before requesting one.
+  Values used by the retired `sdlc-harness` do not launch this review.
+- Requests those values through the fresh-context invocation's native controls.
+  A skill does not change the current session's model. A native sub-agent may
+  select a model or effort only when its invocation interface actually exposes
+  that control. Skill preferences are advisory metadata; a harness may ignore
+  them. If a configured control cannot be applied, disclose and record the
+  actual setting and the limitation. Do not claim the configured selection was
+  applied or silently substitute another reviewer. An operator may authorize
+  a different selection for this invocation; record that override.
 - Starts one fresh reviewer with no inherited author conversation or reasoning.
   Supplies the entry-point path, review purpose/profile, permitted project paths,
   exact candidate, requirements/brief and original evidence. Includes unresolved
@@ -61,8 +77,11 @@ permits this route. Ordinary self-audit requirements do not. The caller:
 - Settles required checks and freezes the candidate before review. The reviewer
   receives read-only scope; the caller owns remediation, records and workflow
   progression. No reviewer launches another reviewer.
-- Records actual separation, findings and limitations separately from internal
-  review, within the canonical `audits.yaml` record. Rechecks affected evidence after remediation.
+- Records the reviewer's actual verdict and findings without rewriting them,
+  together with actual separation, invocation settings, overrides and
+  limitations, within the canonical `audits.yaml` record under `AUDIT-RECORD.md`.
+  Verify launch settings from the invocation or trusted metadata rather than
+  the reviewer's self-report. Recheck affected evidence after remediation.
   Re-review uses the same authorized scope and REVIEW's five-round ceiling per
   ticket and gate; a
   standalone invocation is one review unless further rounds were authorized.

@@ -1,10 +1,19 @@
 ---
 title: Changelog
 version: 2
-last-updated: 2026-11-12
+last-updated: 2026-11-13
 ---
 
 # Changelog
+
+## v4.0.21 - 2026-11-13
+
+- Add optional `reasoning_effort` to the definition, test-code, build and audit
+  configuration fields. Project global phase preferences into advisory installed
+  skill metadata, refreshed by `make install` when `sdlc.yaml` changes.
+- Require independent-audit callers to resolve the configured model selection,
+  disclose unsupported invocation controls, and record actual launch settings
+  and findings in the canonical audit record.
 
 ## v4.0.20 - 2026-11-12
 

@@ -1,7 +1,7 @@
 ---
 title: Independent Auditor
-version: 6
-last-updated: 2026-10-29
+version: 7
+last-updated: 2026-11-13
 ---
 
 # Independent auditor
@@ -14,6 +14,10 @@ brief, and frozen candidate evidence. The old audit harness is not a prerequisit
 and is abandoned as the unattended delivery execution path. This reviewer does
 not launch another reviewer. Infrastructure supplies isolation and invocation;
 these public rules supply the mandate without private personal configuration.
+The caller selects the configured harness, provider, model and optional reasoning
+effort before launch. This reviewer does not change its own model or select a
+replacement. Report a missing or mismatched invocation control as a limitation;
+do not claim the requested setting took effect without trusted launch evidence.
 
 ## Establish the review
 

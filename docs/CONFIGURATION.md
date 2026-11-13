@@ -1,7 +1,7 @@
 ---
 title: SDLC Configuration and Installation Reference
-version: 9
-last-updated: 2026-11-12
+version: 10
+last-updated: 2026-11-13
 ---
 
 # SDLC configuration and installation reference
@@ -148,14 +148,17 @@ delivery:
     harness: codex
     provider: openai
     model: gpt-5.6-sol
+    # reasoning_effort: high # optional
   test_code:
     harness: codex
     provider: openai
     model: gpt-5.6-sol # writes tests from the signed-off specification
+    # reasoning_effort: high
   build:
     harness: codex
     provider: openai
     model: gpt-5.6-terra
+    # reasoning_effort: low
   goal:
     max_turns: 20             # Hermes and Copilot only.
                              # Claude Code caps consecutive Stop-hook continuations at 8.
@@ -164,6 +167,7 @@ delivery:
     harness: codex
     provider: openai
     model: gpt-5.6-luna
+    # reasoning_effort: high
     timeout: 10m
     total_timeout: 15m
     response_start_timeout: 3m # A personal override can use 90s.
@@ -185,6 +189,24 @@ infrastructure:
 semantic-version Git tag deployed by `make install`; the installer maintains it
 without replacing unrelated settings. Projects follow those global skills and
 standards, so `.sdlc/project.yaml` does not duplicate an SDLC release pin.
+
+Each phase (`definition`, `test_code`, `build`, `audit`) accepts optional
+`reasoning_effort` beside its harness, provider and model. Omission requests no
+effort override. Supported levels vary by harness, provider and model. The public
+installer copies these global preferences into advisory metadata on the relevant
+installed skills. `deliver-change` carries the build preference and a separate
+`preferred_test_code_*` set for its test-code phase. The skill source remains
+unchanged. A harness may ignore the metadata; a skill invocation alone does not
+switch a running session's model. After editing `/opt/sdlc/sdlc.yaml`, run
+`make install` again to refresh installed skill metadata. Project overrides and
+scheduler launch settings are resolved at invocation time, not by reinstalling
+the shared skill tree.
+
+An authorized independent audit follows `AUDITS.md`: its caller resolves the
+effective audit tuple, requests it when launching a fresh reviewer, and records
+the actual invocation and verdict in `audits.yaml`. The former `sdlc-harness`
+is not the active audit route. Its fallback and deadline settings below describe
+the retained legacy executable and do not launch a reviewer.
 
 `delivery.test_code` selects the harness, provider and model for writing
 executable tests from the signed-off specification. Test definitions remain

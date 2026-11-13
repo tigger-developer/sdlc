@@ -1,7 +1,7 @@
 ---
 title: Canonical Audit Record
-version: 1
-last-updated: 2026-10-29
+version: 2
+last-updated: 2026-11-13
 ---
 
 # Canonical audit record
@@ -62,6 +62,12 @@ within that invocation. This does not invent managed gates. An unticketed review
 uses ticket: null and an explicit scope reference; keep one canonical record.
 Independent method requires truthful fresh-context separation. Recorder and
 reviewer identities must describe actual actors, not invented provider identities.
+For a newly recorded independent review, include an `invocation` mapping with
+the actual harness, provider where applicable, model and reasoning effort (or
+`null` when no effort was requested). Identify the effective configuration
+sources and any explicit override or unsupported control. Use trusted caller or
+scheduler launch evidence; do not infer effective settings from a model's prose.
+This addition does not invalidate historical records that predate the field.
 
 `history` entries identify a path/reference, original method where known, and
 any uncertainty. Unticketed records also require `scope`; standalone/spike
