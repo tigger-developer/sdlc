@@ -1,6 +1,6 @@
 ---
 title: Delivery Review Gates
-version: 21
+version: 22
 last-updated: 2026-11-13
 ---
 
@@ -20,8 +20,9 @@ These skills are authorized by a required workflow review or an explicit audit
 request, not by their mere availability in a non-SDLC project.
 
 An explicitly requested independent audit uses INDEPENDENT-AUDITOR.md directly,
-not one of the self-audit skills. A manual fresh session or an isolated native
-sub-agent may perform it. This is the supported external-review route; it does not use the retired harness.
+not one of the self-audit skills. A manual fresh session, an isolated native
+sub-agent, or a headless invocation of the selected harness may perform it.
+These are fresh-review routes; none uses the retired audit harness.
 
 ### Unattended profile requiring independence
 
@@ -58,15 +59,42 @@ permits this route. Ordinary self-audit requirements do not. The caller:
   actual setting and the limitation. Do not claim the configured selection was
   applied or silently substitute another reviewer. An operator may authorize
   a different selection for this invocation; record that override.
+- For a headless review, starts a **new, non-resumed process** of the selected
+  harness from the project task root. Passes the review brief as one prompt;
+  directs the reviewer to `/opt/sdlc/docs/INDEPENDENT-AUDITOR.md` as its first
+  SDLC entry point. Do not launch the author harness merely because it is
+  already open. Map the effective selection to the installed CLI's controls:
+
+  | Harness | Headless entry and selection controls |
+  |---|---|
+  | Codex | `codex exec -C <project-root> -m <model> --sandbox read-only`; add `-c model_reasoning_effort=<effort>` only when configured. The usual OpenAI provider needs no separate flag. |
+  | Claude Code | `claude -p --model <model> --permission-mode plan`; add `--effort <effort>` only when configured. Its normal Anthropic provider needs no separate flag. |
+  | Copilot | `copilot -p <brief> --model <model>`; add `--reasoning-effort <effort>` only when configured. Use only with a verified read-only tool and filesystem policy; non-interactive mode's `--allow-all-tools` is not a read-only control. |
+  | Hermes | `hermes -z <brief> --provider <provider> -m <model>`; add `--reasoning <effort>` only when configured. `--safe-mode` also disables the rules and is not an audit isolation control. |
+  | Goose | `goose run --text <brief> --provider <provider> --model <model> --no-session`; set `GOOSE_THINKING_EFFORT=<effort>` for that process only when configured and supported. Its accepted levels and provider mapping can differ from the configured spelling. |
+
+  For Codex and Claude, supply the brief through the installed CLI's prompt or
+  standard-input form; for the others, use their documented prompt argument.
+  Treat this table as an option map, not a command to copy with literal angle
+  brackets. Check the installed CLI's help and the selected provider/model's
+  effort support before launch; do not silently coerce a value or rely on
+  persistent defaults to supply a missing override. If the configured provider
+  cannot be selected by that harness, report the mismatch before launch.
+  Preserve the process's exit status, response and trusted launch metadata.
 - Starts one fresh reviewer with no inherited author conversation or reasoning.
   Supplies the entry-point path, review purpose/profile, permitted project paths,
   exact candidate, requirements/brief and original evidence. Includes unresolved
   prior findings as evidence, not the desired verdict or a coached conclusion.
-- Uses a native isolation control only when available and authorized. If it
-  cannot avoid inherited author context, reports that limitation and uses an
+- Verifies both context separation and read-only access before launch. The
+  reviewer must be unable to change the candidate, audit record or other
+  project files. Native read-only controls may help; a managed headless job
+  also needs a verified filesystem/tool boundary, especially where the CLI has
+  no read-only mode or loads write-capable extensions. Do not disable governing
+  instructions or command guards to obtain isolation. If the chosen route
+  cannot avoid inherited author context or enforce read-only scope, reports
+  that limitation and uses an
   authorized self-review without calling it independent, only where the selected
-  profile permits that fallback. An independence-required profile stays unresolved. It does not launch a
-  child CLI or bypass a harness restriction to simulate isolation.
+  profile permits that fallback. An independence-required profile stays unresolved.
 - Finishes and self-reviews the phase-specific package before submission. An
   incomplete package is not a request for the auditor to plan the next work.
 - States whether a human is currently supervising the work live in the session.

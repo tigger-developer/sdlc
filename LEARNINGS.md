@@ -6,6 +6,14 @@ last-updated: 2026-11-13
 
 # SDLC Standards: Design Learnings
 
+## Fresh-process review is an invocation boundary
+
+A selected audit harness can run as a new headless process when an independent
+review is authorized. The caller must translate the effective audit tuple to
+that CLI's current controls, verify a separate context and read-only access,
+and record what actually ran. A headless flag alone does not enforce read-only
+tools, and a child process does not by itself prove independent evidence.
+
 ## Model preferences belong to the invocation boundary
 
 A skill may advertise a preferred harness, provider, model and reasoning effort,

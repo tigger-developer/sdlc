@@ -6,6 +6,13 @@ last-updated: 2026-11-13
 
 # Changelog
 
+## v4.0.22 - 2026-11-13
+
+- Document an authorized headless independent-audit route for Codex, Claude
+  Code, Copilot, Hermes and Goose. Map the effective audit model preferences to
+  each CLI, require fresh context and verified read-only scope, and retain the
+  actual invocation and verdict in `audits.yaml`.
+
 ## v4.0.21 - 2026-11-13
 
 - Add optional `reasoning_effort` to the definition, test-code, build and audit

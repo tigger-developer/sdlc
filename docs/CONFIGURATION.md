@@ -202,9 +202,10 @@ switch a running session's model. After editing `/opt/sdlc/sdlc.yaml`, run
 scheduler launch settings are resolved at invocation time, not by reinstalling
 the shared skill tree.
 
-An authorized independent audit follows `AUDITS.md`: its caller resolves the
-effective audit tuple, requests it when launching a fresh reviewer, and records
-the actual invocation and verdict in `audits.yaml`. The former `sdlc-harness`
+An authorized independent audit follows [AUDITS.md](../src/AUDITS.md#calling-an-independent-reviewer):
+its caller resolves the effective audit tuple, maps it to the selected harness's
+headless controls or an isolated native reviewer, and records the actual
+invocation and verdict in `audits.yaml`. The former `sdlc-harness`
 is not the active audit route. Its fallback and deadline settings below describe
 the retained legacy executable and do not launch a reviewer.
 
