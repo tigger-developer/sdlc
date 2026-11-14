@@ -1,10 +1,19 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 38
-last-updated: 2026-11-13
+version: 39
+last-updated: 2026-11-14
 ---
 
 # SDLC Standards: Design Learnings
+
+## Ticket authority and candidate evidence live on different branches
+
+The primary branch owns ticket status and canonical specification, validation
+and audit records throughout delivery. A feature branch owns the implementation
+candidate and its raw outputs. The primary records refer to an exact candidate
+revision without implying that it has merged. A shallow builder checkout does
+not become ticket authority: publish records through a synchronized primary
+checkout, and reconcile stale ticket snapshots before integrating code.
 
 ## Fresh-process review is an invocation boundary
 

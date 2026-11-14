@@ -1,7 +1,7 @@
 ---
 title: Specification Standards
-version: 6
-last-updated: 2026-10-31
+version: 7
+last-updated: 2026-11-14
 ---
 
 # Specification Standards
@@ -301,6 +301,9 @@ Do not create a defects or spikes subdirectory. All types remain in the same
 primary-branch `docs/work.org` register with their existing lifecycle and type
 tags. Reserve IDs under DELIVERY's publication protocol. Ticket identity stays
 stable when a defect gains a fix specification; do not allocate a second number.
+The ticket's specification, feedback, validation, audit and decision records
+also belong on primary. Update and publish them there under `GIT.md` and
+`DELIVERY.md`; feature-branch copies are read-only snapshots.
 
 Existing IDs are historical identities, including unprefixed or older W-prefixed
 spikes/defects. Directory migration does not change them. New allocations follow

@@ -1,7 +1,7 @@
 ---
 title: Delivery Execution and Record Responsibilities
-version: 7
-last-updated: 2026-10-31
+version: 8
+last-updated: 2026-11-14
 ---
 
 # Delivery execution and records
@@ -96,10 +96,11 @@ synchronizing phase checkpoints. Human approval and other admission rules remain
 
 Definition runs on the project's recorded primary branch (normally `master`
 or `main`), never on a newly created feature branch. Verify the configured
-primary branch; do not guess its name. Its `docs/work.org` is the single
-source of truth for ticket allocation, the work register and lifecycle state.
-Record and review the definition there, including its specification and feedback.
-An implementation branch's copy is a snapshot, not a competing ticket authority.
+primary branch; do not guess its name. Primary owns all ticketing: allocation,
+work register and lifecycle state in `docs/work.org`, plus each ticket's
+canonical specification, feedback, validation, audit, sign-off and decision
+records under `tickets/`. Record and review the definition there. An
+implementation branch's copies are snapshots, not competing ticket authority.
 
 Before definition edits, inspect the working tree and synchronize the primary
 branch through its existing upstream. Preserve unrelated work; do not stash,
@@ -132,12 +133,20 @@ project `.sdlc/project.yaml`, user `/opt/sdlc/sdlc.yaml`, then the schema
 default, `feature`. It persists only explicit project overrides. Agents never
 read `.env`. Documentation-only work does not create an implementation branch.
 
-During delivery, keep code, tests and candidate-specific evidence on the
-implementation branch. Update canonical `docs/work.org` on primary with narrow,
-committed changes supported by that evidence; never merge code merely to update
-the register or overwrite primary's register with a stale branch copy. At
-integration, preserve primary's latest register and reconcile only the ticket's
-authorized state changes. Approval and closure rules remain unchanged.
+During delivery, keep code, tests and raw candidate-specific output on the
+implementation branch. Write all canonical ticket records, including test
+results in `validation.org` and self or independent findings in `audits.yaml`,
+on primary. Link those records to the exact implementation candidate and raw
+evidence; do not copy an unmerged result into primary as if its code were already
+integrated. Synchronize primary first, then commit and push each coherent ticket
+record update before relying on it for the next phase. If a shallow
+implementation checkout cannot update primary, use a separate synchronized
+primary checkout within the authorized scope, or return the evidence to an
+authorized primary-branch publisher and wait for its published update. Never
+write a substitute canonical record on the feature branch. Never merge code
+merely to update ticket records or overwrite primary's records with stale copies.
+Before integration, follow `GIT.md`'s pull and ticket-path reconciliation rule.
+Approval and closure rules remain unchanged.
 
 Synchronize each phase's branch through its configured upstream before edits
 and after committed, reviewed phase checkpoints. The early reservation commit

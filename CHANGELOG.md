@@ -1,10 +1,19 @@
 ---
 title: Changelog
 version: 2
-last-updated: 2026-11-13
+last-updated: 2026-11-14
 ---
 
 # Changelog
+
+## v4.0.23 - 2026-11-14
+
+- Assign all canonical ticket status and SDLC evidence to the recorded primary
+  branch, including validation and audit records, while keeping code, tests and
+  raw candidate output on the implementation branch. Require committed,
+  published ticket updates before workflow progression.
+- Require primary synchronization and ticket-path reconciliation before merging
+  and pushing an implementation branch, including from shallow build checkouts.
 
 ## v4.0.22 - 2026-11-13
 

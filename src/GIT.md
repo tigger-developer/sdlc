@@ -1,7 +1,7 @@
 ---
 title: Git and Source-Control Standards
-version: 7
-last-updated: 2026-11-11
+version: 8
+last-updated: 2026-11-14
 ---
 
 # Git and Source-Control Standards
@@ -80,10 +80,15 @@ explicit operator decision to stage the whole worktree.
 ## Branches and history
 
 These branch rules apply only to full-SDLC work, not personal work or standalone
-use of coding standards. Definition, ticket allocation and the canonical
-`docs/work.org` register stay on the recorded primary branch. Do not create
-a feature branch during definition. Follow `DELIVERY.md` for serialized ticket
-reservation and phase synchronization.
+use of coding standards. The recorded primary branch is the sole write authority
+for ticketing: allocation, lifecycle and status changes in `docs/work.org`, and
+the ticket's canonical SDLC records under `tickets/`, including specifications,
+feedback, `validation.org`, `audits.yaml`, sign-off and decision records. Edit
+these records on primary, commit and push each coherent update through its
+configured upstream before treating it as published or using it to advance a
+feature-branch workflow. A feature branch's copies are snapshots, never a second
+ticket authority. Do not create a feature branch during definition. Follow
+`DELIVERY.md` for serialized ticket reservation and phase synchronization.
 
 Feature branches are the default only for code delivery, starting with test
 implementation after admission. Explicit implementation branch overrides remain
@@ -93,6 +98,19 @@ authority off primary. Documentation-only work does not require a feature branch
 
 Preserve unrelated work when switching branches. Branch selection authorizes
 neither merge, deployment nor closure. Read-only work requires no branch switch.
+
+Before merging an implementation branch into primary, pull primary from its
+configured upstream using the project's pull strategy and inspect the branch's
+changes to `docs/work.org` and `tickets/`. Do not merge a stale branch copy over
+newer primary ticket records. Resolve any ticket-record changes on primary,
+preserving its published history; do not select a whole side of a conflict
+without checking its contents. Before pushing the integration, pull again; if
+primary advanced, reconcile and recheck the ticket paths before pushing. A
+shallow implementation checkout without the current primary history must use
+an authorized, synchronized primary checkout for ticket edits and integration,
+or hand the evidence to an authorized primary-branch publisher. It does not
+acquire ticket authority by being the implementation target; do not advance on
+an unpublished ticket-record update.
 
 - Resolve the primary branch from repository configuration and follow its
   existing branch naming convention. Do not assume the name `main` or `master`.
@@ -146,6 +164,9 @@ condition in a durable project record. Human approval is required where the
 exception weakens safety, verification, access control, or history integrity.
 
 ## Document history
+
+Version 8 assigns every canonical ticket record to primary and requires
+reconciliation of stale branch copies before integration.
 
 Version 7 requires operator approval before a major version increment.
 

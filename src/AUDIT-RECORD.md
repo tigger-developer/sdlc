@@ -1,13 +1,17 @@
 ---
 title: Canonical Audit Record
-version: 2
-last-updated: 2026-11-13
+version: 3
+last-updated: 2026-11-14
 ---
 
 # Canonical audit record
 
 For each managed ticket, `audits.yaml` beside `spec.org` is the **single
 canonical audit record** for self-audits and independent external audits.
+Write and publish it on the project's recorded primary branch, even when the
+reviewed implementation candidate is on a feature branch. Identify that
+candidate precisely; a feature branch's copied `audits.yaml` is not a second
+record or the source for a later merge over primary.
 It is owned by the review process, not by a particular harness. The old external
 audit harness is retired. A future CI harness may implement this contract;
 its existence is not a prerequisite for recording or accepting a review.
