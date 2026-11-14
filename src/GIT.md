@@ -1,6 +1,6 @@
 ---
 title: Git and Source-Control Standards
-version: 8
+version: 9
 last-updated: 2026-11-14
 ---
 
@@ -91,26 +91,50 @@ ticket authority. Do not create a feature branch during definition. Follow
 `DELIVERY.md` for serialized ticket reservation and phase synchronization.
 
 Feature branches are the default only for code delivery, starting with test
-implementation after admission. Explicit implementation branch overrides remain
-valid. Exact-token `BYPASS-GATE-7` emergencies default to primary unless the
-operator specifies another implementation branch. Neither override moves ticket
-authority off primary. Documentation-only work does not require a feature branch.
+implementation after admission. Keep the established project checkout on its
+recorded primary branch for ticketing and project tooling. For each admitted
+ticket, create a separate shallow clone in the operating system's temporary
+directory from the published primary baseline, then create or reuse that
+ticket's feature branch there. Different tickets use different clones so their
+builds can proceed concurrently without switching or dirtying the established
+project checkout. The clone is an implementation workspace, not a ticket-record
+writer. The task's filesystem authority must cover the intended primary checkout
+and temporary implementation workspace; a clone does not grant wider access.
+Where a shallow remote clone is unavailable, use another separately authorized
+checkout and retain the same primary/implementation separation.
 
-Preserve unrelated work when switching branches. Branch selection authorizes
-neither merge, deployment nor closure. Read-only work requires no branch switch.
+Explicit implementation branch overrides remain valid. Exact-token
+`BYPASS-GATE-7` emergencies default to primary unless the operator specifies
+another implementation branch. Neither override moves ticket authority off
+primary. Documentation-only work does not require a feature branch. Branch
+selection authorizes neither merge, deployment nor closure. Read-only work
+requires no branch switch.
 
-Before merging an implementation branch into primary, pull primary from its
-configured upstream using the project's pull strategy and inspect the branch's
-changes to `docs/work.org` and `tickets/`. Do not merge a stale branch copy over
-newer primary ticket records. Resolve any ticket-record changes on primary,
-preserving its published history; do not select a whole side of a conflict
-without checking its contents. Before pushing the integration, pull again; if
-primary advanced, reconcile and recheck the ticket paths before pushing. A
-shallow implementation checkout without the current primary history must use
-an authorized, synchronized primary checkout for ticket edits and integration,
-or hand the evidence to an authorized primary-branch publisher. It does not
-acquire ticket authority by being the implementation target; do not advance on
-an unpublished ticket-record update.
+An explicit operator instruction to merge a named feature branch into primary
+authorizes that merge. State a known risk briefly, then carry out the merge;
+do not refuse, ask for confirmation again, or substitute a pull request. The
+instruction does not authorize deployment, release publication or ticket
+closure, and it does not turn unresolved audit findings into a PASS.
+
+For an authorized merge, first verify that the established primary checkout is
+clean and still on the recorded primary branch. Use a separate temporary
+integration clone, not the established project checkout, to pull current
+primary from its configured upstream, merge the named feature branch and
+inspect changes to `docs/work.org` and `tickets/`. Do not merge a stale branch
+copy over newer primary ticket records. Reconcile any ticket-record changes
+against primary's published history; do not select a whole side of a conflict
+without checking its contents. Pull primary again before the non-force push;
+if it advanced, reconcile and recheck the ticket paths. After the push, update
+the established primary checkout with a fast-forward-only pull. Stop on a
+conflict needing judgement, a rejected push, or an established checkout that
+is dirty or off primary; report the exact state without rewriting history.
+Project-specific merge or integration requirements still apply.
+
+A shallow implementation checkout without the current primary history must use
+an authorized, synchronized primary checkout for ticket edits, or hand the
+evidence to an authorized primary-branch publisher. It does not acquire ticket
+authority by being the implementation target; do not advance on an unpublished
+ticket-record update.
 
 - Resolve the primary branch from repository configuration and follow its
   existing branch naming convention. Do not assume the name `main` or `master`.
@@ -164,6 +188,10 @@ condition in a durable project record. Human approval is required where the
 exception weakens safety, verification, access control, or history integrity.
 
 ## Document history
+
+Version 9 keeps the established project checkout on primary, isolates each
+ticket's default feature-branch build in a shallow temporary clone, and defines
+operator-directed integration through a separate temporary checkout.
 
 Version 8 assigns every canonical ticket record to primary and requires
 reconciliation of stale branch copies before integration.

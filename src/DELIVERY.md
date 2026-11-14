@@ -1,6 +1,6 @@
 ---
 title: Delivery Execution and Record Responsibilities
-version: 8
+version: 9
 last-updated: 2026-11-14
 ---
 
@@ -28,8 +28,10 @@ it cannot silently fall back to self-review. Present current UT evidence and
 recorded departures together for explicit final operator acceptance. Changes from
 remediation or integration invalidate affected checks, reviews and UTs; repeat
 those affected, not automatically every prior approval. Validate the actual
-integration candidate before authorized merge. Readiness, acceptance, merge and
-deployment remain distinct authorities.
+integration candidate before a workflow-initiated merge. An explicit
+operator-directed merge follows `GIT.md` without a second confirmation; record
+any outstanding verification and do not treat the merge as acceptance or closure.
+Readiness, acceptance, merge and deployment remain distinct authorities.
 
 ## Hands-off delivery decision authority
 
@@ -77,11 +79,13 @@ Supply that log and the original baseline with the review candidate. REVIEW owns
 assessment criteria. A permitted logged departure does not invalidate admission
 or require renewed definition sign-off merely because it differs from the design.
 A departure outside this permission requires the normal definition amendment and
-renewed approval. Before final acceptance, merge or closure, obtain and record
-explicit operator acceptance or rejection of every departure. Rejected departures
-require remediation and affected checks/review before acceptance; audit PASS is
-not operator acceptance. Reconcile accepted decisions into the current design
-with links to preserved decision history.
+renewed approval. Before final acceptance, a workflow-initiated merge or
+closure, obtain and record explicit operator acceptance or rejection of every
+departure. An operator-directed merge follows `GIT.md` without implying
+acceptance of an undisposed departure; report and retain it for the acceptance
+decision. Rejected departures require remediation and affected checks/review
+before acceptance; audit PASS is not operator acceptance. Reconcile accepted
+decisions into the current design with links to preserved decision history.
 
 ## Delivery branch and phase synchronization
 
@@ -103,9 +107,11 @@ records under `tickets/`. Record and review the definition there. An
 implementation branch's copies are snapshots, not competing ticket authority.
 
 Before definition edits, inspect the working tree and synchronize the primary
-branch through its existing upstream. Preserve unrelated work; do not stash,
-reset, discard or carry feature changes onto primary merely to reach it. A
-separate clean checkout within the authorized workspace may be used instead.
+branch through its existing upstream. Keep the established project checkout on
+primary for ticket records and project tooling. Preserve unrelated work; do not
+stash, reset, discard or carry feature changes onto primary merely to reach it.
+If that checkout cannot safely be synchronized, use another authorized primary
+checkout without changing the ticket authority.
 Apply the ticket-reservation protocol below before assigning a work number.
 Commit and publish the reviewed definition and operator sign-off on primary
 before normal delivery admission. An unpublished definition is not dispatch-ready.
@@ -119,10 +125,14 @@ writing tests, after the applicable admission requirements:
 
 - `feature` is the default: synchronize primary, verify the published ticket
   and applicable definition baseline (signed off for normal delivery), then
-  create and publish one feature branch from
-  that revision before writing test or production code. Reuse an existing
-  implementation branch for the same ticket after checking its definition
-  baseline; do not create a second branch on resume.
+  make a separate shallow clone in the operating system's temporary directory
+  from that published baseline and create and publish one feature branch for
+  the ticket there before writing test or production code. Do not switch the
+  established project checkout off primary. Use a distinct clone for each
+  concurrent ticket. Reuse an existing implementation branch for the same
+  ticket after checking its definition baseline; do not create a second branch
+  on resume. Where a shallow remote clone is unavailable, use another
+  authorized isolated checkout under `GIT.md`.
 - Explicit `current` retains the operator-selected implementation branch.
   It does not override primary-branch ticket authority.
 - Emergency work follows `EMERGENCY.md`; its later ticket reconciliation
@@ -139,13 +149,14 @@ results in `validation.org` and self or independent findings in `audits.yaml`,
 on primary. Link those records to the exact implementation candidate and raw
 evidence; do not copy an unmerged result into primary as if its code were already
 integrated. Synchronize primary first, then commit and push each coherent ticket
-record update before relying on it for the next phase. If a shallow
-implementation checkout cannot update primary, use a separate synchronized
-primary checkout within the authorized scope, or return the evidence to an
-authorized primary-branch publisher and wait for its published update. Never
+record update before relying on it for the next phase. The established primary
+checkout is the normal ticket writer, with serialized updates when multiple
+builders run. A builder without write access to that checkout returns evidence
+to an authorized primary-branch publisher and waits for its published update. Never
 write a substitute canonical record on the feature branch. Never merge code
 merely to update ticket records or overwrite primary's records with stale copies.
-Before integration, follow `GIT.md`'s pull and ticket-path reconciliation rule.
+For an authorized integration, follow `GIT.md`'s temporary merge checkout,
+pull-before-push, ticket-path reconciliation and fast-forward refresh rules.
 Approval and closure rules remain unchanged.
 
 Synchronize each phase's branch through its configured upstream before edits

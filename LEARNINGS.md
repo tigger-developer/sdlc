@@ -1,10 +1,21 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 39
+version: 40
 last-updated: 2026-11-14
 ---
 
 # SDLC Standards: Design Learnings
+
+## Preserve the established primary checkout during concurrent builds
+
+Keeping the established project directory on its recorded primary branch lets
+ticket records and linked project tooling retain a stable checkout. Separate
+shallow temporary clones provide isolated implementation branches for concurrent
+tickets. The builders publish candidate evidence through serialized updates to
+the primary ticket authority, without moving that authority into their clones.
+An operator-directed merge uses a separate temporary integration checkout, then
+fast-forwards the established checkout after primary is published. Merge
+authority does not silently confer deployment, release or closure authority.
 
 ## Ticket authority and candidate evidence live on different branches
 

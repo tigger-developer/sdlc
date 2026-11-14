@@ -6,6 +6,17 @@ last-updated: 2026-11-14
 
 # Changelog
 
+## v4.0.24 - 2026-11-14
+
+- Keep the established project checkout on its recorded primary branch for
+  ticketing and project tooling. Use a separate shallow temporary clone per
+  admitted feature-branch ticket, allowing concurrent builds without switching
+  the primary checkout; serialize canonical ticket updates there.
+- Treat an explicit operator instruction to merge a named feature branch as
+  merge authority without reconfirmation. Integrate in a separate temporary
+  checkout, reconcile ticket paths, push primary without force and fast-forward
+  the established checkout; merge authority does not imply deployment or closure.
+
 ## v4.0.23 - 2026-11-14
 
 - Assign all canonical ticket status and SDLC evidence to the recorded primary
