@@ -1,10 +1,18 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 40
+version: 41
 last-updated: 2026-11-14
 ---
 
 # SDLC Standards: Design Learnings
+
+## A skill load is not an audit
+
+The delivery workflow must require a deliberate assessment of written tests,
+recorded against the exact candidate, before production implementation. A
+validator result or reading the audit skill does not satisfy that gate. A FAIL
+continues hands-off remediation and re-review within the existing round limit;
+only a current, published PASS admits the build step.
 
 ## Preserve the established primary checkout during concurrent builds
 

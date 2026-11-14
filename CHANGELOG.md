@@ -6,6 +6,13 @@ last-updated: 2026-11-14
 
 # Changelog
 
+## v4.0.25 - 2026-11-14
+
+- Make `deliver-change` enforce the written-test, deliberate test-code self-audit,
+  then production-build sequence. Require a published PASS for the exact test
+  candidate before implementation; remediate and re-audit FAIL findings within
+  the existing hands-off continuation and review limit.
+
 ## v4.0.24 - 2026-11-14
 
 - Keep the established project checkout on its recorded primary branch for

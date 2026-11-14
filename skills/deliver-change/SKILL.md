@@ -110,27 +110,53 @@ imply completion.
 ## Deliver the approved change
 
 After admission, verify the ticket reservation and approved definition published
-on primary. Apply `GIT.md` and `DELIVERY.md`: default to creating and publishing
-an implementation feature branch from that baseline before writing tests or
-production code. Reuse a verified implementation branch on resume. An explicit
-`current` override affects implementation only. Keep ticket allocation and
-canonical `docs/work.org` updates on primary; never allocate from a branch copy.
+on primary. Apply `GIT.md` and `DELIVERY.md`: keep the established project
+checkout on primary and use a separate temporary feature checkout for test and
+production code under the default strategy. Reuse a verified implementation
+branch on resume. An explicit `current` override affects implementation only.
+Keep all canonical ticket records on primary; never allocate from a branch copy.
 Never guess a primary branch, remote or naming convention.
 
-Read `/opt/sdlc/docs/ORG-SCHEMA.md`. Create `validation.org` from its template
-with one `:testdef:` heading per specified test; preserve IDs and existing history.
+Read `/opt/sdlc/docs/ORG-SCHEMA.md`. Create or update primary's `validation.org`
+from its template with one `:testdef:` heading per specified test; preserve IDs
+and existing history.
 Run `/opt/sdlc/bin/sdlc-validate --help` before first use. Use it locally to
 check the full inventory and correct schema/readiness errors before calling an auditor.
 
-Write and execute the complete justified AT/RT package before implementing the target
-behaviour. Only minimal execution-enabling scaffolding is permitted under
-`TESTING.md`; include it in test-code audit evidence. Record RED only for the intended observed failure; initially GREEN
-preservation tests need their rationale. Mark deferred OT/UT execution AMBER with
-a reason. Run the validator with `--spec <spec.org> --readiness-check=test-code`,
-then load `/opt/sdlc/skills/test-code-audit/SKILL.md` in this session. Remediate
-findings and record current internal PASS before building.
-If the approved spec has neither ATs nor RTs, skip this audit and proceed to implementation;
-do not remove or reclassify approved ATs or RTs to bypass it.
+### Test-code checkpoint before implementation
+
+When the approved specification has ATs or RTs, complete this sequence before
+writing production behaviour. On a resumed or separately invoked build-code
+step, verify the published test-code audit against the **current** test package;
+do not infer PASS from passing tests, a validator result, a skill load, or a
+summary from the previous agent. If the current package already has an accepted
+recorded PASS, proceed without repeating the audit merely to change its method.
+
+1. Write and execute the complete justified AT/RT package. Only minimal
+   execution-enabling scaffolding is permitted under `TESTING.md`; include it in
+   audit evidence. Record RED only for the intended observed failure; initially
+   GREEN preservation tests need their rationale. Mark deferred OT/UT execution
+   AMBER with a reason. Commit and publish the test candidate on its
+   implementation branch; publish its exact revision and execution evidence in
+   primary's `validation.org`.
+2. Run the validator with `--spec <spec.org> --readiness-check=test-code`.
+   Read and **perform** `/opt/sdlc/skills/test-code-audit/SKILL.md` in the
+   current author context. Deliberately inspect the written tests against the
+   approved specification and record the actual self-audit verdict and findings
+   in primary's `audits.yaml` under `AUDIT-RECORD.md`. Commit and push that record.
+   The readiness check is a prerequisite, not the audit.
+3. If the verdict is FAIL, address every valid finding as a batch, rerun affected
+   tests and readiness checks, and repeat the deliberate self-audit on the
+   changed candidate. Preserve each round and publish its record. Continue in
+   HANDS-OFF mode until a current PASS is recorded and published, the five-round
+   limit is reached, or a genuine blocker under this skill requires handback.
+4. Before the first production-code edit, verify that primary's current
+   `audits.yaml` contains an accepted test-code PASS for the exact published
+   test candidate and that no unresolved finding or later material test change
+   invalidates it. A missing, stale or unpublished PASS blocks implementation.
+
+If the approved spec has neither ATs nor RTs, skip this checkpoint and proceed
+to implementation; do not remove or reclassify approved ATs or RTs to bypass it.
 
 Implement the authorized solution, obtain GREEN for every AT/RT and execute bounded
 OTs. Keep the specification synchronized for authorized routine details, without
