@@ -1,10 +1,17 @@
 ---
 title: Changelog
 version: 2
-last-updated: 2026-11-14
+last-updated: 2026-11-15
 ---
 
 # Changelog
+
+## v4.0.26 - 2026-11-15
+
+- Let the handover skill choose and write a dated, descriptive note under
+  `tickets/handover/` without a filename confirmation. Preserve existing notes
+  by selecting a new name on collision, and use the project's recorded primary
+  branch rather than assuming `master`.
 
 ## v4.0.25 - 2026-11-14
 

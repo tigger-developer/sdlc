@@ -1,10 +1,17 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 41
-last-updated: 2026-11-14
+version: 42
+last-updated: 2026-11-15
 ---
 
 # SDLC Standards: Design Learnings
+
+## A handover invocation supplies destination authority
+
+When the operator invokes the handover skill, choosing a dated filename in the
+project's handover directory is a routine implementation detail. The skill can
+select a collision-free name without a separate filename approval while keeping
+the note on the recorded primary branch and preserving existing handovers.
 
 ## A skill load is not an audit
 
