@@ -55,6 +55,11 @@ Use `=verbatim=` for filenames, commands, identifiers, and literal values, and
 `~code~` for inline code. Do not use Markdown backticks, even when a renderer
 accepts them.
 
+## Horizontal rules
+
+When a horizontal rule is needed in Org, use a line of at least five hyphens,
+such as `-----`.
+
 ## Typed blocks
 
 Use the block that describes the content:

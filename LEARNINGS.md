@@ -6,6 +6,13 @@ last-updated: 2026-11-19
 
 # SDLC Standards: Design Learnings
 
+## Markup rules belong to their own formats
+
+Markdown and Org use similar punctuation for different structures and emphasis.
+Keep their authoring rules in separate format standards, and distinguish a
+source convention that requires renderer conversion from syntax guaranteed by
+the format itself.
+
 ## A retired executable needs a retirement path
 
 Removing a readiness claim while continuing to build and expose a broken tool

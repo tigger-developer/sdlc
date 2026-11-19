@@ -1,7 +1,7 @@
 ---
 title: Markdown Authoring
-version: 1
-last-updated: 2026-09-16
+version: 2
+last-updated: 2026-11-19
 ---
 
 # Markdown Authoring
@@ -25,6 +25,17 @@ predictable syntax over renderer-specific extensions.
 - Code blocks: fenced blocks with a language identifier where applicable.
 
 Use relative paths for repository images and links where possible.
+
+## Dashes and section breaks
+
+In prose, write `--` for an en dash and `---` for an em dash. These are source
+conventions, not punctuation conversions guaranteed by Markdown itself. The
+renderer is responsible for converting them; check its output when the rendered
+distinction matters.
+
+Use a line containing only `***`, with a blank line on each side, for a section
+break. Do not use `---` or `___` as a section break. The `---` delimiters required
+for YAML frontmatter below are a separate case.
 
 ## Frontmatter
 

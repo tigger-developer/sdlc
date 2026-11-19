@@ -6,6 +6,13 @@ last-updated: 2026-11-19
 
 # Changelog
 
+## v4.0.29 - 2026-11-19
+
+- Define Markdown source conventions for en and em dashes, with rendering
+  responsibility stated explicitly, and prefer `***` for Markdown section
+  breaks. Document Org horizontal rules independently so the two formats are
+  not conflated.
+
 ## v4.0.28 - 2026-11-19
 
 - Stop building and installing the retired `sdlc-harness` binary. Retire only
