@@ -1,7 +1,7 @@
 ---
 title: SDLC Configuration and Installation Reference
-version: 10
-last-updated: 2026-11-13
+version: 11
+last-updated: 2026-11-19
 ---
 
 # SDLC configuration and installation reference
@@ -52,8 +52,9 @@ is not installed on the global path. The installation:
 - builds `sdlc-install` locally, deploys `sdlc-init` and
   `sdlc-merge-legacy-acs` under `/opt/sdlc/bin`, and links those operator
   commands onto the global path;
-- deploys `sdlc-harness` under `/opt/sdlc/bin` and exposes it as
-  `~/.local/bin/sdlc-audit`; `sdlc-audit --help` describes the audit interface;
+- retires an installer-owned `~/.local/bin/sdlc-audit` link; the old
+  `sdlc-harness` binary is no longer built or deployed. Independent reviews
+  use the selected agent harness headlessly under [AUDITS.md](../src/AUDITS.md#calling-an-independent-reviewer);
 - moves recognized retired command remnants to Trash rather than leaving
   executable `.sdlc-*-retired` names in command directories;
 - synchronizes the canonical standards to `/opt/sdlc/docs`;
@@ -168,6 +169,8 @@ delivery:
     provider: openai
     model: gpt-5.6-luna
     # reasoning_effort: high
+    # Legacy audit-runner transport settings below are historical; the
+    # headless agent invocation does not consume them.
     timeout: 10m
     total_timeout: 15m
     response_start_timeout: 3m # A personal override can use 90s.
@@ -206,8 +209,8 @@ An authorized independent audit follows [AUDITS.md](../src/AUDITS.md#calling-an-
 its caller resolves the effective audit tuple, maps it to the selected harness's
 headless controls or an isolated native reviewer, and records the actual
 invocation and verdict in `audits.yaml`. The former `sdlc-harness`
-is not the active audit route. Its fallback and deadline settings below describe
-the retained legacy executable and do not launch a reviewer.
+is not built or installed. Its fallback and deadline settings below describe
+historical configuration only and do not launch a reviewer.
 
 `delivery.test_code` selects the harness, provider and model for writing
 executable tests from the signed-off specification. Test definitions remain

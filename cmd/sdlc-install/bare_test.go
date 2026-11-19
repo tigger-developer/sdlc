@@ -48,6 +48,9 @@ func TestBareDeploymentDoesNotTouchHomes(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+	if _, err := os.Lstat(filepath.Join(destination, "bin", "sdlc-harness")); !os.IsNotExist(err) {
+		t.Fatalf("retired audit runner was deployed: %v", err)
+	}
 	plugin := filepath.Join(destination, "plugins", "sdlc-command-guard-goose")
 	manifest, err := os.ReadFile(filepath.Join(plugin, "plugin.json"))
 	if err != nil || !json.Valid(manifest) {

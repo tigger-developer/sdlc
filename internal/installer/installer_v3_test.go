@@ -54,6 +54,7 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 	oldInit := filepath.Join(root, ".local", "bin", "sdlc-project-init.sdlc-v3-retired-2")
 	writeFixtureFile(t, oldInit, "retired initializer\n")
 	writeFixtureFile(t, filepath.Join(root, "opt", "sdlc", "docs", "bin", "sdlc-preview"), "old previewer\n")
+	writeFixtureFile(t, filepath.Join(root, "opt", "sdlc", "bin", "sdlc-harness"), "previous audit runner\n")
 	unrelatedPath := filepath.Join(root, ".claude", "unrelated.txt")
 	writeFixtureFile(t, unrelatedPath, "operator-owned bytes\n")
 	checkoutLink := filepath.Join(root, ".local", "bin", "sdlc-init")
@@ -124,15 +125,18 @@ func TestW004InteractiveInstallLinksCanonicalSkillsAndRegistersGuards(t *testing
 		t.Fatalf("source-checkout link backup target = %s", oldTarget)
 	}
 	auditLink := filepath.Join(root, ".local", "bin", "sdlc-audit")
-	target, err := os.Readlink(auditLink)
-	if err != nil || target != filepath.Join(root, "opt", "sdlc", "bin", "sdlc-harness") {
-		t.Fatalf("audit alias = %q (%v)", target, err)
+	if _, err := os.Lstat(auditLink); !os.IsNotExist(err) {
+		t.Fatalf("retired audit alias remains active: %v", err)
 	}
-	assertFixtureContent(t, auditLink, "sdlc-harness executable\n")
 	oldAuditTarget, err := os.Readlink(assertTrashed(t, auditLink))
 	if err != nil || oldAuditTarget != filepath.Join(root, ".agents", "sdlc", "bin", "sdlc-harness") {
 		t.Fatalf("old audit alias target = %q (%v)", oldAuditTarget, err)
 	}
+	retiredRunner := filepath.Join(root, "opt", "sdlc", "bin", "sdlc-harness")
+	if _, err := os.Lstat(retiredRunner); !os.IsNotExist(err) {
+		t.Fatalf("retired audit runner remains active: %v", err)
+	}
+	assertFixtureContent(t, assertCanonicalBackup(t, filepath.Join(root, "opt", "sdlc"), "bin/sdlc-harness"), "previous audit runner\n")
 	for _, retired := range []string{"sdlc-install", "sdlc-project-init", "sdlc-project-update", "sdlc-preview", filepath.Base(oldAuditLink), filepath.Base(oldInit)} {
 		path := filepath.Join(root, ".local", "bin", retired)
 		if _, err := os.Lstat(path); !os.IsNotExist(err) {

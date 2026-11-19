@@ -1,7 +1,7 @@
 ---
 title: SDLC v3 Architecture
-version: 13
-last-updated: 2026-10-24
+version: 14
+last-updated: 2026-11-19
 ---
 
 # SDLC v3 Architecture
@@ -9,6 +9,10 @@ last-updated: 2026-10-24
 This document explains how the public framework is composed. Normative
 engineering requirements live under [`src/`](../src/); workflow entry points
 live under [`skills/`](../skills/).
+
+The transport-specific audit adapter and deadline descriptions below are
+historical design records. Current independent review uses the selected agent
+harness headlessly under [`AUDITS.md`](../src/AUDITS.md#calling-an-independent-reviewer).
 
 ## Design objective
 
@@ -34,11 +38,13 @@ staging repository
 `make install`; it is not deployed to the global path. The installed CLI tools
 operate on individual projects or documents. Their global links target the
 deployed release under `/opt/sdlc/bin`, never the mutable source checkout.
-The public `sdlc-audit` link targets the deployed `sdlc-harness`; no duplicate
-audit implementation is built. Recognized historical command retirement markers
-are removed through Trash, not retained in executable directories.
+The retired `sdlc-harness` is not built or installed. An installer-owned
+`sdlc-audit` link is moved to Trash; unrelated same-name files remain untouched.
+Recognized historical command retirement markers are also removed through
+Trash, not retained in executable directories.
 
-The same executable selects a standalone standards profile when the project has
+The following describes the retired transport's historical behaviour, not an
+installed review path. That executable selected a standalone standards profile when the project had
 no `.sdlc/project.yaml`. That profile supplies the installed coding,
 documentation and standalone routing standards, emits a distinct result
 envelope, and does not create an SDLC audit record. Before provider execution,
@@ -58,23 +64,23 @@ fresh-context auditor enters through `INDEPENDENT-AUDITOR.md` before project-mar
 and must not load MAIN. The author uses `SELF-AUDIT.md` for non-independent review.
 Both select criteria through `REVIEW.md`; `READING.md` governs complete reads,
 reuse of unchanged retained text. ADVICE owns advisory routing; DELIVERY owns
-author execution and records. Neither is an auditor reference. Automatic external auditing
-remains suspended; manual fresh-context audits do not re-enable it.
+author execution and records. Neither is an auditor reference. The old automatic
+audit transport is retired; manual fresh-context audits do not re-enable it.
 Skills are global and refer to the canonical root, so a standards update does
 not require every initialized project to be refreshed.
 
 The installer exposes the canonical global skills through the native skill
 locations used by Claude, Copilot, and Hermes; Codex consumes the canonical
 skill root directly. Each supported harness receives its native registration
-for the shared command guard and uses a thin capability-aware adapter for
-bounded external audits. Private provider configuration remains outside this
+for the shared command guard. Independent reviewers start in a fresh headless
+process of the selected agent harness under `AUDITS.md`; the retired audit
+adapter is not installed. Private provider configuration remains outside this
 repository's ownership.
 
 Post-install validation executes the installed guard with each harness's local
-payload shape and constructs start and resume commands through each audit
-adapter. Its output reports command-guard projection validity and
-external-audit adapter-construction validity. It does not claim that a provider
-was invoked, authenticated, interactively ready, or initializer-ready.
+payload shape. It fails if that local check fails, but does not claim native
+hook execution, provider authentication, interactive readiness, or independent
+reviewer readiness.
 
 Interactive installation discovers supported harnesses from existing provider
 home directories. A top-level `active-harness` list in the shared

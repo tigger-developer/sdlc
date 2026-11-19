@@ -30,3 +30,34 @@ func planRetiredCommandBackups(root string) ([]managedRetirement, error) {
 	}
 	return result, nil
 }
+
+func planRetiredAuditLink(localBin, installRoot, userHome string) (*managedRetirement, error) {
+	path := filepath.Join(localBin, "sdlc-audit")
+	info, err := os.Lstat(path)
+	if errors.Is(err, os.ErrNotExist) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("inspecting retired audit link %q: %w", path, err)
+	}
+	if info.Mode()&os.ModeSymlink == 0 {
+		return nil, nil
+	}
+	target, err := os.Readlink(path)
+	if err != nil {
+		return nil, fmt.Errorf("reading retired audit link %q: %w", path, err)
+	}
+	if !filepath.IsAbs(target) {
+		target = filepath.Join(localBin, target)
+	}
+	for _, owned := range []string{
+		filepath.Join(installRoot, "bin", "sdlc-harness"),
+		filepath.Join(userHome, ".agents", "sdlc", "bin", "sdlc-harness"),
+	} {
+		if sameLexicalPath(target, owned) {
+			retirement := managedRetirement{path: path}
+			return &retirement, nil
+		}
+	}
+	return nil, nil
+}

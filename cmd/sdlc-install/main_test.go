@@ -162,7 +162,6 @@ func newCLIFixture(t *testing.T) (string, string) {
 		"hooks/agent-command-guard.sh":       "#!/bin/sh\nIFS= read -r payload\ncase \"$payload\" in *pre_tool_call*) printf '{\"decision\":\"block\"}\\n'; exit 0 ;; *) printf 'Blocked by agent-command-guard: test\\n' >&2; exit 2 ;; esac\n",
 		"bin/sdlc-init":                      "initializer\n",
 		"bin/sdlc-validate":                  "validator\n",
-		"bin/sdlc-harness":                   "runner\n",
 		"bin/sdlc-guard-shell":               "shell guard\n",
 		"bin/sdlc-merge-legacy-acs":          "ledger merger\n",
 	} {
@@ -177,7 +176,7 @@ func newCLIFixture(t *testing.T) (string, string) {
 	if err := os.Chmod(filepath.Join(source, "hooks", "agent-command-guard.sh"), 0o700); err != nil {
 		t.Fatal(err)
 	}
-	for _, name := range []string{"sdlc-init", "sdlc-validate", "sdlc-harness", "sdlc-guard-shell", "sdlc-merge-legacy-acs"} {
+	for _, name := range []string{"sdlc-init", "sdlc-validate", "sdlc-guard-shell", "sdlc-merge-legacy-acs"} {
 		if err := os.Chmod(filepath.Join(source, "bin", name), 0o700); err != nil {
 			t.Fatal(err)
 		}

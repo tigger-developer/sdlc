@@ -188,30 +188,31 @@ tests remain separately identified.
 The implementation described below is **retired historical material**. Its
 commands, defaults and ownership rules do not govern current reviews. Use
 AUDITS.md and AUDIT-RECORD.md; a future CI implementation must follow those
-contracts rather than revive this interface. The legacy `sdlc-harness` binary
-remains packaged as a deprecated compatibility artefact; installation does not
-assess its external-audit adapters or native provider execution.
+contracts rather than revive this interface. `sdlc-harness` is no longer built
+or installed, and the installer retires its owned `sdlc-audit` link. Current
+independent reviews use the selected agent harness in a fresh headless process
+under [AUDITS.md](src/AUDITS.md#calling-an-independent-reviewer).
 
 The retired audit harness sent a defined evidence package to an independent reviewer,
-records its verdict against that revision, and manages bounded retries and
-recovery. It also performs local readiness checks before spending a review
+recorded its verdict against that revision, and managed bounded retries and
+recovery. It also performed local readiness checks before spending a review
 round. An audit verdict is evidence for human judgement, not human approval.
 The [audit harness guide](src/HARNESS.md) covers commands and diagnostics,
 including per-turn, overall, response-start and response-idle deadlines.
 Audit defaults are `10m`, `15m`, `3m` and `2m` respectively; duration strings
 such as `90s` support personal overrides.
-The harness supplies mandatory standards as verified text to every provider:
-each profile receives its review criteria and applicable technologies, selected
-from project declarations and evidence. Optional references contain only review
-standards; MAIN and delivery/transport instructions are excluded. Spike review
-adds no workflow, gate or product-documentation requirements. Native file tools are
-disabled; unchanged standards are supplied once per retained context.
+The harness supplied mandatory standards as verified text to every provider:
+each profile received its review criteria and applicable technologies, selected
+from project declarations and evidence. Optional references contained only review
+standards; MAIN and delivery/transport instructions were excluded. Spike review
+added no workflow, gate or product-documentation requirements. Native file tools were
+disabled; unchanged standards were supplied once per retained context.
 For a project without SDLC initialization, `sdlc-audit --input FILE` instead
-reviews the supplied original project files against the installed coding and
-documentation standards. It warns that the review is standalone and does not
-create SDLC process records. Every audit is anchored to the project from which
-the command is invoked and receives a bounded file inventory so omitted
-project paths are visible, though their contents still require review.
+reviewed the supplied original project files against the installed coding and
+documentation standards. It warned that the review was standalone and did not
+create SDLC process records. Every audit was anchored to the project from which
+the command was invoked and received a bounded file inventory so omitted
+project paths were visible, though their contents still required review.
 
 ## Find the detail
 

@@ -93,7 +93,6 @@ var deployedCommandNames = []string{
 }
 
 var deployedInternalCommandNames = []string{
-	"sdlc-harness",
 	"sdlc-guard-shell",
 }
 
@@ -745,11 +744,13 @@ func planSharedInstallationMode(source, userHome, installRoot, release string, b
 		}
 	}
 	if !bare {
-		auditLink, err := planManagedLink(filepath.Join(installRoot, "bin", "sdlc-harness"), filepath.Join(localBin, "sdlc-audit"), localBin, linkOwnership{legacyTargets: []string{filepath.Join(userHome, ".agents", "sdlc", "bin", "sdlc-harness")}})
+		retiredAuditLink, err := planRetiredAuditLink(localBin, installRoot, userHome)
 		if err != nil {
 			return installationPlan{}, err
 		}
-		plan.links = append(plan.links, auditLink)
+		if retiredAuditLink != nil {
+			plan.retirements = append(plan.retirements, *retiredAuditLink)
+		}
 		commandRetirements, err := planExactRetirements(localBin, []string{
 			"sdlc-install",
 			"sdlc-preview",

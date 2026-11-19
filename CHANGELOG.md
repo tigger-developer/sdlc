@@ -6,13 +6,23 @@ last-updated: 2026-11-19
 
 # Changelog
 
+## v4.0.28 - 2026-11-19
+
+- Stop building and installing the retired `sdlc-harness` binary. Retire only
+  installer-owned `sdlc-audit` links; preserve unrelated same-name files and
+  links. Canonical installation replacement retains the old binary in its
+  rollback contents.
+- Point independent review guidance to fresh headless invocation of the
+  selected agent harness. Keep historical transport source and documentation
+  outside the active installation path.
+
 ## v4.0.27 - 2026-11-19
 
 - Remove per-harness installer success lines, including Goose's unverified
   native-hook status and all external-audit adapter claims. Continue to fail
   installation when the local command guard check fails.
 - Stop using the retired audit harness adapters as an installer readiness gate.
-  Retain the legacy binary as a deprecated compatibility artefact.
+  The legacy binary was still packaged in this release; v4.0.28 retires it.
 
 ## v4.0.26 - 2026-11-15
 

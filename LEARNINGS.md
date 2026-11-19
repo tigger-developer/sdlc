@@ -1,17 +1,27 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 43
+version: 44
 last-updated: 2026-11-19
 ---
 
 # SDLC Standards: Design Learnings
 
+## A retired executable needs a retirement path
+
+Removing a readiness claim while continuing to build and expose a broken tool
+leaves the wrong operational contract in place. Stop packaging retired tools,
+remove only installation links with verified ownership, and retain the prior
+canonical bytes in the installer rollback record. Independent reviews should
+use the current agent invocation contract directly.
+
 ## Retired transports are not installation readiness gates
 
 An installer should verify active protections and report failures, but not
 print per-harness success claims that imply a live native hook check when it
-only exercised the local guard script. A retired audit transport may remain
-packaged for compatibility without its adapters gating current installation.
+only exercised the local guard script. Retired transport source may remain as
+history, but its executable should not stay packaged without a working,
+explicitly supported compatibility contract. Its adapters do not gate current
+installation.
 
 ## A handover invocation supplies destination authority
 
