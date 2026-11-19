@@ -188,7 +188,9 @@ tests remain separately identified.
 The implementation described below is **retired historical material**. Its
 commands, defaults and ownership rules do not govern current reviews. Use
 AUDITS.md and AUDIT-RECORD.md; a future CI implementation must follow those
-contracts rather than revive this interface.
+contracts rather than revive this interface. The legacy `sdlc-harness` binary
+remains packaged as a deprecated compatibility artefact; installation does not
+assess its external-audit adapters or native provider execution.
 
 The retired audit harness sent a defined evidence package to an independent reviewer,
 records its verdict against that revision, and manages bounded retries and

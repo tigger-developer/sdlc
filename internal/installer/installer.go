@@ -15,7 +15,6 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/tigger-developer/sdlc/internal/deployment"
-	"github.com/tigger-developer/sdlc/internal/harness"
 	"github.com/tigger-developer/sdlc/internal/skillinventory"
 )
 
@@ -303,10 +302,6 @@ func runInteractiveAtRoot(sourcePath, userHome, installRoot, release string, inp
 		if err := verifyHarnessGuards(installRoot, agents, output); err != nil {
 			return err
 		}
-		if err := verifyHarnessAdapters(installRoot, agents); err != nil {
-			return err
-		}
-		printHarnessLocalValidation(output, agents)
 		return nil
 	}
 	printInstallationPlan(output, plan, false)
@@ -345,10 +340,6 @@ func runInteractiveAtRoot(sourcePath, userHome, installRoot, release string, inp
 	if err := verifyHarnessGuards(installRoot, agents, output); err != nil {
 		return err
 	}
-	if err := verifyHarnessAdapters(installRoot, agents); err != nil {
-		return err
-	}
-	printHarnessLocalValidation(output, agents)
 	fmt.Fprintln(output, "All listed SDLC changes were installed.")
 	return nil
 }
@@ -423,16 +414,6 @@ func detectedAgents(userHome string) ([]string, error) {
 	return detected, nil
 }
 
-func printHarnessLocalValidation(output io.Writer, agents []string) {
-	for _, agent := range agents {
-		if agent == agentGoose {
-			fmt.Fprintln(output, "Harness goose: command-guard-projection=VALID; external-audit-adapter=NOT-IN-SCOPE; native-hook-execution=UNVERIFIED")
-			continue
-		}
-		fmt.Fprintf(output, "Harness %s: command-guard-projection=VALID; external-audit-adapter-construction=VALID\n", agent)
-	}
-}
-
 func verifyHarnessGuards(installRoot string, agents []string, output io.Writer) error {
 	guard := filepath.Join(installRoot, "hooks", "agent-command-guard.sh")
 	for _, agent := range agents {
@@ -462,41 +443,6 @@ func verifyHarnessGuards(installRoot string, agents []string, output io.Writer) 
 		if !verified {
 			fmt.Fprintf(output, "Harness %s: command-guard-projection=INVALID; guard verification failed at %s\n", agent, guard)
 			return fmt.Errorf("%s native command-guard projection could not be verified", agent)
-		}
-	}
-	return nil
-}
-
-func verifyHarnessAdapters(installRoot string, agents []string) error {
-	legacy := false
-	for _, agent := range agents {
-		legacy = legacy || agent != agentGoose
-	}
-	if !legacy {
-		return nil
-	}
-	runner := filepath.Join(installRoot, "bin", "sdlc-harness")
-	info, err := os.Stat(runner)
-	if err != nil {
-		return fmt.Errorf("verifying installed harness runner %q: %w", runner, err)
-	}
-	if !info.Mode().IsRegular() || info.Mode().Perm()&0o111 == 0 {
-		return fmt.Errorf("verifying installed harness runner %q: expected an executable regular file", runner)
-	}
-	for _, harnessName := range agents {
-		if harnessName == agentGoose {
-			continue // Goose support does not revive the abandoned external audit harness.
-		}
-		request := harness.Request{
-			Harness: harnessName, Model: "readiness-model", Provider: "readiness-provider",
-			Prompt: "readiness", Directory: "/project", ResultFile: "/result",
-			SessionID: "00000000-0000-4000-8000-000000000000",
-		}
-		if _, err := harness.BuildStart(request); err != nil {
-			return fmt.Errorf("verifying %s external-audit start adapter: %w", harnessName, err)
-		}
-		if _, err := harness.BuildResume(request); err != nil {
-			return fmt.Errorf("verifying %s external-audit resume adapter: %w", harnessName, err)
 		}
 	}
 	return nil

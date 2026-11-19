@@ -48,8 +48,8 @@ func TestGooseInteractiveInstallation(t *testing.T) {
 	if len(rules) != 1 || len(rules[0].Hooks) != 1 || rules[0].Hooks[0].OnFailure != "block" || !strings.Contains(rules[0].Hooks[0].Command, "agent-command-guard.sh") {
 		t.Fatalf("invalid blocking contract: %+v", config)
 	}
-	if !strings.Contains(output.String(), "external-audit-adapter=NOT-IN-SCOPE") {
-		t.Fatalf("claims legacy adapter support: %s", output.String())
+	if strings.Contains(output.String(), "Harness goose:") || strings.Contains(output.String(), "external-audit-adapter") {
+		t.Fatalf("reports deprecated harness status: %s", output.String())
 	}
 	output.Reset()
 	if err := runInteractiveAtRoot(source, root, filepath.Join(root, "opt", "sdlc"), "v3.8.18", strings.NewReader("goose\n"), &output); err != nil {

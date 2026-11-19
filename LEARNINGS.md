@@ -1,10 +1,17 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 42
-last-updated: 2026-11-15
+version: 43
+last-updated: 2026-11-19
 ---
 
 # SDLC Standards: Design Learnings
+
+## Retired transports are not installation readiness gates
+
+An installer should verify active protections and report failures, but not
+print per-harness success claims that imply a live native hook check when it
+only exercised the local guard script. A retired audit transport may remain
+packaged for compatibility without its adapters gating current installation.
 
 ## A handover invocation supplies destination authority
 

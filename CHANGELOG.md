@@ -1,10 +1,18 @@
 ---
 title: Changelog
 version: 2
-last-updated: 2026-11-15
+last-updated: 2026-11-19
 ---
 
 # Changelog
+
+## v4.0.27 - 2026-11-19
+
+- Remove per-harness installer success lines, including Goose's unverified
+  native-hook status and all external-audit adapter claims. Continue to fail
+  installation when the local command guard check fails.
+- Stop using the retired audit harness adapters as an installer readiness gate.
+  Retain the legacy binary as a deprecated compatibility artefact.
 
 ## v4.0.26 - 2026-11-15
 
