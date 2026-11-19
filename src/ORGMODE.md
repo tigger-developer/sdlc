@@ -55,6 +55,12 @@ Use `=verbatim=` for filenames, commands, identifiers, and literal values, and
 `~code~` for inline code. Do not use Markdown backticks, even when a renderer
 accepts them.
 
+## Quotation marks
+
+Use straight ASCII quotation marks and apostrophes (`"` and `'`) in Org source.
+Do not type smart or curly quotes. If typographic quotation marks are wanted
+in rendered output, leave that conversion to the exporter.
+
 ## Horizontal rules
 
 When a horizontal rule is needed in Org, use a line of at least five hyphens,

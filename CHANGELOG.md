@@ -6,6 +6,11 @@ last-updated: 2026-11-19
 
 # Changelog
 
+## v4.0.30 - 2026-11-19
+
+- Require straight ASCII quotation marks and apostrophes in Markdown and Org
+  source, leaving any typographic conversion to the renderer or exporter.
+
 ## v4.0.29 - 2026-11-19
 
 - Define Markdown source conventions for en and em dashes, with rendering

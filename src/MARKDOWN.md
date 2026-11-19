@@ -1,6 +1,6 @@
 ---
 title: Markdown Authoring
-version: 2
+version: 3
 last-updated: 2026-11-19
 ---
 
@@ -25,6 +25,12 @@ predictable syntax over renderer-specific extensions.
 - Code blocks: fenced blocks with a language identifier where applicable.
 
 Use relative paths for repository images and links where possible.
+
+## Quotation marks
+
+Use straight ASCII quotation marks and apostrophes (`"` and `'`) in Markdown
+source. Do not type smart or curly quotes. If typographic quotation marks are
+wanted in rendered output, leave that conversion to the renderer.
 
 ## Dashes and section breaks
 
