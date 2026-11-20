@@ -1,7 +1,7 @@
 ---
 title: Delivery Execution and Record Responsibilities
-version: 9
-last-updated: 2026-11-14
+version: 10
+last-updated: 2026-11-20
 ---
 
 # Delivery execution and records
@@ -254,6 +254,23 @@ Execute final OTs before the delivery-code audit; every AT, RT and OT must be GR
 UTs may remain AMBER until operator participation. Earlier diagnostic executions
 count only if their evidence remains current for the candidate. Paired development
 uses the live user-validation contract below.
+
+## Implementation self-audit checkpoints
+
+For multi-slice production implementation, self-audit coherent functional or
+architectural slices in the current author context before a new pattern is
+repeated widely. These deliberate checks may use the evidence available at that
+point; they do not require final AT/RT/OT GREEN, completed product documentation
+or delivery-code validator readiness. Correct valid findings before extending
+the affected slice. The delivery agent chooses checkpoint boundaries from the
+approved design and the implementation encountered; the signed-off
+specification need not prescribe their timing.
+
+An implementation checkpoint self-audit is not a delivery-code gate submission
+under `REVIEW.md` or `SELF-AUDIT.md`. Do not issue a gate PASS or FAIL, add a
+gate entry to `audits.yaml`, or consume one of the five delivery-code audit
+rounds. Do not launch an independent reviewer for a checkpoint. The final
+delivery-code audit remains required for the complete candidate.
 
 ## Validation records and user approval
 

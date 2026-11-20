@@ -1,7 +1,7 @@
 ---
 title: Lean Software Delivery Standards
-version: 8
-last-updated: 2026-10-31
+version: 9
+last-updated: 2026-11-20
 ---
 
 # Lean Software Delivery Standards
@@ -29,8 +29,9 @@ This check applies to consuming SDLC projects, not instruction source maintainer
 
 The old external audit harness is retired. `AUDITS.md` owns delivery review
 orchestration and routes current-session review through `SELF-AUDIT.md` and the
-three review skills. The three review skills never launch another reviewer. An explicitly requested
-independent review follows AUDITS' caller contract and INDEPENDENT-AUDITOR.
+three review skills. The three review skills never launch another reviewer. An
+independent review requires a separate, explicit operator request for that audit
+and follows AUDITS' caller contract and INDEPENDENT-AUDITOR.
 The retired external harness is not invoked. Review prerequisites
 never replace human approval, readiness, tests, scope, holds or closure.
 

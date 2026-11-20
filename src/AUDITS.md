@@ -1,7 +1,7 @@
 ---
 title: Delivery Review Gates
-version: 22
-last-updated: 2026-11-13
+version: 23
+last-updated: 2026-11-20
 ---
 
 # Delivery review gates
@@ -22,14 +22,19 @@ request, not by their mere availability in a non-SDLC project.
 An explicitly requested independent audit uses INDEPENDENT-AUDITOR.md directly,
 not one of the self-audit skills. A manual fresh session, an isolated native
 sub-agent, or a headless invocation of the selected harness may perform it.
-These are fresh-review routes; none uses the retired audit harness.
+These are fresh-review routes; none uses the retired audit harness. The operator
+initiates each independent audit directly or explicitly requests an agent to
+launch that specific audit. Workflow configuration is not standing authority
+to incur the additional model cost of independent reviews.
 
 ### Unattended profile requiring independence
 
-The old audit harness is abandoned as this profile's execution path. An expressly
-authorized independent agent job uses INDEPENDENT-AUDITOR.md with the specification
-and frozen candidate evidence. Infrastructure owns execution, not review criteria.
-This contract neither enables the old harness nor starts a job by itself.
+The old audit harness is abandoned as this profile's execution path. An
+operator-initiated independent agent job uses INDEPENDENT-AUDITOR.md with the
+specification and frozen candidate evidence. Infrastructure owns execution, not
+review criteria. An unattended profile does not authorize scheduling an
+independent audit automatically. This contract neither enables the old harness
+nor starts a job by itself.
 
 When the selected workflow promises independent review, lack of isolation or
 review availability leaves that requirement unresolved. Continue other safe work
@@ -40,8 +45,9 @@ authority and disclosure of the reduced assurance.
 
 ### Calling an independent reviewer
 
-Only an explicit independent-audit request or an expressly authorized workflow
-permits this route. Ordinary self-audit requirements do not. The caller:
+Only a current, explicit operator request for the specific independent audit
+permits this route. An ordinary self-audit requirement, configured model or
+selected workflow does not. The caller:
 
 - Resolves the effective `delivery.audit` selection before starting a reviewer:
   read `/opt/sdlc/sdlc.yaml` and the project's `.sdlc/project.yaml` when present,

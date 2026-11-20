@@ -1,10 +1,20 @@
 ---
 title: Changelog
 version: 2
-last-updated: 2026-11-19
+last-updated: 2026-11-20
 ---
 
 # Changelog
+
+## v4.0.31 - 2026-11-20
+
+- Require current-context self-audit at selected functional or architectural
+  checkpoints during multi-slice implementation, with remediation before a
+  pattern spreads. Keep checkpoints outside the formal delivery-code audit
+  rounds and retain the final full-candidate audit.
+- Require a separate, explicit operator request for each independent audit;
+  workflow configuration does not authorize automatic invocation or its
+  additional model cost.
 
 ## v4.0.30 - 2026-11-19
 

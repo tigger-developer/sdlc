@@ -158,6 +158,25 @@ recorded PASS, proceed without repeating the audit merely to change its method.
 If the approved spec has neither ATs nor RTs, skip this checkpoint and proceed
 to implementation; do not remove or reclassify approved ATs or RTs to bypass it.
 
+### Implementation self-audit checkpoints
+
+Before production implementation, identify natural functional or architectural
+slices from the approved design. For a change with multiple slices, select at
+least one self-audit checkpoint before a new implementation pattern spreads across
+the codebase. After each selected slice, deliberately inspect its actual code,
+tests and affected interfaces for design conformance, correctness, security and
+maintainability in the current author context. Report the checkpoint scope,
+findings and corrections in the normal progress update. Remediate valid findings
+before building on that slice. Adjust later checkpoints as the implementation
+reveals its boundaries. Do not review every commit, file, test or AC. A
+single-slice change may proceed directly to the final delivery-code audit.
+
+These current-context self-audits are author checks under `DELIVERY.md`, not
+delivery-code gate reviews. Do not launch an independent reviewer, invoke
+`code-audit`, record a gate verdict or consume an audit round at a checkpoint.
+The final review still assesses the complete candidate under the usual
+readiness requirements.
+
 Implement the authorized solution, obtain GREEN for every AT/RT and execute bounded
 OTs. Keep the specification synchronized for authorized routine details, without
 changing signed-off behaviour. Finish the solution, tests and affected documentation,
@@ -171,7 +190,9 @@ remediate valid findings and challenge incorrect or out-of-scope findings with
 evidence under `/opt/sdlc/docs/AUDITS.md`. Raise doubtful or unresolved disputes
 to the operator; never silently waive findings or expand scope to obtain a PASS.
 The old external harness is retired. Use self-review by default; launch an
-independent reviewer only with explicit authority under `AUDITS.md`. Do not re-audit the signed-off definition without a material change.
+independent reviewer only for a specific audit explicitly requested by the
+operator under `AUDITS.md`. Do not re-audit the signed-off definition without a
+material change.
 After current delivery-code internal PASS under
 `AUDITS.md`, return the results for operator validation, explicitly naming the
 review method and any loss of independence.

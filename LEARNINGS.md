@@ -1,10 +1,20 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 44
-last-updated: 2026-11-19
+version: 45
+last-updated: 2026-11-20
 ---
 
 # SDLC Standards: Design Learnings
+
+## Review an implementation pattern before it spreads
+
+A final complete-candidate audit can discover a design defect only after it has
+been repeated across a large change. Deliberate current-context self-audits at
+coherent functional or architectural boundaries expose that risk earlier. Keep
+their scope and timing proportional to the actual implementation, and reserve
+formal gate verdicts and limited audit rounds for the complete delivery
+candidate. Independent reviews incur separate model cost, so each requires its
+own explicit operator invocation.
 
 ## Markup rules belong to their own formats
 
