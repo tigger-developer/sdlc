@@ -17,6 +17,10 @@ Review the whole package:
 - Every requirement has credible, traced verification. Test definitions specify
   actions and observable expectations at the real product boundary; a CLI is
   tested through CLI invocation. No source-grep substitutes for behaviour.
+- For a D fix, verify that the reported failure violates cited, existing
+  requirement authority. Reject new AC headings, new product behaviour or
+  tests whose expected result depends on an unapproved requirement in the D
+  ticket. A missing requirement needs separate W definition.
 - Solution design resolves significant responsibilities, interfaces, state,
   failure handling and security decisions sufficiently for another agent to
   deliver. It fits project architecture without unnecessary machinery.

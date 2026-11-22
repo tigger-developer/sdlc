@@ -24,11 +24,15 @@ AC identifies an acceptance criterion, not a test. Test types are AT (Automated
 Test), RT (Regression Test), OT (One-off Test) and UT (User Test); inventory
 counts report each separately. RED/GREEN AT/RT records require COMMAND,
 REVISION and EVIDENCE; AMBER records require REASON.
+A W specification needs at least one AC and one test. A defect fix specification
+at tickets/DNNN-description/spec.org may have zero local ACs but still needs a
+test and an existing requirement cited in the document. The validator does not
+verify the cited requirement's authority.
 Exit: 0 ready; 1 ineligible; 2 invalid schema; 3 invocation/read/write error.
 
 Examples:
-  sdlc-validate --spec specs/WNNN-descriptor/spec.org --readiness-check=test-code
-  sdlc-validate --spec specs/WNNN-descriptor/spec.org --readiness-check=delivery-code
+  sdlc-validate --spec tickets/WNNN-descriptor/spec.org --readiness-check=test-code
+  sdlc-validate --spec tickets/DNNN-descriptor/spec.org --readiness-check=delivery-code
 
 The validator checks recorded evidence, not its truth or behavioural adequacy.
 Definition review does not require execution readiness; neither check is a

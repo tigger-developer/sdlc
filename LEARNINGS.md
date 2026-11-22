@@ -1,10 +1,19 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 45
-last-updated: 2026-11-20
+version: 46
+last-updated: 2026-11-22
 ---
 
 # SDLC Standards: Design Learnings
+
+## A defect is evidence against existing authority
+
+A defect report records observed non-compliance; it must not become a route for
+approving new product behaviour. Its later fix specification can define tests
+and design against existing requirements without declaring local ACs. A missing
+requirement belongs in a separate linked work item. The validator must allow
+that zero-AC D fix shape while leaving judgement about the cited authority to
+the author and auditor.
 
 ## Review an implementation pattern before it spreads
 

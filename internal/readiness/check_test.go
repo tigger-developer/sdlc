@@ -133,6 +133,54 @@ func TestDeliveryWithoutRegressionTests(t *testing.T) {
 	}
 }
 
+func TestDefectFixAllowsNoLocalAC(t *testing.T) {
+	root := t.TempDir()
+	spec := `#+TITLE: D007 - Restore rejected input
+* Acceptance Criteria
+- Existing requirement :: [[file:../W001-input/spec.org::#ac-001-1][AC001.1 - Reject invalid input]]
+* Test Definitions
+** RT007.1 - Reject invalid input :testdef:
+`
+	validation := `#+TODO: AMBER RED | GREEN
+* Results
+** RED RT007.1 - Reject invalid input :testdef:
+:PROPERTIES:
+:REVISION: test-candidate
+:COMMAND: go test ./internal/parser
+:EVIDENCE: Invalid input was accepted.
+:END:
+`
+	for _, tc := range []struct {
+		name, directory string
+		wantExit        int
+	}{
+		{"defect fix", "D007-invalid-input", 0},
+		{"new work", "W007-invalid-input", 2},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			dir := filepath.Join(root, "tickets", tc.directory)
+			if err := os.MkdirAll(dir, 0o700); err != nil {
+				t.Fatal(err)
+			}
+			specPath := filepath.Join(dir, "spec.org")
+			validationPath := filepath.Join(dir, "validation.org")
+			if err := os.WriteFile(specPath, []byte(spec), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(validationPath, []byte(validation), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			report, err := Check(specPath, validationPath, "test-code")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if report.ExitCode() != tc.wantExit || report.Audit.Inventory.Counts.ACs != 0 {
+				t.Fatalf("exit %d, AC count %d, wanted exit %d: %+v", report.ExitCode(), report.Audit.Inventory.Counts.ACs, tc.wantExit, report)
+			}
+		})
+	}
+}
+
 func TestIgnoresExamplesAndHistoryButRejectsBrokenBlocks(t *testing.T) {
 	example := "\n#+begin_src org\n** RT007.1 - Not a record :testdef:\n#+end_src\n"
 	history := "\n*** Run 2026-09-16\nPreviously RED; RT007.1 failed before the change.\n"

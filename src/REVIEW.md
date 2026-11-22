@@ -1,7 +1,7 @@
 ---
 title: Shared Review Criteria and Profiles
-version: 7
-last-updated: 2026-10-29
+version: 8
+last-updated: 2026-11-22
 ---
 
 # Shared review criteria
@@ -59,6 +59,10 @@ contain defects. A requester claim alone does not establish readiness.
 - Definition reviews requirements, solution design and AT/RT/UT/OT definitions
   together. Do not demand execution results at that stage. Assess scope,
   over-engineering and template inflation, not length or aesthetic preferences.
+- For a D fix, confirm that the observed failure and every expected test result
+  trace to existing requirement authority. No new AC heading or product
+  requirement belongs in the D ticket. A missing requirement needs a separate
+  W definition, not a fabricated defect criterion.
 - Managed test-code requires the specified AT/RT package to have executed with
   intended RED or justified preservation GREEN; OT/UT may be AMBER. Minimal
   scaffolding may enable execution but must not implement target behaviour.

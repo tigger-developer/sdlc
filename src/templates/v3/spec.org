@@ -1,5 +1,5 @@
 #+TITLE: WNNN - [Concise change-specific title]
-#+SCHEMA: 11
+#+SCHEMA: 12
 #+SUBTITLE: Unified change specification
 #+STARTUP: overview
 #+OPTIONS: toc:2 num:nil
@@ -17,6 +17,11 @@ instructional placeholder before definition sign-off. The document title must
 name the change with its existing ticket ID and a concise descriptor. New work
 uses W; a defect fix retains its D ID and an existing ticket keeps its identity. Generic titles such
 as =Spec sheet=, =Specification=, =Change=, or =Untitled= are invalid.
+For a D fix, cite the existing requirement violated by the defect. Do not add
+new requirements or AC headings anywhere in the D ticket. Replace the sample
+AC headings below with links to the existing authority, and link each test to
+that authority. If no existing requirement governs the desired behaviour,
+define it as separate W work linked to the defect.
 Keep the opening section named =Synopsis=; do not repeat the document title
 as its headline. Preserve its =CUSTOM_ID: summary= for stable links.
 
@@ -204,6 +209,10 @@ system [does, returns, stores, or rejects] X." Split independently falsifiable
 conditions. Every AC links to at least one test definition.
 Keep delivery prerequisites under Context and link from Handoff. Do not turn
 workflow checkpoints into product ACs. Link exact design contracts where needed.
+For a D fix, remove the example AC subtrees below. Keep this section as links
+to the existing approved ACs or other requirement authority; never copy or
+write new AC headings here. A defect is evidence of non-compliance, not
+authority to define new product behaviour.
 #+end_comment
 
 ** ACNNN.1 - Descriptive outcome :ac:
@@ -259,6 +268,10 @@ to reformat cases. Optional table layout:
 | Case | Action or input | Observable expected result | AC |
 |------+-----------------+----------------------------+----|
 | [Descriptive case] | [Bounded action] | [Concrete outcome] | [AC link] |
+
+For a D fix, replace each example =Covers= link with the existing requirement
+or AC link named in the Acceptance Criteria section. Do not create a local AC
+merely to satisfy the example layout.
 #+end_comment
 
 ** ATNNN.1 - Descriptive automated test :testdef:

@@ -1,7 +1,7 @@
 ---
 title: Lean Software Delivery Standards
-version: 9
-last-updated: 2026-11-20
+version: 10
+last-updated: 2026-11-22
 ---
 
 # Lean Software Delivery Standards
@@ -51,7 +51,9 @@ An explicit request to register a defect uses `defect-raise`, not
 root cause or fix design. It uses primary, the shared numeric namespace and
 `tickets/DNNN-description/defect.org`. Defect-raise, define-change and
 deliver-change all refuse to proceed until initialization and layout migration
-have succeeded. Raising a defect does not authorize implementation or an audit.
+have succeeded. A defect records non-compliance with existing requirements; it
+never creates ACs or new product behaviour. Define a missing requirement as
+separate W work. Raising a defect does not authorize implementation or an audit.
 
 ## Delivery-specific engineering rules
 

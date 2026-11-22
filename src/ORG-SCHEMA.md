@@ -1,7 +1,7 @@
 ---
 title: Specification and Validation Record Schema
-version: 3
-last-updated: 2026-10-29
+version: 4
+last-updated: 2026-11-22
 ---
 
 # Specification and validation record schema
@@ -24,8 +24,11 @@ test colours are not audit verdicts.
   the stars and space, before the ID. Execution states do not belong in `spec.org`.
 - A tagged record without a valid ID/title, an ID-shaped heading without its
   required tag, or duplicate IDs within either document is a schema error.
-- Each active spec needs at least one AC and one test. Dense case groups may
-  retain one test ID; their evidence must cover every specified case.
+- Each active W specification needs at least one AC and one test. A D fix
+  specification under `tickets/DNNN-description/spec.org` needs at least one
+  test but no locally defined AC: link its tests to the existing requirement
+  or approved AC that the defect violates. Dense case groups may retain one
+  test ID; their evidence must cover every specified case.
 
 ```org
 ** AC007.1 - Invalid input is rejected :ac:
@@ -96,6 +99,10 @@ outputs YAML under `audit-readiness`, and never runs tests or writes files.
 - Inventory counts distinguish acceptance criteria from tests, with separate
   `at`, `rt`, `ot` and `ut` counts. AT support is additive; existing IDs and
   RT/OT/UT evidence remain valid without renumbering or reclassification.
+- The validator permits zero local ACs only for a D fix specification at the
+  ticket path above. It does not verify the linked external requirement or
+  distinguish a historical AC heading from a new one; the author and auditor
+  must enforce that authority boundary.
 
 The parser ignores Org blocks, comments and drawers as record sources. It rejects
 unclosed blocks/drawers and duplicate properties. It validates this record subset,

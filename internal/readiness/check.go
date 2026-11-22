@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 )
@@ -115,8 +116,13 @@ func Check(specPath, validationPath, mode string) (Report, error) {
 	}
 	inv := &r.Audit.Inventory
 	inv.Counts.ACs, inv.Counts.Tests = len(inv.ACs), len(inv.Tests)
-	if inv.Counts.ACs == 0 || inv.Counts.Tests == 0 {
-		r.Audit.Schema.Errors = append(r.Audit.Schema.Errors, Issue{Code: "EMPTY_INVENTORY", File: specPath, Message: "Specification requires at least one AC and one test."})
+	defectFix := defectFixSpec(specPath)
+	if inv.Counts.Tests == 0 || (inv.Counts.ACs == 0 && !defectFix) {
+		message := "Specification requires at least one AC and one test."
+		if defectFix {
+			message = "Defect fix specification requires at least one test."
+		}
+		r.Audit.Schema.Errors = append(r.Audit.Schema.Errors, Issue{Code: "EMPTY_INVENTORY", File: specPath, Message: message})
 	}
 	for i := range inv.Tests {
 		test := &inv.Tests[i]
@@ -175,6 +181,17 @@ func Check(specPath, validationPath, mode string) (Report, error) {
 
 func automated(id string) bool {
 	return strings.HasPrefix(id, "AT") || strings.HasPrefix(id, "RT")
+}
+
+var defectTicketDir = regexp.MustCompile(`^D[0-9]+-.+$`)
+
+func defectFixSpec(path string) bool {
+	clean := filepath.Clean(path)
+	if filepath.Base(clean) != "spec.org" {
+		return false
+	}
+	dir := filepath.Dir(clean)
+	return filepath.Base(filepath.Dir(dir)) == "tickets" && defectTicketDir.MatchString(filepath.Base(dir))
 }
 
 func issue(code string, record Record, message string) Issue {

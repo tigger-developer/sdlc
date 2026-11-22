@@ -1,7 +1,7 @@
 ---
 title: Specification Standards
-version: 7
-last-updated: 2026-11-14
+version: 8
+last-updated: 2026-11-22
 ---
 
 # Specification Standards
@@ -25,7 +25,9 @@ A specification is defined when it identifies:
 - inputs, outputs, state changes, and important interfaces;
 - failure, boundary, security, privacy, and accessibility behaviour where
   relevant; and
-- acceptance criteria that can distinguish compliance from non-compliance.
+- for new work, acceptance criteria that can distinguish compliance from
+  non-compliance; for a defect fix, the existing requirement or approved AC
+  whose violation distinguishes the defect.
 
 Open questions that can materially change those facts must be resolved in the
 specification before implementation. Routine, reversible implementation details
@@ -133,12 +135,20 @@ relationship.
 Normal delivery uses `tickets/<ticket>-descriptor/spec.org`. A new work item
 uses W, a defect D and a spike S; a defect's later fix specification retains
 its D identity and lives beside `defect.org`. A spike brief is `spike.org`.
+`defect.org` records observations and evidence, never new requirements or ACs.
+A D fix specification cites existing requirements and defines how the fix will
+be verified; it does not introduce AC headings or new product behaviour. If the
+desired outcome has no existing requirement, define it as separate W work and
+link the defect rather than using a D ticket to approve that requirement.
+Preserve historical D specifications and their AC records as evidence; do not
+delete or rewrite them merely to adopt this rule. Do not add new ACs to them.
 The specification contains, in order:
 
 - a scan-friendly summary covering outcome, before, after, changes, unchanged
   boundaries, edge cases, decisions, and next step;
 - context, scope, authorities, constraints, decisions, and blockers;
-- acceptance criteria;
+- acceptance criteria for W work, or links to existing requirement authority
+  for a D fix;
 - traced AT, RT, UT, and OT test definitions, including at least one meaningful
   UT under TESTING.md;
 - edge cases;
@@ -211,9 +221,11 @@ acceptance. These are evidence criteria, not authority for a reviewer to edit.
 Keep the core sections; adapt subordinate structure to the change:
 
 - **ACs** own required system outcomes and durable product constraints.
+  A D fix does not create or copy AC headings; it links the existing authority.
 - **Design** owns exact after-state interfaces and mechanisms, preferably as
   addressable examples or contract tables. Link stable architecture, do not copy it.
-- **Tests** own actions and explicit observable expectations, traced to ACs.
+- **Tests** own actions and explicit observable expectations, traced to ACs or,
+  for a D fix, to the cited existing requirement.
   For dense case groups, retain shared setup and one test ID; use named child
   cases or a compact case/outcome table with AC mappings. Formatting does not
   require more test IDs or another harness. "See design" alone is insufficient.
@@ -273,10 +285,12 @@ A bug is a mismatch between observed behaviour and a requirement.
 
 - If an existing requirement covers the behaviour, cite it with a descriptor
   and add regression evidence against that requirement.
-- If no requirement covers the behaviour, amend the normal specification or
-  establish the paired/emergency working specification before implementation.
-  Do not manufacture a parallel requirement that conflicts
-  with the original feature specification.
+- If no existing requirement covers the desired behaviour, preserve the report
+  as an unconfirmed expectation and define the proposed behaviour as separate
+  W work before implementation. Do not manufacture new ACs in `defect.org` or
+  a D fix specification, or use a defect ticket to authorize a new requirement.
+- Paired or emergency work still needs its authorized working specification;
+  that mode does not turn a new requirement into a defect.
 - Treat the human's observation as evidence to investigate. A code-reading
   hypothesis does not disprove it.
 - Reproduce or otherwise isolate the failure before stating its cause.
@@ -301,6 +315,9 @@ Do not create a defects or spikes subdirectory. All types remain in the same
 primary-branch `docs/work.org` register with their existing lifecycle and type
 tags. Reserve IDs under DELIVERY's publication protocol. Ticket identity stays
 stable when a defect gains a fix specification; do not allocate a second number.
+That fix specification may add tests and design for the existing requirement,
+but no new ACs. A separate requirement change receives its own W identity and
+links back to the defect.
 The ticket's specification, feedback, validation, audit and decision records
 also belong on primary. Update and publish them there under `GIT.md` and
 `DELIVERY.md`; feature-branch copies are read-only snapshots.

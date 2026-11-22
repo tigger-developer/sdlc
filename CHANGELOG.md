@@ -1,10 +1,20 @@
 ---
 title: Changelog
 version: 2
-last-updated: 2026-11-20
+last-updated: 2026-11-22
 ---
 
 # Changelog
+
+## v4.0.32 - 2026-11-22
+
+- Keep D tickets tied to existing requirements: `defect.org` records failure
+  evidence, and a later fix specification links existing authority and defines
+  tests without creating ACs. Define uncovered desired behaviour as separate
+  W work linked to the defect.
+- Permit zero local AC headings for a D fix specification in the readiness
+  validator while retaining the existing AC requirement for W specifications.
+  Update the specification template, review criteria and validator help.
 
 ## v4.0.31 - 2026-11-20
 

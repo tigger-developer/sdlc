@@ -47,13 +47,19 @@ more than three additional questions for each affected area. Do not use
 multiple-choice UI.
 
 Reserve the next shared numeric ID on primary under `DELIVERY.md`, using W
-for a new work item. Reuse a defect's D identity when defining its fix. Create
-`tickets/WNNN-descriptor/spec.org` from
+for a new work item. Reuse a defect's D identity and its existing ticket
+directory when defining its fix. Create `tickets/WNNN-descriptor/spec.org` for
+new W work or add `spec.org` beside the existing D ticket's `defect.org`, from
 `/opt/sdlc/docs/templates/v3/spec.org`. Include context, falsifiable acceptance
-criteria, traced AT/RT/UT/OT test definitions (including at least one meaningful
-UT under TESTING.md), edge cases, solution design,
+criteria for W work, traced AT/RT/UT/OT test definitions (including at least one
+meaningful UT under TESTING.md), edge cases, solution design,
 mandatory security impact, and a context-independent delivery handoff. Apply
 `/opt/sdlc/docs/ORG-SCHEMA.md`: every AC carries `:ac:` and every test `:testdef:`.
+For a D fix, cite the existing requirement or approved AC that the observed
+behaviour violates. Keep the template's Acceptance Criteria section as links to
+that authority, removing its example AC heading; do not define any AC in the D
+ticket. If the desired behaviour lacks an existing requirement, define it as
+separate W work linked to the defect, not as a new requirement in the D fix.
 Create `validation.org` by delivery admission; do not invent execution states
 in definition. Record reviews in `audits.yaml` under `AUDIT-RECORD.md`;
 do not create parallel audit documents. Add or update the descriptive work item in `docs/work.org`. Apply the

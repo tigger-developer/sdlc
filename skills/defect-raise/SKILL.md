@@ -55,10 +55,11 @@ Record operator-assigned priority as such. Keep impact evidence separate from
 any proposed severity; do not invent release commitments.
 
 Describe how a later check could distinguish the observed failure from the
-expected behaviour when that is already clear. Formal acceptance criteria,
-AT/RT/UT/OT definitions, root-cause analysis and solution design are not required
-to raise the defect. Do not run intrusive reproductions, change environments,
-write regression tests or expand into diagnosis merely to fill the report.
+expected behaviour when that is already clear. Do not create acceptance criteria
+or new requirements in the defect report. AT/RT/UT/OT definitions, root-cause
+analysis and solution design are not required to raise it. Do not run intrusive
+reproductions, change environments, write regression tests or expand into
+diagnosis merely to fill the report.
 
 ## Register once
 
@@ -97,7 +98,10 @@ reported, not confirmed, diagnosed, delivery-approved or corrected.
 Further diagnosis or implementation requires its own instruction. If a fix
 later needs `spec.org`, add it to the same ticket directory and link the defect
 report and original requirement; do not create another ticket merely to change
-phase. Preserve the original observations and their provenance. If a genuinely
-separate change is needed, link it explicitly rather than silently splitting
-identity. Any later requested audit uses canonical `audits.yaml`; raising a
-defect alone requires neither an audit nor an audit record.
+phase. The fix specification references existing requirements and defines tests,
+but introduces no new ACs or product behaviour. If the expected behaviour has no
+existing requirement, preserve that uncertainty in the defect report and define
+the proposed behaviour as separate W work, linked to the defect. Preserve the
+original observations and their provenance. Any later requested audit uses
+canonical `audits.yaml`; raising a defect alone requires neither an audit nor
+an audit record.
