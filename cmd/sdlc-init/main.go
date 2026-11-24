@@ -38,6 +38,9 @@ func runCommand(arguments []string, input io.Reader, output, errorOutput io.Writ
 		fmt.Fprintf(output, "sdlc-init %s\n", version)
 		return nil
 	}
+	if len(arguments) > 0 && arguments[0] == "goal-config" {
+		return runGoalConfig(arguments[1:], output, errorOutput)
+	}
 	if requestsHelp(arguments) {
 		printBootstrapHelp(errorOutput)
 		return nil
@@ -106,6 +109,7 @@ func requestsHelp(arguments []string) bool {
 
 func printBootstrapHelp(output io.Writer) {
 	fmt.Fprintln(output, "usage: sdlc-init [options]")
+	fmt.Fprintln(output, "       sdlc-init goal-config [options]")
 	printInitPurpose(output)
 	fmt.Fprintln(output, "")
 	fmt.Fprintln(output, "Core options:")
@@ -118,6 +122,7 @@ func printBootstrapHelp(output io.Writer) {
 	fmt.Fprintln(output, "  --version             print the command version")
 	fmt.Fprintln(output, "")
 	fmt.Fprintln(output, "Project-setting options are generated from config/project-init.schema.yaml.")
+	fmt.Fprintln(output, "Run sdlc-init goal-config --help for read-only native goal limit resolution.")
 }
 
 func printInitPurpose(output io.Writer) {

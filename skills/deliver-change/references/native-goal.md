@@ -1,7 +1,7 @@
 ---
 title: Native Goal Activation for Delivery and Spikes
-version: 1
-last-updated: 2026-10-24
+version: 2
+last-updated: 2026-11-24
 ---
 
 # Native goal activation for delivery
@@ -15,9 +15,10 @@ imposed by that harness before creating a goal.
 
 ## Resolve limits
 
-Read `/opt/sdlc/bin/sdlc-harness --help` once, resolving the executable to
-an absolute path. Run its **read-only** `goal-config --project <project-root>`
-operation. Use the returned integers; do not parse budget strings yourself.
+Read `/opt/sdlc/bin/sdlc-init goal-config --help` once. Run
+`/opt/sdlc/bin/sdlc-init goal-config --project <project-root>` to resolve the
+limits **read-only**, without initializing or changing the project. Use the
+returned integers; do not parse budget strings yourself.
 An error must be resolved before starting goal-backed delivery. Never substitute
 a default after invalid input.
 

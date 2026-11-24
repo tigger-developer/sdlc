@@ -1,10 +1,16 @@
 ---
 title: Changelog
 version: 2
-last-updated: 2026-11-22
+last-updated: 2026-11-24
 ---
 
 # Changelog
+
+## v4.0.33 - 2026-11-24
+
+- Move read-only native goal-limit resolution from the retired `sdlc-harness`
+  command to an installed `sdlc-init goal-config` subcommand. Update the
+  delivery skill, native goal reference, and configuration guidance to use it.
 
 ## v4.0.32 - 2026-11-22
 

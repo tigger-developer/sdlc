@@ -65,8 +65,9 @@ integration is needed. UTs and configured SDLC audits are outside this budget.
 
 On entering HANDS-OFF, read
 `/opt/sdlc/skills/deliver-change/references/native-goal.md` and resolve its
-budgets before implementation. Activate the current harness's native goal
-control where exposed and authorized; verify its result before announcing
+budgets with the installed `sdlc-init goal-config` operation before
+implementation. Activate the current harness's native goal control where
+exposed and authorized; verify its result before announcing
 `NATIVE GOAL: ACTIVE`. Do not treat a configured budget as an enforced budget.
 If native activation needs an operator command, give that command during the
 preflight; disclose the limitation rather than launching another agent or

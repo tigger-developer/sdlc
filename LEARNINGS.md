@@ -1,10 +1,17 @@
 ---
 title: "SDLC Standards: Design Learnings"
-version: 46
-last-updated: 2026-11-22
+version: 47
+last-updated: 2026-11-24
 ---
 
 # SDLC Standards: Design Learnings
+
+## Retiring a binary includes its unrelated read-only operations
+
+The old audit harness also resolved native goal limits. Removing its deployed
+binary while leaving goal activation dependent on `goal-config` broke hands-off
+delivery before implementation. Move still-needed operations to an active
+installed command and check skill references when retiring an executable.
 
 ## A defect is evidence against existing authority
 

@@ -1,7 +1,7 @@
 ---
 title: SDLC Configuration and Installation Reference
-version: 11
-last-updated: 2026-11-19
+version: 12
+last-updated: 2026-11-24
 ---
 
 # SDLC configuration and installation reference
@@ -244,7 +244,10 @@ Goal values above match the schema defaults. Plain positive integers and
 correctly comma-grouped thousands are accepted; periods, decimals, malformed
 grouping, scientific notation, signs, zero and leading zeroes are rejected before
 numeric conversion. Project overrides use the same keys under
-`.sdlc/project.yaml`. Native goal activation is capability-dependent; see the
+`.sdlc/project.yaml`. Run
+`/opt/sdlc/bin/sdlc-init goal-config --project <project-root>` to resolve the
+effective goal limits read-only, without invoking the retired audit harness or
+initializing the project. Native goal activation is capability-dependent; see the
 [native goal instructions](../skills/deliver-change/references/native-goal.md).
 
 Document inspection defaults to `htmlpreview`. Set `HTML_PREVIEW_TOOL` to an
